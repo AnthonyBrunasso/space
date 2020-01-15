@@ -159,17 +159,17 @@ Render(const math::Rectf visible_world)
     }
   }
 
+  for (int i = 0; i < kUsedPod; ++i) {
+    Pod* pod = &kPod[i];
+    rgg::RenderTag(kGfx.pod_tag, pod->transform.position, pod->transform.scale,
+                   pod->transform.orientation, math::Vec4f(1.f, 1.f, 1.f, 1.f));
+  }
+
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
     rgg::RenderTag(kGfx.asteroid_tag, asteroid->transform.position,
                    asteroid->transform.scale, asteroid->transform.orientation,
                    math::Vec4f(1.f, 1.f, 1.f, 1.f));
-  }
-
-  for (int i = 0; i < kUsedPod; ++i) {
-    Pod* pod = &kPod[i];
-    rgg::RenderTag(kGfx.pod_tag, pod->transform.position, pod->transform.scale,
-                   pod->transform.orientation, math::Vec4f(1.f, 1.f, 1.f, 1.f));
   }
 
   for (int i = 0; i < kMapHeight; ++i) {

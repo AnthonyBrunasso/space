@@ -163,7 +163,7 @@ TileAvoidWalls(const math::Vec2i pos)
 }
 
 bool
-WorldPositionOfTile(TileType type, math::Vec2f* world)
+TileTypeWorldPosition(TileType type, math::Vec2f* world)
 {
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {

@@ -12,13 +12,32 @@ struct Transform {
   math::Quatf orientation;
 };
 
+float
+dsq(math::Vec3f dst, math::Vec3f src)
+{
+  math::Vec3f delta = dst - src;
+  return delta.x * delta.x + delta.y * delta.y;
+}
+
+float
+transform_dsq(Transform* dst, Transform* src)
+{
+  return dsq(dst->position, src->position);
+}
+
 struct Asteroid {
   Transform transform;
+  uint64_t mineral_source;
+  uint64_t flags = 0;
 };
 DECLARE_GAME_TYPE(Asteroid, 8);
 
+constexpr uint64_t kPodMaxMineral = 100;
 struct Pod {
   Transform transform;
+  uint64_t think_flags = 0;
+  math::Vec2f goal;
+  uint64_t mineral;
 };
 DECLARE_GAME_TYPE(Pod, 8);
 
@@ -44,6 +63,6 @@ DECLARE_GAME_TYPE(Unit, 8);
 
 struct Ship {
   uint64_t satisfied_flags = 0;
+  uint64_t mineral = 0;
 };
 DECLARE_GAME_TYPE(Ship, 1);
-

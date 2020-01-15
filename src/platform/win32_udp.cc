@@ -131,7 +131,7 @@ GetAddr4(const char* host, const char* service_or_port, Udp4* out)
   u_long mode = 1;
   int r = ioctlsocket(out->socket, FIONBIO, &mode);
   if (r != NO_ERROR) {
-    printf("ioctlsocket failed with error: %ld\n", r);
+    udp_errno = errno;
     return false;
   }
 

@@ -1,7 +1,7 @@
-#include "platform.cc"
-
 #include <cstdint>
 #include <cstdio>
+
+#include "platform.cc"
 
 int
 main(int argc, char** argv)

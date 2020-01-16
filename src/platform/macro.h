@@ -12,6 +12,7 @@
 #define MIN(x, y) (y ^ ((x ^ y) & -(x < y)))
 #define MAX(x, y) (x ^ ((x ^ y) & -(x < y)))
 #define CLAMP(x, min, max) MIN(MAX(x, min), max)
+#define CLAMPF(x, low, high) ((x < low) ? low : (( x > high ) ? high : x))
 
 #if _WIN32
 #define ALIGNAS(n) alignas(n)

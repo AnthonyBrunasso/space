@@ -55,6 +55,8 @@ Initialize()
   Pod* pod = UsePod();
   pod->transform.position = math::Vec3f(520.f, 600.f, 0.f);
 
+  UseShip();
+
   tilemap::Initialize();
 
   return true;
@@ -152,6 +154,29 @@ Think()
 void
 Decide()
 {
+  for (int i = 0; i < kUsedShip; ++i) {
+    math::Vec2f module_position;
+    tilemap::TileTypeWorldPosition(tilemap::kTilePower, &module_position);
+    for (int j = 0; j < kUsedUnit; ++j) {
+      if (dsq(kUnit[j].transform.position, module_position) < 25.f * 25.f)
+        kShip[i].sys_power += 0.01f;
+    }
+
+    if (kShip[i].sys_power >= 1.0f) {
+      tilemap::TileTypeWorldPosition(tilemap::kTileEngine, &module_position);
+      for (int j = 0; j < kUsedUnit; ++j) {
+        if (dsq(kUnit[j].transform.position, module_position) < 25.f * 25.f)
+          kShip[i].sys_engine += 0.01f;
+      }
+
+      tilemap::TileTypeWorldPosition(tilemap::kTileMine, &module_position);
+      for (int j = 0; j < kUsedUnit; ++j) {
+        if (dsq(kUnit[j].transform.position, module_position) < 25.f * 25.f)
+          kShip[i].sys_mine += 0.01f;
+      }
+    }
+  }
+
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     // Busy unit

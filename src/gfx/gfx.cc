@@ -172,6 +172,18 @@ Render(const math::Rectf visible_world)
                    math::Vec4f(1.f, 1.f, 1.f, 1.f));
   }
 
+  float sys_power = .0f;
+  float sys_engine = .0f;
+  float sys_mine = .0f;
+  constexpr float min_visibility = .2f;
+  if (kUsedShip) {
+    sys_power = kShip[0].sys_power;
+
+    sys_power = CLAMPF(sys_power, min_visibility, 1.0f);
+    sys_engine = CLAMPF(kShip[0].sys_engine, min_visibility, sys_power);
+    sys_mine = CLAMPF(kShip[0].sys_mine, min_visibility, sys_power);
+  }
+
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
       Tile* tile = &kTilemap.map[i][j];
@@ -185,13 +197,13 @@ Render(const math::Rectf visible_world)
           color = math::Vec4f(1.f, 1.f, 1.f, 1.f);
           break;
         case kTileEngine:
-          color = math::Vec4f(1.0f, 0.0f, 0.f, 1.0f);
+          color = math::Vec4f(1.0f * sys_engine, 0.0f, 0.f, 1.0f);
           break;
         case kTilePower:
-          color = math::Vec4f(0.0f, 0.0f, 0.75f, 1.0f);
+          color = math::Vec4f(0.0f, 0.0f, 0.75f * sys_power, 1.0f);
           break;
         case kTileMine:
-          color = math::Vec4f(0.0, 0.75f, 0.0f, 1.0f);
+          color = math::Vec4f(0.0, 0.75f * sys_mine, 0.0f, 1.0f);
       };
 
       rgg::RenderRectangle(math::Vec3f(TileToWorld(*tile)),

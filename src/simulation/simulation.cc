@@ -77,11 +77,8 @@ Think()
     // Ship already has a pod, no-op
     uint64_t think_flags = 0;
     if (!kUsedPod) {
-      puts("No pod");
-
       // Ship mining is powererd
       if (kShip[i].sys_mine >= 1.0f) {
-        puts("Think spawn pod");
         think_flags = FLAG(kShipAiSpawnPod);
       }
     }
@@ -173,7 +170,6 @@ Decide()
 {
   for (int i = 0; i < kUsedShip; ++i) {
     if (kShip[i].think_flags & FLAG(kShipAiSpawnPod)) {
-      printf("spawn pod!!!");
       Pod* pod = UsePod();
       pod->transform.position = math::Vec3f(520.f, 600.f, 0.f);
     }

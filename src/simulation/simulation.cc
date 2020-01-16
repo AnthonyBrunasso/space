@@ -10,6 +10,10 @@
 
 namespace simulation
 {
+enum ShipAiGoals {
+  kShipAiSpawnPod,
+  kShipAiGoals = 64,
+};
 enum UnitAiGoals {
   kUnitAiPower = 0,
   kUnitAiMine,
@@ -52,9 +56,6 @@ Initialize()
   asteroid->transform.position = math::Vec3f(400.f, 750.f, 0.f);
   asteroid->mineral_source = 200.f;
 
-  Pod* pod = UsePod();
-  pod->transform.position = math::Vec3f(520.f, 600.f, 0.f);
-
   UseShip();
 
   tilemap::Initialize();
@@ -72,6 +73,22 @@ VerifyIntegrity()
 void
 Think()
 {
+  for (int i = 0; i < kUsedShip; ++i) {
+    // Ship already has a pod, no-op
+    uint64_t think_flags = 0;
+    if (!kUsedPod) {
+      puts("No pod");
+
+      // Ship mining is powererd
+      if (kShip[i].sys_mine >= 1.0f) {
+        puts("Think spawn pod");
+        think_flags = FLAG(kShipAiSpawnPod);
+      }
+    }
+
+    kShip[i].think_flags = think_flags;
+  }
+
   for (int i = 0; i < kUsedUnit; ++i) {
     switch (kUnit[i].kind) {
       default:
@@ -155,6 +172,12 @@ void
 Decide()
 {
   for (int i = 0; i < kUsedShip; ++i) {
+    if (kShip[i].think_flags & FLAG(kShipAiSpawnPod)) {
+      printf("spawn pod!!!");
+      Pod* pod = UsePod();
+      pod->transform.position = math::Vec3f(520.f, 600.f, 0.f);
+    }
+
     math::Vec2f module_position;
     tilemap::TileTypeWorldPosition(tilemap::kTilePower, &module_position);
     for (int j = 0; j < kUsedUnit; ++j) {

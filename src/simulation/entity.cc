@@ -62,6 +62,7 @@ struct Unit {
 DECLARE_GAME_TYPE(Unit, 8);
 
 struct Ship {
+  uint64_t think_flags = 0;
   uint64_t satisfied_flags = 0;
   uint64_t mineral = 0;
   float sys_power;

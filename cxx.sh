@@ -5,7 +5,7 @@ if [ -n "$unix" ]; then
   echo Building with $CXX $CXXFLAGS
   time $CXX $CXXFLAGS $1 -I src/ -lX11 -lEGL -lGL -lpthread -o $BIN_DIR/`basename -s .cc $1`
 else
-  time $CXX $CXXFLAGS $1 -g -ObjC++ -I src/ -L bin/ -ldl -o $BIN_DIR/`basename -s .cc $1` -framework OpenGL -framework AppKit -mmacosx-version-min=10.7 -stdlib=libc++
+  time $CXX $CXXFLAGS $1 -g -ObjC++ -I src/ -L bin/ -ldl -o $BIN_DIR/`basename -s .cc $1` -framework OpenGL -framework AppKit -mmacosx-version-min=10.7 -stdlib=libc++ -Wno-format
   # For teeny weeny builds '-Os -flto'
 fi
 

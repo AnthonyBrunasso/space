@@ -258,6 +258,9 @@ Decide()
       default:
         break;
     }
+
+    asteroid->transform.scale =
+        math::Vec3f(1.f, 1.f, 1.f) * (asteroid->mineral_source / 200.f);
   }
 
   for (int i = 0; i < kUsedPod; ++i) {

@@ -84,19 +84,12 @@ SetProjection()
       size.x, 0.f, size.y, 0.f, /* 2d so leave near/far 0*/ 0.f, 0.f);
 }
 
-// Orienting the ui position to have (0,0) be the middle of the screen.
-// TODO (AN): Move this to platform layer?
-math::Vec3f
-CoordToScreen(math::Vec2f xy)
-{
-  auto dims = window::GetWindowSize();
-  return math::Vec3f(xy - dims * 0.5f);
-}
-
 math::Vec3f
 CoordToWorld(math::Vec2f xy)
 {
-  return camera::ScreenToWorldSpace(GetLocalCamera(), CoordToScreen(xy));
+  auto dims = window::GetWindowSize();
+  return camera::ScreenToWorldSpace(GetLocalCamera(),
+                                    math::Vec3f(xy - dims * 0.5f));
 }
 
 void

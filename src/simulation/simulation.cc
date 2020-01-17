@@ -32,7 +32,7 @@ enum AsteroidAiGoals {
   kAsteroidAiDeplete,
 };
 
-constexpr float kDsqOperate = 35.f * 35.f;
+constexpr float kDsqOperate = 50.f * 50.f;
 constexpr float kDsqSelect = 25.f * 25.f;
 
 bool

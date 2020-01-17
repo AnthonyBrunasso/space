@@ -100,8 +100,13 @@ SimulationEvent(const PlatformEvent* event, const Camera* camera,
     case MOUSE_DOWN: {
       if (event->button == BUTTON_LEFT) {
         math::Vec3f pos = CoordToWorld(event->position);
-        Command command = {Command::kMove, pos.xy()};
-        PushCommand(command);
+        uint64_t unit = simulation::SelectUnit(pos);
+        if (unit != kMaxUnit) {
+          simulation::ToggleAi(unit);
+        } else {
+          Command command = {Command::kMove, pos.xy()};
+          PushCommand(command);
+        }
       }
     } break;
     case KEY_DOWN: {

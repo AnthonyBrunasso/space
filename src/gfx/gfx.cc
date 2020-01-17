@@ -137,7 +137,7 @@ Render(const math::Rectf visible_world, math::Vec2f mouse)
         break;
     };
 
-    if (dsq(grid, mouse) < 25.f * 25.f) {
+    if (dsq(unit->transform.position, mouse) < simulation::kDsqSelect) {
       // Highlight the unit that would be selected on mouse click
       rgg::RenderRectangle(math::Vec3f(grid),
                            math::Vec3f(1.f / 2.f, 1.f / 2.f, 1.f),

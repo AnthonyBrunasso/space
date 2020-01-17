@@ -31,6 +31,9 @@ enum AsteroidAiGoals {
   kAsteroidAiDeplete = 0,
 };
 
+constexpr float kDsqOperate = 35.f * 35.f;
+constexpr float kDsqSelect = 25.f * 25.f;
+
 bool
 Initialize()
 {
@@ -82,8 +85,32 @@ Think()
         think_flags = FLAG(kShipAiSpawnPod);
       }
     }
-
     kShip[i].think_flags = think_flags;
+
+    // Crew objectives
+    uint64_t satisfied = 0;
+    math::Vec2f module_position;
+    tilemap::TileTypeWorldPosition(tilemap::kTilePower, &module_position);
+    for (int j = 0; j < kUsedUnit; ++j) {
+      if (dsq(kUnit[j].transform.position, module_position) < kDsqOperate)
+        satisfied |= FLAG(kUnitAiPower);
+    }
+
+    if (kShip[i].sys_power >= 1.0f) {
+      tilemap::TileTypeWorldPosition(tilemap::kTileEngine, &module_position);
+      for (int j = 0; j < kUsedUnit; ++j) {
+        if (dsq(kUnit[j].transform.position, module_position) < kDsqOperate)
+          satisfied |= FLAG(kUnitAiThrust);
+      }
+
+      tilemap::TileTypeWorldPosition(tilemap::kTileMine, &module_position);
+      for (int j = 0; j < kUsedUnit; ++j) {
+        if (dsq(kUnit[j].transform.position, module_position) < kDsqOperate)
+          satisfied |= FLAG(kUnitAiMine);
+      }
+    }
+
+    kShip[i].crew_think_flags = satisfied;
   }
 
   for (int i = 0; i < kUsedUnit; ++i) {
@@ -174,26 +201,22 @@ Decide()
       pod->transform.position = math::Vec3f(520.f, 600.f, 0.f);
     }
 
-    math::Vec2f module_position;
-    tilemap::TileTypeWorldPosition(tilemap::kTilePower, &module_position);
-    for (int j = 0; j < kUsedUnit; ++j) {
-      if (dsq(kUnit[j].transform.position, module_position) < 25.f * 25.f)
-        kShip[i].sys_power += 0.01f;
-    }
+    if (kShip[i].crew_think_flags & FLAG(kUnitAiPower))
+      kShip[i].sys_power += 0.01f;
+    else
+      kShip[i].sys_power += -0.01f;
+    if (kShip[i].crew_think_flags & FLAG(kUnitAiMine))
+      kShip[i].sys_mine += 0.01f;
+    else
+      kShip[i].sys_mine += -0.01f;
+    if (kShip[i].crew_think_flags & FLAG(kUnitAiThrust))
+      kShip[i].sys_engine += 0.01f;
+    else
+      kShip[i].sys_engine += -0.01f;
 
-    if (kShip[i].sys_power >= 1.0f) {
-      tilemap::TileTypeWorldPosition(tilemap::kTileEngine, &module_position);
-      for (int j = 0; j < kUsedUnit; ++j) {
-        if (dsq(kUnit[j].transform.position, module_position) < 25.f * 25.f)
-          kShip[i].sys_engine += 0.01f;
-      }
-
-      tilemap::TileTypeWorldPosition(tilemap::kTileMine, &module_position);
-      for (int j = 0; j < kUsedUnit; ++j) {
-        if (dsq(kUnit[j].transform.position, module_position) < 25.f * 25.f)
-          kShip[i].sys_mine += 0.01f;
-      }
-    }
+    kShip[i].sys_power = CLAMPF(kShip[i].sys_power, 0.0f, 1.0f);
+    kShip[i].sys_mine = CLAMPF(kShip[i].sys_mine, 0.0f, 1.0f);
+    kShip[i].sys_engine = CLAMPF(kShip[i].sys_engine, 0.0f, 1.0f);
   }
 
   for (int i = 0; i < kUsedUnit; ++i) {
@@ -212,15 +235,15 @@ Decide()
     }
 
     // Self-motivated Unit
-    uint64_t possible = ANDN(kShip[0].satisfied_flags, unit->think_flags);
+    uint64_t possible = ANDN(kShip[0].crew_think_flags, unit->think_flags);
     if (!possible) continue;
 
     uint64_t action = TZCNT(possible);
 #if 1
     printf(
-        "[ %d unit ] [ 0x%lx think ] [ 0x%lx possible ] ship satisfied_flags "
+        "[ %d unit ] [ 0x%lx think ] [ 0x%lx possible ] ship crew_think_flags "
         "0x%lx \n",
-        i, unit->think_flags, possible, kShip[0].satisfied_flags);
+        i, unit->think_flags, possible, kShip[0].crew_think_flags);
     printf("%lu action\n", action);
 #endif
     math::Vec2f pos;
@@ -241,7 +264,6 @@ Decide()
         }
         break;
     };
-    kShip[0].satisfied_flags |= 1 << action;
   }
 
   for (int i = 0; i < kUsedAsteroid; ++i) {
@@ -328,6 +350,33 @@ Update()
     if (asteroid->transform.position.x < 0.f) {
       asteroid->transform.position.x = 800.f;
     }
+  }
+}
+
+uint64_t
+SelectUnit(math::Vec3f world)
+{
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* unit = &kUnit[i];
+
+    if (dsq(unit->transform.position, world) < kDsqSelect) {
+      return i;
+    }
+  }
+
+  return kMaxUnit;
+}
+
+void
+ToggleAi(uint64_t i)
+{
+  if (i >= kMaxUnit) return;
+
+  printf("toggle ai %lu %d\n", i, kUnit[i].kind);
+  if (kUnit[i].kind) {
+    kUnit[i].kind = 0;
+  } else {
+    kUnit[i].kind = MAX(1, i);
   }
 }
 

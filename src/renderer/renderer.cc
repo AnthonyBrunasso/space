@@ -184,9 +184,7 @@ RenderTag(const Tag& tag, const math::Vec3f& position, const math::Vec3f& scale,
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(tag.vao_reference);
   // Translate and rotate the triangle appropriately.
-  math::Mat4f model = math::CreateTranslationMatrix(position) *
-                      math::CreateScaleMatrix(scale) *
-                      math::CreateRotationMatrix(orientation);
+  math::Mat4f model = math::CreateModelMatrix(position, scale, orientation);
   math::Mat4f matrix = kObserver.projection * kObserver.view * model;
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
@@ -202,9 +200,7 @@ RenderTriangle(const math::Vec3f& position, const math::Vec3f& scale,
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.triangle_vao_reference);
   // Translate and rotate the triangle appropriately.
-  math::Mat4f model = math::CreateTranslationMatrix(position) *
-                      math::CreateScaleMatrix(scale) *
-                      math::CreateRotationMatrix(orientation);
+  math::Mat4f model = math::CreateModelMatrix(position, scale, orientation);
   math::Mat4f matrix = kObserver.projection * kObserver.view * model;
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
@@ -220,9 +216,7 @@ RenderRectangle(const math::Vec3f& position, const math::Vec3f& scale,
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.rectangle_vao_reference);
   // Translate and rotate the rectangle appropriately.
-  math::Mat4f model = math::CreateTranslationMatrix(position) *
-                      math::CreateScaleMatrix(scale) *
-                      math::CreateRotationMatrix(orientation);
+  math::Mat4f model = math::CreateModelMatrix(position, scale, orientation);
   math::Mat4f matrix = kObserver.projection * kObserver.view * model;
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
@@ -238,9 +232,7 @@ RenderCircle(const math::Vec3f& position, const math::Vec3f& scale,
   glUseProgram(kRGG.circle_program.reference);
   glBindVertexArray(kRGG.rectangle_vao_reference);
   // Translate and rotate the circle appropriately.
-  math::Mat4f model = math::CreateTranslationMatrix(position) *
-                      math::CreateScaleMatrix(scale) *
-                      math::CreateRotationMatrix(orientation);
+  math::Mat4f model = math::CreateModelMatrix(position, scale, orientation);
   math::Mat4f view_pojection = kObserver.projection * kObserver.view;
   glUniform4f(kRGG.circle_program.color_uniform, color.x, color.y, color.z,
               color.w);
@@ -264,11 +256,10 @@ CreateLineTransform(const math::Vec3f& start, const math::Vec3f& end)
   math::Vec3f diff = end - start;
   float angle = atan2(diff.y, diff.x) * (180.f / PI);
   float distance = math::Length(diff);
-  return math::CreateTranslationMatrix(translation) *
-         math::CreateScaleMatrix(
-             math::Vec3f(distance / 2.f, distance / 2.f, 1.f)) *
-         math::CreateRotationMatrix(
-             math::Quatf(angle, math::Vec3f(0.f, 0.f, -1.f)));
+  return math::CreateModelMatrix(
+      translation, math::Vec3f(distance / 2.f, distance / 2.f, 1.f),
+      math::Quatf(angle, math::Vec3f(0.f, 0.f, -1.f)));
+
 }
 
 void

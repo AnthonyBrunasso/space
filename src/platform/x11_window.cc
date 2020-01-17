@@ -11,6 +11,8 @@
 
 EXTERN(float width_pixels);
 EXTERN(float height_pixels);
+EXTERN(float mouse_x);
+EXTERN(float mouse_y);
 
 Display* display;
 int window_id;
@@ -215,6 +217,13 @@ PollEvent(PlatformEvent* event)
         event->button = (PlatformButton)xev.xbutton.button;
         event->position = {xev.xbutton.x, xev.xbutton.y};
         break;
+      // Absolute x,y of the last mouse motion
+      // event->type remains NOT_IMPLEMENTED: the motion is processed and
+      // discarded
+      case MotionNotify:
+        mouse_x = xev.xmotion.x;
+        mouse_y = height_pixels - xev.xmotion.y;
+        break;
     }
 
     event->position.y = height_pixels - event->position.y;
@@ -227,14 +236,13 @@ PollEvent(PlatformEvent* event)
 math::Vec2f
 GetWindowSize()
 {
-  return math::Vec2f{width_pixels, height_pixels};
+  return math::Vec2f(width_pixels, height_pixels);
 }
 
 math::Vec2f
 GetCursorPosition()
 {
-  math::Vec2f pos = {0, 0};
-  return pos;
+  return math::Vec2f(mouse_x, mouse_y);
 }
 
 bool

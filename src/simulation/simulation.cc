@@ -28,7 +28,8 @@ enum PodAiGoals {
   kPodAiGoals = 64,
 };
 enum AsteroidAiGoals {
-  kAsteroidAiDeplete = 0,
+  kAsteroidAiImplode,
+  kAsteroidAiDeplete,
 };
 
 constexpr float kDsqOperate = 35.f * 35.f;
@@ -54,10 +55,6 @@ Initialize()
     printf("UNIT %i: %.2f,%.2f\n", i, unit->transform.position.x,
            unit->transform.position.y);
   }
-
-  Asteroid* asteroid = UseAsteroid();
-  asteroid->transform.position = math::Vec3f(400.f, 750.f, 0.f);
-  asteroid->mineral_source = 200.f;
 
   UseShip();
 
@@ -133,7 +130,12 @@ Think()
   }
 
   for (int i = 0; i < kUsedAsteroid; ++i) {
-    kAsteroid[i].flags = 0;
+    Asteroid* asteroid = &kAsteroid[i];
+    if (asteroid->mineral_source < .5f) {
+      asteroid->flags = FLAG(kAsteroidAiImplode);
+    } else {
+      asteroid->flags = 0;
+    }
   }
 
   for (int i = 0; i < kUsedPod; ++i) {
@@ -177,7 +179,7 @@ Think()
         goal = asteroid->transform.position.xy();
         if (transform_dsq(&asteroid->transform, &pod->transform) < 900.f) {
           think_flags |= FLAG(kPodAiGather);
-          asteroid->flags = FLAG(kAsteroidAiDeplete);
+          asteroid->flags |= FLAG(kAsteroidAiDeplete);
         }
         break;
       }
@@ -264,6 +266,27 @@ Decide()
         }
         break;
     };
+  }
+
+  if (!kUsedAsteroid) {
+    Asteroid* asteroid = UseAsteroid();
+    asteroid->transform.position = math::Vec3f(800.f, 750.f, 0.f);
+    asteroid->mineral_source = 200.f;
+    asteroid->flags = 0;
+  }
+
+  // TODO (AN): Zero to avoid index slide and poor iteration performance
+  for (int i = 0; i < kUsedAsteroid;) {
+    Asteroid* asteroid = &kAsteroid[i];
+    uint64_t action = TZCNT(asteroid->flags);
+    switch (action) {
+      case kAsteroidAiImplode:
+        ReleaseAsteroid(i);
+        break;
+      default:
+        ++i;
+        break;
+    }
   }
 
   for (int i = 0; i < kUsedAsteroid; ++i) {

@@ -86,8 +86,10 @@ SetupUI()
 }
 
 void
-DrawString(const char* msg, float x, float y, const math::Vec4f& color)
+RenderText(const char* msg, float x, float y, const math::Vec4f& color)
 {
+  auto& font = kUI.font;
+
   struct TextPoint {
     GLfloat x;
     GLfloat y;
@@ -96,7 +98,7 @@ DrawString(const char* msg, float x, float y, const math::Vec4f& color)
     void Pr() { printf("%.1f,%.1f,%.1f,%.1f\n", x, y, u, v); }
   };
 
-  auto& font = kUI.font;
+  glUseProgram(font.program);
   glBindVertexArray(font.vao);
   glBindTexture(GL_TEXTURE_2D, font.texture);
 
@@ -165,14 +167,6 @@ DrawString(const char* msg, float x, float y, const math::Vec4f& color)
     glDrawArrays(GL_TRIANGLES, 0, 6);  // Draw the character 
     x += v_w;
   }
-}
-
-void
-RenderText(const char* msg, float x, float y, const math::Vec4f& color)
-{
-  auto& font = kUI.font;
-  glUseProgram(font.program);
-  DrawString(msg, x, y, color);
 }
 
 }

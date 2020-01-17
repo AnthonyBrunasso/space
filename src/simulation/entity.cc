@@ -37,6 +37,7 @@ struct Pod {
   Transform transform;
   uint64_t think_flags = 0;
   math::Vec2f goal;
+  math::Vec2f last_heading;
   uint64_t mineral;
 };
 DECLARE_GAME_TYPE(Pod, 8);

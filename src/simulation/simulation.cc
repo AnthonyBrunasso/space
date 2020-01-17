@@ -21,7 +21,8 @@ enum UnitAiGoals {
   kUnitAiGoals = 64,
 };
 enum PodAiGoals {
-  kPodAiGather = 0,
+  kPodAiLostPower,
+  kPodAiGather,
   kPodAiUnload,
   kPodAiReturn,
   kPodAiApproach,
@@ -32,7 +33,7 @@ enum AsteroidAiGoals {
   kAsteroidAiDeplete,
 };
 
-constexpr float kDsqOperate = 50.f * 50.f;
+constexpr float kDsqOperate = 50.f * 35.f;
 constexpr float kDsqSelect = 25.f * 25.f;
 
 bool
@@ -148,12 +149,17 @@ Think()
     // Goal is to return home, unless overidden
     tilemap::TileTypeWorldPosition(tilemap::kTileMine, &goal);
 
+    // TODO (AN): No ship/pod link exists yet
+    if (kShip[0].sys_power < .5f) {
+      think_flags |= FLAG(kPodAiLostPower);
+    }
+
     // Stateful return home
     if (keep_state) {
       // Pod has finished unloading
       if (pod->mineral == 0) {
         // derp
-        think_flags = 0;
+        think_flags = ANDN(FLAG(kPodAiUnload), think_flags);
       } else {
         think_flags = keep_state;
         // In range of the ship
@@ -167,7 +173,7 @@ Think()
     else if (pod->mineral >= kPodMaxMineral) {
       math::Vec2f home;
       goal = home;
-      think_flags = FLAG(kPodAiReturn);
+      think_flags |= FLAG(kPodAiReturn);
     } else {
       // Evaluate mining potential
       for (int i = 0; i < kUsedAsteroid; ++i) {
@@ -311,6 +317,9 @@ Decide()
     uint64_t mineral = 0;
     math::Vec3f dir;
     switch (action) {
+      case kPodAiLostPower:
+        dir = pod->last_heading;
+        break;
       case kPodAiApproach:
         dir = Normalize(pod->goal - pod->transform.position.xy());
         break;
@@ -328,6 +337,7 @@ Decide()
     };
 
     pod->transform.position += dir * 2.0;
+    pod->last_heading = dir.xy();
   }
 }
 

@@ -116,6 +116,11 @@ DrawString(const char* msg, float x, float y, const math::Vec4f& color)
 
     const FntMetadataRow* row = &font.metadata.rows[msg[i]];
 
+    // The character trying to render is invalid. This means the font sheet
+    // has no corresponding entry for the ascii id msg[i].
+    // This could occur if you are attempting to render a '\n'
+    assert(row->id != 0);
+
     // Scale to get uv coordinatoes.
     float tex_x = (float)row->x / font.texture_width;
     float tex_y = (float)row->y / font.texture_height;

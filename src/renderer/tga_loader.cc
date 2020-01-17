@@ -28,7 +28,7 @@ LoadFntMetadata(const char* file)
   char line[128];
   int row_count = 0;
   int i = 0;
-  FntMetadata metadata;
+  FntMetadata metadata = {};
   while (fgets(line, sizeof(line), fptr)) {
     ++i;
     // First 5 lines are header.

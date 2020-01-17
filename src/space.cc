@@ -267,7 +267,7 @@ main(int argc, char** argv)
     auto mouse = CoordToWorld(window::GetCursorPosition());
     sprintf(buffer, "Mouse Pos In World:(%.1f,%.1f)", mouse.x, mouse.y);
     gfx::PushText(buffer, 3.f, sz.y - 50.f);
-    sprintf(buffer, "Minerals: %lu\n", kShip[0].mineral);
+    sprintf(buffer, "Minerals: %lu", kShip[0].mineral);
     gfx::PushText(buffer, 3.f, sz.y - 75.f);
 
     for (int i = 0; i < kUsedAsteroid; ++i) {

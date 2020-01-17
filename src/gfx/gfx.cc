@@ -88,7 +88,7 @@ Reset()
 }
 
 void
-Render(const math::Rectf visible_world)
+Render(const math::Rectf visible_world, math::Vec2f mouse)
 {
   rgg::RenderButton("test", 10, 10, 50, 50);
 
@@ -136,10 +136,13 @@ Render(const math::Rectf visible_world)
         hilite = math::Vec4f(5.f, 5.f, 5.f, .45f);
         break;
     };
-    // Highlight the tile the player is on.
-    rgg::RenderRectangle(math::Vec3f(grid),
-                         math::Vec3f(1.f / 2.f, 1.f / 2.f, 1.f),
-                         math::Quatf(0.f, 0.f, 0.f, 1.f), hilite);
+
+    if (dsq(grid, mouse) < 25.f * 25.f) {
+      // Highlight the unit that would be selected on mouse click
+      rgg::RenderRectangle(math::Vec3f(grid),
+                           math::Vec3f(1.f / 2.f, 1.f / 2.f, 1.f),
+                           math::Quatf(0.f, 0.f, 0.f, 1.f), hilite);
+    }
 
     if (unit->command.type == Command::kNone) continue;
 

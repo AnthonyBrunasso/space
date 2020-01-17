@@ -160,7 +160,7 @@ Render(const math::Rectf visible_world, math::Vec2f mouse)
       rgg::RenderRectangle(math::Vec3f(TilePosToWorld(*t)),
                            math::Vec3f(1.f / 3.f, 1.f / 3.f, 1.f),
                            math::Quatf(0.f, 0.f, 0.f, 1.f),
-                           math::Vec4f(0.33f, 0.33f, 0.66f, 0.7f));
+                           math::Vec4f(0.33f, 0.33f, 0.33f, 0.40f));
     }
   }
 

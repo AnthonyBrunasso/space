@@ -90,6 +90,8 @@ Reset()
 void
 Render(const math::Rectf visible_world)
 {
+  rgg::RenderButton("test", 10, 10, 50, 50);
+
   // Draw all text.
   for (int i = 0; i < kGfx.text_count; ++i) {
     Text& text = kGfx.text[i];

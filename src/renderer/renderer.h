@@ -17,12 +17,6 @@ struct Tag {
 
 bool Initialize();
 
-void SetProjectionMatrix(const math::Mat4f& projection);
-
-void SetViewMatrix(const math::Mat4f& view);
-
-void SetCameraTransformMatrix(const math::Mat4f& camera_transform);
-
 Tag CreateRenderable(int vert_count, GLfloat* verts, GLenum mode);
 
 void RenderTag(const Tag& tag,

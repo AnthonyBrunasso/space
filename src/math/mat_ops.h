@@ -180,4 +180,27 @@ CreateModelMatrix(const math::Vec3f& position, const math::Vec3f& scale,
   return model;
 }
 
+inline
+Mat4f
+CreateModelMatrix(const math::Vec3f& position, const math::Vec3f& scale) {
+  Mat4f model;
+  model[0] = scale.x;
+  model[1] = 0.0f;
+  model[2] = 0.0f;
+  model[3] = 0.0f;
+  model[4] = 0.0f;
+  model[5] = scale.y;
+  model[6] = 0.0f;
+  model[7] = 0.0f;
+  model[8] = 0.0f;
+  model[9] = 0.0f;
+  model[10] = scale.z;
+  model[11] = 0.0f;
+  model[12] = position.x;
+  model[13] = position.y;
+  model[14] = position.z;
+  model[15] = 1.0f;
+  return model;
+}
+
 }  // namespace math

@@ -7,7 +7,6 @@
 #include "math/math.cc"
 #include "platform/platform.cc"
 #include "shader.h"
-#include "ui.cc"
 
 namespace rgg
 {
@@ -45,6 +44,8 @@ struct RGG {
 static Observer kObserver;
 static RGG kRGG;
 
+#include "ui.cc"
+
 Observer*
 GetObserver()
 {
@@ -55,11 +56,11 @@ bool
 SetupGeometryProgram()
 {
   GLuint vert_shader, frag_shader;
-  if (!gl::CompileShader(GL_VERTEX_SHADER, &rgg::kVertexShader, &vert_shader)) {
+  if (!gl::CompileShader(GL_VERTEX_SHADER, &kVertexShader, &vert_shader)) {
     return false;
   }
 
-  if (!gl::CompileShader(GL_FRAGMENT_SHADER, &rgg::kFragmentShader,
+  if (!gl::CompileShader(GL_FRAGMENT_SHADER, &kFragmentShader,
                          &frag_shader)) {
     return false;
   }
@@ -86,12 +87,12 @@ bool
 SetupCircleProgram()
 {
   GLuint vert_shader, frag_shader;
-  if (!gl::CompileShader(GL_VERTEX_SHADER, &rgg::kCircleVertexShader,
+  if (!gl::CompileShader(GL_VERTEX_SHADER, &kCircleVertexShader,
                          &vert_shader)) {
     return false;
   }
 
-  if (!gl::CompileShader(GL_FRAGMENT_SHADER, &rgg::kCircleFragmentShader,
+  if (!gl::CompileShader(GL_FRAGMENT_SHADER, &kCircleFragmentShader,
                          &frag_shader)) {
     return false;
   }

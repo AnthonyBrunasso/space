@@ -1,11 +1,10 @@
-#include "ui.h"
-
 #include "gl/shader.h"
 #include "math/mat_ops.h"
 #include "tga_loader.cc"
 #include "shader.h"
 
-namespace rgg {
+// HI! THIS IS IN THE rgg NAMESPACE.
+// DONT INCLUDE IT ANYWHERE OUTSIDE OF renderer.cc
 
 struct Font {
   uint16_t texture_width;
@@ -56,11 +55,11 @@ SetupUI()
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   GLuint vert_shader, frag_shader;
-  if (!gl::CompileShader(GL_VERTEX_SHADER, &rgg::kFontVertexShader,
+  if (!gl::CompileShader(GL_VERTEX_SHADER, &kFontVertexShader,
                          &vert_shader)) {
     return false;
   }
-  if (!gl::CompileShader(GL_FRAGMENT_SHADER, &rgg::kFontFragmentShader,
+  if (!gl::CompileShader(GL_FRAGMENT_SHADER, &kFontFragmentShader,
                          &frag_shader)) {
     return false;
   }
@@ -169,4 +168,22 @@ RenderText(const char* msg, float x, float y, const math::Vec4f& color)
   }
 }
 
+void
+RenderButton(const char* text, float x, float y, float width, float height) {
+  math::Vec3f position(x + width / 2.f, y + height / 2.f, 0.f);
+  math::Vec3f scale(1.f, 1.f, 1.f);
+  math::Vec4f color(1.f, 1.f, 1.f, 1.f);
+  glUseProgram(kRGG.geometry_program.reference);
+  glBindVertexArray(kRGG.rectangle_vao_reference);
+  // Translate and rotate the rectangle appropriately.
+  math::Mat4f model = math::CreateModelMatrix(position, scale);
+  auto sz = window::GetWindowSize();
+  math::Mat4f projection = math::CreateOrthographicMatrix2<float>(
+      sz.x, 0.f, sz.y, 0.f, /* 2d so leave near/far 0*/ 0.f, 0.f);
+  math::Mat4f matrix = projection * model;
+  glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y,
+              color.z, color.w);
+  glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
+                     &matrix[0]);
+  glDrawArrays(GL_LINE_LOOP, 0, 4);
 }

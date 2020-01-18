@@ -261,7 +261,6 @@ CreateLineTransform(const math::Vec3f& start, const math::Vec3f& end)
   return math::CreateModelMatrix(
       translation, math::Vec3f(distance / 2.f, distance / 2.f, 1.f),
       math::Quatf(angle, math::Vec3f(0.f, 0.f, -1.f)));
-
 }
 
 void
@@ -306,6 +305,8 @@ RenderGrid(math::Vec2f grid, math::Rectf bounds, const math::Vec4f& color)
   for (float x = bottom_left.x; x < top_right.x; x += grid.x) {
     auto start = math::Vec3f(x, bottom_left.y, 0.f);
     auto end = math::Vec3f(x, top_right.y, 0.f);
+    printf("start:(%.3f,%.3f) end:(%.3f,%.3f)\n",
+           start.x, start.y, end.x, end.y);
     math::Mat4f matrix =
         kObserver.projection * kObserver.view * CreateLineTransform(start, end);
     glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,

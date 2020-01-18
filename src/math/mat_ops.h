@@ -162,15 +162,15 @@ CreateModelMatrix(const math::Vec3f& position, const math::Vec3f& scale,
                   const math::Quatf& quat) {
   Mat4f model;
   model[0] = scale.x * (1.f - 2.f * quat.y * quat.y - 2.f * quat.z * quat.z);
-  model[1] = 2.f * quat.x * quat.y - 2.f * quat.w * quat.z;
-  model[2] = 2.f * quat.x * quat.z + 2 * quat.w * quat.y;
+  model[1] = scale.y * (2.f * quat.x * quat.y - 2.f * quat.w * quat.z);
+  model[2] = scale.z * (2.f * quat.x * quat.z + 2 * quat.w * quat.y);
   model[3] = 0.0f;
-  model[4] = 2.f * quat.x * quat.y + 2.f * quat.w * quat.z;
+  model[4] = scale.x * (2.f * quat.x * quat.y + 2.f * quat.w * quat.z);
   model[5] = scale.y * (1.f - 2.f * quat.x * quat.x - 2.f * quat.z * quat.z);
-  model[6] = 2.f * quat.y * quat.z - 2.f * quat.w * quat.x;
+  model[6] = scale.z * (2.f * quat.y * quat.z - 2.f * quat.w * quat.x);
   model[7] = 0.0f;
-  model[8] = 2.f * quat.x * quat.z - 2.f * quat.w * quat.y;
-  model[9] = 2.f * quat.y * quat.z + 2.f * quat.w * quat.x;
+  model[8] = scale.x * (2.f * quat.x * quat.z - 2.f * quat.w * quat.y);
+  model[9] = scale.y * (2.f * quat.y * quat.z + 2.f * quat.w * quat.x);
   model[10] = scale.z * (1.f - 2.f * quat.x * quat.x - 2.f * quat.y * quat.y);
   model[11] = 0.0f;
   model[12] = position.x;

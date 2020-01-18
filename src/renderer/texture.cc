@@ -2,8 +2,8 @@
 
 struct Texture {
   GLuint reference;
-  uint64_t width;
-  uint64_t height;
+  float width;
+  float height;
 };
 
 struct TextureState {
@@ -12,11 +12,12 @@ struct TextureState {
   GLuint texture_uniform;
   GLuint matrix_uniform;
   GLuint uv_vbo;
+  GLuint frame_buffer = -1;
 };
 
 struct UV {
-  float x;
-  float y;
+  float u;
+  float v;
 };
 
 static TextureState kTextureState;
@@ -82,9 +83,32 @@ Texture CreateTexture2D(GLenum format, uint64_t width, uint64_t height,
   texture.height = height;
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   return texture;
+}
+
+void
+BeginRenderTo(const Texture& texture)
+{
+  // The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
+  if (kTextureState.frame_buffer == GLuint(-1)) {
+    glGenFramebuffers(1, &kTextureState.frame_buffer);
+  }
+  glBindFramebuffer(GL_FRAMEBUFFER, kTextureState.frame_buffer);
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture.reference, 0);
+  GLenum draw_buffers[1] = {GL_COLOR_ATTACHMENT0};
+  glDrawBuffers(1, draw_buffers);
+  glBindFramebuffer(GL_FRAMEBUFFER, kTextureState.frame_buffer);
+  glViewport(0, 0, texture.width, texture.height);
+}
+
+void
+EndRenderTo()
+{
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  auto dims = window::GetWindowSize();
+  glViewport(0, 0, dims.x, dims.y);
 }
 
 void
@@ -106,6 +130,14 @@ RenderTexture(const Texture& texture, const math::Rect& src,
   uv[3] = {start_x, start_y + height}; // TL
   uv[4] = {start_x + width, start_y + height}; // TR
   uv[5] = {start_x + width, start_y}; // BR
+#if 0
+  printf("uv[0]=(%.3f, %3.f)\n", uv[0].u, uv[0].v);
+  printf("uv[1]=(%.3f, %3.f)\n", uv[1].u, uv[1].v);
+  printf("uv[2]=(%.3f, %3.f)\n", uv[2].u, uv[2].v);
+  printf("uv[3]=(%.3f, %3.f)\n", uv[3].u, uv[3].v);
+  printf("uv[4]=(%.3f, %3.f)\n", uv[4].u, uv[4].v);
+  printf("uv[5]=(%.3f, %3.f)\n", uv[5].u, uv[5].v);
+#endif
   glBindBuffer(GL_ARRAY_BUFFER, kTextureState.uv_vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(uv), uv, GL_DYNAMIC_DRAW);
   math::Vec3f pos(dest.x + dest.width / 2.f, dest.y + dest.height / 2.f,0.0f);

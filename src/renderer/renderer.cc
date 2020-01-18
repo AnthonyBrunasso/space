@@ -233,6 +233,24 @@ RenderRectangle(const math::Vec3f& position, const math::Vec3f& scale,
 }
 
 void
+RenderRectangle(const math::Rect& rect, const math::Vec4f& color)
+{
+  glUseProgram(kRGG.geometry_program.reference);
+  // Texture state has quad with length 1 geometry. This makes scaling simpler
+  // as we can use the width / height directly in scale matrix.
+  glBindVertexArray(kTextureState.vao_reference);
+  math::Vec3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f,0.0f);
+  math::Vec3f scale(rect.width, rect.height, 1.f);
+  math::Mat4f model = math::CreateModelMatrix(pos, scale);
+  math::Mat4f matrix = kObserver.projection * kObserver.view * model;
+  glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
+              color.w);
+  glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
+                     &matrix[0]);
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void
 RenderCircle(const math::Vec3f& position, const math::Vec3f& scale,
              const math::Quatf& orientation, const math::Vec4f& color)
 {
@@ -317,5 +335,6 @@ RenderGrid(math::Vec2f grid, math::Rectf bounds, const math::Vec4f& color)
     glDrawArrays(GL_LINES, 0, 2);
   }
 }
+
 
 }  // namespace rgg

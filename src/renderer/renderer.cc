@@ -44,6 +44,7 @@ struct RGG {
 static Observer kObserver;
 static RGG kRGG;
 
+#include "texture.cc"
 #include "ui.cc"
 
 Observer*

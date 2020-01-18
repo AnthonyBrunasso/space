@@ -10,8 +10,7 @@ struct Font {
   uint16_t texture_width;
   uint16_t texture_height;
   FntMetadata metadata;
-  GLuint texture;
-  GLenum texture_slot;
+  Texture texture;
   GLuint program;
   GLuint texture_uniform;
   GLuint matrix_uniform;
@@ -34,26 +33,9 @@ SetupUI()
   LoadTGA("example/gfx/characters_0.tga", &image_data, &font.texture_width,
           &font.texture_height);
   font.metadata = LoadFntMetadata("example/gfx/characters.fnt");
-  glGenTextures (1, &font.texture);
-  font.texture_slot = GL_TEXTURE0;
-  glActiveTexture(font.texture_slot);
-  glBindTexture(GL_TEXTURE_2D, font.texture);
-  glTexImage2D(
-    GL_TEXTURE_2D,
-    0,
-    GL_RED,
-    font.texture_width,
-    font.texture_height,
-    0,
-    GL_RED,
-    GL_UNSIGNED_BYTE,
-    image_data
-  );
+  font.texture = CreateTexture2D(GL_RED, font.texture_width,
+                                 font.texture_height, image_data);
   free(image_data); // GL has the texture data now. Free it from process.
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   GLuint vert_shader, frag_shader;
   if (!gl::CompileShader(GL_VERTEX_SHADER, &kFontVertexShader,
                          &vert_shader)) {
@@ -99,7 +81,7 @@ RenderText(const char* msg, float x, float y, const math::Vec4f& color)
 
   glUseProgram(font.program);
   glBindVertexArray(font.vao);
-  glBindTexture(GL_TEXTURE_2D, font.texture);
+  glBindTexture(GL_TEXTURE_2D, font.texture.reference);
 
   auto sz = window::GetWindowSize();
   math::Mat4f projection = math::CreateOrthographicMatrix2<float>(

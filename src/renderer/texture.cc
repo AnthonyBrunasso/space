@@ -12,7 +12,7 @@ struct TextureState {
 static TextureState kTextureState;
 
 Texture CreateTexture2D(GLenum format, uint64_t width, uint64_t height,
-                         const void* data) {
+                        const void* data) {
   Texture texture = {};
   glGenTextures (1, &texture.reference);
   texture.slot = kTextureState.reserved_slots;

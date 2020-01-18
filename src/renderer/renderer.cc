@@ -161,6 +161,11 @@ Initialize()
   GLfloat line[6] = {-1.f, 0.f, 0.f, 1.f, 0.f, 0.f};
   kRGG.line_vao_reference = gl::CreateGeometryVAO(6, line);
 
+  if (!SetupTexture()) {
+    printf("Failed to setup Texture.\n");
+    return false;
+  }
+
   if (!SetupUI()) {
     printf("Failed to setup UI.\n");
     return false;

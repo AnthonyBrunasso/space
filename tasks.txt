@@ -14,10 +14,6 @@ Delete items when they are done.
 
 gameplay -
 
-  anthony: Implement mining. A player should highlight a region of the map with minerals
-           or click on one and a unit should go mine it.
-  anthony: Show a scrolling background when the engines are 'on'.
-
 sound -
 
   : Develop a system for playing audio / sound files. I think we should do our best to
@@ -26,10 +22,10 @@ sound -
 
 AI -
 
-engine - 
+graphics - 
 
-  anthony: Implement texture rendering. This should be as simple as attaching a component
-           to an entity with some ID to represent the texture.
+  anthony: Make text rendering origin bottom left.
+  anthony: Adjust RenderCircle to work with scale and add inner/outer radius.
   anthony: Primitive UI, start with a square in world space that represents a button.
            I'd like to use immediate mode graphics here. Instead of providing callbacks
            on buttons the user will be able to do something like -

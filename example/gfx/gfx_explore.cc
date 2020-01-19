@@ -55,7 +55,7 @@ main(int argc, char** argv)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     rgg::RenderCircle(math::Vec3f(0.0f, 0.0f, 0.0f), 25.0f,
-                      math::Vec4f(1.0f, 1.0f, 1.0f, 1.0f));
+                      math::Vec4f(0.0f, 0.0f, 1.0f, 1.0f));
 
     rgg::RenderText("Circle", 50.0f, 100.0f, math::Vec4f(1.f, 1.f, 1.f, 1.f));
 

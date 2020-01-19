@@ -121,6 +121,8 @@ SetupCircleProgram()
       glGetUniformLocation(kRGG.circle_program.reference, "inner_radius");
   kRGG.circle_program.outer_radius_uniform =
       glGetUniformLocation(kRGG.circle_program.reference, "outer_radius");
+  kRGG.circle_program.color_uniform =
+      glGetUniformLocation(kRGG.circle_program.reference, "color");
   assert(kRGG.circle_program.color_uniform != uint32_t(-1));
   return true;
 }

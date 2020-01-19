@@ -1,4 +1,3 @@
-
 #include "platform/platform.cc"
 #include "gl/gl.cc"
 #include "renderer/renderer.cc"
@@ -46,31 +45,6 @@ main(int argc, char** argv)
   
   rgg::Initialize();
 
-  rgg::Texture texture = rgg::CreateTexture2D(GL_RGB, 256, 256, NULL);
-
-  rgg::BeginRenderTo(texture);
-
-  glClear(GL_COLOR_BUFFER_BIT);
-
-  // This projection orients the bottom left of the screen to be origin.
-  // This makes the texture have consistent axis with opengl as well as screen.
-  rgg::GetObserver()->projection =
-      math::CreateOrthographicMatrix2<float>(
-          texture.width, 0.0f, texture.height, 0.0f, 0.0f, 0.0f);
-
-  rgg::RenderRectangle(
-      math::Rect(0.0f, 0.0f, 50.0f, 50.0f),
-      math::Vec4f(1.0f, 0.0f, 0.0f, 1.0f));
-
-  rgg::RenderRectangle(
-      math::Rect(texture.width - 25.0f, texture.height - 25.0f, 25.0f, 25.0f),
-      math::Vec4f(0.0f, 1.0f, 0.0f, 1.0f));
-
-  rgg::RenderRectangle(
-      math::Rect(texture.width - 10.0f, 0.0f, 10.0f, 10.0f),
-      math::Vec4f(0.0f, 0.0f, 1.0f, 1.0f));
-
-  rgg::EndRenderTo();
 
   while (!window::ShouldClose()) {
     PlatformEvent event;
@@ -80,29 +54,10 @@ main(int argc, char** argv)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    rgg::RenderTexture(texture,
-                       math::Rect(0.0f, 0.0f, 256.0f, 256.0f),
-                       math::Rect(0.0f, 0.0f, 256.0f, 256.0f));
+    rgg::RenderCircle(math::Vec3f(0.0f, 0.0f, 0.0f), 25.0f,
+                      math::Vec4f(1.0f, 1.0f, 1.0f, 1.0f));
 
-    // Renders the red rectangle from the texture sheet.
-    rgg::RenderTexture(texture,
-                       math::Rect(0.0f, 0.0f, 50.0f, 50.0f),
-                       math::Rect(-100.0f, -200.0f, 50.0f, 50.0f));
-
-    // Renders the green rectangle from the texture sheet.
-    rgg::RenderTexture(texture,
-                       math::Rect(texture.width - 25.0f,
-                                  texture.height - 25.0f,
-                                  25.0f, 25.0f),
-                       math::Rect(-25.0f, -200.0f, 25.0f, 25.0f));
-
-    // Renders the blue rectangle from the texture sheet.
-    rgg::RenderTexture(texture,
-                       math::Rect(texture.width - 10.0f, 0.0f, 10.0f, 10.0f),
-                       math::Rect(20.0f, -200.0f, 10.0f, 10.0f));
-
-
-    rgg::RenderText("Texture", 50.0f, 100.0f, math::Vec4f(1.f, 1.f, 1.f, 1.f));
+    rgg::RenderText("Circle", 50.0f, 100.0f, math::Vec4f(1.f, 1.f, 1.f, 1.f));
 
     RenderGrid();
 
@@ -111,3 +66,4 @@ main(int argc, char** argv)
 
   return 0;
 }
+

@@ -29,13 +29,19 @@ inline constexpr const char* kCircleVertexShader = R"(
   uniform mat4 model;
   uniform mat4 view_projection;
   uniform vec4 color;
+  uniform float inner_radius;
+  uniform float outer_radius;
   out vec4 color_out;
   out vec3 center_out;
   out vec3 position_out;
+  out float out_inner_radius;
+  out float out_outer_radius;
   void main() {
     color_out = color;
     center_out = (model * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
     position_out = (model * vec4(vertex_position, 1.0)).xyz;
+    out_inner_radius = inner_radius;
+    out_outer_radius = outer_radius;
     gl_Position = view_projection * model * vec4(vertex_position, 1.0);
   }
 )";
@@ -45,12 +51,13 @@ inline constexpr const char* kCircleFragmentShader = R"(
   in vec4 color_out;
   in vec3 center_out;
   in vec3 position_out;
+  in float out_inner_radius;
+  in float out_outer_radius;
 	out vec4 frag_color;
   void main() {
     float dist = length(position_out - center_out);
-    float delta = 3;
-    // TODO(anthony): Replace 25 with a radius.
-    float alpha = smoothstep(25 - delta, 25, dist);
+    float delta = 2;
+    float alpha = smoothstep(out_outer_radius - delta, out_outer_radius, dist);
     frag_color = vec4(color_out.xyz, 1.0 - alpha);
   }
 )";

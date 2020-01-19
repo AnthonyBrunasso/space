@@ -35,10 +35,11 @@ void RenderRectangle(const math::Vec3f& position,
                      const math::Quatf& orientation,
                      const math::Vec4f& color);
 
+void RenderCircle(const math::Vec3f& position, float inner_radius,
+                  float outer_radius, const math::Vec4f& color);
+
 void RenderCircle(const math::Vec3f& position,
-                  const math::Vec3f& scale,
-                  const math::Quatf& orientation,
-                  const math::Vec4f& color);
+                  float radius, const math::Vec4f& color);
 
 void RenderLine(const math::Vec3f& start,
                 const math::Vec3f& end,

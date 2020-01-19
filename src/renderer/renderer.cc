@@ -21,7 +21,8 @@ struct CircleProgram {
   GLuint model_uniform;
   GLuint view_projection_uniform;
   GLuint color_uniform;
-  GLuint radius_uniform;
+  GLuint inner_radius_uniform;
+  GLuint outer_radius_uniform;
 };
 
 struct Observer {
@@ -116,6 +117,10 @@ SetupCircleProgram()
 
   kRGG.circle_program.color_uniform =
       glGetUniformLocation(kRGG.circle_program.reference, "color");
+  kRGG.circle_program.inner_radius_uniform =
+      glGetUniformLocation(kRGG.circle_program.reference, "inner_radius");
+  kRGG.circle_program.outer_radius_uniform =
+      glGetUniformLocation(kRGG.circle_program.reference, "outer_radius");
   assert(kRGG.circle_program.color_uniform != uint32_t(-1));
   return true;
 }
@@ -251,20 +256,30 @@ RenderRectangle(const math::Rect& rect, const math::Vec4f& color)
 }
 
 void
-RenderCircle(const math::Vec3f& position, const math::Vec3f& scale,
-             const math::Quatf& orientation, const math::Vec4f& color)
+RenderCircle(const math::Vec3f& position, float inner_radius,
+             float outer_radius, const math::Vec4f& color)
 {
   glUseProgram(kRGG.circle_program.reference);
-  glBindVertexArray(kRGG.rectangle_vao_reference);
+  glBindVertexArray(kTextureState.vao_reference);
   // Translate and rotate the circle appropriately.
-  math::Mat4f model = math::CreateModelMatrix(position, scale, orientation);
+  math::Mat4f model = math::CreateModelMatrix(
+      position, math::Vec3f(outer_radius * 2.f, outer_radius * 2.f, 0.0f));
   math::Mat4f view_pojection = kObserver.projection * kObserver.view;
+  glUniform1f(kRGG.circle_program.inner_radius_uniform, inner_radius);
+  glUniform1f(kRGG.circle_program.outer_radius_uniform, outer_radius);
   glUniform4f(kRGG.circle_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.circle_program.model_uniform, 1, GL_FALSE, &model[0]);
   glUniformMatrix4fv(kRGG.circle_program.view_projection_uniform, 1, GL_FALSE,
                      &view_pojection[0]);
   glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void
+RenderCircle(const math::Vec3f& position, float radius,
+             const math::Vec4f& color)
+{
+  RenderCircle(position, 0.0f, radius, color);
 }
 
 math::Mat4f

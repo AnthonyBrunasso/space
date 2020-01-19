@@ -94,6 +94,22 @@ LoadTGA(const char* file, uint8_t** image_bytes,
   // Only support 8-bit pixel depths.
   assert(image_spec->pixel_depth == 8);
 
+#if 0
+  printf("TGA file: %s header\n", file);
+  printf("header->id_length: %i\n", header->id_length);
+  printf("header->color_map_type: %i\n", header->color_map_type);
+  printf("header->image_type: %i\n", header->image_type);
+
+  printf("TGA file: %s Image Spec\n", file);
+  printf("image_spec->x_origin: %i\n", image_spec->x_origin);
+  printf("image_spec->y_origin: %i\n", image_spec->y_origin);
+  printf("image_spec->image_width: %i\n", image_spec->image_width);
+  printf("image_spec->image_height: %i\n", image_spec->image_height);
+  printf("image_spec->pixel_depth: %i\n", image_spec->pixel_depth);
+  printf("image_spec->image_descriptor: %i\n", image_spec->image_descriptor);
+#endif
+
+
   // Image bytes sz
   uint32_t image_bytes_size = image_spec->image_width * image_spec->image_height;
   *image_width = image_spec->image_width;

@@ -88,9 +88,25 @@ Reset()
 }
 
 void
-Render(const math::Rectf visible_world, math::Vec2f mouse)
+Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
 {
   rgg::RenderButton("test", math::Rect(10, 10, 50, 50));
+
+  // Unit hover-over text
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* unit = &kUnit[i];
+    if (dsq(unit->transform.position, mouse) >= simulation::kDsqSelect)
+      continue;
+
+    char buffer[64];
+    for (int j = 0; j < CREWA_MAX; ++j) {
+      sprintf(buffer, "%u < %s < %u", unit->aknown_min[j], crew_aname[j],
+              unit->aknown_max[j]);
+      rgg::RenderText(buffer, screen.x - 225.f, screen.y - j * 25.f,
+                      math::Vec4f());
+    }
+    break;
+  }
 
   // Draw all text.
   for (int i = 0; i < kGfx.text_count; ++i) {

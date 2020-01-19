@@ -43,10 +43,12 @@ Initialize()
       math::Vec3f(300.f, 300.f, 0.f), math::Vec3f(100.f, 130.f, 0),
       math::Vec3f(300.f, 400.f, 0), math::Vec3f(650.f, 460.f, 0)};
   const math::Vec3f scale = math::Vec3f(0.25f, 0.25f, 0.f);
+  uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
   for (int i = 0; i < ARRAY_LENGTH(pos); ++i) {
     Unit* unit = UseUnit();
     unit->transform.position = pos[i];
     unit->transform.scale = scale;
+    memcpy(unit->acurrent, attrib, sizeof(attrib));
     // Everybody is unique!
     unit->kind = i;
   }
@@ -193,7 +195,7 @@ Think()
 
     pod->think_flags = think_flags;
     pod->goal = goal;
-#if 1
+#if AI_DEBUG
     printf("pod think 0x%lx keep_state 0x%lx minerals %lu \n", think_flags,
            keep_state, pod->mineral);
 #endif
@@ -247,7 +249,7 @@ Decide()
     if (!possible) continue;
 
     uint64_t action = TZCNT(possible);
-#if 1
+#if AI_DEBUG
     printf(
         "[ %d unit ] [ 0x%lx think ] [ 0x%lx possible ] ship crew_think_flags "
         "0x%lx \n",

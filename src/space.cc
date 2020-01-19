@@ -283,7 +283,8 @@ main(int argc, char** argv)
     const math::Vec2f dims = window::GetWindowSize();
     math::Vec3f top_right = CoordToWorld(dims);
     math::Vec3f bottom_left = CoordToWorld({0.f, 0.f});
-    gfx::Render(math::Rectf{bottom_left.xy(), top_right.xy()}, mouse.xy());
+    gfx::Render(math::Rectf{bottom_left.xy(), top_right.xy()}, mouse.xy(),
+                dims);
 #endif
 
     // Capture frame time before the potential stall on vertical sync

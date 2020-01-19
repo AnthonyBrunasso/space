@@ -12,6 +12,35 @@ struct Transform {
   math::Quatf orientation;
 };
 
+enum CrewAttrib {
+  CREWA_STR,
+  CREWA_INT,
+  CREWA_DEX,
+  CREWA_CON,
+  CREWA_MAX,
+};
+
+const char* const crew_aname[] = {
+    "strength",
+    "intelligence",
+    "dexterity",
+    "constitution",
+};
+#define CREW_ABEST \
+  {                \
+      18,          \
+      18,          \
+      18,          \
+      18,          \
+  };
+#define CREW_AWORST \
+  {                 \
+      3,            \
+      3,            \
+      3,            \
+      3,            \
+  };
+
 float
 dsq(math::Vec3f dst, math::Vec3f src)
 {
@@ -58,6 +87,9 @@ struct Unit {
   Command command;
   uint64_t think_flags = 0;
   int kind = 0;
+  uint8_t acurrent[CREWA_MAX];
+  uint8_t aknown_min[CREWA_MAX] = CREW_AWORST;
+  uint8_t aknown_max[CREWA_MAX] = CREW_ABEST;
 };
 
 DECLARE_GAME_TYPE(Unit, 8);

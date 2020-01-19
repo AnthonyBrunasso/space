@@ -24,8 +24,10 @@ AI -
 
 graphics - 
 
+  anthony: Implement camera zoom. This will require implementing an inverse function.
   anthony: Make text rendering origin bottom left.
   anthony: Adjust RenderCircle to work with scale and add inner/outer radius.
+  anthony: Add alpha to text rendering.
   anthony: Primitive UI, start with a square in world space that represents a button.
            I'd like to use immediate mode graphics here. Instead of providing callbacks
            on buttons the user will be able to do something like -

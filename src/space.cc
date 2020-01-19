@@ -265,8 +265,13 @@ main(int argc, char** argv)
     auto mouse = CoordToWorld(window::GetCursorPosition());
     sprintf(buffer, "Mouse Pos In World:(%.1f,%.1f)", mouse.x, mouse.y);
     gfx::PushText(buffer, 3.f, sz.y - 50.f);
+    math::Vec2i tile = tilemap::WorldToTilePos(mouse.xy());
     sprintf(buffer, "Minerals: %lu", kShip[0].mineral);
     gfx::PushText(buffer, 3.f, sz.y - 75.f);
+    if (tilemap::TileOk(tile)) {
+      sprintf(buffer, "Type %d", tilemap::kTilemap.map[tile.y][tile.x].type);
+      gfx::PushText(buffer, 3.f, sz.y - 100.f);
+    }
     if (simulation::GameOver()) {
       sprintf(buffer, "Game Over");
       gfx::PushText(buffer, sz.x * .5 - 100.f, sz.y * .5);

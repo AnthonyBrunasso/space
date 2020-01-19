@@ -92,4 +92,57 @@ PathTo(const math::Vec2i& start, const math::Vec2i& end)
   return &kSearch.path;
 }
 
+uint64_t
+BfsReplace(math::Vec2i start, const uint64_t limit, tilemap::TileType seek,
+           tilemap::TileType set)
+{
+  uint64_t count = 0;
+  if (!tilemap::TileOk(start)) return count;
+  if (tilemap::kTilemap.map[start.y][start.x].type == seek) {
+    tilemap::kTilemap.map[start.y][start.x].type = set;
+    ++count;
+  }
+
+  constexpr int N = tilemap::kMapHeight * tilemap::kMapWidth;
+  memset(kSearch.path_map, 0, sizeof(PathNode) * N);
+  kSearch.queue_size = 0;
+  kSearch.queue_ptr = 0;
+  kSearch.path.size = 0;
+
+  auto& queue = kSearch.queue;
+  int& qsz = kSearch.queue_size;
+  int& qptr = kSearch.queue_ptr;
+  auto& path_map = kSearch.path_map;
+
+  queue[qsz++] = start;
+  path_map[start.y][start.x].from = start;
+  path_map[start.y][start.x].checked = true;
+
+  while (count < limit) {
+    // No more tiles
+    if (qptr == qsz) return count;
+
+    auto& node = queue[qptr++];
+    for (int i = 0; i < tilemap::kMaxNeighbor; ++i) {
+      const math::Vec2i neighbor = node + tilemap::kNeighbor[i];
+      if (!tilemap::TileOk(neighbor)) continue;
+      if (path_map[neighbor.y][neighbor.x].checked == true) continue;
+      path_map[neighbor.y][neighbor.x].checked = true;
+      path_map[neighbor.y][neighbor.x].from = node;
+
+      if (tilemap::kTilemap.map[neighbor.y][neighbor.x].type == seek) {
+        tilemap::kTilemap.map[neighbor.y][neighbor.x].type = set;
+        ++count;
+      }
+
+      if (tilemap::kTilemap.map[neighbor.y][neighbor.x].type !=
+          tilemap::kTileBlock) {
+        queue[qsz++] = neighbor;
+      }
+    }
+  }
+
+  return count;
+}
+
 }  // namespace search

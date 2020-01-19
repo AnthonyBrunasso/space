@@ -183,8 +183,10 @@ Think()
         tilemap::WorldToTilePos(missile->transform.position.xy());
     if (!tilemap::TileOk(tile)) continue;
 
-    if (tilemap::kTilemap.map[tile.y][tile.x].type == tilemap::kTileBlock)
+    if (tilemap::kTilemap.map[tile.y][tile.x].type == tilemap::kTileBlock) {
       missile->flags = FLAG(kMissileAiExplode);
+      missile->tile_hit = {tile.x, tile.y + 1};
+    }
   }
 
   for (int i = 0; i < kUsedPod; ++i) {
@@ -375,9 +377,13 @@ Decide()
   for (int i = 0; i < kUsedMissile;) {
     Missile* missile = &kMissile[i];
     uint64_t action = TZCNT(missile->flags);
+    uint64_t replaced;
     switch (action) {
       case kMissileAiExplode:
-        puts("missile impact");
+        replaced = search::BfsReplace(missile->tile_hit, 8, tilemap::kTileOpen,
+                                      tilemap::kTileVacuum);
+        printf("missile impact %d %d replaced %lu tiles\n", missile->tile_hit.x,
+               missile->tile_hit.y, replaced);
         ReleaseMissile(i);
         break;
       default:

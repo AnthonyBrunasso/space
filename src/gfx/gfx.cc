@@ -226,7 +226,7 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
 
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
-      Tile* tile = &kTilemap.map[i][j];
+      const Tile* tile = &kTilemap.map[i][j];
       uint64_t type_id = tile->type;
 
       if (type_id == kTileOpen) continue;
@@ -244,6 +244,10 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
           break;
         case kTileMine:
           color = math::Vec4f(0.0, 0.75f * sys_mine, 0.0f, 1.0f);
+          break;
+        case kTileVacuum:
+          color = math::Vec4f(1.f, 0.f, 1.f, 1.f);
+          break;
       };
 
       rgg::RenderRectangle(math::Vec3f(TileToWorld(*tile)),

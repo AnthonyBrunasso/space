@@ -19,6 +19,7 @@ enum TileType {
   kTileEngine = 2,
   kTilePower = 3,
   kTileMine = 4,
+  kTileVacuum = 5,
 };
 
 struct Tile {
@@ -167,8 +168,7 @@ TileTypeWorldPosition(TileType type, math::Vec2f* world)
 {
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
-      Tile* tile = &kTilemap.map[i][j];
-      tile->type = (TileType)kDefaultMap[i][j];
+      const Tile* tile = &kTilemap.map[i][j];
       if (tile->type == type) {
         math::Vec2i near_engine = TileOpenAdjacent(tile->pos);
         *world = TilePosToWorld(near_engine);

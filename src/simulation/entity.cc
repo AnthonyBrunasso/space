@@ -110,6 +110,7 @@ DECLARE_GAME_TYPE(Ship, 1);
 struct Missile {
   Transform transform;
   uint64_t flags;
+  math::Vec2i tile_hit;
 };
 DECLARE_GAME_TYPE(Missile, 8);
 

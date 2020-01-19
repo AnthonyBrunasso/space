@@ -67,6 +67,14 @@ typedef void glUniform1i_Func(GLint, GLint);
 glUniform1i_Func* glUniform1i;
 typedef void glDeleteShader_Func(GLuint);
 glDeleteShader_Func* glDeleteShader;
+typedef void glGenFramebuffers_Func(GLsizei, GLuint*);
+glGenFramebuffers_Func* glGenFramebuffers;
+typedef void glBindFramebuffer_Func(GLenum, GLuint);
+glBindFramebuffer_Func* glBindFramebuffer;
+typedef void glFramebufferTexture_Func(GLenum, GLenum, GLuint, GLint);
+glFramebufferTexture_Func* glFramebufferTexture;
+typedef void glDrawBuffers_Func(GLsizei, const GLenum*);
+glDrawBuffers_Func* glDrawBuffers;
 
 // GL defines.
 #define GL_ARRAY_BUFFER                   0x8892
@@ -102,6 +110,8 @@ glDeleteShader_Func* glDeleteShader;
 #define GL_TEXTURE10                      0x84CA
 #define GL_CLAMP_TO_EDGE                  0x812F
 #define GL_DYNAMIC_DRAW                   0x88E8
+#define GL_FRAMEBUFFER                    0x8D40
+#define GL_COLOR_ATTACHMENT0              0x8CE0
 
 namespace window {
 
@@ -430,6 +440,10 @@ SetupGLFunctions() {
   glActiveTexture = (glActiveTexture_Func*)GetGLFunction("glActiveTexture");
   glUniform1i = (glUniform1i_Func*)GetGLFunction("glUniform1i");
   glDeleteShader = (glDeleteShader_Func*)GetGLFunction("glDeleteShader");
+  glGenFramebuffers = (glGenFramebuffers_Func*)GetGLFunction("glGenFramebuffers");
+  glBindFramebuffer = (glBindFramebuffer_Func*)GetGLFunction("glBindFramebuffer");
+  glFramebufferTexture = (glFramebufferTexture_Func*)GetGLFunction("glFramebufferTexture");
+  glDrawBuffers = (glDrawBuffers_Func*)GetGLFunction("glDrawBuffers");
 }
 
 int

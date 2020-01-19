@@ -70,7 +70,7 @@ NetworkSetup()
   const uint64_t usec = 5 * 1000;
   platform::clock_init(usec, &handshake_clock);
   Handshake h = {.num_players = kNetworkState.num_players};
-  for (int send_count = 0; bytes_received <= 0 && send_count < 500;
+  for (int send_count = 0; bytes_received <= 0 && send_count < 5000000;
        ++send_count) {
     printf("Client: send %s for %lu players\n", h.greeting,
            kNetworkState.num_players);

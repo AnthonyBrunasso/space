@@ -105,6 +105,8 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
       rgg::RenderText(buffer, screen.x - 225.f, screen.y - j * 25.f,
                       math::Vec4f());
     }
+    sprintf(buffer, "%04.02fX %04.02fY", unit->transform.position.x, unit->transform.position.y);
+    rgg::RenderText(buffer, screen.x - 225.f, screen.y - CREWA_MAX*25.f, math::Vec4f());
     break;
   }
 

@@ -26,7 +26,6 @@ struct State {
   uint64_t game_jerk = 0;
   // TODO (AN): Find a home in simulation/
   Camera player_camera[MAX_PLAYER];
-  math::Vec2f last_click;
 };
 
 static State kGameState;
@@ -95,11 +94,10 @@ CoordToWorld(math::Vec2f xy)
 
 void
 SimulationEvent(const PlatformEvent* event, const Camera* camera,
-                math::Vec2f* translation, math::Vec2f* click)
+                math::Vec2f* translation)
 {
   switch (event->type) {
     case MOUSE_DOWN: {
-      *click = event->position;
       if (event->button == BUTTON_LEFT) {
         math::Vec3f pos = CoordToWorld(event->position);
         uint64_t unit = simulation::SelectUnit(pos);
@@ -159,7 +157,7 @@ ProcessSimulation(int player_id, uint64_t event_count,
   // Shared player control of the ship for now
   for (int i = 0; i < event_count; ++i) {
     SimulationEvent(&event[i], &kGameState.player_camera[player_id],
-                    &kGameState.player_camera[player_id].motion, &kGameState.last_click);
+                    &kGameState.player_camera[player_id].motion);
   }
 }
 
@@ -273,8 +271,6 @@ main(int argc, char** argv)
       sprintf(buffer, "Game Over");
       gfx::PushText(buffer, sz.x * .5 - 100.f, sz.y * .5);
     }
-    sprintf(buffer, "Mouse: %04.02fX %04.02fY", kGameState.last_click.x, kGameState.last_click.y);
-    gfx::PushText(buffer, 3.f, sz.y - 100.f);
 
     for (int i = 0; i < kUsedAsteroid; ++i) {
       math::AxisAlignedRect aabb = gfx::kGfx.asteroid_aabb;

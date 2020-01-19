@@ -267,13 +267,17 @@ main(int argc, char** argv)
     gfx::PushText(buffer, 3.f, sz.y - 50.f);
     sprintf(buffer, "Minerals: %lu", kShip[0].mineral);
     gfx::PushText(buffer, 3.f, sz.y - 75.f);
+    if (simulation::GameOver()) {
+      sprintf(buffer, "Game Over");
+      gfx::PushText(buffer, sz.x * .5 - 100.f, sz.y * .5);
+    }
 
     for (int i = 0; i < kUsedAsteroid; ++i) {
       math::AxisAlignedRect aabb = gfx::kGfx.asteroid_aabb;
       aabb.min += kAsteroid[i].transform.position;
       aabb.max += kAsteroid[i].transform.position;
       if (math::PointInRect(mouse.xy(), aabb)) {
-        gfx::PushText("Mouse / Asteroid collision", 3.f, sz.y - 100.f);
+        gfx::PushText("Mouse / Asteroid collision", 3.f, sz.y - 125.f);
       }
     }
 

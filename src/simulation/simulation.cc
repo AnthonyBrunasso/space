@@ -12,12 +12,14 @@ namespace simulation
 {
 enum ShipAiGoals {
   kShipAiSpawnPod,
+  kShipAiPowerSurge,
   kShipAiGoals = 64,
 };
 enum UnitAiGoals {
   kUnitAiPower = 0,
   kUnitAiMine,
   kUnitAiThrust,
+  kUnitAiSavePower,
   kUnitAiGoals = 64,
 };
 enum PodAiGoals {
@@ -73,16 +75,66 @@ VerifyIntegrity()
   return true;
 }
 
+bool
+operator_save_power(Unit* unit, float power_delta)
+{
+  uint8_t int_check = power_delta / 5.0;
+#ifdef AI_DEBUG
+  printf("%u int check to save_power\n", int_check);
+#endif
+  bool success = (unit->acurrent[CREWA_INT] > int_check);
+  // On success, update the known crew intelligence
+  unit->aknown_min[CREWA_INT] =
+      MAX(unit->aknown_min[CREWA_INT], success * int_check);
+  return success;
+}
+
 void
 Think()
 {
+  for (int i = 0; i < kUsedUnit; ++i) {
+    switch (kUnit[i].kind) {
+      default:
+      case 0:
+        // Just takes orders
+        kUnit[i].think_flags = 0;
+        break;
+      case 1:
+        kUnit[i].think_flags = FLAG(kUnitAiPower);
+        break;
+      case 2:
+        kUnit[i].think_flags = FLAG(kUnitAiMine);
+        break;
+      case 3:
+        kUnit[i].think_flags = FLAG(kUnitAiThrust);
+        break;
+    };
+  }
+
   for (int i = 0; i < kUsedShip; ++i) {
     // Ship already has a pod, no-op
     uint64_t think_flags = 0;
+
     if (!kUsedPod) {
       // Ship mining is powererd
       if (kShip[i].sys_mine >= 1.0f) {
-        think_flags = FLAG(kShipAiSpawnPod);
+        think_flags |= FLAG(kShipAiSpawnPod);
+      }
+    }
+
+    if (kShip[i].power_delta > 0.0f) {
+      think_flags |= FLAG(kShipAiPowerSurge);
+      kShip[i].danger += 1;
+      for (int j = 0; j < kUsedUnit; ++j) {
+        Unit* unit = &kUnit[j];
+        math::Vec2f power_module;
+        tilemap::TileTypeWorldPosition(tilemap::kTilePower, &power_module);
+        if (dsq(unit->transform.position, power_module) < kDsqOperate) {
+          if (operator_save_power(unit, kShip[i].power_delta)) {
+            unit->think_flags |= FLAG(kUnitAiSavePower);
+            break;
+          }
+        }
       }
     }
     kShip[i].think_flags = think_flags;
@@ -111,25 +163,6 @@ Think()
     }
 
     kShip[i].crew_think_flags = satisfied;
-  }
-
-  for (int i = 0; i < kUsedUnit; ++i) {
-    switch (kUnit[i].kind) {
-      default:
-      case 0:
-        // Just takes orders
-        kUnit[i].think_flags = 0;
-        break;
-      case 1:
-        kUnit[i].think_flags = FLAG(kUnitAiPower);
-        break;
-      case 2:
-        kUnit[i].think_flags = FLAG(kUnitAiMine);
-        break;
-      case 3:
-        kUnit[i].think_flags = FLAG(kUnitAiThrust);
-        break;
-    };
   }
 
   for (int i = 0; i < kUsedAsteroid; ++i) {
@@ -205,30 +238,6 @@ Think()
 void
 Decide()
 {
-  for (int i = 0; i < kUsedShip; ++i) {
-    if (kShip[i].think_flags & FLAG(kShipAiSpawnPod)) {
-      Pod* pod = UsePod();
-      pod->transform.position = math::Vec3f(520.f, 600.f, 0.f);
-    }
-
-    if (kShip[i].crew_think_flags & FLAG(kUnitAiPower))
-      kShip[i].sys_power += 0.01f;
-    else
-      kShip[i].sys_power += -0.01f;
-    if (kShip[i].crew_think_flags & FLAG(kUnitAiMine))
-      kShip[i].sys_mine += 0.01f;
-    else
-      kShip[i].sys_mine += -0.01f;
-    if (kShip[i].crew_think_flags & FLAG(kUnitAiThrust))
-      kShip[i].sys_engine += 0.01f;
-    else
-      kShip[i].sys_engine += -0.01f;
-
-    kShip[i].sys_power = CLAMPF(kShip[i].sys_power, 0.0f, 1.0f);
-    kShip[i].sys_mine = CLAMPF(kShip[i].sys_mine, 0.0f, 1.0f);
-    kShip[i].sys_engine = CLAMPF(kShip[i].sys_engine, 0.0f, 1.0f);
-  }
-
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     // Busy unit
@@ -241,6 +250,17 @@ Decide()
       if (CountCommand()) {
         unit->command = PopCommand();
       }
+      continue;
+    }
+
+    // hero saves the day!
+    if (unit->think_flags & FLAG(kUnitAiSavePower)) {
+      kShip[0].power_delta = 0.0f;
+      kShip[0].danger = 0;
+#ifdef AI_DEBUG
+      printf("Unit %lu prevented the power surge from damaging the ship\n",
+             unit - kUnit);
+#endif
       continue;
     }
 
@@ -274,6 +294,41 @@ Decide()
         }
         break;
     };
+  }
+
+  for (int i = 0; i < kUsedShip; ++i) {
+    if (kShip[i].danger > 20) {
+      puts("ship danger triggered game over");
+      kGameStatus[0].over = true;
+    }
+    if (kShip[i].think_flags & FLAG(kShipAiSpawnPod)) {
+      Pod* pod = UsePod();
+      pod->transform.position = math::Vec3f(520.f, 600.f, 0.f);
+    }
+
+    if (kShip[i].crew_think_flags & FLAG(kUnitAiPower))
+      kShip[i].sys_power += 0.01f;
+    else
+      kShip[i].sys_power += -0.01f;
+    if (kShip[i].crew_think_flags & FLAG(kUnitAiMine))
+      kShip[i].sys_mine += 0.01f;
+    else
+      kShip[i].sys_mine += -0.01f;
+    if (kShip[i].crew_think_flags & FLAG(kUnitAiThrust))
+      kShip[i].sys_engine += 0.01f;
+    else
+      kShip[i].sys_engine += -0.01f;
+
+    kShip[i].sys_power = CLAMPF(kShip[i].sys_power, 0.0f, 1.0f);
+    kShip[i].sys_mine = CLAMPF(kShip[i].sys_mine, 0.0f, 1.0f);
+    kShip[i].sys_engine = CLAMPF(kShip[i].sys_engine, 0.0f, 1.0f);
+
+    float used_power = 0.f;
+    used_power += 20.f * (kShip[i].sys_mine >= 0.1f);
+    used_power += 40.f * (kShip[i].sys_engine >= .1f);
+    kShip[i].power_delta =
+        fmaxf(used_power - kShip[i].used_power, kShip[i].power_delta);
+    kShip[i].used_power = used_power;
   }
 
   if (!kUsedAsteroid) {
@@ -343,9 +398,17 @@ Decide()
   }
 }
 
+bool
+GameOver()
+{
+  return (kGameStatus[0].over);
+}
+
 void
 Update()
 {
+  if (kGameStatus[0].over) return;
+
   Think();
   Decide();
 

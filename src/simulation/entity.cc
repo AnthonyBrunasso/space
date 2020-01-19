@@ -101,5 +101,13 @@ struct Ship {
   float sys_power;
   float sys_engine;
   float sys_mine;
+  float used_power;
+  float power_delta;
+  uint64_t danger;
 };
 DECLARE_GAME_TYPE(Ship, 1);
+
+struct GameStatus {
+  bool over;
+};
+DECLARE_GAME_TYPE(GameStatus, 1);

@@ -90,7 +90,7 @@ Reset()
 void
 Render(const math::Rectf visible_world, math::Vec2f mouse)
 {
-  rgg::RenderButton("test", 10, 10, 50, 50);
+  rgg::RenderButton("test", math::Rect(10, 10, 50, 50));
 
   // Draw all text.
   for (int i = 0; i < kGfx.text_count; ++i) {

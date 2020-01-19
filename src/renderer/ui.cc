@@ -151,14 +151,13 @@ RenderText(const char* msg, float x, float y, const math::Vec4f& color)
 }
 
 void
-RenderButton(const char* text, float x, float y, float width, float height) {
-  math::Vec3f position(x + width / 2.f, y + height / 2.f, 0.f);
-  math::Vec3f scale(1.f, 1.f, 1.f);
+RenderButton(const char* text, const math::Rect& rect) {
   math::Vec4f color(1.f, 1.f, 1.f, 1.f);
   glUseProgram(kRGG.geometry_program.reference);
-  glBindVertexArray(kRGG.rectangle_vao_reference);
-  // Translate and rotate the rectangle appropriately.
-  math::Mat4f model = math::CreateModelMatrix(position, scale);
+  glBindVertexArray(kTextureState.vao_reference);
+  math::Vec3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f,0.0f);
+  math::Vec3f scale(rect.width, rect.height, 1.f);
+  math::Mat4f model = math::CreateModelMatrix(pos, scale);
   auto sz = window::GetWindowSize();
   math::Mat4f projection = math::CreateOrthographicMatrix2<float>(
       sz.x, 0.f, sz.y, 0.f, /* 2d so leave near/far 0*/ 0.f, 0.f);

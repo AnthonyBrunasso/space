@@ -457,7 +457,9 @@ SelectUnit(math::Vec3f world)
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
 
-    if (dsq(unit->transform.position, world) < kDsqSelect) {
+    float delta = dsq(unit->transform.position, world);
+    if (delta < kDsqSelect) {
+      printf("compare transform %04.02f %04.02f %04.02f %04.02f: dsq %04.02f", unit->transform.position.x, unit->transform.position.y, world.x, world.y, delta);
       return i;
     }
   }

@@ -34,6 +34,9 @@ enum AsteroidAiGoals {
   kAsteroidAiImplode,
   kAsteroidAiDeplete,
 };
+enum MissileAiGoals {
+  kMissileAiExplode,
+};
 
 constexpr float kDsqOperate = 50.f * 35.f;
 constexpr float kDsqSelect = 25.f * 25.f;
@@ -172,6 +175,16 @@ Think()
     } else {
       asteroid->flags = 0;
     }
+  }
+
+  for (int i = 0; i < kUsedMissile; ++i) {
+    Missile* missile = &kMissile[i];
+    math::Vec2i tile =
+        tilemap::WorldToTilePos(missile->transform.position.xy());
+    if (!tilemap::TileOk(tile)) continue;
+
+    if (tilemap::kTilemap.map[tile.y][tile.x].type == tilemap::kTileBlock)
+      missile->flags = FLAG(kMissileAiExplode);
   }
 
   for (int i = 0; i < kUsedPod; ++i) {
@@ -350,6 +363,32 @@ Decide()
         ++i;
         break;
     }
+  }
+
+  if (!kUsedMissile) {
+    Missile* missile = UseMissile();
+    missile->transform.position = math::Vec3f(300.f, -1000.f, 0.f);
+    missile->flags = 0;
+  }
+
+  // TODO (AN): Zero to avoid index slide and poor iteration performance
+  for (int i = 0; i < kUsedMissile;) {
+    Missile* missile = &kMissile[i];
+    uint64_t action = TZCNT(missile->flags);
+    switch (action) {
+      case kMissileAiExplode:
+        puts("missile impact");
+        ReleaseMissile(i);
+        break;
+      default:
+        ++i;
+        break;
+    }
+  }
+
+  for (int i = 0; i < kUsedMissile; ++i) {
+    Missile* missile = &kMissile[i];
+    missile->transform.position += math::Vec3f(0.0f, 5.f, 0.f);
   }
 
   for (int i = 0; i < kUsedAsteroid; ++i) {

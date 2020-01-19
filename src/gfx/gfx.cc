@@ -21,10 +21,12 @@ struct Gfx {
   int text_count;
   rgg::Tag asteroid_tag;
   rgg::Tag pod_tag;
+  rgg::Tag missile_tag;
   math::AxisAlignedRect asteroid_aabb;
 };
 
 static Gfx kGfx;
+static math::Vec4f kWhite = math::Vec4f(1.f, 1.f, 1.f, 1.f);
 
 bool
 Initialize()
@@ -49,9 +51,14 @@ Initialize()
   GLfloat pod[kPodVert*3] = 
   {0.0f, 0.0f, 0.0f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
    1.5f, 1.0f, 0.0f, 0.5f, 2.0f, 0.0f, 0.0f, 1.0f, 0.0f};
+  constexpr int kMissileVert = 4;
+  GLfloat missile[kPodVert*3] = 
+  {0.0f, 0.0f, 0.0f, 2.0f, 0.0f, 0.0f,
+   2.0f, 4.0f, 0.0f, 0.0f, 4.0f, 0.0f};
   // clang-format on
-  for (int i = 0; i < kFloatCount; ++i) asteroid[i] *= 15.f;  // HA
-  for (int i = 0; i < kPodVert * 3; ++i) pod[i] *= 15.f;      // HA
+  for (int i = 0; i < kFloatCount; ++i) asteroid[i] *= 15.f;      // HA
+  for (int i = 0; i < kPodVert * 3; ++i) pod[i] *= 15.f;          // HA
+  for (int i = 0; i < kMissileVert * 3; ++i) missile[i] *= 15.f;  // HA
   kGfx.asteroid_aabb.min = math::Vec3f(10000.0f, 10000.0f, 10000.0f);
   kGfx.asteroid_aabb.max = math::Vec3f(-10000.0f, -10000.0f, -10000.0f);
   for (int i = 0; i < kFloatCount; i += 3) {
@@ -68,6 +75,7 @@ Initialize()
   }
   kGfx.asteroid_tag = rgg::CreateRenderable(kVertCount, asteroid, GL_LINE_LOOP);
   kGfx.pod_tag = rgg::CreateRenderable(kPodVert, pod, GL_LINE_LOOP);
+  kGfx.missile_tag = rgg::CreateRenderable(kMissileVert, missile, GL_LINE_LOOP);
   return status;
 }
 
@@ -105,8 +113,10 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
       rgg::RenderText(buffer, screen.x - 225.f, screen.y - j * 25.f,
                       math::Vec4f());
     }
-    sprintf(buffer, "%04.02fX %04.02fY", unit->transform.position.x, unit->transform.position.y);
-    rgg::RenderText(buffer, screen.x - 225.f, screen.y - CREWA_MAX*25.f, math::Vec4f());
+    sprintf(buffer, "%04.02fX %04.02fY", unit->transform.position.x,
+            unit->transform.position.y);
+    rgg::RenderText(buffer, screen.x - 225.f, screen.y - CREWA_MAX * 25.f,
+                    math::Vec4f());
     break;
   }
 
@@ -185,14 +195,21 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
   for (int i = 0; i < kUsedPod; ++i) {
     Pod* pod = &kPod[i];
     rgg::RenderTag(kGfx.pod_tag, pod->transform.position, pod->transform.scale,
-                   pod->transform.orientation, math::Vec4f(1.f, 1.f, 1.f, 1.f));
+                   pod->transform.orientation, kWhite);
   }
 
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
     rgg::RenderTag(kGfx.asteroid_tag, asteroid->transform.position,
                    asteroid->transform.scale, asteroid->transform.orientation,
-                   math::Vec4f(1.f, 1.f, 1.f, 1.f));
+                   kWhite);
+  }
+
+  for (int i = 0; i < kUsedMissile; ++i) {
+    Missile* missile = &kMissile[i];
+    rgg::RenderTag(kGfx.missile_tag, missile->transform.position,
+                   missile->transform.scale, missile->transform.orientation,
+                   kWhite);
   }
 
   float sys_power = .0f;

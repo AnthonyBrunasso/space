@@ -98,14 +98,20 @@ struct Ship {
   uint64_t think_flags = 0;
   uint64_t crew_think_flags = 0;
   uint64_t mineral = 0;
+  uint64_t danger = 0;
   float sys_power;
   float sys_engine;
   float sys_mine;
   float used_power;
   float power_delta;
-  uint64_t danger;
 };
 DECLARE_GAME_TYPE(Ship, 1);
+
+struct Missile {
+  Transform transform;
+  uint64_t flags;
+};
+DECLARE_GAME_TYPE(Missile, 8);
 
 struct GameStatus {
   bool over;

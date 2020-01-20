@@ -56,7 +56,7 @@ inline constexpr const char* kSmoothRectangleFragmentShader = R"(
     float delta = 2;
     float alpha = smoothstep(smoothing_radius_out - delta, smoothing_radius_out,
                              dist);
-    frag_color = vec4(color_out.xyz, 1.0 - alpha);
+    frag_color = vec4(color_out.xyz, color_out.w - alpha);
   }
 )";
 

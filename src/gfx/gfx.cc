@@ -100,7 +100,23 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
 {
   using namespace simulation;
 
-  rgg::RenderButton("test", math::Rect(10, 10, 50, 50));
+  const math::Vec2f grid2(50.f, 50.f);
+  math::Rectf world2 = visible_world;
+  AlignToGrid(grid2, &world2);
+  rgg::RenderGrid(grid2, world2, math::Vec4f(0.207f, 0.317f, 0.360f, 0.60f));
+
+  const math::Vec2f grid1(25.f, 25.f);
+  math::Rectf world1 = visible_world;
+  AlignToGrid(grid1, &world1);
+  rgg::RenderGrid(grid1, world1, math::Vec4f(0.050f, 0.215f, 0.050f, 0.45f));
+
+
+  rgg::RenderButton("test", math::Rect(10, 10, 30, 30),
+                    math::Vec4f(1.0f, 1.0f, 1.0f, 0.5f));
+
+  rgg::RenderButton("test", math::Rect(45, 10, 30, 30),
+                    math::Vec4f(1.0f, 1.0f, 1.0f, 0.5f));
+
 
   // Unit hover-over text
   for (int i = 0; i < kUsedUnit; ++i) {
@@ -281,16 +297,7 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
     }
   }
 
-  const math::Vec2f grid2(50.f, 50.f);
-  math::Rectf world2 = visible_world;
-  AlignToGrid(grid2, &world2);
-  rgg::RenderGrid(grid2, world2, math::Vec4f(0.207f, 0.317f, 0.360f, 0.60f));
-
-  const math::Vec2f grid1(25.f, 25.f);
-  math::Rectf world1 = visible_world;
-  AlignToGrid(grid1, &world1);
-  rgg::RenderGrid(grid1, world1, math::Vec4f(0.050f, 0.215f, 0.050f, 0.45f));
-}
+  }
 
 void
 PushText(const char* msg, float screen_x, float screen_y)

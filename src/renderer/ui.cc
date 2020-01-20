@@ -164,20 +164,24 @@ RenderText(const char* msg, float x, float y, const math::Vec4f& color)
 }
 
 void
-RenderButton(const char* text, const math::Rect& rect) {
-  math::Vec4f color(1.f, 1.f, 1.f, 1.f);
-  glUseProgram(kRGG.geometry_program.reference);
+RenderButton(const char* text, const math::Rect& rect,
+             const math::Vec4f& color) {
+  glUseProgram(kRGG.smooth_rectangle_program.reference);
   glBindVertexArray(kTextureState.vao_reference);
-  math::Vec3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f,0.0f);
+  math::Vec3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, 0.0f);
   math::Vec3f scale(rect.width, rect.height, 1.f);
   math::Mat4f model = math::CreateModelMatrix(pos, scale);
   auto sz = window::GetWindowSize();
   math::Mat4f projection = math::CreateOrthographicMatrix2<float>(
       sz.x, 0.f, sz.y, 0.f, /* 2d so leave near/far 0*/ 0.f, 0.f);
-  math::Mat4f matrix = projection * model;
-  glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y,
+  math::Mat4f view_projection = projection;
+  glUniform1f(kRGG.smooth_rectangle_program.smoothing_radius_uniform,
+              rect.width - rect.width * 0.40f);
+  glUniform4f(kRGG.smooth_rectangle_program.color_uniform, color.x, color.y,
               color.z, color.w);
-  glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
-                     &matrix[0]);
-  glDrawArrays(GL_LINE_LOOP, 0, 4);
+  glUniformMatrix4fv(kRGG.smooth_rectangle_program.model_uniform, 1, GL_FALSE,
+                     &model[0]);
+  glUniformMatrix4fv(kRGG.smooth_rectangle_program.view_projection_uniform, 1,
+                     GL_FALSE, &view_projection[0]);
+  glDrawArrays(GL_TRIANGLES, 0, 6);
 }

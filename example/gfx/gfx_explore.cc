@@ -54,14 +54,24 @@ main(int argc, char** argv)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+#if 0
     rgg::RenderCircle(math::Vec3f(0.0f, 0.0f, 0.0f), 25.0f,
                       math::Vec4f(0.0f, 0.0f, 1.0f, 1.0f));
 
     rgg::RenderCircle(math::Vec3f(100.0f, 0.0f, 0.0f), 40.0f, 50.0f,
                       math::Vec4f(0.0f, 0.0f, 1.0f, 1.0f));
+#endif
+    auto dims = window::GetWindowSize();
+    rgg::RenderLine(math::Vec3f(-dims.x / 2.f, 0.0f, 0.0f),
+                    math::Vec3f(dims.x / 2.f, 0.0f, 0.0f),
+                    math::Vec4f(1.0f, 0.0f, 0.0f, 1.0f));
+
+    rgg::RenderLine(math::Vec3f(0.0f, -dims.y / 2.f, 0.0f),
+                    math::Vec3f(0.0f, dims.y / 2.f, 0.0f),
+                    math::Vec4f(0.0f, 0.0f, 1.0f, 1.0f));
 
 
-    rgg::RenderText("Circle", 50.0f, 100.0f, math::Vec4f(1.f, 1.f, 1.f, 1.f));
+    rgg::RenderText("Testing", dims.x / 2.f, dims.y / 2.f, math::Vec4f(1.f, 1.f, 1.f, 1.f));
 
     RenderGrid();
 

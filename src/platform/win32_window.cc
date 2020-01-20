@@ -75,6 +75,8 @@ typedef void glFramebufferTexture_Func(GLenum, GLenum, GLuint, GLint);
 glFramebufferTexture_Func* glFramebufferTexture;
 typedef void glDrawBuffers_Func(GLsizei, const GLenum*);
 glDrawBuffers_Func* glDrawBuffers;
+typedef void glUniform1f_Func(GLint, GLfloat);
+glUniform1f_Func* glUniform1f;
 
 // GL defines.
 #define GL_ARRAY_BUFFER                   0x8892
@@ -444,6 +446,7 @@ SetupGLFunctions() {
   glBindFramebuffer = (glBindFramebuffer_Func*)GetGLFunction("glBindFramebuffer");
   glFramebufferTexture = (glFramebufferTexture_Func*)GetGLFunction("glFramebufferTexture");
   glDrawBuffers = (glDrawBuffers_Func*)GetGLFunction("glDrawBuffers");
+  glUniform1f = (glUniform1f_Func*)GetGLFunction("glUniform1f");
 }
 
 int

@@ -5,7 +5,13 @@
 #ifdef _WIN32
 #include <intrin.h>
 #else
-#include <x86intrin.h>
+// The recommended include is heavy: compile time
+// <x86intrin.h>
+#define __X86INTRIN_H
+#define __IMMINTRIN_H
+#include <bmiintrin.h>
+#include <lzcntintrin.h>
+#include <popcntintrin.h>
 #endif
 
 #ifdef _WIN32

@@ -111,10 +111,10 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
   rgg::RenderGrid(grid1, world1, math::Vec4f(0.050f, 0.215f, 0.050f, 0.45f));
 
 
-  rgg::RenderButton("test", math::Rect(10, 10, 30, 30),
+  rgg::RenderButton("test", math::Rect(10, 10, 40, 40),
                     math::Vec4f(1.0f, 1.0f, 1.0f, 0.5f));
 
-  rgg::RenderButton("test", math::Rect(45, 10, 30, 30),
+  rgg::RenderButton("test", math::Rect(55, 10, 40, 40),
                     math::Vec4f(1.0f, 1.0f, 1.0f, 0.5f));
 
 

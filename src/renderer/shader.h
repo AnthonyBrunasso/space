@@ -97,7 +97,7 @@ inline constexpr const char* kCircleFragmentShader = R"(
     if (dist > out_outer_radius || dist < out_inner_radius) discard;
     float delta = 2;
     float alpha = smoothstep(out_outer_radius - delta, out_outer_radius, dist);
-    frag_color = vec4(color_out.xyz, 1.0 - alpha);
+    frag_color = vec4(color_out.xyz, color_out.w - alpha);
   }
 )";
 

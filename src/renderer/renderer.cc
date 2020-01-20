@@ -17,18 +17,26 @@ struct RenderTag {
 namespace rgg
 {
 struct GeometryProgram {
-  GLuint reference;
-  GLuint matrix_uniform;
-  GLuint color_uniform;
+  GLuint reference = -1;
+  GLuint matrix_uniform = -1;
+  GLuint color_uniform = -1;
+};
+
+struct SmoothRectangleProgram {
+  GLuint reference = -1;
+  GLuint model_uniform = -1;
+  GLuint view_projection_uniform = -1;
+  GLuint color_uniform = -1;
+  GLuint smoothing_radius_uniform = -1;
 };
 
 struct CircleProgram {
-  GLuint reference;
-  GLuint model_uniform;
-  GLuint view_projection_uniform;
-  GLuint color_uniform;
-  GLuint inner_radius_uniform;
-  GLuint outer_radius_uniform;
+  GLuint reference = -1;
+  GLuint model_uniform = -1;
+  GLuint view_projection_uniform = -1;
+  GLuint color_uniform = -1;
+  GLuint inner_radius_uniform = -1;
+  GLuint outer_radius_uniform = -1;
 };
 
 struct Observer {
@@ -38,6 +46,7 @@ struct Observer {
 
 struct RGG {
   GeometryProgram geometry_program;
+  SmoothRectangleProgram smooth_rectangle_program;
   CircleProgram circle_program;
 
   // References to vertex data on GPU.
@@ -77,7 +86,24 @@ SetupGeometryProgram()
     return false;
   }
 
-  // No use for the basic shaders after the program is linked.
+  glDeleteShader(vert_shader);
+  glDeleteShader(frag_shader);
+
+  if (!gl::CompileShader(GL_VERTEX_SHADER, &kSmoothRectangleVertexShader,
+                         &vert_shader)) {
+    return false;
+  }
+
+  if (!gl::CompileShader(GL_FRAGMENT_SHADER, &kSmoothRectangleFragmentShader,
+                         &frag_shader)) {
+    return false;
+  }
+
+  if (!gl::LinkShaders(&kRGG.smooth_rectangle_program.reference, 2, vert_shader,
+                       frag_shader)) {
+    return false;
+  }
+
   glDeleteShader(vert_shader);
   glDeleteShader(frag_shader);
 
@@ -87,6 +113,23 @@ SetupGeometryProgram()
   kRGG.geometry_program.color_uniform =
       glGetUniformLocation(kRGG.geometry_program.reference, "color");
   assert(kRGG.geometry_program.color_uniform != uint32_t(-1));
+
+  kRGG.smooth_rectangle_program.model_uniform =
+      glGetUniformLocation(kRGG.smooth_rectangle_program.reference, "model");
+  assert(kRGG.smooth_rectangle_program.model_uniform != uint32_t(-1));
+  kRGG.smooth_rectangle_program.view_projection_uniform =
+      glGetUniformLocation(kRGG.smooth_rectangle_program.reference,
+      "view_projection");
+  assert(kRGG.smooth_rectangle_program.view_projection_uniform != uint32_t(-1));
+
+  kRGG.smooth_rectangle_program.color_uniform =
+      glGetUniformLocation(kRGG.smooth_rectangle_program.reference, "color");
+  assert(kRGG.smooth_rectangle_program.color_uniform != uint32_t(-1));
+  kRGG.smooth_rectangle_program.smoothing_radius_uniform =
+      glGetUniformLocation(kRGG.smooth_rectangle_program.reference,
+                           "smoothing_radius");
+  assert(kRGG.smooth_rectangle_program.smoothing_radius_uniform != uint32_t(-1));
+
   return true;
 }
 
@@ -124,8 +167,10 @@ SetupCircleProgram()
       glGetUniformLocation(kRGG.circle_program.reference, "color");
   kRGG.circle_program.inner_radius_uniform =
       glGetUniformLocation(kRGG.circle_program.reference, "inner_radius");
+  assert(kRGG.circle_program.inner_radius_uniform != uint32_t(-1));
   kRGG.circle_program.outer_radius_uniform =
       glGetUniformLocation(kRGG.circle_program.reference, "outer_radius");
+  assert(kRGG.circle_program.outer_radius_uniform != uint32_t(-1));
   kRGG.circle_program.color_uniform =
       glGetUniformLocation(kRGG.circle_program.reference, "color");
   assert(kRGG.circle_program.color_uniform != uint32_t(-1));
@@ -260,6 +305,27 @@ RenderRectangle(const math::Rect& rect, const math::Vec4f& color)
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
                      &matrix[0]);
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void
+RenderSmoothRectangle(const math::Rect& rect, float smoothing_radius,
+                      const math::Vec4f& color)
+{
+  glUseProgram(kRGG.smooth_rectangle_program.reference);
+  glBindVertexArray(kTextureState.vao_reference);
+  math::Vec3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, 0.0f);
+  math::Vec3f scale(rect.width, rect.height, 1.f);
+  math::Mat4f model = math::CreateModelMatrix(pos, scale);
+  math::Mat4f view_projection = kObserver.projection * kObserver.view;
+  glUniform1f(kRGG.smooth_rectangle_program.smoothing_radius_uniform,
+              rect.width - smoothing_radius);
+  glUniform4f(kRGG.smooth_rectangle_program.color_uniform, color.x, color.y,
+              color.z, color.w);
+  glUniformMatrix4fv(kRGG.smooth_rectangle_program.model_uniform, 1, GL_FALSE,
+                     &model[0]);
+  glUniformMatrix4fv(kRGG.smooth_rectangle_program.view_projection_uniform, 1,
+                     GL_FALSE, &view_projection[0]);
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 

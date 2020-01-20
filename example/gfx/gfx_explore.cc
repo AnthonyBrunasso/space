@@ -62,6 +62,11 @@ main(int argc, char** argv)
                       math::Vec4f(0.0f, 0.0f, 1.0f, 1.0f));
 #endif
     auto dims = window::GetWindowSize();
+
+    rgg::RenderSmoothRectangle(math::Rect(0.0f, 0.0f, 50.0f, 50.0f),
+                               18.0f, math::Vec4f(0.23f, 0.45f, 0.55f, 0.35f));  
+
+
     rgg::RenderLine(math::Vec3f(-dims.x / 2.f, 0.0f, 0.0f),
                     math::Vec3f(dims.x / 2.f, 0.0f, 0.0f),
                     math::Vec4f(1.0f, 0.0f, 0.0f, 1.0f));
@@ -70,11 +75,7 @@ main(int argc, char** argv)
                     math::Vec3f(0.0f, dims.y / 2.f, 0.0f),
                     math::Vec4f(0.0f, 0.0f, 1.0f, 1.0f));
 
-
-    rgg::RenderText("The",
-                    dims.x / 2.f, dims.y / 2.f,
-                    math::Vec4f(1.f, 1.f, 1.f, 1.f));
-
+    
     RenderGrid();
 
     window::SwapBuffers();

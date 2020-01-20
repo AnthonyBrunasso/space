@@ -23,6 +23,44 @@ inline constexpr const char* kFragmentShader = R"(
   }
 )";
 
+inline constexpr const char* kSmoothRectangleVertexShader = R"(
+#version 410
+  layout (location = 0) in vec3 vertex_position;
+  uniform mat4 model;
+  uniform mat4 view_projection;
+  uniform vec4 color;
+  uniform float smoothing_radius;
+  out vec4 color_out;
+  out float smoothing_radius_out;
+  out vec3 center_out;
+  out vec3 position_out;
+  void main() {
+    smoothing_radius_out = smoothing_radius;
+    color_out = color;
+    center_out = (model * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+    position_out = (model * vec4(vertex_position, 1.0)).xyz;
+    gl_Position = view_projection * vec4(position_out, 1.0);
+  }
+)";
+
+inline constexpr const char* kSmoothRectangleFragmentShader = R"(
+#version 410
+  in vec4 color_out;
+  in float smoothing_radius_out;
+  in vec3 center_out;
+  in vec3 position_out;
+  out vec4 frag_color;
+  void main() {
+    float dist = length(position_out - center_out);
+    if (dist > smoothing_radius_out) discard;
+    float delta = 2;
+    float alpha = smoothstep(smoothing_radius_out - delta, smoothing_radius_out,
+                             dist);
+    frag_color = vec4(color_out.xyz, 1.0 - alpha);
+  }
+)";
+
+
 inline constexpr const char* kCircleVertexShader = R"(
   #version 410
   layout (location = 0) in vec3 vertex_position;
@@ -42,7 +80,7 @@ inline constexpr const char* kCircleVertexShader = R"(
     position_out = (model * vec4(vertex_position, 1.0)).xyz;
     out_inner_radius = inner_radius;
     out_outer_radius = outer_radius;
-    gl_Position = view_projection * model * vec4(vertex_position, 1.0);
+    gl_Position = view_projection * vec4(position_out, 1.0);
   }
 )";
 

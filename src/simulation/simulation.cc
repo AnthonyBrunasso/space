@@ -459,19 +459,22 @@ Update()
 
   using namespace tilemap;
 
-  for (int i = 0; i < kUsedUnit; ++i) {
+  for (int i = 0; i < kUsedUnit;) {
     Unit* unit = &kUnit[i];
     Transform* transform = &unit->transform;
     math::Vec2i tilepos = WorldToTilePos(transform->position.xy());
 
+    if (!tilemap::TileOk(tilepos)) {
+      ReleaseUnit(i);
+      continue;
+    }
+
     if (unit->vacuum == math::Vec3f()) {
       // Crew has been sucked away into the vacuum
-      if (tilemap::TileOk(tilepos)) {
-        if (tilemap::kTilemap.map[tilepos.y][tilepos.x].type ==
-            tilemap::kTileVacuum) {
-          unit->vacuum = TileVacuum(tilepos);
-          unit->command.type = Command::kVacuum;
-        }
+      if (tilemap::kTilemap.map[tilepos.y][tilepos.x].type ==
+          tilemap::kTileVacuum) {
+        unit->vacuum = TileVacuum(tilepos);
+        unit->command.type = Command::kVacuum;
       }
     }
 
@@ -486,7 +489,7 @@ Update()
         auto* path = search::PathTo(tilepos, end);
         if (!path || path->size <= 1) {
           unit->command = {};
-          continue;
+          break;
         }
 
         math::Vec3f dest = TilePosToWorld(path->tile[1]);
@@ -499,6 +502,8 @@ Update()
       default:
         break;
     }
+
+    ++i;
   }
 
   for (int i = 0; i < kUsedAsteroid; ++i) {
@@ -508,7 +513,7 @@ Update()
       asteroid->transform.position.x = 800.f;
     }
   }
-}
+}  // namespace simulation
 
 uint64_t
 SelectUnit(math::Vec3f world)

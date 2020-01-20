@@ -179,21 +179,34 @@ TileVacuum(const math::Vec2i pos)
   return math::Vec3f(attraction.x, attraction.y, 0.0f);
 }
 
-bool
-TileTypeWorldPosition(TileType type, math::Vec2f* world)
+math::Vec2i
+TypeOnGrid(TileType type)
 {
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
       const Tile* tile = &kTilemap.map[i][j];
       if (tile->type == type) {
-        math::Vec2i near_engine = TileOpenAdjacent(tile->pos);
-        *world = TilePosToWorld(near_engine);
-        return true;
+        return tile->pos;
       }
     }
   }
 
-  return false;
+  return {-1, -1};
+}
+
+math::Vec2i
+AdjacentOnGrid(TileType type)
+{
+  for (int i = 0; i < kMapHeight; ++i) {
+    for (int j = 0; j < kMapWidth; ++j) {
+      const Tile* tile = &kTilemap.map[i][j];
+      if (tile->type == type) {
+        return TileOpenAdjacent(tile->pos);
+      }
+    }
+  }
+
+  return {-1, -1};
 }
 
 }  // namespace tilemap

@@ -210,6 +210,16 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
     rgg::RenderTag(kGfx.missile_tag, missile->transform.position,
                    missile->transform.scale, missile->transform.orientation,
                    kWhite);
+
+    math::Vec2i tile =
+        tilemap::WorldToTilePos(missile->transform.position.xy());
+    if (!tilemap::TileOk(tile)) continue;
+    if (kShip[0].crew_think_flags & FLAG(simulation::kUnitAiTurret)) {
+      math::Vec2i grid = TypeOnGrid(tilemap::kTileTurret);
+      math::Vec2f pos = tilemap::TilePosToWorld(grid);
+      rgg::RenderLine(missile->transform.position, pos,
+                      math::Vec4f(1.0f, 0.0, 0.0, 1.f));
+    }
   }
 
   float sys_power = .0f;

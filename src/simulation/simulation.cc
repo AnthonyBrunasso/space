@@ -131,8 +131,8 @@ Think()
       kShip[i].danger += 1;
       for (int j = 0; j < kUsedUnit; ++j) {
         Unit* unit = &kUnit[j];
-        math::Vec2f power_module;
-        tilemap::TileTypeWorldPosition(tilemap::kTilePower, &power_module);
+        math::Vec2i grid = tilemap::TypeOnGrid(tilemap::kTilePower);
+        math::Vec2f power_module = tilemap::TilePosToWorld(grid);
         if (dsq(unit->transform.position, power_module) < kDsqOperate) {
           if (operator_save_power(unit, kShip[i].power_delta)) {
             unit->think_flags |= FLAG(kUnitAiSavePower);
@@ -145,29 +145,33 @@ Think()
 
     // Crew objectives
     uint64_t satisfied = 0;
-    math::Vec2f module_position;
-    tilemap::TileTypeWorldPosition(tilemap::kTilePower, &module_position);
+    math::Vec2i module_position;
+    module_position = tilemap::TypeOnGrid(tilemap::kTilePower);
     for (int j = 0; j < kUsedUnit; ++j) {
-      if (dsq(kUnit[j].transform.position, module_position) < kDsqOperate)
+      if (dsq(kUnit[j].transform.position,
+              tilemap::TilePosToWorld(module_position)) < kDsqOperate)
         satisfied |= FLAG(kUnitAiPower);
     }
 
     if (kShip[i].sys_power >= 1.0f) {
-      tilemap::TileTypeWorldPosition(tilemap::kTileEngine, &module_position);
+      module_position = tilemap::TypeOnGrid(tilemap::kTileEngine);
       for (int j = 0; j < kUsedUnit; ++j) {
-        if (dsq(kUnit[j].transform.position, module_position) < kDsqOperate)
+        if (dsq(kUnit[j].transform.position,
+                tilemap::TilePosToWorld(module_position)) < kDsqOperate)
           satisfied |= FLAG(kUnitAiThrust);
       }
 
-      tilemap::TileTypeWorldPosition(tilemap::kTileMine, &module_position);
+      module_position = tilemap::TypeOnGrid(tilemap::kTileMine);
       for (int j = 0; j < kUsedUnit; ++j) {
-        if (dsq(kUnit[j].transform.position, module_position) < kDsqOperate)
+        if (dsq(kUnit[j].transform.position,
+                tilemap::TilePosToWorld(module_position)) < kDsqOperate)
           satisfied |= FLAG(kUnitAiMine);
       }
 
-      tilemap::TileTypeWorldPosition(tilemap::kTileTurret, &module_position);
+      module_position = tilemap::TypeOnGrid(tilemap::kTileTurret);
       for (int j = 0; j < kUsedUnit; ++j) {
-        if (dsq(kUnit[j].transform.position, module_position) < kDsqOperate)
+        if (dsq(kUnit[j].transform.position,
+                tilemap::TilePosToWorld(module_position)) < kDsqOperate)
           satisfied |= FLAG(kUnitAiTurret);
       }
     }
@@ -191,8 +195,13 @@ Think()
     if (!tilemap::TileOk(tile)) continue;
 
     if (tilemap::kTilemap.map[tile.y][tile.x].type == tilemap::kTileBlock) {
-      missile->flags = FLAG(kMissileAiExplode);
-      missile->tile_hit = {tile.x, tile.y + 1};
+      if (kShip[0].crew_think_flags & FLAG(kUnitAiTurret)) {
+        missile->flags = FLAG(kMissileAiExplode);
+        missile->tile_hit = {-1, -1};
+      } else {
+        missile->flags = FLAG(kMissileAiExplode);
+        missile->tile_hit = {tile.x, tile.y + 1};
+      }
     }
   }
 
@@ -204,7 +213,8 @@ Think()
     uint64_t think_flags = 0;
 
     // Goal is to return home, unless overidden
-    tilemap::TileTypeWorldPosition(tilemap::kTileMine, &goal);
+    math::Vec2i grid = tilemap::TypeOnGrid(tilemap::kTileMine);
+    goal = tilemap::TilePosToWorld(grid);
 
     // TODO (AN): No ship/pod link exists yet
     if (kShip[0].sys_power < .5f) {
@@ -298,29 +308,25 @@ Decide()
         i, unit->think_flags, possible, kShip[0].crew_think_flags);
     printf("%lu action\n", action);
 #endif
-    math::Vec2f pos;
+    tilemap::TileType type;
     switch (action) {
       case kUnitAiMine:
-        if (TileTypeWorldPosition(tilemap::kTileMine, &pos)) {
-          unit->command = Command{.type = Command::kMove, .destination = pos};
-        }
+        type = tilemap::kTileMine;
         break;
       case kUnitAiPower:
-        if (TileTypeWorldPosition(tilemap::kTilePower, &pos)) {
-          unit->command = Command{.type = Command::kMove, .destination = pos};
-        }
+        type = tilemap::kTilePower;
         break;
       case kUnitAiThrust:
-        if (TileTypeWorldPosition(tilemap::kTileEngine, &pos)) {
-          unit->command = Command{.type = Command::kMove, .destination = pos};
-        }
+        type = tilemap::kTileEngine;
         break;
       case kUnitAiTurret:
-        if (TileTypeWorldPosition(tilemap::kTileTurret, &pos)) {
-          unit->command = Command{.type = Command::kMove, .destination = pos};
-        }
+        type = tilemap::kTileTurret;
         break;
     };
+
+    math::Vec2i grid = AdjacentOnGrid(type);
+    math::Vec2f pos = tilemap::TilePosToWorld(grid);
+    unit->command = Command{.type = Command::kMove, .destination = pos};
   }
 
   for (int i = 0; i < kUsedShip; ++i) {

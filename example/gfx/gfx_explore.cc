@@ -57,6 +57,10 @@ main(int argc, char** argv)
     rgg::RenderCircle(math::Vec3f(0.0f, 0.0f, 0.0f), 25.0f,
                       math::Vec4f(0.0f, 0.0f, 1.0f, 1.0f));
 
+    rgg::RenderCircle(math::Vec3f(100.0f, 0.0f, 0.0f), 40.0f, 50.0f,
+                      math::Vec4f(0.0f, 0.0f, 1.0f, 1.0f));
+
+
     rgg::RenderText("Circle", 50.0f, 100.0f, math::Vec4f(1.f, 1.f, 1.f, 1.f));
 
     RenderGrid();

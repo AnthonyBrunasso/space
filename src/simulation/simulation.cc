@@ -56,7 +56,7 @@ Initialize()
     unit->transform.scale = scale;
     memcpy(unit->acurrent, attrib, sizeof(attrib));
     // Everybody is unique!
-    unit->kind = i;
+    unit->kind = i + 1;
   }
 
   for (int i = 0; i < kUsedUnit; ++i) {
@@ -111,6 +111,9 @@ Think()
         break;
       case 3:
         kUnit[i].think_flags = FLAG(kUnitAiThrust);
+        break;
+      case 4:
+        kUnit[i].think_flags = FLAG(kUnitAiTurret);
         break;
     };
   }

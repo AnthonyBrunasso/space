@@ -259,31 +259,22 @@ main(int argc, char** argv)
     auto sz = window::GetWindowSize();
     char buffer[50];
     sprintf(buffer, "Frame Time:%06lu us", kGameState.frame_time_usec);
-    gfx::PushText(buffer, 3.f, sz.y);
+    gfx::PushText(buffer, 3.f, sz.y - 30.f);
     sprintf(buffer, "Window Size:%ix%i", (int)sz.x, (int)sz.y);
-    gfx::PushText(buffer, 3.f, sz.y - 25.f);
+    gfx::PushText(buffer, 3.f, sz.y - 55.f);
     auto mouse = CoordToWorld(window::GetCursorPosition());
     sprintf(buffer, "Mouse Pos In World:(%.1f,%.1f)", mouse.x, mouse.y);
-    gfx::PushText(buffer, 3.f, sz.y - 50.f);
+    gfx::PushText(buffer, 3.f, sz.y - 80.f);
     math::Vec2i tile = simulation::WorldToTilePos(mouse.xy());
     sprintf(buffer, "Minerals: %lu", kShip[0].mineral);
-    gfx::PushText(buffer, 3.f, sz.y - 75.f);
+    gfx::PushText(buffer, 3.f, sz.y - 105.f);
     if (simulation::TileOk(tile)) {
       sprintf(buffer, "Type %d", simulation::kTilemap.map[tile.y][tile.x].type);
-      gfx::PushText(buffer, 3.f, sz.y - 100.f);
+      gfx::PushText(buffer, 3.f, sz.y - 130.f);
     }
     if (simulation::GameOver()) {
       sprintf(buffer, "Game Over");
-      gfx::PushText(buffer, sz.x * .5 - 100.f, sz.y * .5);
-    }
-
-    for (int i = 0; i < kUsedAsteroid; ++i) {
-      math::AxisAlignedRect aabb = gfx::kGfx.asteroid_aabb;
-      aabb.min += kAsteroid[i].transform.position;
-      aabb.max += kAsteroid[i].transform.position;
-      if (math::PointInRect(mouse.xy(), aabb)) {
-        gfx::PushText("Mouse / Asteroid collision", 3.f, sz.y - 125.f);
-      }
+      gfx::PushText(buffer, sz.x * .5 - 150.f, sz.y * .5);
     }
 
 #ifndef HEADLESS

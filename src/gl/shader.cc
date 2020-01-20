@@ -4,7 +4,6 @@
 
 #include <cstdio>
 #include <sstream>
-#include <string>
 
 #include "utils.h"
 
@@ -12,29 +11,24 @@
 
 namespace gl
 {
-std::string
-GetShaderInfoLog(uint32_t shader_reference)
+constexpr uint64_t length = 4096;
+static char buffer[length];
+
+uint64_t
+GetShaderInfoLog(uint32_t shader_reference, uint64_t length, char log[length])
 {
-  constexpr int log_length = 4096;
   int actual_length = 0;
-  char log[log_length];
-  glGetShaderInfoLog(shader_reference, log_length, &actual_length, log);
-  return "Shader Log for reference: " + std::to_string(shader_reference) +
-         " log: " + log;
+  glGetShaderInfoLog(shader_reference, length, &actual_length, log);
+  return actual_length;
 }
 
-std::string
-GetProgramInfoLog(uint32_t program_reference)
+uint64_t
+GetProgramInfoLog(uint32_t program_reference, uint64_t length, char log[length])
 {
-  constexpr int log_length = 4096;
   int actual_length = 0;
-  char log[log_length];
-  glGetProgramInfoLog(program_reference, log_length, &actual_length, log);
-  return "Program Log for reference: " + std::to_string(program_reference) +
-         " log: " + log;
+  glGetProgramInfoLog(program_reference, length, &actual_length, log);
+  return actual_length;
 }
-
-// namespace
 
 bool
 CompileShader(GLenum shader_type, const GLchar* const* src, GLuint* id)
@@ -45,7 +39,8 @@ CompileShader(GLenum shader_type, const GLchar* const* src, GLuint* id)
   int params = -1;
   glGetShaderiv(*id, GL_COMPILE_STATUS, &params);
   if (params != GL_TRUE) {
-    printf("Shader Log: %s\n", GetShaderInfoLog(*id).c_str());
+    GetShaderInfoLog(*id, length, buffer);
+    printf("Shader Log: %s\n", buffer);
     return false;
   }
   return true;
@@ -66,7 +61,8 @@ LinkShaders(GLuint* id, int n, ...)
   int params = -1;
   glGetProgramiv(*id, GL_LINK_STATUS, &params);
   if (params != GL_TRUE) {
-    printf("Program Log: %s\n", GetProgramInfoLog(*id).c_str());
+    GetProgramInfoLog(*id, length, buffer);
+    printf("Program Log: %s\n", buffer);
     return false;
   }
   return true;

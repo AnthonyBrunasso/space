@@ -1,8 +1,8 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cassert>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 // http://tfc.duke.free.fr/coding/tga_specs.pdf
 struct FntMetadataRow {
@@ -53,10 +53,10 @@ LoadFntMetadata(const char* file)
 }
 
 bool
-LoadTGA(const char* file, uint8_t** image_bytes,
-        uint16_t* image_width, uint16_t* image_height)
+LoadTGA(const char* file, uint8_t** image_bytes, uint16_t* image_width,
+        uint16_t* image_height)
 {
-#pragma pack(push,1)
+#pragma pack(push, 1)
   struct TgaImageSpec {
     uint16_t x_origin;
     uint16_t y_origin;
@@ -89,7 +89,7 @@ LoadTGA(const char* file, uint8_t** image_bytes,
   // Just don't even support colors.
   assert(header->id_length == 0);
   assert(header->color_map_type == 0);
-  // Get the image_spec. This has overall image details. 
+  // Get the image_spec. This has overall image details.
   TgaImageSpec* image_spec = (TgaImageSpec*)(&buffer[sizeof(TgaHeader)]);
   // Only support 8-bit pixel depths.
   assert(image_spec->pixel_depth == 8);
@@ -109,13 +109,14 @@ LoadTGA(const char* file, uint8_t** image_bytes,
   printf("image_spec->image_descriptor: %i\n", image_spec->image_descriptor);
 #endif
 
-
   // Image bytes sz
-  uint32_t image_bytes_size = image_spec->image_width * image_spec->image_height;
+  uint32_t image_bytes_size =
+      image_spec->image_width * image_spec->image_height;
   *image_width = image_spec->image_width;
   *image_height = image_spec->image_height;
   *image_bytes = (uint8_t*)malloc(image_bytes_size);
-  memcpy(*image_bytes, &buffer[sizeof(TgaHeader) + sizeof(TgaImageSpec)], image_bytes_size);
+  memcpy(*image_bytes, &buffer[sizeof(TgaHeader) + sizeof(TgaImageSpec)],
+         image_bytes_size);
   // Free buffer used to read in file.
   free(buffer);
   fclose(fptr);

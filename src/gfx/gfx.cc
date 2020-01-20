@@ -215,6 +215,7 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
   float sys_power = .0f;
   float sys_engine = .0f;
   float sys_mine = .0f;
+  float sys_turret = 0.f;
   constexpr float min_visibility = .2f;
   if (kUsedShip) {
     sys_power = kShip[0].sys_power;
@@ -222,6 +223,7 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
     sys_power = CLAMPF(sys_power, min_visibility, 1.0f);
     sys_engine = CLAMPF(kShip[0].sys_engine, min_visibility, sys_power);
     sys_mine = CLAMPF(kShip[0].sys_mine, min_visibility, sys_power);
+    sys_turret = CLAMPF(kShip[0].sys_turret, min_visibility, sys_power);
   }
 
   for (int i = 0; i < kMapHeight; ++i) {
@@ -237,7 +239,7 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
           color = math::Vec4f(1.f, 1.f, 1.f, 1.f);
           break;
         case kTileEngine:
-          color = math::Vec4f(1.0f * sys_engine, 0.0f, 0.f, 1.0f);
+          color = math::Vec4f(1.0f * sys_engine, 0.0f, 1.f * sys_engine, 1.0f);
           break;
         case kTilePower:
           color = math::Vec4f(0.0f, 0.0f, 0.75f * sys_power, 1.0f);
@@ -246,7 +248,10 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
           color = math::Vec4f(0.0, 0.75f * sys_mine, 0.0f, 1.0f);
           break;
         case kTileVacuum:
-          color = math::Vec4f(1.f, 0.f, 1.f, 1.f);
+          color = math::Vec4f(0.33f, 0.33f, 0.33f, 1.f);
+          break;
+        case kTileTurret:
+          color = math::Vec4f(1.f * sys_turret, 0.f, 0.f, 1.f);
           break;
       };
 

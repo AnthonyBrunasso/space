@@ -19,6 +19,7 @@ enum UnitAiGoals {
   kUnitAiPower = 0,
   kUnitAiMine,
   kUnitAiThrust,
+  kUnitAiTurret,
   kUnitAiSavePower,
   kUnitAiGoals = 64,
 };
@@ -83,7 +84,7 @@ operator_save_power(Unit* unit, float power_delta)
 {
   uint8_t int_check = power_delta / 5.0;
 #ifdef AI_DEBUG
-  printf("%u int check to save_power\n", int_check);
+  printf("%u int check to save_power %04.02f\n", int_check, power_delta);
 #endif
   bool success = (unit->acurrent[CREWA_INT] > int_check);
   // On success, update the known crew intelligence
@@ -162,6 +163,12 @@ Think()
       for (int j = 0; j < kUsedUnit; ++j) {
         if (dsq(kUnit[j].transform.position, module_position) < kDsqOperate)
           satisfied |= FLAG(kUnitAiMine);
+      }
+
+      tilemap::TileTypeWorldPosition(tilemap::kTileTurret, &module_position);
+      for (int j = 0; j < kUsedUnit; ++j) {
+        if (dsq(kUnit[j].transform.position, module_position) < kDsqOperate)
+          satisfied |= FLAG(kUnitAiTurret);
       }
     }
 
@@ -308,6 +315,11 @@ Decide()
           unit->command = Command{.type = Command::kMove, .destination = pos};
         }
         break;
+      case kUnitAiTurret:
+        if (TileTypeWorldPosition(tilemap::kTileTurret, &pos)) {
+          unit->command = Command{.type = Command::kMove, .destination = pos};
+        }
+        break;
     };
   }
 
@@ -333,14 +345,20 @@ Decide()
       kShip[i].sys_engine += 0.01f;
     else
       kShip[i].sys_engine += -0.01f;
+    if (kShip[i].crew_think_flags & FLAG(kUnitAiTurret))
+      kShip[i].sys_turret += 0.01f;
+    else
+      kShip[i].sys_turret += -0.01f;
 
     kShip[i].sys_power = CLAMPF(kShip[i].sys_power, 0.0f, 1.0f);
     kShip[i].sys_mine = CLAMPF(kShip[i].sys_mine, 0.0f, 1.0f);
     kShip[i].sys_engine = CLAMPF(kShip[i].sys_engine, 0.0f, 1.0f);
+    kShip[i].sys_turret = CLAMPF(kShip[i].sys_turret, 0.0f, 1.0f);
 
     float used_power = 0.f;
     used_power += 20.f * (kShip[i].sys_mine >= 0.1f);
     used_power += 40.f * (kShip[i].sys_engine >= .1f);
+    used_power += 20.f * (kShip[i].sys_turret >= 0.1f);
     kShip[i].power_delta =
         fmaxf(used_power - kShip[i].used_power, kShip[i].power_delta);
     kShip[i].used_power = used_power;

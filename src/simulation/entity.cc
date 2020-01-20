@@ -104,6 +104,7 @@ struct Ship {
   float sys_power;
   float sys_engine;
   float sys_mine;
+  float sys_turret;
   float used_power;
   float power_delta;
 };

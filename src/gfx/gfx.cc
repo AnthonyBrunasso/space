@@ -192,6 +192,18 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
     }
   }
 
+  static float power_notify = 0.f;
+  if (kShip[0].power_delta > 0.0f && power_notify <= 0.0f) {
+    power_notify = 50.f;
+  }
+
+  if (power_notify >= 10.f) {
+    math::Vec2i grid = TypeOnGrid(tilemap::kTilePower);
+    math::Vec3f world = TilePosToWorld(grid);
+    rgg::RenderCircle(world, power_notify - 10.f, power_notify, kWhite);
+  }
+  power_notify -= 1.f;
+
   for (int i = 0; i < kUsedPod; ++i) {
     Pod* pod = &kPod[i];
     rgg::RenderTag(kGfx.pod_tag, pod->transform.position, pod->transform.scale,

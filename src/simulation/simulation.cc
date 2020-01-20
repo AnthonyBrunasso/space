@@ -140,6 +140,8 @@ Think()
           }
         }
       }
+    } else {
+      kShip[i].danger = 0;
     }
     kShip[i].think_flags = think_flags;
 
@@ -288,7 +290,6 @@ Decide()
     // hero saves the day!
     if (unit->think_flags & FLAG(kUnitAiSavePower)) {
       kShip[0].power_delta = 0.0f;
-      kShip[0].danger = 0;
 #ifdef AI_DEBUG
       printf("Unit %lu prevented the power surge from damaging the ship\n",
              unit - kUnit);
@@ -362,9 +363,9 @@ Decide()
     kShip[i].sys_turret = CLAMPF(kShip[i].sys_turret, 0.0f, 1.0f);
 
     float used_power = 0.f;
-    used_power += 20.f * (kShip[i].sys_mine >= 0.1f);
-    used_power += 40.f * (kShip[i].sys_engine >= .1f);
-    used_power += 20.f * (kShip[i].sys_turret >= 0.1f);
+    used_power += 20.f * (kShip[i].sys_mine >= 0.3f);
+    used_power += 40.f * (kShip[i].sys_engine >= .3f);
+    used_power += 20.f * (kShip[i].sys_turret >= 0.3f);
     kShip[i].power_delta =
         fmaxf(used_power - kShip[i].used_power, kShip[i].power_delta);
     kShip[i].used_power = used_power;

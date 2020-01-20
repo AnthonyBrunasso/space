@@ -98,12 +98,14 @@ Reset()
 void
 Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
 {
+  using namespace simulation;
+
   rgg::RenderButton("test", math::Rect(10, 10, 50, 50));
 
   // Unit hover-over text
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
-    if (dsq(unit->transform.position, mouse) >= simulation::kDsqSelect)
+    if (dsq(unit->transform.position, mouse) >= kDsqSelect)
       continue;
 
     char buffer[64];
@@ -126,13 +128,12 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
     rgg::RenderText(text.msg, text.screen_x, text.screen_y, math::Vec4f());
   }
 
-  using namespace tilemap;
-
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
 
     const math::Vec3f* p = &unit->transform.position;
-    math::Vec2f grid = TilePosToWorld(WorldToTilePos(p->xy()));
+    math::Vec2f grid =
+        TilePosToWorld(WorldToTilePos(p->xy()));
 
     math::Vec4f color;
     switch (unit->kind) {
@@ -165,7 +166,7 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
         break;
     };
 
-    if (dsq(unit->transform.position, mouse) < simulation::kDsqSelect) {
+    if (dsq(unit->transform.position, mouse) < kDsqSelect) {
       // Highlight the unit that would be selected on mouse click
       rgg::RenderRectangle(math::Vec3f(grid),
                            math::Vec3f(1.f / 2.f, 1.f / 2.f, 1.f),
@@ -178,7 +179,7 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
     math::Vec2i start = WorldToTilePos(p->xy());
     math::Vec2i end = WorldToTilePos(unit->command.destination);
 
-    auto* path = search::PathTo(start, end);
+    auto* path = PathTo(start, end);
     if (!path || path->size <= 1) {
       continue;
     }
@@ -198,7 +199,7 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
   }
 
   if (power_notify >= 10.f) {
-    math::Vec2i grid = TypeOnGrid(tilemap::kTilePower);
+    math::Vec2i grid = TypeOnGrid(kTilePower);
     math::Vec3f world = TilePosToWorld(grid);
     rgg::RenderCircle(world, power_notify - 10.f, power_notify, kWhite);
   }
@@ -223,12 +224,11 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
                    missile->transform.scale, missile->transform.orientation,
                    kWhite);
 
-    math::Vec2i tile =
-        tilemap::WorldToTilePos(missile->transform.position.xy());
-    if (!tilemap::TileOk(tile)) continue;
-    if (kShip[0].crew_think_flags & FLAG(simulation::kUnitAiTurret)) {
-      math::Vec2i grid = TypeOnGrid(tilemap::kTileTurret);
-      math::Vec2f pos = tilemap::TilePosToWorld(grid);
+    math::Vec2i tile = WorldToTilePos(missile->transform.position.xy());
+    if (!TileOk(tile)) continue;
+    if (kShip[0].crew_think_flags & FLAG(kUnitAiTurret)) {
+      math::Vec2i grid = TypeOnGrid(kTileTurret);
+      math::Vec2f pos = TilePosToWorld(grid);
       rgg::RenderLine(missile->transform.position, pos,
                       math::Vec4f(1.0f, 0.0, 0.0, 1.f));
     }

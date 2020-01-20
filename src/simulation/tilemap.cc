@@ -4,7 +4,7 @@
 
 #include "math/vec.h"
 
-namespace tilemap
+namespace simulation
 {
 constexpr int kMapWidth = 32;
 constexpr int kMapHeight = 32;
@@ -80,7 +80,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
 // clang-format on
 
 void
-Initialize()
+InitializeTilemap()
 {
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
@@ -153,8 +153,8 @@ math::Vec3f
 TileAvoidWalls(const math::Vec2i pos)
 {
   math::Vec2i avoidance = {};
-  for (int i = 0; i < tilemap::kMaxNeighbor; ++i) {
-    math::Vec2i neighbor = pos + tilemap::kNeighbor[i];
+  for (int i = 0; i < kMaxNeighbor; ++i) {
+    math::Vec2i neighbor = pos + kNeighbor[i];
     if (TileTypeSafe(neighbor) != kTileOpen) {
       math::Vec2i away = (pos - neighbor);
       avoidance += away;
@@ -168,8 +168,8 @@ math::Vec3f
 TileVacuum(const math::Vec2i pos)
 {
   math::Vec2i attraction = {};
-  for (int i = 0; i < tilemap::kMaxNeighbor; ++i) {
-    math::Vec2i neighbor = pos + tilemap::kNeighbor[i];
+  for (int i = 0; i < kMaxNeighbor; ++i) {
+    math::Vec2i neighbor = pos + kNeighbor[i];
     if (TileTypeSafe(neighbor) != kTileOpen) {
       math::Vec2i toward = (neighbor - pos);
       attraction += toward;
@@ -209,4 +209,4 @@ AdjacentOnGrid(TileType type)
   return {-1, -1};
 }
 
-}  // namespace tilemap
+}  // namespace simulation

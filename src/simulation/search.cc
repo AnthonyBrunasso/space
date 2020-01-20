@@ -4,7 +4,7 @@
 
 #include "tilemap.cc"
 
-namespace search
+namespace simulation
 {
 struct PathNode {
   math::Vec2i from;
@@ -12,15 +12,15 @@ struct PathNode {
 };
 
 struct Path {
-  math::Vec2i tile[tilemap::kMapHeight * tilemap::kMapWidth];
+  math::Vec2i tile[kMapHeight * kMapWidth];
   int size;
 };
 
 struct Search {
   // Map used for pathfinding calculations.
-  PathNode path_map[tilemap::kMapHeight][tilemap::kMapWidth];
+  PathNode path_map[kMapHeight][kMapWidth];
   // BFS queue.
-  math::Vec2i queue[tilemap::kMapHeight * tilemap::kMapWidth];
+  math::Vec2i queue[kMapHeight * kMapWidth];
   int queue_size;
   int queue_ptr;
   // The resulting path as calculated from the last call to PathTo.
@@ -32,10 +32,10 @@ static Search kSearch;
 Path*
 PathTo(const math::Vec2i& start, const math::Vec2i& end)
 {
-  if (!tilemap::TileOk(end)) return nullptr;
-  if (!tilemap::TileOk(start)) return nullptr;
+  if (!TileOk(end)) return nullptr;
+  if (!TileOk(start)) return nullptr;
 
-  constexpr int N = tilemap::kMapHeight * tilemap::kMapWidth;
+  constexpr int N = kMapHeight * kMapWidth;
   memset(kSearch.path_map, 0, sizeof(PathNode) * N);
   kSearch.queue_size = 0;
   kSearch.queue_ptr = 0;
@@ -58,9 +58,9 @@ PathTo(const math::Vec2i& start, const math::Vec2i& end)
     // Path success
     if (node == end) break;
 
-    for (int i = 0; i < tilemap::kMaxNeighbor; ++i) {
-      const math::Vec2i neighbor = node + tilemap::kNeighbor[i];
-      if (tilemap::TileTypeSafe(neighbor) != tilemap::kTileOpen) continue;
+    for (int i = 0; i < kMaxNeighbor; ++i) {
+      const math::Vec2i neighbor = node + kNeighbor[i];
+      if (TileTypeSafe(neighbor) != kTileOpen) continue;
 
       if (path_map[neighbor.y][neighbor.x].checked == true) continue;
       path_map[neighbor.y][neighbor.x].checked = true;
@@ -93,17 +93,16 @@ PathTo(const math::Vec2i& start, const math::Vec2i& end)
 }
 
 uint64_t
-BfsReplace(math::Vec2i start, const uint64_t limit, tilemap::TileType seek,
-           tilemap::TileType set)
+BfsReplace(math::Vec2i start, const uint64_t limit, TileType seek, TileType set)
 {
   uint64_t count = 0;
-  if (!tilemap::TileOk(start)) return count;
-  if (tilemap::kTilemap.map[start.y][start.x].type == seek) {
-    tilemap::kTilemap.map[start.y][start.x].type = set;
+  if (!TileOk(start)) return count;
+  if (kTilemap.map[start.y][start.x].type == seek) {
+    kTilemap.map[start.y][start.x].type = set;
     ++count;
   }
 
-  constexpr int N = tilemap::kMapHeight * tilemap::kMapWidth;
+  constexpr int N = kMapHeight * kMapWidth;
   memset(kSearch.path_map, 0, sizeof(PathNode) * N);
   kSearch.queue_size = 0;
   kSearch.queue_ptr = 0;
@@ -123,20 +122,19 @@ BfsReplace(math::Vec2i start, const uint64_t limit, tilemap::TileType seek,
     if (qptr == qsz) return count;
 
     auto& node = queue[qptr++];
-    for (int i = 0; i < tilemap::kMaxNeighbor; ++i) {
-      const math::Vec2i neighbor = node + tilemap::kNeighbor[i];
-      if (!tilemap::TileOk(neighbor)) continue;
+    for (int i = 0; i < kMaxNeighbor; ++i) {
+      const math::Vec2i neighbor = node + kNeighbor[i];
+      if (!TileOk(neighbor)) continue;
       if (path_map[neighbor.y][neighbor.x].checked == true) continue;
       path_map[neighbor.y][neighbor.x].checked = true;
       path_map[neighbor.y][neighbor.x].from = node;
 
-      if (tilemap::kTilemap.map[neighbor.y][neighbor.x].type == seek) {
-        tilemap::kTilemap.map[neighbor.y][neighbor.x].type = set;
+      if (kTilemap.map[neighbor.y][neighbor.x].type == seek) {
+        kTilemap.map[neighbor.y][neighbor.x].type = set;
         ++count;
       }
 
-      if (tilemap::kTilemap.map[neighbor.y][neighbor.x].type !=
-          tilemap::kTileBlock) {
+      if (kTilemap.map[neighbor.y][neighbor.x].type != kTileBlock) {
         queue[qsz++] = neighbor;
       }
     }
@@ -145,4 +143,4 @@ BfsReplace(math::Vec2i start, const uint64_t limit, tilemap::TileType seek,
   return count;
 }
 
-}  // namespace search
+}  // namespace simulation

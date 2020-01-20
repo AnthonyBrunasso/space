@@ -1,5 +1,5 @@
-#include "gfx.h"
 
+#include "platform/platform.cc"
 #include "renderer/renderer.cc"
 
 #include "../simulation/simulation.cc"
@@ -19,9 +19,9 @@ struct Gfx {
   // Allow 32 on screen text messages.
   Text text[kMaxTextCount];
   int text_count;
-  rgg::Tag asteroid_tag;
-  rgg::Tag pod_tag;
-  rgg::Tag missile_tag;
+  RenderTag asteroid_tag;
+  RenderTag pod_tag;
+  RenderTag missile_tag;
   math::AxisAlignedRect asteroid_aabb;
 };
 
@@ -105,8 +105,7 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
   // Unit hover-over text
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
-    if (dsq(unit->transform.position, mouse) >= kDsqSelect)
-      continue;
+    if (dsq(unit->transform.position, mouse) >= kDsqSelect) continue;
 
     char buffer[64];
     for (int j = 0; j < CREWA_MAX; ++j) {
@@ -132,8 +131,7 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
     Unit* unit = &kUnit[i];
 
     const math::Vec3f* p = &unit->transform.position;
-    math::Vec2f grid =
-        TilePosToWorld(WorldToTilePos(p->xy()));
+    math::Vec2f grid = TilePosToWorld(WorldToTilePos(p->xy()));
 
     math::Vec4f color;
     switch (unit->kind) {

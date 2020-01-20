@@ -1,5 +1,9 @@
 #include "utils.h"
 
+#include <cstdint>
+
+#include "platform/platform.cc"
+
 namespace gl
 {
 const char*
@@ -56,4 +60,4 @@ CreateGeometryVAO(int len, GLfloat* verts)
   return vao;
 }
 
-}  // namespace renderer
+}  // namespace gl

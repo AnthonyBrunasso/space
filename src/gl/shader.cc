@@ -4,8 +4,11 @@
 
 #include <cstdio>
 #include <sstream>
+#include <string>
 
 #include "utils.h"
+
+#include "platform/platform.cc"
 
 namespace gl
 {
@@ -69,9 +72,13 @@ LinkShaders(GLuint* id, int n, ...)
   return true;
 }
 
-std::string
-GetProgramInfo(GLuint program_reference)
+// Given a program id returns -
+// LINK_STATUS, ATTACHED_SHADERS, ACTIVE_ATTRIBUTES, ACTIVE_UNIFORMS
+// as a string. Useful for debugging.
+const char*
+AllocProgramInfoString(GLuint program_reference)
 {
+  assert(0);
   std::stringstream ss;
   ss << "Program reference: " << program_reference << std::endl;
   int params = -1;
@@ -127,7 +134,7 @@ GetProgramInfo(GLuint program_reference)
          << " location: " << location << std::endl;
     }
   }
-  return ss.str();
+  return strdup(ss.str().c_str());
 }
 
-}  // namespace renderer
+}  // namespace gl

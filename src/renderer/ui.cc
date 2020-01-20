@@ -1,7 +1,4 @@
-#include "gl/shader.h"
-#include "math/mat_ops.h"
-#include "tga_loader.cc"
-#include "shader.h"
+#pragma once
 
 // HI! THIS IS IN THE rgg NAMESPACE.
 // DONT INCLUDE IT ANYWHERE OUTSIDE OF renderer.cc

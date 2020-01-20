@@ -71,7 +71,9 @@ main(int argc, char** argv)
                     math::Vec4f(0.0f, 0.0f, 1.0f, 1.0f));
 
 
-    rgg::RenderText("Testing", dims.x / 2.f, dims.y / 2.f, math::Vec4f(1.f, 1.f, 1.f, 1.f));
+    rgg::RenderText("The",
+                    dims.x / 2.f, dims.y / 2.f,
+                    math::Vec4f(1.f, 1.f, 1.f, 1.f));
 
     RenderGrid();
 

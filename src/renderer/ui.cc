@@ -91,6 +91,21 @@ RenderText(const char* msg, float x, float y, const math::Vec4f& color)
 #endif
 
   int msg_len = strlen(msg);
+
+  // TODO: Bit of a hack. This finds the lowest point of the resulting vert
+  // list after the entire string has been constructed. Using that point all
+  // the other characters will be lifted to orient themselves against the
+  // provided x,y. This is required because the generated font sheet has
+  // origin top left and provides yoffset, the vertical distortion to line
+  // characters up, in regards to the top left of each character in the sheet.
+  float min_y = y;
+  for (int i = 0; i < msg_len; ++i) {
+    const FntMetadataRow* row = &font.metadata.rows[msg[i]];
+    float test_y = y - (float)row->yoffset - (float)row->height;
+    if (test_y < min_y) min_y = test_y;
+  }
+  min_y = y - min_y;
+
   for (int i = 0; i < msg_len; ++i) {
     TextPoint text_point[6];
 
@@ -113,7 +128,7 @@ RenderText(const char* msg, float x, float y, const math::Vec4f& color)
     float v_h = (float)row->height;
 
     float offset_start_x = x/* - row->xoffset*/;
-    float offset_start_y = y - row->yoffset;
+    float offset_start_y = y - row->yoffset + abs(min_y);
 
 #if 0
     printf("id=%i char=%c width=%i height=%i xoffset=%i yoffset=%i"
@@ -132,6 +147,7 @@ RenderText(const char* msg, float x, float y, const math::Vec4f& color)
     text_point[4] = {offset_start_x, offset_start_y - v_h, tex_x,
                      tex_y + tex_h};
     text_point[5] = {offset_start_x, offset_start_y, tex_x, tex_y};
+
 #if 0
     text_point[0].Pr();
     text_point[1].Pr();

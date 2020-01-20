@@ -1,6 +1,8 @@
 #include "intersection.h"
 
-#include "utils.h"
+#include "platform/macro.h"
+
+#include <cfloat>
 
 namespace math
 {
@@ -16,11 +18,17 @@ Signed2DTriArea(const math::Vec2f& a, const math::Vec2f& b,
 bool
 OnSegment(const math::Vec2f& p, const math::Vec2f& q, const math::Vec2f& r)
 {
-  if (q.x <= Max(p.x, r.x) && q.x >= Min(p.x, r.x) && q.y <= Max(p.y, r.y) &&
-      q.y >= Min(p.y, r.y)) {
+  if (q.x <= fmaxf(p.x, r.x) && q.x >= fminf(p.x, r.x) &&
+      q.y <= fmaxf(p.y, r.y) && q.y >= fminf(p.y, r.y)) {
     return true;
   }
   return false;
+}
+
+bool
+IsNear(float value, float target)
+{
+  return (target - value < FLT_EPSILON || value - target < FLT_EPSILON);
 }
 
 // To find orientation of ordered triplet (p, q, r).
@@ -119,6 +127,5 @@ PointInRect(const math::Vec2f& point, const AxisAlignedRect& rect)
   return (point.x > rect.min.x && point.x < rect.max.x) &&
          (point.y > rect.min.y && point.y < rect.max.y);
 }
-
 
 }  // namespace math

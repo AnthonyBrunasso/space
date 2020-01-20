@@ -2,7 +2,7 @@
 
 #if _WIN32
 // Windows #defines min/max. This stops it from doing so.
-#define NOMINMAXa
+#define NOMINMAX
 // Reduce header size.
 #define WIN32_LEAN_AND_MEAN
 #endif

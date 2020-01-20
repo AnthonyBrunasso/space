@@ -462,6 +462,18 @@ Update()
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     Transform* transform = &unit->transform;
+    math::Vec2i tilepos = WorldToTilePos(transform->position.xy());
+
+    if (unit->vacuum == math::Vec3f()) {
+      // Crew has been sucked away into the vacuum
+      if (tilemap::TileOk(tilepos)) {
+        if (tilemap::kTilemap.map[tilepos.y][tilepos.x].type ==
+            tilemap::kTileVacuum) {
+          unit->vacuum = TileVacuum(tilepos);
+          unit->command.type = Command::kVacuum;
+        }
+      }
+    }
 
     switch (unit->command.type) {
       case Command::kNone: {
@@ -469,10 +481,9 @@ Update()
       case Command::kMine: {
       } break;
       case Command::kMove: {
-        math::Vec2i start = WorldToTilePos(transform->position.xy());
         math::Vec2i end = WorldToTilePos(unit->command.destination);
 
-        auto* path = search::PathTo(start, end);
+        auto* path = search::PathTo(tilepos, end);
         if (!path || path->size <= 1) {
           unit->command = {};
           continue;
@@ -480,7 +491,10 @@ Update()
 
         math::Vec3f dest = TilePosToWorld(path->tile[1]);
         auto dir = math::Normalize(dest - transform->position.xy());
-        transform->position += (dir * 1.f) + (TileAvoidWalls(start) * .15f);
+        transform->position += (dir * 1.f) + (TileAvoidWalls(tilepos) * .15f);
+      } break;
+      case Command::kVacuum: {
+        transform->position += (unit->vacuum * 1.5f);
       } break;
       default:
         break;

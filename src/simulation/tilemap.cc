@@ -163,6 +163,21 @@ TileAvoidWalls(const math::Vec2i pos)
   return math::Vec3f(avoidance.x, avoidance.y, 0.0f);
 }
 
+math::Vec3f
+TileVacuum(const math::Vec2i pos)
+{
+  math::Vec2i attraction = {};
+  for (int i = 0; i < tilemap::kMaxNeighbor; ++i) {
+    math::Vec2i neighbor = pos + tilemap::kNeighbor[i];
+    if (TileTypeSafe(neighbor) != kTileOpen) {
+      math::Vec2i toward = (neighbor - pos);
+      attraction += toward;
+    }
+  }
+
+  return math::Vec3f(attraction.x, attraction.y, 0.0f);
+}
+
 bool
 TileTypeWorldPosition(TileType type, math::Vec2f* world)
 {

@@ -76,6 +76,7 @@ struct Command {
     kNone = 0,
     kMine = 1,
     kMove = 2,
+    kVacuum = 3,
   };
   Type type;
   math::Vec2f destination;
@@ -84,6 +85,7 @@ struct Command {
 DECLARE_GAME_QUEUE(Command, 16);
 struct Unit {
   Transform transform;
+  math::Vec3f vacuum;
   Command command;
   uint64_t think_flags = 0;
   int kind = 0;

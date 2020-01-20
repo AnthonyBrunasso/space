@@ -172,7 +172,7 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
                            math::Quatf(0.f, 0.f, 0.f, 1.f), hilite);
     }
 
-    if (unit->command.type == Command::kNone) continue;
+    if (unit->command.type != Command::kMove) continue;
 
     // Show the path they are on if they have one.
     math::Vec2i start = WorldToTilePos(p->xy());

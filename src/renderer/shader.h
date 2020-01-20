@@ -82,6 +82,7 @@ inline constexpr const char* kFontFragmentShader = R"(
   out vec4 frag_color;
   void main() {
   	vec4 texel = texture(basic_texture, texture_coordinates);
+    if (texel.x == 0.0) discard;
   	frag_color = vec4(texel.x, texel.x, texel.x, 1.0);
   }
 )";

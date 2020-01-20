@@ -3,7 +3,6 @@
 #include "shader.h"
 
 #include <cstdio>
-#include <sstream>
 
 #include "utils.h"
 
@@ -68,22 +67,21 @@ LinkShaders(GLuint* id, int n, ...)
   return true;
 }
 
-// Given a program id returns -
+// Given a program id prints -
 // LINK_STATUS, ATTACHED_SHADERS, ACTIVE_ATTRIBUTES, ACTIVE_UNIFORMS
-// as a string. Useful for debugging.
-const char*
-AllocProgramInfoString(GLuint program_reference)
+void
+PrintProgramInfoString(GLuint program_reference)
 {
   assert(0);
-  std::stringstream ss;
-  ss << "Program reference: " << program_reference << std::endl;
+  printf("Program reference: %u\n", program_reference);
   int params = -1;
   glGetProgramiv(program_reference, GL_LINK_STATUS, &params);
-  ss << "GL_LINK_STATUS = " << params << std::endl;
+  printf("GL_LINK_STATUS = %d\n", params);
   glGetProgramiv(program_reference, GL_ATTACHED_SHADERS, &params);
-  ss << "GL_ATTACHED_SHADERS = " << params << std::endl;
+  printf("GL_ATTACHED_SHADERS = %u\n", params);
   glGetProgramiv(program_reference, GL_ACTIVE_ATTRIBUTES, &params);
-  ss << "GL_ACTIVE_ATTRIBUTES = " << params << std::endl;
+  printf("GL_ACTIVE_ATTRIBUTES = %u\n", params);
+
   for (GLuint i = 0; i < (GLuint)params; i++) {
     char name[64];
     int max_length = 64;
@@ -97,17 +95,17 @@ AllocProgramInfoString(GLuint program_reference)
         char long_name[64];
         std::sprintf(long_name, "%s[%i]", name, j);
         int location = glGetAttribLocation(program_reference, long_name);
-        ss << i << ") type: " << GLTypeToString(type) << " name: " << long_name
-           << " location: " << location << std::endl;
+        printf("%d) type: %s name: %s location: %d ", i, GLTypeToString(type),
+               long_name, location);
       }
     } else {
       int location = glGetAttribLocation(program_reference, name);
-      ss << i << ") type: " << GLTypeToString(type) << " name: " << name
-         << " location: " << location << std::endl;
+      printf("%d) type: %s name: %s location: %d ", i, GLTypeToString(type),
+             name, location);
     }
   }
   glGetProgramiv(program_reference, GL_ACTIVE_UNIFORMS, &params);
-  ss << "GL_ACTIVE_UNIFORMS = " << params << std::endl;
+  printf("GL_ACTIVE_UNIFORMS = %d\n", params);
   for (GLuint i = 0; i < (GLuint)params; i++) {
     char name[64];
     int max_length = 64;
@@ -121,16 +119,16 @@ AllocProgramInfoString(GLuint program_reference)
         char long_name[64];
         std::sprintf(long_name, "%s[%i]", name, j);
         int location = glGetUniformLocation(program_reference, long_name);
-        ss << i << ") type: " << GLTypeToString(type) << " name: " << long_name
-           << " location: " << location << std::endl;
+        printf("%d) type: %s name: %s location: %d ", i, GLTypeToString(type),
+               long_name, location);
       }
     } else {
       int location = glGetUniformLocation(program_reference, name);
-      ss << i << ") type: " << GLTypeToString(type) << " name: " << name
-         << " location: " << location << std::endl;
+      printf("%d) type: %s name: %s location: %d ", i, GLTypeToString(type),
+             name, location);
     }
   }
-  return strdup(ss.str().c_str());
+
 }
 
 }  // namespace gl

@@ -50,6 +50,10 @@ void
 Text(const char* msg, float screen_x, float screen_y)
 {
   struct Text* text = UseText();
+  if (!text) {
+    printf("imui text count exhausted.\n");
+    return;
+  }
   strcpy(text->msg, msg);
   text->screen_x = screen_x;
   text->screen_y = screen_y;
@@ -59,6 +63,10 @@ void
 MouseClick(math::Vec2f pos)
 {
   UIClick* click = UseUIClick();
+  if (!click) {
+    printf("imui click count exhausted.\n");
+    return;
+  }
   click->pos = pos;
 }
 

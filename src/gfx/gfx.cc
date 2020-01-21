@@ -8,11 +8,11 @@
 
 namespace gfx
 {
-
 struct Gfx {
   RenderTag asteroid_tag;
   RenderTag pod_tag;
   RenderTag missile_tag;
+  RenderTag exhaust_tag;
   math::AxisAlignedRect asteroid_aabb;
 };
 
@@ -46,10 +46,19 @@ Initialize()
   GLfloat missile[kPodVert*3] = 
   {0.0f, 0.0f, 0.0f, 2.0f, 0.0f, 0.0f,
    2.0f, 4.0f, 0.0f, 0.0f, 4.0f, 0.0f};
+  constexpr int kExhaustVert = 12;
+  GLfloat exhaust[kExhaustVert*3] = 
+  {0.0f, 3.0f, 0.0f, 3.0f, 3.0f, 0.0f,
+   4.0f, 2.7f, 0.0f, 3.5f, 2.4f, 0.0f,
+   4.2f, 2.1f, 0.0f, 3.5f, 1.8f, 0.0f,
+   4.2f, 1.5f, 0.0f, 3.5f, 1.2f, 0.0f,
+   4.2f, 0.9f, 0.0, 3.5f, 0.6f, 0.0f,
+   3.0, 0.3f, 0.0, 0.0f, 0.0f, 0.0f};
   // clang-format on
   for (int i = 0; i < kFloatCount; ++i) asteroid[i] *= 15.f;      // HA
   for (int i = 0; i < kPodVert * 3; ++i) pod[i] *= 15.f;          // HA
   for (int i = 0; i < kMissileVert * 3; ++i) missile[i] *= 15.f;  // HA
+  for (int i = 0; i < kExhaustVert * 3; ++i) exhaust[i] *= 15.f;  // HA
   kGfx.asteroid_aabb.min = math::Vec3f(10000.0f, 10000.0f, 10000.0f);
   kGfx.asteroid_aabb.max = math::Vec3f(-10000.0f, -10000.0f, -10000.0f);
   for (int i = 0; i < kFloatCount; i += 3) {
@@ -67,6 +76,7 @@ Initialize()
   kGfx.asteroid_tag = rgg::CreateRenderable(kVertCount, asteroid, GL_LINE_LOOP);
   kGfx.pod_tag = rgg::CreateRenderable(kPodVert, pod, GL_LINE_LOOP);
   kGfx.missile_tag = rgg::CreateRenderable(kMissileVert, missile, GL_LINE_LOOP);
+  kGfx.exhaust_tag = rgg::CreateRenderable(kExhaustVert, exhaust, GL_LINE_LOOP);
   return status;
 }
 
@@ -242,6 +252,25 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
     sys_engine = CLAMPF(kShip[0].sys_engine, min_visibility, sys_power);
     sys_mine = CLAMPF(kShip[0].sys_mine, min_visibility, sys_power);
     sys_turret = CLAMPF(kShip[0].sys_turret, min_visibility, sys_power);
+  }
+
+  static float escale = .1f;
+  if (escale > 2.f) {
+    escale = .1f;
+  }
+
+  {
+    math::Vec2i grid = TypeOnGrid(kTileEngine);
+    grid += math::Vec2i(-1, 2);
+    math::Vec3f world = TilePosToWorld(grid);
+    math::Vec4f engine_color =
+        math::Vec4f(1.f * sys_engine, 0.f, 1.f * sys_engine, 1.f);
+    rgg::RenderTag(kGfx.exhaust_tag, world, math::Vec3f(escale, 1.f, 1.f),
+                   math::Quatf(0.f, 0.f, 0.f, 1.f), engine_color);
+    rgg::RenderTag(kGfx.exhaust_tag, world,
+                   math::Vec3f(fmodf(escale + 1.f, 2.f), 1.f, 1.f),
+                   math::Quatf(0.f, 0.f, 0.f, 1.f), engine_color);
+    escale += .1f;
   }
 
   for (int i = 0; i < kMapHeight; ++i) {

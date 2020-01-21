@@ -17,6 +17,9 @@ struct State {
   Clock_t game_clock;
   // Time it took to run a frame.
   uint64_t frame_time_usec = 0;
+  // Rough estimate of round-trip time
+  uint64_t rtt_usec = 0;
+  uint64_t turn_queue_depth = 0;
   // Allow yielding idle cycles to kernel
   bool sleep_on_loop = true;
   // Number of times the game has been updated.
@@ -225,8 +228,9 @@ main(int argc, char** argv)
   platform::clock_init(kGameState.frame_target_usec, &kGameState.game_clock);
   while (!window::ShouldClose()) {
     ProcessInput();
-    NetworkEgress();
+    kGameState.rtt_usec = NetworkEgress() * kGameState.frame_target_usec;
     NetworkIngress(kGameState.logic_updates);
+    kGameState.turn_queue_depth = NetworkReadyCount();
 
     uint64_t slot = NETQUEUE_SLOT(kGameState.logic_updates);
     if (SlotReady(slot)) {
@@ -260,17 +264,20 @@ main(int argc, char** argv)
     char buffer[50];
     sprintf(buffer, "Frame Time:%06lu us", kGameState.frame_time_usec);
     imui::Text(buffer, 3.f, sz.y - 30.f);
-    sprintf(buffer, "Window Size:%ix%i", (int)sz.x, (int)sz.y);
+    sprintf(buffer, "Network Rtt:%06lu us [%lu/%lu queue]", kGameState.rtt_usec,
+            kGameState.turn_queue_depth, MAX_NETQUEUE);
     imui::Text(buffer, 3.f, sz.y - 55.f);
+    sprintf(buffer, "Window Size:%ix%i", (int)sz.x, (int)sz.y);
+    imui::Text(buffer, 3.f, sz.y - 80.f);
     auto mouse = CoordToWorld(window::GetCursorPosition());
     sprintf(buffer, "Mouse Pos In World:(%.1f,%.1f)", mouse.x, mouse.y);
-    imui::Text(buffer, 3.f, sz.y - 80.f);
+    imui::Text(buffer, 3.f, sz.y - 105.f);
     math::Vec2i tile = simulation::WorldToTilePos(mouse.xy());
     sprintf(buffer, "Minerals: %lu", kShip[0].mineral);
-    imui::Text(buffer, 3.f, sz.y - 105.f);
+    imui::Text(buffer, 3.f, sz.y - 130.f);
     if (simulation::TileOk(tile)) {
       sprintf(buffer, "Type %d", simulation::kTilemap.map[tile.y][tile.x].type);
-      imui::Text(buffer, 3.f, sz.y - 130.f);
+      imui::Text(buffer, 3.f, sz.y - 155.f);
     }
     if (simulation::GameOver()) {
       sprintf(buffer, "Game Over");

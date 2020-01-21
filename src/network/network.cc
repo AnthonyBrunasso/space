@@ -5,9 +5,9 @@
 #include "server.cc"
 
 // Input events capable of being processed in one game loop
-#define MAX_TICK_EVENTS 32
+#define MAX_TICK_EVENTS 32ul
 // Game loop inputs allowed in-flight on the network
-#define MAX_NETQUEUE 128
+#define MAX_NETQUEUE 128ul
 // Convert frame id into a NETQUEUE slot
 #define NETQUEUE_SLOT(sequence) (sequence % MAX_NETQUEUE)
 // Players in one game
@@ -143,6 +143,17 @@ SlotReady(uint64_t slot)
   return true;
 }
 
+uint64_t
+NetworkReadyCount()
+{
+  uint64_t ready = 0;
+  for (int i = 0; i < MAX_NETQUEUE; ++i) {
+    ready += SlotReady(i);
+  }
+
+  return ready;
+}
+
 void
 NetworkSend(uint64_t seq)
 {
@@ -169,16 +180,20 @@ NetworkSend(uint64_t seq)
   }
 }
 
-void
+uint64_t
 NetworkEgress()
 {
   uint64_t begin_seq = kNetworkState.outgoing_ack[kNetworkState.player_id] + 1;
   uint64_t end_seq = kNetworkState.outgoing_sequence;
 
   // Re-send input history
+  uint64_t count = 0;
   for (uint64_t i = begin_seq; i < end_seq; ++i) {
     NetworkSend(i);
+    ++count;
   }
+
+  return count;
 }
 
 void

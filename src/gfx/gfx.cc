@@ -111,26 +111,74 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
   AlignToGrid(grid1, &world1);
   rgg::RenderGrid(grid1, world1, math::Vec4f(0.050f, 0.215f, 0.050f, 0.45f));
 
-  // Unit hover-over text
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
-    if (dsq(unit->transform.position, mouse) >= kDsqSelect) continue;
+  // Base ship
+  float sys_power = .0f;
+  float sys_engine = .0f;
+  float sys_mine = .0f;
+  float sys_turret = 0.f;
+  constexpr float min_visibility = .2f;
+  if (kUsedShip) {
+    sys_power = kShip[0].sys_power;
 
-    char buffer[64];
-    for (int j = 0; j < CREWA_MAX; ++j) {
-      sprintf(buffer, "%u < %s < %u", unit->aknown_min[j], crew_aname[j],
-              unit->aknown_max[j]);
-      rgg::RenderText(buffer, screen.x - 225.f, screen.y - j * 25.f,
-                      math::Vec4f());
-    }
-    sprintf(buffer, "%04.02fX %04.02fY", unit->transform.position.x,
-            unit->transform.position.y);
-    rgg::RenderText(buffer, screen.x - 225.f, screen.y - CREWA_MAX * 25.f,
-                    math::Vec4f());
-    break;
+    sys_power = CLAMPF(sys_power, min_visibility, 1.0f);
+    sys_engine = CLAMPF(kShip[0].sys_engine, min_visibility, sys_power);
+    sys_mine = CLAMPF(kShip[0].sys_mine, min_visibility, sys_power);
+    sys_turret = CLAMPF(kShip[0].sys_turret, min_visibility, sys_power);
   }
 
-  imui::Render();
+  static float escale = .1f;
+  if (escale > 2.f) {
+    escale = .1f;
+  }
+
+  {
+    math::Vec2i grid = TypeOnGrid(kTileEngine);
+    grid += math::Vec2i(-1, 2);
+    math::Vec3f world = TilePosToWorld(grid);
+    math::Vec4f engine_color =
+        math::Vec4f(1.f * sys_engine, 0.f, 1.f * sys_engine, 1.f);
+    rgg::RenderTag(kGfx.exhaust_tag, world, math::Vec3f(escale, 1.f, 1.f),
+                   math::Quatf(0.f, 0.f, 0.f, 1.f), engine_color);
+    rgg::RenderTag(kGfx.exhaust_tag, world,
+                   math::Vec3f(fmodf(escale + 1.f, 2.f), 1.f, 1.f),
+                   math::Quatf(0.f, 0.f, 0.f, 1.f), engine_color);
+    escale += .1f;
+  }
+
+  for (int i = 0; i < kMapHeight; ++i) {
+    for (int j = 0; j < kMapWidth; ++j) {
+      const Tile* tile = &kTilemap.map[i][j];
+      uint64_t type_id = tile->type;
+
+      if (type_id == kTileOpen) continue;
+
+      math::Vec4f color;
+      switch (type_id) {
+        case kTileBlock:
+          color = math::Vec4f(1.f, 1.f, 1.f, 1.f);
+          break;
+        case kTileEngine:
+          color = math::Vec4f(1.0f * sys_engine, 0.0f, 1.f * sys_engine, 1.0f);
+          break;
+        case kTilePower:
+          color = math::Vec4f(0.0f, 0.0f, 0.75f * sys_power, 1.0f);
+          break;
+        case kTileMine:
+          color = math::Vec4f(0.0, 0.75f * sys_mine, 0.0f, 1.0f);
+          break;
+        case kTileVacuum:
+          color = math::Vec4f(0.33f, 0.33f, 0.33f, 1.f);
+          break;
+        case kTileTurret:
+          color = math::Vec4f(1.f * sys_turret, 0.f, 0.f, 1.f);
+          break;
+      };
+
+      rgg::RenderRectangle(math::Vec3f(TileToWorld(*tile)),
+                           math::Vec3f(1.f / 2.f, 1.f / 2.f, 1.f),
+                           math::Quatf(0.f, 0.f, 0.f, 1.f), color);
+    }
+  }
 
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
@@ -199,24 +247,6 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
     }
   }
 
-  static float power_notify = 0.f;
-  if (kShip[0].power_delta > 0.0f && power_notify <= 0.0f) {
-    power_notify = 50.f;
-  }
-
-  if (power_notify >= 10.f) {
-    math::Vec2i grid = TypeOnGrid(kTilePower);
-    math::Vec3f world = TilePosToWorld(grid);
-    rgg::RenderCircle(world, power_notify - 10.f, power_notify, kWhite);
-  }
-  power_notify -= 1.f;
-
-  for (int i = 0; i < kUsedPod; ++i) {
-    Pod* pod = &kPod[i];
-    rgg::RenderTag(kGfx.pod_tag, pod->transform.position, pod->transform.scale,
-                   pod->transform.orientation, kWhite);
-  }
-
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
     rgg::RenderTag(kGfx.asteroid_tag, asteroid->transform.position,
@@ -240,73 +270,47 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
     }
   }
 
-  float sys_power = .0f;
-  float sys_engine = .0f;
-  float sys_mine = .0f;
-  float sys_turret = 0.f;
-  constexpr float min_visibility = .2f;
-  if (kUsedShip) {
-    sys_power = kShip[0].sys_power;
-
-    sys_power = CLAMPF(sys_power, min_visibility, 1.0f);
-    sys_engine = CLAMPF(kShip[0].sys_engine, min_visibility, sys_power);
-    sys_mine = CLAMPF(kShip[0].sys_mine, min_visibility, sys_power);
-    sys_turret = CLAMPF(kShip[0].sys_turret, min_visibility, sys_power);
+  // Alerts
+  static float power_notify = 0.f;
+  if (kShip[0].power_delta > 0.0f && power_notify <= 0.0f) {
+    power_notify = 50.f;
   }
 
-  static float escale = .1f;
-  if (escale > 2.f) {
-    escale = .1f;
-  }
-
-  {
-    math::Vec2i grid = TypeOnGrid(kTileEngine);
-    grid += math::Vec2i(-1, 2);
+  if (power_notify >= 10.f) {
+    math::Vec2i grid = TypeOnGrid(kTilePower);
     math::Vec3f world = TilePosToWorld(grid);
-    math::Vec4f engine_color =
-        math::Vec4f(1.f * sys_engine, 0.f, 1.f * sys_engine, 1.f);
-    rgg::RenderTag(kGfx.exhaust_tag, world, math::Vec3f(escale, 1.f, 1.f),
-                   math::Quatf(0.f, 0.f, 0.f, 1.f), engine_color);
-    rgg::RenderTag(kGfx.exhaust_tag, world,
-                   math::Vec3f(fmodf(escale + 1.f, 2.f), 1.f, 1.f),
-                   math::Quatf(0.f, 0.f, 0.f, 1.f), engine_color);
-    escale += .1f;
+    rgg::RenderCircle(world, power_notify - 10.f, power_notify, kWhite);
+  }
+  power_notify -= 1.f;
+
+  for (int i = 0; i < kUsedPod; ++i) {
+    Pod* pod = &kPod[i];
+    rgg::RenderTag(kGfx.pod_tag, pod->transform.position, pod->transform.scale,
+                   pod->transform.orientation, kWhite);
   }
 
-  for (int i = 0; i < kMapHeight; ++i) {
-    for (int j = 0; j < kMapWidth; ++j) {
-      const Tile* tile = &kTilemap.map[i][j];
-      uint64_t type_id = tile->type;
+  // Unit hover-over text
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* unit = &kUnit[i];
+    if (dsq(unit->transform.position, mouse) >= kDsqSelect) continue;
 
-      if (type_id == kTileOpen) continue;
-
-      math::Vec4f color;
-      switch (type_id) {
-        case kTileBlock:
-          color = math::Vec4f(1.f, 1.f, 1.f, 1.f);
-          break;
-        case kTileEngine:
-          color = math::Vec4f(1.0f * sys_engine, 0.0f, 1.f * sys_engine, 1.0f);
-          break;
-        case kTilePower:
-          color = math::Vec4f(0.0f, 0.0f, 0.75f * sys_power, 1.0f);
-          break;
-        case kTileMine:
-          color = math::Vec4f(0.0, 0.75f * sys_mine, 0.0f, 1.0f);
-          break;
-        case kTileVacuum:
-          color = math::Vec4f(0.33f, 0.33f, 0.33f, 1.f);
-          break;
-        case kTileTurret:
-          color = math::Vec4f(1.f * sys_turret, 0.f, 0.f, 1.f);
-          break;
-      };
-
-      rgg::RenderRectangle(math::Vec3f(TileToWorld(*tile)),
-                           math::Vec3f(1.f / 2.f, 1.f / 2.f, 1.f),
-                           math::Quatf(0.f, 0.f, 0.f, 1.f), color);
+    char buffer[64];
+    for (int j = 0; j < CREWA_MAX; ++j) {
+      sprintf(buffer, "%u < %s < %u", unit->aknown_min[j], crew_aname[j],
+              unit->aknown_max[j]);
+      rgg::RenderText(buffer, screen.x - 225.f, screen.y - j * 25.f,
+                      math::Vec4f());
     }
+    sprintf(buffer, "%04.02fX %04.02fY", unit->transform.position.x,
+            unit->transform.position.y);
+    rgg::RenderText(buffer, screen.x - 225.f, screen.y - CREWA_MAX * 25.f,
+                    math::Vec4f());
+    break;
   }
+
+  // Ui
+  imui::Render();
+
 }
 
 }  // namespace gfx

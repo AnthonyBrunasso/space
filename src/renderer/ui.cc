@@ -17,7 +17,7 @@ struct Font {
 
 struct UI {
   Font font;
-};
+  };
 
 static UI kUI;
 

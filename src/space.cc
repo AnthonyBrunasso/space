@@ -107,6 +107,7 @@ SimulationEvent(const PlatformEvent* event, const Camera* camera,
           Command command = {Command::kMove, pos.xy()};
           PushCommand(command);
         }
+        imui::MouseClick(pos.xy());
       }
     } break;
     case KEY_DOWN: {
@@ -255,26 +256,26 @@ main(int argc, char** argv)
     }
 
     // Misc debug/feedback
-    gfx::Reset();
+    imui::Reset();
     auto sz = window::GetWindowSize();
     char buffer[50];
     sprintf(buffer, "Frame Time:%06lu us", kGameState.frame_time_usec);
-    gfx::PushText(buffer, 3.f, sz.y - 30.f);
+    imui::Text(buffer, 3.f, sz.y - 30.f);
     sprintf(buffer, "Window Size:%ix%i", (int)sz.x, (int)sz.y);
-    gfx::PushText(buffer, 3.f, sz.y - 55.f);
+    imui::Text(buffer, 3.f, sz.y - 55.f);
     auto mouse = CoordToWorld(window::GetCursorPosition());
     sprintf(buffer, "Mouse Pos In World:(%.1f,%.1f)", mouse.x, mouse.y);
-    gfx::PushText(buffer, 3.f, sz.y - 80.f);
+    imui::Text(buffer, 3.f, sz.y - 80.f);
     math::Vec2i tile = simulation::WorldToTilePos(mouse.xy());
     sprintf(buffer, "Minerals: %lu", kShip[0].mineral);
-    gfx::PushText(buffer, 3.f, sz.y - 105.f);
+    imui::Text(buffer, 3.f, sz.y - 105.f);
     if (simulation::TileOk(tile)) {
       sprintf(buffer, "Type %d", simulation::kTilemap.map[tile.y][tile.x].type);
-      gfx::PushText(buffer, 3.f, sz.y - 130.f);
+      imui::Text(buffer, 3.f, sz.y - 130.f);
     }
     if (simulation::GameOver()) {
       sprintf(buffer, "Game Over");
-      gfx::PushText(buffer, sz.x * .5 - 150.f, sz.y * .5);
+      imui::Text(buffer, sz.x * .5 - 150.f, sz.y * .5);
     }
 
 #ifndef HEADLESS

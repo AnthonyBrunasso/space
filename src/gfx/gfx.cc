@@ -1,4 +1,6 @@
+#pragma once
 
+#include "imui.cc"
 #include "platform/platform.cc"
 #include "renderer/renderer.cc"
 
@@ -6,19 +8,8 @@
 
 namespace gfx
 {
-constexpr int kMaxTextSize = 128;
-constexpr int kMaxTextCount = 32;
-
-struct Text {
-  char msg[kMaxTextSize];
-  float screen_x;
-  float screen_y;
-};
 
 struct Gfx {
-  // Allow 32 on screen text messages.
-  Text text[kMaxTextCount];
-  int text_count;
   RenderTag asteroid_tag;
   RenderTag pod_tag;
   RenderTag missile_tag;
@@ -92,7 +83,7 @@ AlignToGrid(math::Vec2f grid, math::Rectf* world)
 void
 Reset()
 {
-  kGfx.text_count = 0;
+  imui::Reset();
 }
 
 void
@@ -109,14 +100,6 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
   math::Rectf world1 = visible_world;
   AlignToGrid(grid1, &world1);
   rgg::RenderGrid(grid1, world1, math::Vec4f(0.050f, 0.215f, 0.050f, 0.45f));
-
-
-  rgg::RenderButton("test", math::Rect(10, 10, 40, 40),
-                    math::Vec4f(1.0f, 1.0f, 1.0f, 0.5f));
-
-  rgg::RenderButton("test", math::Rect(55, 10, 40, 40),
-                    math::Vec4f(1.0f, 1.0f, 1.0f, 0.5f));
-
 
   // Unit hover-over text
   for (int i = 0; i < kUsedUnit; ++i) {
@@ -137,11 +120,7 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
     break;
   }
 
-  // Draw all text.
-  for (int i = 0; i < kGfx.text_count; ++i) {
-    Text& text = kGfx.text[i];
-    rgg::RenderText(text.msg, text.screen_x, text.screen_y, math::Vec4f());
-  }
+  imui::Render();
 
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
@@ -296,20 +275,6 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
                            math::Quatf(0.f, 0.f, 0.f, 1.f), color);
     }
   }
-
-  }
-
-void
-PushText(const char* msg, float screen_x, float screen_y)
-{
-  assert(kGfx.text_count + 1 < kMaxTextCount);
-  if (kGfx.text_count + 1 >= kMaxTextCount) return;
-  int len = strlen(msg);
-  if (len > kMaxTextSize) return;
-  Text& text = kGfx.text[kGfx.text_count++];
-  strcpy(text.msg, msg);
-  text.screen_x = screen_x;
-  text.screen_y = screen_y;
 }
 
 }  // namespace gfx

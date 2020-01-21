@@ -25,16 +25,6 @@ AI -
 graphics - 
 
   anthony: Implement camera zoom. This will require implementing an inverse function.
-  anthony: Primitive UI, start with a square in world space that represents a button.
-           I'd like to use immediate mode graphics here. Instead of providing callbacks
-           on buttons the user will be able to do something like -
-
-           if (ui::Button("press me")) {
-             // Execute button press
-           }
-
-           This avoids the unnecessary complexity of defining UI layout and functionality
-           seperately.
   anthony: Load a large texture to be used for the background.
 
 network -

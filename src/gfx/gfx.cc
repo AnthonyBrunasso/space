@@ -137,9 +137,12 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
         color = math::Vec4f(0.66f, 0.33f, 0.33f, 1.f);
         break;
       case 2:
-        color = math::Vec4f(0.86f, 0.33f, 0.33f, 1.f);
+        color = math::Vec4f(0.74f, 0.33f, 0.33f, 1.f);
         break;
       case 3:
+        color = math::Vec4f(0.86f, 0.33f, 0.33f, 1.f);
+        break;
+      case 4:
         color = math::Vec4f(0.99f, 0.33f, 0.33f, 1.f);
         break;
       default:

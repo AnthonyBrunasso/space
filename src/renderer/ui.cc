@@ -128,7 +128,7 @@ RenderText(const char* msg, float x, float y, const math::Vec4f& color)
     float v_h = (float)row->height;
 
     float offset_start_x = x/* - row->xoffset*/;
-    float offset_start_y = y - row->yoffset + abs(min_y);
+    float offset_start_y = y - row->yoffset + fabsf(min_y);
 
 #if 0
     printf("id=%i char=%c width=%i height=%i xoffset=%i yoffset=%i"

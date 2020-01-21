@@ -107,7 +107,7 @@ SimulationEvent(const PlatformEvent* event, const Camera* camera,
           Command command = {Command::kMove, pos.xy()};
           PushCommand(command);
         }
-        imui::MouseClick(pos.xy());
+        imui::MouseClick(event->position);
       }
     } break;
     case KEY_DOWN: {
@@ -256,7 +256,6 @@ main(int argc, char** argv)
     }
 
     // Misc debug/feedback
-    imui::Reset();
     auto sz = window::GetWindowSize();
     char buffer[50];
     sprintf(buffer, "Frame Time:%06lu us", kGameState.frame_time_usec);
@@ -278,6 +277,15 @@ main(int argc, char** argv)
       imui::Text(buffer, sz.x * .5 - 150.f, sz.y * .5);
     }
 
+    static float derp;
+    if (imui::Button(math::Rect(10, 10, 40, 40),
+                     math::Vec4f(1.0f, 1.0f, 1.0f, 0.5f))) {
+      derp += 0.05f;
+    }
+
+    imui::Button(math::Rect(55, 10, 40, 40),
+                 math::Vec4f(1.0f, 1.0f - derp, 1.0f - derp, 0.5f));
+
 #ifndef HEADLESS
     // The bottom left and top right of the screen with regards to the camera.
     const Camera* cam = GetLocalCamera();
@@ -287,6 +295,7 @@ main(int argc, char** argv)
     gfx::Render(math::Rectf{bottom_left.xy(), top_right.xy()}, mouse.xy(),
                 dims);
 #endif
+    imui::Reset();
 
     // Capture frame time before the potential stall on vertical sync
     kGameState.frame_time_usec = platform::delta_usec(&kGameState.game_clock);

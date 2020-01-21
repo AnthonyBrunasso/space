@@ -128,4 +128,11 @@ PointInRect(const math::Vec2f& point, const AxisAlignedRect& rect)
          (point.y > rect.min.y && point.y < rect.max.y);
 }
 
+bool
+PointInRect(const math::Vec2f& point, const Rect& rect)
+{
+  return (point.x > rect.x && point.x < rect.x + rect.width) &&
+         (point.y > rect.y && point.y < rect.y + rect.height);
+}
+
 }  // namespace math

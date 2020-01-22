@@ -7,9 +7,6 @@
 namespace imui
 {
 constexpr int kMaxTextSize = 128;
-constexpr int kMaxTextCount = 32;
-constexpr int kMaxButtonCount = 16;
-constexpr int kMaxFrameClick = 8;
 
 struct Text {
   char msg[kMaxTextSize];
@@ -26,9 +23,9 @@ struct Button {
   math::Vec4f color;
 };
 
-DECLARE_ARRAY(Text, kMaxTextCount);
-DECLARE_ARRAY(Button, kMaxButtonCount);
-DECLARE_ARRAY(UIClick, kMaxFrameClick);
+DECLARE_ARRAY(Text, 32);
+DECLARE_ARRAY(Button, 16);
+DECLARE_ARRAY(UIClick, 8);
 
 void
 Reset()
@@ -60,6 +57,10 @@ Text(const char* msg, float screen_x, float screen_y)
     printf("imui text count exhausted.\n");
     return;
   }
+  if (strlen(msg) > kMaxTextSize) {
+    printf("text provided surpasses max allowed imui character count.\n");
+    return;
+  }
   strcpy(text->msg, msg);
   text->screen_x = screen_x;
   text->screen_y = screen_y;
@@ -80,7 +81,7 @@ Button(const math::Rect& rect, const math::Vec4f& color)
 {
   struct Button* button = UseButton();
   if (!button) {
-    printf("imui text count exhausted.\n");
+    printf("imui button count exhausted.\n");
     return false;
   }
   button->rect = rect;

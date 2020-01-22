@@ -29,3 +29,6 @@
 
 #define FLAG(x) (1<<x)
 
+// System memory block
+#define PAGE (4 * 1024)
+

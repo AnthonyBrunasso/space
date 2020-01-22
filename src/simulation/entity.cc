@@ -2,8 +2,13 @@
 #include "common/common.cc"
 #include "math/math.cc"
 
+#include "entity_registry.cc"
+
 // Data used by game simulation
-#define DECLARE_GAME_TYPE(type, count) DECLARE_ARRAY(type, count)
+#define DECLARE_GAME_TYPE(type, count) \
+  DECLARE_ARRAY(type, count)           \
+  EntityRegistry kInit##type(k##type, count, sizeof(type));
+
 #define DECLARE_GAME_QUEUE(type, count) DECLARE_QUEUE(type, count)
 
 struct Transform {

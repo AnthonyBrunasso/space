@@ -12,8 +12,6 @@
 #define NETQUEUE_SLOT(sequence) (sequence % MAX_NETQUEUE)
 // Players in one game
 #define MAX_PLAYER 2
-// System memory block: Move to platform?
-#define PAGE (4 * 1024)
 
 struct InputBuffer {
   PlatformEvent input_event[MAX_TICK_EVENTS];

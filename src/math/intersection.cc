@@ -1,4 +1,4 @@
-#include "intersection.h"
+#pragma once
 
 #include "platform/macro.h"
 
@@ -7,8 +7,7 @@
 namespace math
 {
 float
-Signed2DTriArea(const math::Vec2f& a, const math::Vec2f& b,
-                const math::Vec2f& c)
+Signed2DTriArea(const Vec2f& a, const Vec2f& b, const Vec2f& c)
 {
   return (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x);
 }
@@ -16,7 +15,7 @@ Signed2DTriArea(const math::Vec2f& a, const math::Vec2f& b,
 // Given three colinear points p, q, r, the function checks if
 // point q lies on line segment 'pr'
 bool
-OnSegment(const math::Vec2f& p, const math::Vec2f& q, const math::Vec2f& r)
+OnSegment(const Vec2f& p, const Vec2f& q, const Vec2f& r)
 {
   if (q.x <= fmaxf(p.x, r.x) && q.x >= fminf(p.x, r.x) &&
       q.y <= fmaxf(p.y, r.y) && q.y >= fminf(p.y, r.y)) {
@@ -37,7 +36,7 @@ IsNear(float value, float target)
 // 1 --> Clockwise
 // 2 --> Counterclockwise
 int
-Orientation(const math::Vec2f& p, const math::Vec2f& q, const math::Vec2f& r)
+Orientation(const Vec2f& p, const Vec2f& q, const Vec2f& r)
 {
   float val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
   if (IsNear(val, 0.f)) return 0;  // colinear
@@ -47,8 +46,7 @@ Orientation(const math::Vec2f& p, const math::Vec2f& q, const math::Vec2f& r)
 // The function that returns true if line segment 'p1q1'
 // and 'p2q2' intersect.
 bool
-DoIntersect(const math::Vec2f& p1, const math::Vec2f& q1, const math::Vec2f& p2,
-            const math::Vec2f& q2)
+DoIntersect(const Vec2f& p1, const Vec2f& q1, const Vec2f& p2, const Vec2f& q2)
 {
   // Find the four orientations needed for general and
   // special cases
@@ -74,9 +72,9 @@ DoIntersect(const math::Vec2f& p1, const math::Vec2f& q1, const math::Vec2f& p2,
 
 // pg 152. Real-Time Collision Detection by Christer Ericson
 bool
-LineSegmentsIntersect(const math::Vec2f& a_start, const math::Vec2f& a_end,
-                      const math::Vec2f& b_start, const math::Vec2f& b_end,
-                      float* time, math::Vec2f* position)
+LineSegmentsIntersect(const Vec2f& a_start, const Vec2f& a_end,
+                      const Vec2f& b_start, const Vec2f& b_end,
+                      float* time, Vec2f* position)
 {
   float a1 = Signed2DTriArea(a_start, a_end, b_end);
   float a2 = Signed2DTriArea(a_start, a_end, b_start);
@@ -93,13 +91,12 @@ LineSegmentsIntersect(const math::Vec2f& a_start, const math::Vec2f& a_end,
 
 // https://www.geeksforgeeks.org/how-to-check-if-a-given-point-lies-inside-a-polygon/
 bool
-PointInPolygon(const math::Vec2f& point, const uint64_t polygon_size,
-               math::Vec2f* polygon)
+PointInPolygon(const Vec2f& point, const uint64_t polygon_size, Vec2f* polygon)
 {
   // There must be at least 3 vertices in polygon[]
   if (polygon_size < 3) return false;
   // Create a point for line segment from p to infinite
-  math::Vec2f extreme(std::numeric_limits<float>::max(), point.y);
+  Vec2f extreme(std::numeric_limits<float>::max(), point.y);
   // Count intersections of the above line with sides of polygon
   int count = 0, i = 0;
   do {
@@ -122,14 +119,14 @@ PointInPolygon(const math::Vec2f& point, const uint64_t polygon_size,
 }
 
 bool
-PointInRect(const math::Vec2f& point, const AxisAlignedRect& rect)
+PointInRect(const Vec2f& point, const AxisAlignedRect& rect)
 {
   return (point.x > rect.min.x && point.x < rect.max.x) &&
          (point.y > rect.min.y && point.y < rect.max.y);
 }
 
 bool
-PointInRect(const math::Vec2f& point, const Rect& rect)
+PointInRect(const Vec2f& point, const Rect& rect)
 {
   return (point.x > rect.x && point.x < rect.x + rect.width) &&
          (point.y > rect.y && point.y < rect.y + rect.height);

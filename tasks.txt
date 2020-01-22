@@ -25,7 +25,7 @@ AI -
 graphics - 
 
   anthony: Implement camera zoom. This will require implementing an inverse function.
-  anthony: Load a large texture to be used for the background.
+  anthony: Load bitmaps.
   anthony: Implement UI panes. Rendering after a pane call will render UI in regards
            to that pane which can be minimized / moved.
 

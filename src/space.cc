@@ -213,6 +213,13 @@ main(int argc, char** argv)
     return 1;
   }
 
+  uint64_t bytes = 0;
+  for (int i = 0; i < kUsedRegistry; ++i) {
+    printf("Registry ptr %p\n", kRegistry[i].ptr);
+    bytes += kRegistry[i].memb_count * kRegistry[i].memb_size;
+  }
+  printf("Registry contains %lu bytes\n", bytes);
+
   // Reset State
   kGameState.game_updates = 0;
   kGameState.game_jerk = 0;

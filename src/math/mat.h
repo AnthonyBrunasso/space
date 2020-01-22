@@ -193,10 +193,7 @@ operator-(const Mat<T, M, N>& lhs, const Mat<T, M, N>& rhs)
   return r;
 }
 
-using Mat4i = Mat<int, 4, 4>;
-using Mat4u = Mat<uint32_t, 4, 4>;
 using Mat4f = Mat<float, 4, 4>;
-using Mat4d = Mat<double, 4, 4>;
 
 // Ths matrix vector multiplication is written as if the vector was
 // augmented with a 1 (x, y, z, 1). And mutiplied against a matrix

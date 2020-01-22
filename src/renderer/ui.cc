@@ -81,7 +81,7 @@ RenderText(const char* msg, float x, float y, const math::Vec4f& color)
   glBindTexture(GL_TEXTURE_2D, font.texture.reference);
 
   auto sz = window::GetWindowSize();
-  math::Mat4f projection = math::CreateOrthographicMatrix2<float>(
+  math::Mat4f projection = math::CreateOrthographicMatrix2(
       sz.x, 0.f, sz.y, 0.f, /* 2d so leave near/far 0*/ 0.f, 0.f);
   glUniformMatrix4fv(font.matrix_uniform, 1, GL_FALSE, &projection[0]);
 
@@ -172,7 +172,7 @@ RenderButton(const char* text, const math::Rect& rect,
   math::Vec3f scale(rect.width, rect.height, 1.f);
   math::Mat4f model = math::CreateModelMatrix(pos, scale);
   auto sz = window::GetWindowSize();
-  math::Mat4f projection = math::CreateOrthographicMatrix2<float>(
+  math::Mat4f projection = math::CreateOrthographicMatrix2(
       sz.x, 0.f, sz.y, 0.f, /* 2d so leave near/far 0*/ 0.f, 0.f);
   math::Mat4f view_projection = projection;
   glUniform1f(kRGG.smooth_rectangle_program.smoothing_radius_uniform,

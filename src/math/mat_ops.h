@@ -8,93 +8,87 @@ namespace math
 {
 #define ONE_DEG_IN_RAD (2.0 * PI) / 360.0  // 0.017444444
 
-template <class T, size_t N>
-Mat<T, N, N>
+inline
+Mat4f
 CreateIdentityMatrix()
 {
-  Mat<T, N, N> m;
-  // Matrices don't 0 initializate. Maybe they should.
-  for (size_t i = 0; i < N; ++i) {
-    for (size_t j = 0; j < N; ++j) {
-      m(i, j) = i == j ? static_cast<T>(1) : static_cast<T>(0);
-    }
-  }
-  return m;
+  return Mat4f(1.0f, 0.0f, 0.0f, 0.0f,
+               0.0f, 1.0f, 0.0f, 0.0f,
+               0.0f, 0.0f, 1.0f, 0.0f,
+               0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-template <class T>
-Mat<T, 4, 4>
-CreateTranslationMatrix(const Vec3<T>& translation)
+inline
+Mat4f
+CreateTranslationMatrix(const Vec3f& translation)
 {
-  Mat<T, 4, 4> m = CreateIdentityMatrix<T, 4>();
-  m[12] = translation.x;
-  m[13] = translation.y;
-  m[14] = translation.z;
-  return m;
+  return Mat4f(1.0f, 0.0f, 0.0f, 0.0f,
+               0.0f, 1.0f, 0.0f, 0.0f,
+               0.0f, 0.0f, 1.0f, 0.0f,
+               translation.x, translation.y, translation.z, 1.0f);
 }
 
-template <class T>
-Mat<T, 4, 4>
-CreateScaleMatrix(const Vec3<T>& scale)
+inline
+Mat4f
+CreateScaleMatrix(const Vec3f& scale)
 {
-  Mat<T, 4, 4> m = CreateIdentityMatrix<T, 4>();
-  m(0, 0) = scale.x;
-  m(1, 1) = scale.y;
-  m(2, 2) = scale.z;
-  return m;
+  return Mat4f(scale.x, 0.0f, 0.0f, 0.0f,
+               0.0f, scale.y, 0.0f, 0.0f,
+               0.0f, 0.0f, scale.z, 0.0f,
+               0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-template <class T>
-Mat<T, 4, 4>
-CreateRotationMatrix(const Quat<T>& quat)
+inline
+Mat4f
+CreateRotationMatrix(const Quatf& quat)
 {
-  Mat<T, 4, 4> rotation;
+  Mat4f rotation;
   rotation[0] = 1.f - 2.f * quat.y * quat.y - 2.f * quat.z * quat.z;
   rotation[1] = 2.f * quat.x * quat.y - 2.f * quat.w * quat.z;
   rotation[2] = 2.f * quat.x * quat.z + 2 * quat.w * quat.y;
-  rotation[3] = T(0);
+  rotation[3] = 0.0f;
   rotation[4] = 2.f * quat.x * quat.y + 2.f * quat.w * quat.z;
   rotation[5] = 1.f - 2.f * quat.x * quat.x - 2.f * quat.z * quat.z;
   rotation[6] = 2.f * quat.y * quat.z - 2.f * quat.w * quat.x;
-  rotation[7] = T(0);
+  rotation[7] = 0.0f;
   rotation[8] = 2.f * quat.x * quat.z - 2.f * quat.w * quat.y;
   rotation[9] = 2.f * quat.y * quat.z + 2.f * quat.w * quat.x;
   rotation[10] = 1.f - 2.f * quat.x * quat.x - 2.f * quat.y * quat.y;
-  rotation[11] = T(0);
-  rotation[12] = T(0);
-  rotation[13] = T(0);
-  rotation[14] = T(0);
-  rotation[15] = T(1);
+  rotation[11] = 0.0f;
+  rotation[12] = 0.0f;
+  rotation[13] = 0.0f;
+  rotation[14] = 0.0f;
+  rotation[15] = 1.0f;
   return rotation;
 }
 
-template <class T>
-Mat<T, 4, 4>
-CreateViewMatrix(const Vec3<T>& translation, const Quat<T>& quat)
+inline
+Mat4f
+CreateViewMatrix(const Vec3f& translation, const Quatf& quat)
 {
   auto mat = CreateRotationMatrix(quat).Transpose();
-  Mat<T, 4, 4> view;
+  Mat4f view;
   view[0] = mat[0];
   view[1] = mat[1];
   view[2] = mat[2];
-  view[3] = T(0);
+  view[3] = 0.0f;
   view[4] = mat[4];
   view[5] = mat[5];
   view[6] = mat[6];
-  view[7] = T(0);
+  view[7] = 0.0f;
   view[8] = mat[8];
   view[9] = mat[9];
   view[10] = mat[10];
-  view[11] = T(0);
+  view[11] = 0.0f;
   view[12] = -translation.x;
   view[13] = -translation.y;
   view[14] = -translation.z;
-  view[15] = T(1);
+  view[15] = 1.0f;
   return view;
 }
 
-template <class T>
-Mat<T, 4, 4>
+inline
+Mat4f
 CreatePerspectiveMatrix(float width, float height, float near_clip, float far_clip, 
                         float fov_degrees)
 {
@@ -106,14 +100,14 @@ CreatePerspectiveMatrix(float width, float height, float near_clip, float far_cl
   float Sy = near_clip / range;
   float Sz = -(far_clip + near_clip) / (far_clip - near_clip);
   float Pz = -(2.0f * far_clip * near_clip) / (far_clip - near_clip);
-  return Mat<T, 4, 4>(  Sx, 0.0f, 0.0f,  0.0f,
-                      0.0f,   Sy, 0.0f,  0.0f,
-                      0.0f, 0.0f,   Sz, -1.0f,
-                      0.0f, 0.0f,   Pz,  0.0f);
+  return Mat4f(  Sx, 0.0f, 0.0f,  0.0f,
+                 0.0f,   Sy, 0.0f,  0.0f,
+                 0.0f, 0.0f,   Sz, -1.0f,
+                 0.0f, 0.0f,   Pz,  0.0f);
 }
 
-template <class T>
-Mat<T, 4, 4>
+inline
+Mat4f
 CreateOrthographicMatrix(float right, float left, float top, float bottom,
                          float far_clip, float near_clip)
 {
@@ -128,16 +122,16 @@ CreateOrthographicMatrix(float right, float left, float top, float bottom,
   h = h == 0.f ? 1.f : h;
   float d = far_clip - near_clip;
   d = d == 0.f ? 1.f : d;
-  return Mat<T, 4, 4>(2.f / w, 0.f    , 0.f     , 0.f,
-                      0.f    , 2.f / h, 0.f     , 0.f,
-                      0.f    , 0.f    , -2.f / d, 0.f,
-                      0.f    , 0.f    , 0.f     , 1.f);
+  return Mat4f(2.f / w, 0.f    , 0.f     , 0.f,
+               0.f    , 2.f / h, 0.f     , 0.f,
+               0.f    , 0.f    , -2.f / d, 0.f,
+               0.f    , 0.f    , 0.f     , 1.f);
 }
 
 // This function orients origin to bottom left of screen. Useful for UI so
 // points can be specified in actual screen space.
-template <class T>
-Mat<T, 4, 4>
+inline
+Mat4f
 CreateOrthographicMatrix2(float right, float left, float top, float bottom,
                          float far_clip, float near_clip)
 {
@@ -147,13 +141,13 @@ CreateOrthographicMatrix2(float right, float left, float top, float bottom,
   h = h == 0.f ? 1.f : h;
   float d = far_clip - near_clip;
   d = d == 0.f ? 1.f : d;
-  return Mat<T, 4, 4>(2.f / w, 0.f    , 0.f     , 0.f,
-                      0.f    , 2.f / h, 0.f     , 0.f,
-                      0.f    , 0.f    , -2.f / d, 0.f,
-                      -(right + left) / w,
-                      -(top + bottom) / h,
-                      -(near_clip + far_clip) / d,
-                      1.f);
+  return Mat4f(2.f / w, 0.f    , 0.f     , 0.f,
+               0.f    , 2.f / h, 0.f     , 0.f,
+               0.f    , 0.f    , -2.f / d, 0.f,
+               -(right + left) / w,
+               -(top + bottom) / h,
+               -(near_clip + far_clip) / d,
+               1.f);
 }
 
 inline

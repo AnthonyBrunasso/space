@@ -37,7 +37,7 @@ Update(Camera* cam)
 void
 SetView(const Camera* cam, math::Mat4f* view)
 {
-  *view = math::CreateViewMatrix<float>(cam->position, cam->orientation);
+  *view = math::CreateViewMatrix(cam->position, cam->orientation);
 }
 
 // Transform matrix is orientating the click to take into consideration

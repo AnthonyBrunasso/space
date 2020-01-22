@@ -83,7 +83,7 @@ SetProjection()
 #else
   math::Vec2f size = window::GetWindowSize();
 #endif
-  rgg::GetObserver()->projection = math::CreateOrthographicMatrix<float>(
+  rgg::GetObserver()->projection = math::CreateOrthographicMatrix(
       size.x, 0.f, size.y, 0.f, /* 2d so leave near/far 0*/ 0.f, 0.f);
 }
 

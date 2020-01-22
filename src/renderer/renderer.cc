@@ -41,7 +41,7 @@ struct CircleProgram {
 
 struct Observer {
   math::Mat4f projection;
-  math::Mat4f view = math::CreateIdentityMatrix<float, 4>();
+  math::Mat4f view = math::CreateIdentityMatrix();
 };
 
 struct RGG {

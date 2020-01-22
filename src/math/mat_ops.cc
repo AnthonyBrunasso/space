@@ -9,7 +9,7 @@ namespace math
 #define ONE_DEG_IN_RAD (2.0 * PI) / 360.0  // 0.017444444
 
 Mat4f
-CreateIdentityMatrix()
+Identity()
 {
   return Mat4f(1.0f, 0.0f, 0.0f, 0.0f,
                0.0f, 1.0f, 0.0f, 0.0f,
@@ -18,7 +18,7 @@ CreateIdentityMatrix()
 }
 
 Mat4f
-CreateTranslationMatrix(const Vec3f& translation)
+Translation(const Vec3f& translation)
 {
   return Mat4f(1.0f, 0.0f, 0.0f, 0.0f,
                0.0f, 1.0f, 0.0f, 0.0f,
@@ -27,7 +27,7 @@ CreateTranslationMatrix(const Vec3f& translation)
 }
 
 Mat4f
-CreateScaleMatrix(const Vec3f& scale)
+Scale(const Vec3f& scale)
 {
   return Mat4f(scale.x, 0.0f,    0.0f, 0.0f,
                0.0f, scale.y,    0.0f, 0.0f,
@@ -36,7 +36,7 @@ CreateScaleMatrix(const Vec3f& scale)
 }
 
 Mat4f
-CreateRotationMatrix(const Quatf& quat)
+Rotation(const Quatf& quat)
 {
   Mat4f rotation;
   rotation[0] = 1.f - 2.f * quat.y * quat.y - 2.f * quat.z * quat.z;
@@ -59,9 +59,9 @@ CreateRotationMatrix(const Quatf& quat)
 }
 
 Mat4f
-CreateViewMatrix(const Vec3f& translation, const Quatf& quat)
+View(const Vec3f& translation, const Quatf& quat)
 {
-  auto mat = CreateRotationMatrix(quat).Transpose();
+  auto mat = Rotation(quat).Transpose();
   Mat4f view;
   view[0] = mat[0];
   view[1] = mat[1];
@@ -83,8 +83,8 @@ CreateViewMatrix(const Vec3f& translation, const Quatf& quat)
 }
 
 Mat4f
-CreatePerspectiveMatrix(float width, float height, float near_clip, float far_clip, 
-                        float fov_degrees)
+Perspective(float width, float height, float near_clip, float far_clip,
+            float fov_degrees)
 {
   float fov = fov_degrees * ONE_DEG_IN_RAD;
   float aspect = width / height;
@@ -101,8 +101,8 @@ CreatePerspectiveMatrix(float width, float height, float near_clip, float far_cl
 }
 
 Mat4f
-CreateOrthographicMatrix(float right, float left, float top, float bottom,
-                         float far_clip, float near_clip)
+Ortho(float right, float left, float top, float bottom, float far_clip,
+      float near_clip)
 {
   // Goal with this matrix is to scale a point, in likely screen space relative
   // to the cameras to GL space or the unit cube.
@@ -124,8 +124,8 @@ CreateOrthographicMatrix(float right, float left, float top, float bottom,
 // This function orients origin to bottom left of screen. Useful for UI so
 // points can be specified in actual screen space.
 Mat4f
-CreateOrthographicMatrix2(float right, float left, float top, float bottom,
-                         float far_clip, float near_clip)
+Ortho2(float right, float left, float top, float bottom, float far_clip,
+       float near_clip)
 {
   float w = right - left;
   w = w == 0.f ? 1.f : w;
@@ -143,8 +143,8 @@ CreateOrthographicMatrix2(float right, float left, float top, float bottom,
 }
 
 Mat4f
-CreateModelMatrix(const math::Vec3f& position, const math::Vec3f& scale,
-                  const math::Quatf& quat) {
+Model(const math::Vec3f& position, const math::Vec3f& scale,
+      const math::Quatf& quat) {
   Mat4f model;
   model[0] = scale.x * (1.f - 2.f * quat.y * quat.y - 2.f * quat.z * quat.z);
   model[1] = scale.y * (2.f * quat.x * quat.y - 2.f * quat.w * quat.z);
@@ -166,7 +166,7 @@ CreateModelMatrix(const math::Vec3f& position, const math::Vec3f& scale,
 }
 
 Mat4f
-CreateModelMatrix(const math::Vec3f& position, const math::Vec3f& scale) {
+Model(const math::Vec3f& position, const math::Vec3f& scale) {
   Mat4f model;
   model[0] = scale.x;
   model[1] = 0.0f;

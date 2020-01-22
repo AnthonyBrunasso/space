@@ -37,7 +37,7 @@ Update(Camera* cam)
 void
 SetView(const Camera* cam, math::Mat4f* view)
 {
-  *view = math::CreateViewMatrix(cam->position, cam->orientation);
+  *view = math::View(cam->position, cam->orientation);
 }
 
 // Transform matrix is orientating the click to take into consideration
@@ -45,8 +45,8 @@ SetView(const Camera* cam, math::Mat4f* view)
 math::Vec3f
 ScreenToWorldSpace(const Camera* cam, const math::Vec3f screen)
 {
-  math::Mat4f camera_transform = math::CreateRotationMatrix(cam->orientation) *
-                                 math::CreateTranslationMatrix(cam->position);
+  math::Mat4f camera_transform = math::Rotation(cam->orientation) *
+                                 math::Translation(cam->position);
   math::Vec3f ret = camera_transform * screen;
 
   return ret;

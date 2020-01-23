@@ -214,11 +214,16 @@ main(int argc, char** argv)
   }
 
   uint64_t bytes = 0;
+  uint64_t min_ptr = UINT64_MAX;
+  uint64_t max_ptr = 0;
   for (int i = 0; i < kUsedRegistry; ++i) {
     printf("Registry ptr %p\n", kRegistry[i].ptr);
     bytes += kRegistry[i].memb_count * kRegistry[i].memb_size;
+    max_ptr = MAX((uint64_t)kRegistry[i].ptr, max_ptr);
+    min_ptr = MIN((uint64_t)kRegistry[i].ptr, min_ptr);
   }
-  printf("Registry contains %lu bytes\n", bytes);
+  printf("Registry contains %lu bytes [%lu page_count]\n", bytes,
+         1 + ((max_ptr - min_ptr) / PAGE));
 
   // Reset State
   kGameState.game_updates = 0;

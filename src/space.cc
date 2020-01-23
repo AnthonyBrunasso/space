@@ -222,8 +222,9 @@ main(int argc, char** argv)
     max_ptr = MAX((uint64_t)kRegistry[i].ptr, max_ptr);
     min_ptr = MIN((uint64_t)kRegistry[i].ptr, min_ptr);
   }
-  printf("Registry contains %lu bytes [%lu page_count]\n", bytes,
-         1 + ((max_ptr - min_ptr) / PAGE));
+  printf("[min page 0x%lx] [max page 0x%lx] [page_count %lu]\n",
+         ANDN(PAGE - 1, min_ptr), ANDN(PAGE - 1, max_ptr),
+         1 + ((ANDN(PAGE - 1, max_ptr) - ANDN(PAGE - 1, min_ptr)) / PAGE));
 
   // Reset State
   kGameState.game_updates = 0;

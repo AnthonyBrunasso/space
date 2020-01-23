@@ -96,7 +96,7 @@ PointInPolygon(const Vec2f& point, const uint64_t polygon_size, Vec2f* polygon)
   // There must be at least 3 vertices in polygon[]
   if (polygon_size < 3) return false;
   // Create a point for line segment from p to infinite
-  Vec2f extreme(std::numeric_limits<float>::max(), point.y);
+  Vec2f extreme(FLT_MAX, point.y);
   // Count intersections of the above line with sides of polygon
   int count = 0, i = 0;
   do {

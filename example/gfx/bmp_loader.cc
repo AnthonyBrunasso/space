@@ -11,7 +11,7 @@ LoadBMP(const char* file, uint8_t** image_bytes,
 {
 #pragma pack(push,1)
   struct BMPHeader {
-    uint16_t signature;
+    uint8_t signature[2];
     uint32_t file_size;
     uint32_t reserved;
     uint32_t data_offset;
@@ -30,13 +30,6 @@ LoadBMP(const char* file, uint8_t** image_bytes,
     uint32_t colors_used;
     uint32_t important_colors;
   };
-
-  struct BMPColorTable {
-    uint8_t red;
-    uint8_t green;
-    uint8_t blue;
-    uint8_t reserved;
-  };
 #pragma pack(pop)
   FILE* fptr;
   uint8_t* buffer;
@@ -50,13 +43,12 @@ LoadBMP(const char* file, uint8_t** image_bytes,
   fread(buffer, file_length, 1, fptr);
 
   BMPHeader* header = (BMPHeader*)buffer;
-
   BMPInfoHeader* info_header = (BMPInfoHeader*)(&buffer[sizeof(BMPHeader)]);
 
 #if 1
   printf("Loading img %s\n", file);
   printf("Header\n");
-  printf("signature: %i\n", header->signature);
+  printf("signature: %.*s\n", 2, (char*)header->signature);
   printf("file_size: %i\n", header->file_size);
   printf("reserved: %i\n", header->reserved);
   printf("data_offset: %i\n", header->data_offset);
@@ -74,7 +66,24 @@ LoadBMP(const char* file, uint8_t** image_bytes,
   printf("colors_used: %i\n", info_header->colors_used);
   printf("important_colors: %i\n", info_header->important_colors);
 #endif
+  assert(memcmp(header->signature, "BM", 2) == 0);
+  assert(info_header->bpp == 32);
+  assert(info_header->compression == 3);
 
+  *image_bytes = (uint8_t*)malloc(info_header->image_size);
+  memcpy(*image_bytes, &buffer[sizeof(BMPHeader) + sizeof(BMPInfoHeader)],
+         info_header->image_size);
+#if 1
+  for (int i = 0; i < 2 * (info_header->width * 4); i += 4) {
+  // Top Left.
+  printf("i:%i r: %i g: %i b: %i a: %i\n",
+         i / 4,
+         (*image_bytes)[i],
+         (*image_bytes)[i + 1],
+         (*image_bytes)[i + 2],
+         (*image_bytes)[i + 3]);
+  }
+#endif
   return true;
 }
 

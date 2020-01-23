@@ -7,6 +7,7 @@ if [ -n "$unix" ]; then
 else
   time $CXX $CXXFLAGS $1 -g -ObjC++ -I src/ -L bin/ -ldl -o $BIN_DIR/`basename -s .cc $1` -framework OpenGL -framework AppKit -mmacosx-version-min=10.7 -stdlib=libc++ -Wno-format
   # For teeny weeny builds '-Os -flto'
+  # O0 takes about half a second off the compile time.
 fi
 
 # If a second arg exists run the binary

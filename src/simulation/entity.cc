@@ -5,9 +5,10 @@
 #include "entity_registry.cc"
 
 // Data used by game simulation
-#define DECLARE_GAME_TYPE(type, count) \
-  DECLARE_ARRAY(type, count)           \
-  EntityRegistry kInit##type(k##type, count, sizeof(type));
+#define DECLARE_GAME_TYPE(type, max_count)                            \
+  DECLARE_ARRAY(type, max_count)                                      \
+  static EntityRegistry kInit##type(k##type, &kUsed##type, max_count, \
+                                    sizeof(type));
 
 #define DECLARE_GAME_QUEUE(type, count) DECLARE_QUEUE(type, count)
 
@@ -59,6 +60,19 @@ transform_dsq(Transform* dst, Transform* src)
   return dsq(dst->position, src->position);
 }
 
+struct Command {
+  enum Type {
+    kNone = 0,
+    kMine = 1,
+    kMove = 2,
+    kVacuum = 3,
+  };
+  Type type;
+  math::Vec2f destination;
+};
+
+DECLARE_GAME_QUEUE(Command, 16);
+
 struct Asteroid {
   Transform transform;
   uint64_t mineral_source;
@@ -76,18 +90,6 @@ struct Pod {
 };
 DECLARE_GAME_TYPE(Pod, 8);
 
-struct Command {
-  enum Type {
-    kNone = 0,
-    kMine = 1,
-    kMove = 2,
-    kVacuum = 3,
-  };
-  Type type;
-  math::Vec2f destination;
-};
-
-DECLARE_GAME_QUEUE(Command, 16);
 struct Unit {
   Transform transform;
   math::Vec3f vacuum;
@@ -112,6 +114,7 @@ struct Ship {
   float sys_turret;
   float used_power;
   float power_delta;
+  bool running;
 };
 DECLARE_GAME_TYPE(Ship, 1);
 
@@ -122,7 +125,3 @@ struct Missile {
 };
 DECLARE_GAME_TYPE(Missile, 8);
 
-struct GameStatus {
-  bool over;
-};
-DECLARE_GAME_TYPE(GameStatus, 1);

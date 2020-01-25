@@ -218,7 +218,7 @@ main(int argc, char** argv)
   uint64_t max_ptr = 0;
   for (int i = 0; i < kUsedRegistry; ++i) {
     printf("Registry ptr %p\n", kRegistry[i].ptr);
-    bytes += kRegistry[i].memb_count * kRegistry[i].memb_size;
+    bytes += kRegistry[i].memb_max * kRegistry[i].memb_size;
     max_ptr = MAX((uint64_t)kRegistry[i].ptr, max_ptr);
     min_ptr = MIN((uint64_t)kRegistry[i].ptr, min_ptr);
   }

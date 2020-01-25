@@ -66,6 +66,7 @@ Initialize()
   }
 
   UseShip();
+  kShip[0].running = true;
 
   InitializeTilemap();
 
@@ -335,11 +336,11 @@ Decide()
   for (int i = 0; i < kUsedShip; ++i) {
     if (kShip[i].danger > 20) {
       puts("ship danger triggered game over");
-      kGameStatus[0].over = true;
+      kShip[0].running = false;
     }
     if (kShip[i].think_flags & FLAG(kShipAiSpawnPod)) {
       Pod* pod = UsePod();
-      pod->transform.position = math::Vec3f(520.f, 600.f, 0.f);
+      pod->transform = Transform{.position = math::Vec3f(520.f, 600.f, 0.f)};
     }
 
     if (kShip[i].crew_think_flags & FLAG(kUnitAiPower))
@@ -375,67 +376,51 @@ Decide()
 
   if (!kUsedAsteroid) {
     Asteroid* asteroid = UseAsteroid();
-    asteroid->transform.position = math::Vec3f(800.f, 750.f, 0.f);
+    asteroid->transform = Transform{.position = math::Vec3f(800.f, 750.f, 0.f)};
     asteroid->mineral_source = 200.f;
     asteroid->flags = 0;
   }
 
-  // TODO (AN): Zero to avoid index slide and poor iteration performance
-  for (int i = 0; i < kUsedAsteroid;) {
-    Asteroid* asteroid = &kAsteroid[i];
-    uint64_t action = TZCNT(asteroid->flags);
-    switch (action) {
-      case kAsteroidAiImplode:
-        ReleaseAsteroid(i);
-        break;
-      default:
-        ++i;
-        break;
-    }
-  }
-
   if (!kUsedMissile) {
     Missile* missile = UseMissile();
-    missile->transform.position = math::Vec3f(300.f, -1000.f, 0.f);
+    missile->transform =
+        Transform{.position = math::Vec3f(300.f, -1000.f, 0.f)};
     missile->flags = 0;
-  }
-
-  // TODO (AN): Zero to avoid index slide and poor iteration performance
-  for (int i = 0; i < kUsedMissile;) {
-    Missile* missile = &kMissile[i];
-    uint64_t action = TZCNT(missile->flags);
-    uint64_t replaced;
-    switch (action) {
-      case kMissileAiExplode:
-        replaced = BfsReplace(missile->tile_hit, 8, kTileOpen, kTileVacuum);
-        printf("missile impact %d %d replaced %lu tiles\n", missile->tile_hit.x,
-               missile->tile_hit.y, replaced);
-        ReleaseMissile(i);
-        break;
-      default:
-        ++i;
-        break;
-    }
   }
 
   for (int i = 0; i < kUsedMissile; ++i) {
     Missile* missile = &kMissile[i];
+    uint64_t action = TZCNT(missile->flags);
+    uint64_t replaced;
+
+    if (action == kMissileAiExplode) {
+      replaced = BfsReplace(missile->tile_hit, 8, kTileOpen, kTileVacuum);
+      printf("missile impact %d %d replaced %lu tiles\n", missile->tile_hit.x,
+             missile->tile_hit.y, replaced);
+      memset(missile, 0, sizeof(Missile));
+      continue;
+    }
+
     missile->transform.position += math::Vec3f(0.0f, 5.f, 0.f);
   }
 
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
     uint64_t action = TZCNT(asteroid->flags);
-    switch (action) {
-      case kAsteroidAiDeplete:
-        asteroid->mineral_source -= 1;
-        break;
-      default:
-        break;
+
+    if (action == kAsteroidAiImplode) {
+      printf("memset asteroid %d\n", i);
+      memset(asteroid, 0, sizeof(Asteroid));
+      continue;
     }
 
+    asteroid->mineral_source -= (action == kAsteroidAiDeplete);
     asteroid->transform.scale =
         math::Vec3f(1.f, 1.f, 1.f) * (asteroid->mineral_source / 200.f);
+    asteroid->transform.position.x -= 1.0f;
+    if (asteroid->transform.position.x < 0.f) {
+      asteroid->transform.position.x = 800.f;
+    }
   }
 
   for (int i = 0; i < kUsedPod; ++i) {
@@ -472,13 +457,13 @@ Decide()
 bool
 GameOver()
 {
-  return (kGameStatus[0].over);
+  return !(kShip[0].running);
 }
 
 void
 Update()
 {
-  if (kGameStatus[0].over) return;
+  if (!kShip[0].running) return;
 
   Think();
   Decide();
@@ -529,13 +514,7 @@ Update()
     ++i;
   }
 
-  for (int i = 0; i < kUsedAsteroid; ++i) {
-    Asteroid* asteroid = &kAsteroid[i];
-    asteroid->transform.position.x -= 1.0f;
-    if (asteroid->transform.position.x < 0.f) {
-      asteroid->transform.position.x = 800.f;
-    }
-  }
+  RegistryCompact();
 }  // namespace simulation
 
 uint64_t

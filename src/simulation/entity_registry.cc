@@ -46,7 +46,7 @@ RegistryCompact()
     uint8_t zero[memb_size];
     memset(&zero, 0, memb_size);
     uint64_t count = 0;
-    for (; lower < upper; ++lower) {
+    for (; lower <= upper; ++lower) {
       uint8_t* lower_ent = (uint8_t*)r->ptr + lower * memb_size;
 
       bool empty_lower = memcmp(lower_ent, zero, memb_size) == 0;
@@ -57,18 +57,7 @@ RegistryCompact()
         ++count;
       }
     }
-    // Edge case (lower_ent==upper_ent)
-    if (r->memb_count) {
-      uint8_t* lower_ent = (uint8_t*)r->ptr + lower * memb_size;
-      bool empty_lower = memcmp(lower_ent, zero, memb_size) == 0;
-      count += empty_lower;
-    }
 
-    // TODO (AN): Release##type() should be zeroed?
-    // {
-    //   uint8_t* upper_ent = (uint8_t*)r->ptr + upper * memb_size;
-    //   memset(upper_ent, 0, memb_size * count);
-    // }
     *r->memb_count -= count;
     sum += count;
   }

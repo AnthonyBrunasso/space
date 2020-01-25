@@ -298,19 +298,18 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
     for (int j = 0; j < CREWA_MAX; ++j) {
       sprintf(buffer, "%u < %s < %u", unit->aknown_min[j], crew_aname[j],
               unit->aknown_max[j]);
-      rgg::RenderText(buffer, screen.x - 225.f, screen.y - j * 25.f,
+      rgg::RenderText(buffer, screen.x - 225.f, screen.y - (j + 1) * 25.f,
                       math::Vec4f());
     }
     sprintf(buffer, "%04.02fX %04.02fY", unit->transform.position.x,
             unit->transform.position.y);
-    rgg::RenderText(buffer, screen.x - 225.f, screen.y - CREWA_MAX * 25.f,
+    rgg::RenderText(buffer, screen.x - 225.f, screen.y - (CREWA_MAX + 1) * 25.f,
                     math::Vec4f());
     break;
   }
 
   // Ui
   imui::Render();
-
 }
 
 }  // namespace gfx

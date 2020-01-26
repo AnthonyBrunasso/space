@@ -297,10 +297,10 @@ main(int argc, char** argv)
     if (simulation::SimulationOver()) {
       sprintf(buffer, "Game Over");
       imui::Text(buffer);
-    } else if (simulation::FtlReady()) {
+    } else if (simulation::ShipFtlReady()) {
       if (imui::Button(math::Rect(10, 10, 40, 40),
                        v4f(1.0f, 0.0f, 1.0f, 0.75f))) {
-        simulation::FtlJump();
+        simulation::ShipFtlInit();
       }
     }
 

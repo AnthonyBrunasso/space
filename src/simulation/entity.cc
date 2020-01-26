@@ -3,6 +3,7 @@
 
 #include "common/common.cc"
 #include "math/math.cc"
+#include "platform/platform.cc"
 
 #include "entity_registry.cc"
 
@@ -18,6 +19,10 @@ struct Transform {
   v3f position;
   v3f scale = v3f(1.f, 1.f, 1.f);
   math::Quatf orientation;
+};
+
+enum FtlFlag {
+  kFtlTangible = 0,
 };
 
 enum CrewAttrib {
@@ -105,6 +110,12 @@ struct Unit {
 
 DECLARE_GAME_TYPE(Unit, 8);
 
+struct FtlState {
+  // Number of frames the ftl is active: (frame - ftl_frame)
+  uint64_t frame;
+  // Stateful sideffect Flags
+  uint64_t state_flags = FLAG(kFtlTangible);
+};
 struct Ship {
   uint64_t think_flags = 0;
   uint64_t crew_think_flags = 0;
@@ -117,9 +128,8 @@ struct Ship {
   float used_power;
   float power_delta;
   uint64_t level;
-  uint64_t state_flags;
   uint64_t frame;
-  uint64_t ftl_frame;
+  FtlState ftl;
   bool running;
 };
 DECLARE_GAME_TYPE(Ship, 1);

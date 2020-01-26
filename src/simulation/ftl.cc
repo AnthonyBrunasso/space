@@ -1,23 +1,33 @@
 
 #include <cstdint>
 
+#include "platform/platform.cc"
+
 #include "entity.cc"
 
 constexpr uint64_t kFtlFrameTime = 60;
 constexpr uint64_t kFtlCost = 100;
 
-// TODO (AN): Perhaps avoid a mutable Ship.
-// Provide a mutable ftl struct with const ship*
-// Return true when a jump occurred... for now
-bool
-FtlUpdate(Ship* ship, uint64_t jump_frame)
+void
+FtlInit(FtlState* ftl)
 {
-  if (!jump_frame) {
+  constexpr uint64_t not_flags = FLAG(kFtlTangible);
+  ftl->state_flags = ANDN(not_flags, ftl->state_flags);
+}
+
+// Return true when a jump occurred
+bool
+FtlUpdate(const Ship* ship, FtlState* ftl)
+{
+  // When ftl_frame ceases to advance, a jump is processing
+  ftl->frame += ftl->state_flags & FLAG(kFtlTangible);
+  uint64_t frame_offset = ship->frame - ftl->frame;
+  if (!frame_offset) {
     // No Jump
-  } else if (jump_frame >= kFtlFrameTime) {
-    // Jump
-    ship->mineral -= kFtlCost;
-    ship->level += 1;
+  } else if (frame_offset >= kFtlFrameTime) {
+    // ftl becomes tangible again after a jump completes
+    ftl->state_flags |= FLAG(kFtlTangible);
+    ftl->frame += kFtlFrameTime;
     return true;
   }
 

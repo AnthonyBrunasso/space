@@ -16,9 +16,6 @@ enum ShipAiGoals {
   kShipAiPowerSurge,
   kShipAiGoals = 64,
 };
-enum ShipState {
-  kShipStateTangible = 0,
-};
 enum UnitAiGoals {
   kUnitAiPower = 0,
   kUnitAiMine,
@@ -70,7 +67,6 @@ Initialize()
 
   UseShip();
   kShip[0].running = true;
-  kShip[0].state_flags = FLAG(kShipStateTangible);
 
   InitializeTilemap();
 
@@ -378,12 +374,10 @@ Decide()
     ship->power_delta = fmaxf(used_power - ship->used_power, ship->power_delta);
     ship->used_power = used_power;
 
-    // When ftl_frame ceases to advance, a jump will being processing
-    ship->ftl_frame += ship->state_flags & FLAG(kShipStateTangible);
-    bool jumped = FtlUpdate(ship, ship->frame - ship->ftl_frame);
-    // ship becomes tangible again after a jump completes
-    ship->state_flags |= FLAG(kShipStateTangible) * jumped;
-    ship->ftl_frame += jumped * kFtlFrameTime;
+    bool jumped = FtlUpdate(ship, &ship->ftl);
+    // Jump side effects
+    ship->mineral -= jumped * kFtlCost;
+    ship->level += jumped;
   }
 
   if (!kUsedAsteroid) {
@@ -530,16 +524,15 @@ Update()
 }
 
 bool
-FtlReady()
+ShipFtlReady()
 {
   return kShip[0].sys_engine > .5f && kShip[0].mineral >= kFtlCost;
 }
 
 void
-FtlJump()
+ShipFtlInit()
 {
-  constexpr uint64_t not_flags = FLAG(kShipStateTangible);
-  kShip[0].state_flags = ANDN(not_flags, kShip[0].state_flags);
+  FtlInit(&kShip[0].ftl);
 }
 
 uint64_t

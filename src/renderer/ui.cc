@@ -63,38 +63,24 @@ SetupUI()
   return true;
 }
 
-bool
-__IsUseless(char c)
-{
-  // These characters would cause a high vertical height since y is positive
-  // down in the sheet. Ignore them in calculating our height.
-  return c == ' ' || c == '.' || c == '_' || c == '-';
-}
-
 void
-GetTextInfo(const char* msg, int msg_len, float* offset, float* height,
-            float* width)
+GetTextInfo(const char* msg, int msg_len, float* width, float* height)
 {
   auto& font = kUI.font;
-  *offset = -1000.0f;
   *height = font.metadata.line_height;
   *width = 0.0f;
   for (int i = 0; i < msg_len; ++i) {
     const FntMetadataRow* row = &font.metadata.rows[msg[i]];
     *width += (float)row->width;
-    //if (__IsUseless(msg[i])) continue;
-    float offset_y = (float)row->yoffset + (float)row->height;
-    if (offset_y > *offset) *offset = offset_y;
   }
 }
 
 math::Rect
 GetTextRect(const char* msg, int msg_len, v2f pos)
 {
-  float offset, height, width;
-  GetTextInfo(msg, msg_len, &offset, &height, &width);
-  //printf("offset: %.2f, max_y: %.2f, min_y: %.2f\n",
-  //      offset, max_y, min_y);
+  float width, height;
+  GetTextInfo(msg, msg_len, &width, &height);
+  //printf("width: %.2f height: %.2f\n", width, height);
   return math::Rect(pos.x, pos.y, width, height);
 }
 
@@ -126,8 +112,8 @@ RenderText(const char* msg, v2f pos, const v4f& color)
 #endif
 
   int msg_len = strlen(msg);
-  float offset, height, width;
-  GetTextInfo(msg, msg_len, &offset, &height, &width);
+  float width, height;
+  GetTextInfo(msg, msg_len, &width, &height);
   for (int i = 0; i < msg_len; ++i) {
     TextPoint text_point[6];
 
@@ -150,7 +136,7 @@ RenderText(const char* msg, v2f pos, const v4f& color)
     float v_h = (float)row->height;
 
     float offset_start_x = pos.x/* - row->xoffset*/;
-    float offset_start_y = pos.y - row->yoffset + offset;
+    float offset_start_y = pos.y - row->yoffset + height;
 
 #if 0
     printf("id=%i char=%c width=%i height=%i xoffset=%i yoffset=%i"

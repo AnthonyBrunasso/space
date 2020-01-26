@@ -299,11 +299,11 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     for (int j = 0; j < CREWA_MAX; ++j) {
       sprintf(buffer, "%u < %s < %u", unit->aknown_min[j], crew_aname[j],
               unit->aknown_max[j]);
-      imui::Text(buffer);
+      imui::Text(buffer, kWhite);
     }
     sprintf(buffer, "%04.02fX %04.02fY", unit->transform.position.x,
             unit->transform.position.y);
-    imui::Text(buffer);
+    imui::Text(buffer, kWhite);
     imui::EndText();
     break;
   }

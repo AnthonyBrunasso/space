@@ -41,16 +41,14 @@ RenderGrid()
 
 math::Mat4f Projection(v2f dims)
 {
-  return math::Ortho(
-      dims.x, 0.f, dims.y, 0.f, 0.0f, 0.f);
+  return math::Ortho(dims.x, 0.f, dims.y, 0.f, 0.0f, 0.f);
 }
 
 void
 RenderStringWithBoundingBox(const char* msg, v2f pos, v2f dims)
 {
   int msg_len = strlen(msg);
-  imui::Text(msg, pos);
-
+  imui::Text(msg, pos, v4f(0.35f, 0.12f, 0.70f, 1.f));
   rgg::ModifyObserver mod(
       math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f), math::Identity());
   rgg::RenderLineRectangle(rgg::GetTextRect(msg, msg_len, pos),
@@ -86,10 +84,10 @@ id=101 char=e width=15 height=15 xoffset=0 yoffset=11 start_x=747.000 start_y=38
   RenderStringWithBoundingBox("1.32241 + 32569 = yo momma", v2f(dims.x / 2.f, dims.y / 2.f + 160.0f), dims);
 
   imui::BeginText(v2f(dims.x / 2.f - 400.0f, dims.y / 2.f + 160.0f));
-  imui::Text("1.32241 + 32569 = yo momma");
-  imui::Text("I kInd. OF, h4te_ font");
-  imui::Text("The quick brown fox");
-  imui::Text("quick");
+  imui::Text("1.32241 + 32569 = yo momma", gfx::kWhite);
+  imui::Text("I kInd. OF, h4te_ font", gfx::kWhite);
+  imui::Text("The quick brown fox", gfx::kWhite);
+  imui::Text("quick", gfx::kWhite);
   imui::EndText();
 }
 

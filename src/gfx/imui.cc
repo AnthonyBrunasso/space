@@ -13,6 +13,7 @@ constexpr int kClickForFrames = 100;
 struct Text {
   char msg[kMaxTextSize];
   v2f pos;
+  v4f color;
 };
 
 struct UIClick {
@@ -64,7 +65,7 @@ Render()
 
   for (int i = 0; i < kUsedText; ++i) {
     Text* text = &kText[i];
-    rgg::RenderText(text->msg, text->pos, v4f());
+    rgg::RenderText(text->msg, text->pos, text->color);
   }
 
   auto dims = window::GetWindowSize();
@@ -83,7 +84,7 @@ Render()
 }
 
 void
-Text(const char* msg, v2f pos)
+Text(const char* msg, v2f pos, v4f color)
 {
   struct Text* text = UseText();
   if (!text) {
@@ -96,6 +97,13 @@ Text(const char* msg, v2f pos)
   }
   strcpy(text->msg, msg);
   text->pos = pos;
+  text->color = color;
+}
+
+void
+Text(const char* msg, v2f pos)
+{
+  Text(msg, pos, v4f(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
 void
@@ -107,14 +115,20 @@ BeginText(v2f start)
 }
 
 void
-Text(const char* msg)
+Text(const char* msg, v4f color)
 {
   auto& text_mode = kIMUI.text_mode;
   // Call StartText before this.
   assert(kIMUI.text_mode.set);
-  Text(msg, text_mode.pos);
+  Text(msg, text_mode.pos, color);
   math::Rect rect = rgg::GetTextRect(msg, strlen(msg), text_mode.pos);
   text_mode.pos.y -= rect.height;
+}
+
+void
+Text(const char* msg)
+{
+  Text(msg, v4f(1.f, 1.f, 1.f, 1.f));
 }
 
 void

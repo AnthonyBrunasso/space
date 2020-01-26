@@ -11,6 +11,7 @@ struct Font {
   GLuint program;
   GLuint texture_uniform;
   GLuint matrix_uniform;
+  GLuint color_uniform;
   GLuint vbo;
   GLuint vao;
 };
@@ -47,6 +48,7 @@ SetupUI()
   }
   font.texture_uniform = glGetUniformLocation(font.program, "basic_texture");
   font.matrix_uniform = glGetUniformLocation(font.program, "matrix");
+  font.color_uniform = glGetUniformLocation(font.program, "color");
 
   glDeleteShader(vert_shader);
   glDeleteShader(frag_shader);
@@ -109,6 +111,7 @@ RenderText(const char* msg, v2f pos, const v4f& color)
   math::Mat4f projection = math::Ortho2(
       sz.x, 0.f, sz.y, 0.f, /* 2d so leave near/far 0*/ 0.f, 0.f);
   glUniformMatrix4fv(font.matrix_uniform, 1, GL_FALSE, &projection[0]);
+  glUniform4f(font.color_uniform, color.x, color.y, color.z, color.w);
 
 #if 0
   math::Print4x4Matrix(kUI.projection);

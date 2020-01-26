@@ -1,4 +1,6 @@
 
+#pragma once
+
 #include "common/common.cc"
 #include "math/math.cc"
 
@@ -115,6 +117,9 @@ struct Ship {
   float used_power;
   float power_delta;
   uint64_t level;
+  uint64_t state_flags;
+  uint64_t frame;
+  uint64_t ftl_frame;
   bool running;
 };
 DECLARE_GAME_TYPE(Ship, 1);

@@ -6,6 +6,7 @@
 #include "platform/x64_intrin.h"
 
 #include "entity.cc"
+#include "ftl.cc"
 #include "search.cc"
 
 namespace simulation
@@ -14,6 +15,9 @@ enum ShipAiGoals {
   kShipAiSpawnPod,
   kShipAiPowerSurge,
   kShipAiGoals = 64,
+};
+enum ShipState {
+  kShipStateTangible = 0,
 };
 enum UnitAiGoals {
   kUnitAiPower = 0,
@@ -41,7 +45,6 @@ enum MissileAiGoals {
 
 constexpr float kDsqOperate = 50.f * 35.f;
 constexpr float kDsqSelect = 25.f * 25.f;
-constexpr uint64_t kFtlCost = 100;
 
 bool
 Initialize()
@@ -67,6 +70,7 @@ Initialize()
 
   UseShip();
   kShip[0].running = true;
+  kShip[0].state_flags = FLAG(kShipStateTangible);
 
   InitializeTilemap();
 
@@ -334,44 +338,52 @@ Decide()
   }
 
   for (int i = 0; i < kUsedShip; ++i) {
-    if (kShip[i].danger > 20) {
+    Ship* ship = &kShip[i];
+
+    if (ship->danger > 20) {
       puts("ship danger triggered game over");
-      kShip[0].running = false;
+      ship->running = false;
     }
-    if (kShip[i].think_flags & FLAG(kShipAiSpawnPod)) {
+    if (ship->think_flags & FLAG(kShipAiSpawnPod)) {
       Pod* pod = UsePod();
       pod->transform = Transform{.position = v3f(520.f, 600.f, 0.f)};
     }
 
-    if (kShip[i].crew_think_flags & FLAG(kUnitAiPower))
-      kShip[i].sys_power += 0.01f;
+    if (ship->crew_think_flags & FLAG(kUnitAiPower))
+      ship->sys_power += 0.01f;
     else
-      kShip[i].sys_power += -0.01f;
-    if (kShip[i].crew_think_flags & FLAG(kUnitAiMine))
-      kShip[i].sys_mine += 0.01f;
+      ship->sys_power += -0.01f;
+    if (ship->crew_think_flags & FLAG(kUnitAiMine))
+      ship->sys_mine += 0.01f;
     else
-      kShip[i].sys_mine += -0.01f;
-    if (kShip[i].crew_think_flags & FLAG(kUnitAiThrust))
-      kShip[i].sys_engine += 0.01f;
+      ship->sys_mine += -0.01f;
+    if (ship->crew_think_flags & FLAG(kUnitAiThrust))
+      ship->sys_engine += 0.01f;
     else
-      kShip[i].sys_engine += -0.01f;
-    if (kShip[i].crew_think_flags & FLAG(kUnitAiTurret))
-      kShip[i].sys_turret += 0.01f;
+      ship->sys_engine += -0.01f;
+    if (ship->crew_think_flags & FLAG(kUnitAiTurret))
+      ship->sys_turret += 0.01f;
     else
-      kShip[i].sys_turret += -0.01f;
+      ship->sys_turret += -0.01f;
 
-    kShip[i].sys_power = CLAMPF(kShip[i].sys_power, 0.0f, 1.0f);
-    kShip[i].sys_mine = CLAMPF(kShip[i].sys_mine, 0.0f, 1.0f);
-    kShip[i].sys_engine = CLAMPF(kShip[i].sys_engine, 0.0f, 1.0f);
-    kShip[i].sys_turret = CLAMPF(kShip[i].sys_turret, 0.0f, 1.0f);
+    ship->sys_power = CLAMPF(ship->sys_power, 0.0f, 1.0f);
+    ship->sys_mine = CLAMPF(ship->sys_mine, 0.0f, 1.0f);
+    ship->sys_engine = CLAMPF(ship->sys_engine, 0.0f, 1.0f);
+    ship->sys_turret = CLAMPF(ship->sys_turret, 0.0f, 1.0f);
 
     float used_power = 0.f;
-    used_power += 20.f * (kShip[i].sys_mine >= 0.3f);
-    used_power += 40.f * (kShip[i].sys_engine >= .3f);
-    used_power += 20.f * (kShip[i].sys_turret >= 0.3f);
-    kShip[i].power_delta =
-        fmaxf(used_power - kShip[i].used_power, kShip[i].power_delta);
-    kShip[i].used_power = used_power;
+    used_power += 20.f * (ship->sys_mine >= 0.3f);
+    used_power += 40.f * (ship->sys_engine >= .3f);
+    used_power += 20.f * (ship->sys_turret >= 0.3f);
+    ship->power_delta = fmaxf(used_power - ship->used_power, ship->power_delta);
+    ship->used_power = used_power;
+
+    // When ftl_frame ceases to advance, a jump will being processing
+    ship->ftl_frame += ship->state_flags & FLAG(kShipStateTangible);
+    bool jumped = FtlUpdate(ship, ship->frame - ship->ftl_frame);
+    // ship becomes tangible again after a jump completes
+    ship->state_flags |= FLAG(kShipStateTangible) * jumped;
+    ship->ftl_frame += jumped * kFtlFrameTime;
   }
 
   if (!kUsedAsteroid) {
@@ -459,16 +471,11 @@ SimulationOver()
   return !(kShip[0].running);
 }
 
-bool
-FtlReady()
-{
-  return kShip[0].sys_engine > .5f && kShip[0].mineral >= kFtlCost;
-}
-
 void
 Update()
 {
   if (!kShip[0].running) return;
+  kShip[0].frame += 1;
 
   Think();
   Decide();
@@ -520,13 +527,19 @@ Update()
   }
 
   RegistryCompact();
-}  // namespace simulation
+}
+
+bool
+FtlReady()
+{
+  return kShip[0].sys_engine > .5f && kShip[0].mineral >= kFtlCost;
+}
 
 void
 FtlJump()
 {
-  kShip[0].mineral -= kFtlCost;
-  kShip[0].level += 1;
+  constexpr uint64_t not_flags = FLAG(kShipStateTangible);
+  kShip[0].state_flags = ANDN(not_flags, kShip[0].state_flags);
 }
 
 uint64_t

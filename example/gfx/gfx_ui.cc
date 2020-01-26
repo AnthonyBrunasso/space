@@ -103,7 +103,16 @@ main(int argc, char** argv)
 
   while (!window::ShouldClose()) {
     PlatformEvent event;
-    while (window::PollEvent(&event)) {}
+    while (window::PollEvent(&event)) {
+      switch (event.type) {
+        case MOUSE_DOWN: {
+          if (event.button == BUTTON_LEFT) {
+            imui::MouseClick(event.position);
+          }
+        } break;
+        default: break;
+      }
+    }
 
     auto dims = window::GetWindowSize();
 

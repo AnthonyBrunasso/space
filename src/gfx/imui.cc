@@ -3,10 +3,12 @@
 #include "renderer/renderer.cc"
 
 #include "../common/array.cc"
+#include "../common/queue.cc"
 
 namespace imui
 {
 constexpr int kMaxTextSize = 128;
+constexpr int kClickForFrames = 100;
 
 struct Text {
   char msg[kMaxTextSize];
@@ -15,6 +17,11 @@ struct Text {
 
 struct UIClick {
   v2f pos;
+};
+
+struct UIClickRender {
+  v2f pos;
+  int render_frames;
 };
 
 struct Button {
@@ -37,6 +44,8 @@ DECLARE_ARRAY(Text, 32);
 DECLARE_ARRAY(Button, 16);
 DECLARE_ARRAY(UIClick, 8);
 
+DECLARE_QUEUE(UIClickRender, 32);
+
 void
 Reset()
 {
@@ -57,6 +66,27 @@ Render()
     Text* text = &kText[i];
     rgg::RenderText(text->msg, text->pos, v4f());
   }
+
+  auto dims = window::GetWindowSize();
+  auto projection = rgg::GetObserver()->projection;
+  auto view = rgg::GetObserver()->view;
+  rgg::GetObserver()->projection =
+      math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f);
+  rgg::GetObserver()->view = math::Identity();
+  for (int i = kReadUIClickRender; i < kWriteUIClickRender; ++i) {
+    UIClickRender* render = &kUIClickRender[i % kMaxUIClickRender];
+    rgg::RenderLineRectangle(
+        math::Rect(render->pos.x - 2.5f, render->pos.y - 2.5f, 5.f, 5.f),
+                   v4f(1.f, 1.f, 1.f,
+                      ((float)render->render_frames / kClickForFrames)));
+    --render->render_frames;
+    if (!render->render_frames) {
+      PopUIClickRender();
+    }
+  }
+
+  rgg::GetObserver()->projection = projection;
+  rgg::GetObserver()->view = view;
 }
 
 void
@@ -132,6 +162,6 @@ MouseClick(v2f pos)
     return;
   }
   click->pos = pos;
+  PushUIClickRender({pos, kClickForFrames});
 }
-
 }

@@ -63,6 +63,14 @@ SetupUI()
   return true;
 }
 
+bool
+__IsUseless(char c)
+{
+  // These characters would cause a high vertical height since y is positive
+  // down in the sheet. Ignore them in calculating our height.
+  return c == ' ' || c == '.' || c == '_' || c == '-';
+}
+
 void
 GetTextInfo(const char* msg, int msg_len, float* offset,
             float* max_height, float* min_height, float* width)
@@ -75,7 +83,7 @@ GetTextInfo(const char* msg, int msg_len, float* offset,
   for (int i = 0; i < msg_len; ++i) {
     const FntMetadataRow* row = &font.metadata.rows[msg[i]];
     *width += (float)row->width;
-    if (msg[i] == ' ') continue;
+    if (__IsUseless(msg[i])) continue;
     float offset_y = (float)row->yoffset + (float)row->height;
     if (offset_y > *offset) *offset = offset_y;
     float y = (float)row->height;

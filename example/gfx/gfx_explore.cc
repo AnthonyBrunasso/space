@@ -78,7 +78,7 @@ id=101 char=e width=15 height=15 xoffset=0 yoffset=11 start_x=723.000 start_y=38
 id=114 char=r width=9 height=15 xoffset=1 yoffset=11 start_x=738.000 start_y=381.000 tex_w=0.035 tex_h=0.059
 id=101 char=e width=15 height=15 xoffset=0 yoffset=11 start_x=747.000 start_y=381.000 tex_w=0.059 tex_h=0.059
 #endif
-    const char* msg = "Hello, there";
+    const char* msg = "The! quick brown, fox. jumpEd Ove3r the lz dAwgZ -_-";
     
     v2f pos(dims.x / 2.f, dims.y / 2.f);
 

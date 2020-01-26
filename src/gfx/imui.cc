@@ -10,8 +10,7 @@ constexpr int kMaxTextSize = 128;
 
 struct Text {
   char msg[kMaxTextSize];
-  float screen_x;
-  float screen_y;
+  v2f pos;
 };
 
 struct UIClick {
@@ -22,6 +21,17 @@ struct Button {
   math::Rect rect;
   v4f color;
 };
+
+struct TextMode {
+  v2f pos;
+  bool set;
+};
+
+struct IMUI {
+  TextMode text_mode;
+};
+
+static IMUI kIMUI;
 
 DECLARE_ARRAY(Text, 32);
 DECLARE_ARRAY(Button, 16);
@@ -45,12 +55,12 @@ Render()
 
   for (int i = 0; i < kUsedText; ++i) {
     Text* text = &kText[i];
-    rgg::RenderText(text->msg, text->screen_x, text->screen_y, v4f());
+    rgg::RenderText(text->msg, text->pos.x, text->pos.y, v4f());
   }
 }
 
 void
-Text(const char* msg, float screen_x, float screen_y)
+Text(const char* msg, v2f pos)
 {
   struct Text* text = UseText();
   if (!text) {
@@ -62,8 +72,32 @@ Text(const char* msg, float screen_x, float screen_y)
     return;
   }
   strcpy(text->msg, msg);
-  text->screen_x = screen_x;
-  text->screen_y = screen_y;
+  text->pos = pos;
+}
+
+void
+BeginText(v2f start)
+{
+  auto& text_mode = kIMUI.text_mode;
+  text_mode.pos = start;
+  text_mode.set = true; 
+}
+
+void
+Text(const char* msg)
+{
+  auto& text_mode = kIMUI.text_mode;
+  // Call StartText before this.
+  assert(kIMUI.text_mode.set);
+  Text(msg, text_mode.pos);
+  math::Rect rect = rgg::GetTextRect(msg, strlen(msg), text_mode.pos);
+  text_mode.pos.y -= rect.height;
+}
+
+void
+EndText()
+{
+  kIMUI.text_mode.set = true; 
 }
 
 bool

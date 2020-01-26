@@ -49,16 +49,15 @@ void
 RenderString(const char* msg, v2f pos, v2f dims)
 {
   int msg_len = strlen(msg);
-  imui::Text(msg, pos.x, pos.y);
+  imui::Text(msg, pos);
 
   rgg::GetObserver()->projection =
       math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f);
 
-  rgg::RenderLineRectangle(rgg::GetTextRect(msg, msg_len, pos.x, pos.y),
+  rgg::RenderLineRectangle(rgg::GetTextRect(msg, msg_len, pos),
                            v4f(1.0f, 0.0f, 0.0f, 1.0f));
 
   rgg::GetObserver()->projection = Projection(window::GetWindowSize());
-
 }
 
 int
@@ -99,6 +98,13 @@ id=101 char=e width=15 height=15 xoffset=0 yoffset=11 start_x=747.000 start_y=38
     RenderString("this, sentence, has, commas", v2f(dims.x / 2.f, dims.y / 2.f + 80.0f), dims);
     RenderString("I kInd. OF, h4te_ font", v2f(dims.x / 2.f, dims.y / 2.f + 120.0f), dims);
     RenderString("1.32241 + 32569 = yo momma", v2f(dims.x / 2.f, dims.y / 2.f + 160.0f), dims);
+
+    imui::BeginText(v2f(dims.x / 2.f - 400.0f, dims.y / 2.f));
+    imui::Text("1.32241 + 32569 = yo momma");
+    imui::Text("I kInd. OF, h4te_ font");
+    imui::Text("The quick brown fox");
+    imui::Text("quick");
+    imui::EndText();
     
     imui::Render();
 

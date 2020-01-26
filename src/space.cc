@@ -275,27 +275,29 @@ main(int argc, char** argv)
     // Misc debug/feedback
     auto sz = window::GetWindowSize();
     char buffer[50];
+    imui::BeginText(v2f(3.f, sz.y - 30.f));
     sprintf(buffer, "Frame Time:%06lu us", kGameState.frame_time_usec);
-    imui::Text(buffer, 3.f, sz.y - 30.f);
+    imui::Text(buffer);
     sprintf(buffer, "Network Rtt:%06lu us [%lu/%lu queue]", kGameState.rtt_usec,
             kGameState.turn_queue_depth, MAX_NETQUEUE);
-    imui::Text(buffer, 3.f, sz.y - 55.f);
+    imui::Text(buffer);
     sprintf(buffer, "Window Size:%ix%i", (int)sz.x, (int)sz.y);
-    imui::Text(buffer, 3.f, sz.y - 80.f);
+    imui::Text(buffer);
     auto mouse = CoordToWorld(window::GetCursorPosition());
     sprintf(buffer, "Mouse Pos In World:(%.1f,%.1f)", mouse.x, mouse.y);
-    imui::Text(buffer, 3.f, sz.y - 105.f);
+    imui::Text(buffer);
     v2i tile = simulation::WorldToTilePos(mouse.xy());
     sprintf(buffer, "Minerals: %lu", kShip[0].mineral);
-    imui::Text(buffer, 3.f, sz.y - 130.f);
+    imui::Text(buffer);
     if (simulation::TileOk(tile)) {
       sprintf(buffer, "Type %d", simulation::kTilemap.map[tile.y][tile.x].type);
-      imui::Text(buffer, 3.f, sz.y - 155.f);
+      imui::Text(buffer);
     }
     if (simulation::GameOver()) {
       sprintf(buffer, "Game Over");
-      imui::Text(buffer, sz.x * .5 - 150.f, sz.y * .5);
+      imui::Text(buffer);
     }
+    imui::EndText();
 
     static float derp;
     if (imui::Button(math::Rect(10, 10, 40, 40),

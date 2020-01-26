@@ -83,7 +83,7 @@ GetTextInfo(const char* msg, int msg_len, float* offset,
   for (int i = 0; i < msg_len; ++i) {
     const FntMetadataRow* row = &font.metadata.rows[msg[i]];
     *width += (float)row->width;
-    if (__IsUseless(msg[i])) continue;
+    //if (__IsUseless(msg[i])) continue;
     float offset_y = (float)row->yoffset + (float)row->height;
     if (offset_y > *offset) *offset = offset_y;
     float y = (float)row->height;
@@ -93,11 +93,11 @@ GetTextInfo(const char* msg, int msg_len, float* offset,
 }
 
 math::Rect
-GetTextRect(const char* msg, int msg_len, float x, float y)
+GetTextRect(const char* msg, int msg_len, v2f pos)
 {
   float offset, max_y, min_y, width;
   GetTextInfo(msg, msg_len, &offset, &max_y, &min_y, &width);
-  return math::Rect(x, y, width, fmax(offset - min_y, max_y));
+  return math::Rect(pos.x, pos.y, width, fmax(offset - min_y, max_y));
 }
 
 void

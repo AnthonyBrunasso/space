@@ -45,8 +45,7 @@ Render()
 
   for (int i = 0; i < kUsedText; ++i) {
     Text* text = &kText[i];
-    float height = rgg::RenderText(text->msg, text->screen_x, text->screen_y, v4f());
-    printf("height: %.2f\n", height);
+    rgg::RenderText(text->msg, text->screen_x, text->screen_y, v4f());
   }
 }
 

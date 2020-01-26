@@ -323,7 +323,7 @@ RenderLineRectangle(const math::Rect& rect, const v4f& color)
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
                      &matrix[0]);
-  glDrawArrays(GL_LINE_LOOP, 0, 2);
+  glDrawArrays(GL_LINE_LOOP, 0, 4);
 }
 
 

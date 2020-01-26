@@ -55,7 +55,7 @@ Render()
 
   for (int i = 0; i < kUsedText; ++i) {
     Text* text = &kText[i];
-    rgg::RenderText(text->msg, text->pos.x, text->pos.y, v4f());
+    rgg::RenderText(text->msg, text->pos, v4f());
   }
 }
 

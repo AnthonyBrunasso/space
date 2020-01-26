@@ -101,7 +101,7 @@ GetTextRect(const char* msg, int msg_len, v2f pos)
 }
 
 void
-RenderText(const char* msg, float x, float y, const v4f& color)
+RenderText(const char* msg, v2f pos, const v4f& color)
 {
   auto& font = kUI.font;
 
@@ -151,8 +151,8 @@ RenderText(const char* msg, float x, float y, const v4f& color)
     float v_w = (float)row->width;
     float v_h = (float)row->height;
 
-    float offset_start_x = x/* - row->xoffset*/;
-    float offset_start_y = y - row->yoffset + offset;
+    float offset_start_x = pos.x/* - row->xoffset*/;
+    float offset_start_y = pos.y - row->yoffset + offset;
 
 #if 0
     printf("id=%i char=%c width=%i height=%i xoffset=%i yoffset=%i"
@@ -183,7 +183,7 @@ RenderText(const char* msg, float x, float y, const v4f& color)
     glBindBuffer(GL_ARRAY_BUFFER, font.vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(text_point), text_point, GL_DYNAMIC_DRAW);
     glDrawArrays(GL_TRIANGLES, 0, 6);  // Draw the character 
-    x += v_w;
+    pos.x += v_w;
   }
 }
 

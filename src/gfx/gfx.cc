@@ -295,16 +295,16 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     if (dsq(unit->transform.position, mouse) >= kDsqSelect) continue;
 
     char buffer[64];
+    imui::BeginText(v2f(screen.x - 225.f, screen.y - 30.0f));
     for (int j = 0; j < CREWA_MAX; ++j) {
       sprintf(buffer, "%u < %s < %u", unit->aknown_min[j], crew_aname[j],
               unit->aknown_max[j]);
-      rgg::RenderText(buffer, screen.x - 225.f, screen.y - (j + 1) * 25.f,
-                      v4f());
+      imui::Text(buffer);
     }
     sprintf(buffer, "%04.02fX %04.02fY", unit->transform.position.x,
             unit->transform.position.y);
-    rgg::RenderText(buffer, screen.x - 225.f, screen.y - (CREWA_MAX + 1) * 25.f,
-                    v4f());
+    imui::Text(buffer);
+    imui::EndText();
     break;
   }
 

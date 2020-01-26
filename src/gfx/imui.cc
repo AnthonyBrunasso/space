@@ -97,7 +97,7 @@ Text(const char* msg)
 void
 EndText()
 {
-  kIMUI.text_mode.set = true; 
+  kIMUI.text_mode.set = false; 
 }
 
 bool

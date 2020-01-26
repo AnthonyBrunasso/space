@@ -79,27 +79,14 @@ main(int argc, char** argv)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     RenderGrid();
-#if 0
-id=72 char=H width=17 height=20 xoffset=1 yoffset=6 start_x=640.000 start_y=386.000 tex_w=0.066 tex_h=0.078
-id=101 char=e width=15 height=15 xoffset=0 yoffset=11 start_x=657.000 start_y=381.000 tex_w=0.059 tex_h=0.059
-id=108 char=l width=4 height=20 xoffset=1 yoffset=6 start_x=672.000 start_y=386.000 tex_w=0.016 tex_h=0.078
-id=108 char=l width=4 height=20 xoffset=1 yoffset=6 start_x=676.000 start_y=386.000 tex_w=0.016 tex_h=0.078
-id=111 char=o width=15 height=15 xoffset=0 yoffset=11 start_x=680.000 start_y=381.000 tex_w=0.059 tex_h=0.059
-id=44 char=, width=4 height=6 xoffset=2 yoffset=24 start_x=695.000 start_y=368.000 tex_w=0.016 tex_h=0.023
-id=32 char=  width=3 height=1 xoffset=-1 yoffset=31 start_x=699.000 start_y=361.000 tex_w=0.012 tex_h=0.004
-id=116 char=t width=8 height=20 xoffset=0 yoffset=6 start_x=702.000 start_y=386.000 tex_w=0.031 tex_h=0.078
-id=104 char=h width=13 height=20 xoffset=1 yoffset=6 start_x=710.000 start_y=386.000 tex_w=0.051 tex_h=0.078
-id=101 char=e width=15 height=15 xoffset=0 yoffset=11 start_x=723.000 start_y=381.000 tex_w=0.059 tex_h=0.059
-id=114 char=r width=9 height=15 xoffset=1 yoffset=11 start_x=738.000 start_y=381.000 tex_w=0.035 tex_h=0.059
-id=101 char=e width=15 height=15 xoffset=0 yoffset=11 start_x=747.000 start_y=381.000 tex_w=0.059 tex_h=0.059
-#endif
+
     RenderString("quick", v2f(dims.x / 2.f, dims.y / 2.f), dims);
     RenderString("The quick brown fox", v2f(dims.x / 2.f, dims.y / 2.f + 40.0f), dims);
     RenderString("this, sentence, has, commas", v2f(dims.x / 2.f, dims.y / 2.f + 80.0f), dims);
     RenderString("I kInd. OF, h4te_ font", v2f(dims.x / 2.f, dims.y / 2.f + 120.0f), dims);
     RenderString("1.32241 + 32569 = yo momma", v2f(dims.x / 2.f, dims.y / 2.f + 160.0f), dims);
 
-    imui::BeginText(v2f(dims.x / 2.f - 400.0f, dims.y / 2.f));
+    imui::BeginText(v2f(dims.x / 2.f - 400.0f, dims.y / 2.f + 160.0f));
     imui::Text("1.32241 + 32569 = yo momma");
     imui::Text("I kInd. OF, h4te_ font");
     imui::Text("The quick brown fox");

@@ -123,6 +123,8 @@ main(int argc, char** argv)
     imui::Reset();
 
     window::SwapBuffers();
+
+    platform::sleep_ms(10);
   }
 
   return 0;

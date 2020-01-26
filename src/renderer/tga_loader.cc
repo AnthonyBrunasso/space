@@ -19,6 +19,7 @@ struct FntMetadataRow {
 struct FntMetadata {
   // Just assume ascii. Key corresponds to decimal key code.
   FntMetadataRow rows[256];
+  int line_height;
 };
 
 FntMetadata
@@ -31,6 +32,10 @@ LoadFntMetadata(const char* file)
   FntMetadata metadata = {};
   while (fgets(line, sizeof(line), fptr)) {
     ++i;
+    if (i == 3) {
+      metadata.line_height = atoi(&line[18]);
+      continue;
+    }
     // First 5 lines are header.
     if (i <= 5) continue;
     // After that comes the kernings.

@@ -72,13 +72,12 @@ __IsUseless(char c)
 }
 
 void
-GetTextInfo(const char* msg, int msg_len, float* offset,
-            float* max_height, float* min_height, float* width)
+GetTextInfo(const char* msg, int msg_len, float* offset, float* height,
+            float* width)
 {
   auto& font = kUI.font;
   *offset = -1000.0f;
-  *min_height = 1000.0f;
-  *max_height = -1000.0f;
+  *height = font.metadata.line_height;
   *width = 0.0f;
   for (int i = 0; i < msg_len; ++i) {
     const FntMetadataRow* row = &font.metadata.rows[msg[i]];
@@ -86,18 +85,17 @@ GetTextInfo(const char* msg, int msg_len, float* offset,
     //if (__IsUseless(msg[i])) continue;
     float offset_y = (float)row->yoffset + (float)row->height;
     if (offset_y > *offset) *offset = offset_y;
-    float y = (float)row->height;
-    if (y < *min_height) *min_height = y;
-    if (y > *max_height) *max_height = y;
   }
 }
 
 math::Rect
 GetTextRect(const char* msg, int msg_len, v2f pos)
 {
-  float offset, max_y, min_y, width;
-  GetTextInfo(msg, msg_len, &offset, &max_y, &min_y, &width);
-  return math::Rect(pos.x, pos.y, width, fmax(offset - min_y, max_y));
+  float offset, height, width;
+  GetTextInfo(msg, msg_len, &offset, &height, &width);
+  //printf("offset: %.2f, max_y: %.2f, min_y: %.2f\n",
+  //      offset, max_y, min_y);
+  return math::Rect(pos.x, pos.y, width, height);
 }
 
 void
@@ -128,8 +126,8 @@ RenderText(const char* msg, v2f pos, const v4f& color)
 #endif
 
   int msg_len = strlen(msg);
-  float offset, max_height, min_height, width;
-  GetTextInfo(msg, msg_len, &offset, &max_height, &min_height, &width);
+  float offset, height, width;
+  GetTextInfo(msg, msg_len, &offset, &height, &width);
   for (int i = 0; i < msg_len; ++i) {
     TextPoint text_point[6];
 

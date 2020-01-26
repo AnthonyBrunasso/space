@@ -81,20 +81,14 @@ id=101 char=e width=15 height=15 xoffset=0 yoffset=11 start_x=747.000 start_y=38
     const char* msg = "Hello, there";
     
     v2f pos(dims.x / 2.f, dims.y / 2.f);
+
     int msg_len = strlen(msg);
-    float offset, max_y, min_y;
-    rgg::GetTextHeightInfo(msg, msg_len, &offset, &max_y, &min_y);
-    float width = rgg::GetTextWidth(msg, msg_len);
-
-    //printf("(%.2f, %.2f)\n", width, offset);
-
     imui::Text(msg, pos.x, pos.y);
 
     rgg::GetObserver()->projection =
-      math::Ortho2(
-          dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f);
+        math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f);
 
-    rgg::RenderLineRectangle(math::Rect(pos.x, pos.y, width, fmax(offset - min_y, max_y)),
+    rgg::RenderLineRectangle(rgg::GetTextRect(msg, msg_len, pos.x, pos.y),
                              v4f(1.0f, 0.0f, 0.0f, 1.0f));
 
     rgg::GetObserver()->projection = Projection(window::GetWindowSize());

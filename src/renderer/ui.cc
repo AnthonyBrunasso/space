@@ -64,13 +64,14 @@ SetupUI()
 }
 
 void
-GetTextHeightInfo(const char* msg, int msg_len, float* offset,
-                  float* max_height, float* min_height)
+GetTextInfo(const char* msg, int msg_len, float* offset,
+            float* max_height, float* min_height, float* width)
 {
   auto& font = kUI.font;
   *offset = -1000.0f;
   *min_height = 1000.0f;
   *max_height = -1000.0f;
+  *width = 0.0f;
   for (int i = 0; i < msg_len; ++i) {
     if (msg[i] == ' ') continue;
     const FntMetadataRow* row = &font.metadata.rows[msg[i]];
@@ -79,20 +80,16 @@ GetTextHeightInfo(const char* msg, int msg_len, float* offset,
     float y = (float)row->height;
     if (y < *min_height) *min_height = y;
     if (y > *max_height) *max_height = y;
+    *width += (float)row->width;
   }
 }
 
-
-float
-GetTextWidth(const char* msg, int msg_len)
+math::Rect
+GetTextRect(const char* msg, int msg_len, float x, float y)
 {
-  auto& font = kUI.font;
-  float width = 0.0f;
-  for (int i = 0; i < msg_len; ++i) {
-    const FntMetadataRow* row = &font.metadata.rows[msg[i]];
-    width += (float)row->width;
-  }
-  return width;
+  float offset, max_y, min_y, width;
+  rgg::GetTextInfo(msg, msg_len, &offset, &max_y, &min_y, &width);
+  return math::Rect(x, y, width, fmax(offset - min_y, max_y));
 }
 
 void
@@ -123,8 +120,8 @@ RenderText(const char* msg, float x, float y, const v4f& color)
 #endif
 
   int msg_len = strlen(msg);
-  float offset, max_height, min_height;
-  GetTextHeightInfo(msg, msg_len, &offset, &max_height, &min_height);
+  float offset, max_height, min_height, width;
+  GetTextInfo(msg, msg_len, &offset, &max_height, &min_height, &width);
   for (int i = 0; i < msg_len; ++i) {
     TextPoint text_point[6];
 

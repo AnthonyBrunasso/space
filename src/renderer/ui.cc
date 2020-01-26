@@ -73,14 +73,14 @@ GetTextInfo(const char* msg, int msg_len, float* offset,
   *max_height = -1000.0f;
   *width = 0.0f;
   for (int i = 0; i < msg_len; ++i) {
-    if (msg[i] == ' ') continue;
     const FntMetadataRow* row = &font.metadata.rows[msg[i]];
+    *width += (float)row->width;
+    if (msg[i] == ' ') continue;
     float offset_y = (float)row->yoffset + (float)row->height;
     if (offset_y > *offset) *offset = offset_y;
     float y = (float)row->height;
     if (y < *min_height) *min_height = y;
     if (y > *max_height) *max_height = y;
-    *width += (float)row->width;
   }
 }
 

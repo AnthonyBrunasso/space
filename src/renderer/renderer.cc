@@ -309,6 +309,25 @@ RenderRectangle(const math::Rect& rect, const v4f& color)
 }
 
 void
+RenderLineRectangle(const math::Rect& rect, const v4f& color)
+{
+  glUseProgram(kRGG.geometry_program.reference);
+  // Texture state has quad with length 1 geometry. This makes scaling simpler
+  // as we can use the width / height directly in scale matrix.
+  glBindVertexArray(kTextureState.vao_reference);
+  v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, 0.0f);
+  v3f scale(rect.width, rect.height, 1.f);
+  math::Mat4f model = math::Model(pos, scale);
+  math::Mat4f matrix = kObserver.projection * kObserver.view * model;
+  glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
+              color.w);
+  glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
+                     &matrix[0]);
+  glDrawArrays(GL_LINE_LOOP, 0, 2);
+}
+
+
+void
 RenderSmoothRectangle(const math::Rect& rect, float smoothing_radius,
                       const v4f& color)
 {

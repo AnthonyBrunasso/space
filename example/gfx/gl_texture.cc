@@ -34,7 +34,7 @@ RenderGrid()
 
 math::Mat4f PerspectiveProjection(v2f dims)
 {
-  return math::CreateOrthographicMatrix<float>(
+  return math::Ortho(
       dims.x, 0.f, dims.y, 0.f, 0.0f, 0.f);
 }
 
@@ -54,7 +54,7 @@ main(int argc, char** argv)
   // This projection orients the bottom left of the screen to be origin.
   // This makes the texture have consistent axis with opengl as well as screen.
   rgg::GetObserver()->projection =
-      math::CreateOrthographicMatrix2<float>(
+      math::Ortho2(
           texture.width, 0.0f, texture.height, 0.0f, 0.0f, 0.0f);
 
   rgg::RenderRectangle(
@@ -74,10 +74,13 @@ main(int argc, char** argv)
   while (!window::ShouldClose()) {
     PlatformEvent event;
     while (window::PollEvent(&event)) {}
+    glClearColor(0.0f, 0.0f, 0.1f, 1.0f);
 
     rgg::GetObserver()->projection = PerspectiveProjection(window::GetWindowSize());
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    RenderGrid();
 
     rgg::RenderTexture(texture,
                        math::Rect(0.0f, 0.0f, 256.0f, 256.0f),
@@ -102,8 +105,6 @@ main(int argc, char** argv)
 
 
     rgg::RenderText("Texture", 50.0f, 100.0f, v4f(1.f, 1.f, 1.f, 1.f));
-
-    RenderGrid();
 
     window::SwapBuffers();
   }

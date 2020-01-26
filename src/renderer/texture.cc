@@ -46,12 +46,12 @@ SetupTexture()
   glDeleteShader(frag_shader);
 
    GLfloat quad[18] = {
-    -0.5f,  -0.5f, 0.0f,
-    -0.5f,  0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
-    -0.5f,  0.5f, 0.0f,
-    0.5f,  0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
+    -0.5f,  -0.5f, 0.0f, // BL
+    -0.5f,  0.5f, 0.0f, // TL
+    0.5f,  0.5f, 0.0f, // TR
+    0.5f, -0.5f, 0.0f, // BR
+    -0.5f,  -0.5f, 0.0f, // BL
+    0.5f,  0.5f, 0.0f, // TR
   };
 
   kTextureState.vao_reference = gl::CreateGeometryVAO(18, quad);
@@ -124,12 +124,13 @@ RenderTexture(const Texture& texture, const math::Rect& src,
   float start_y = src.y / texture.height;
   float width = src.width / texture.width;
   float height = src.height / texture.height;
+
   uv[0] = {start_x, start_y}; // BL
   uv[1] = {start_x, start_y + height}; // TL
-  uv[2] = {start_x + width, start_y}; // BR
-  uv[3] = {start_x, start_y + height}; // TL
-  uv[4] = {start_x + width, start_y + height}; // TR
-  uv[5] = {start_x + width, start_y}; // BR
+  uv[2] = {start_x + width, start_y + height}; // TR
+  uv[3] = {start_x + width, start_y}; // BR
+  uv[4] = {start_x, start_y}; // BL
+  uv[5] = {start_x + width, start_y + height}; // TR
 #if 0
   printf("uv[0]=(%.3f, %3.f)\n", uv[0].u, uv[0].v);
   printf("uv[1]=(%.3f, %3.f)\n", uv[1].u, uv[1].v);

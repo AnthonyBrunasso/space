@@ -64,6 +64,8 @@ main(int argc, char** argv)
     RenderGrid();
 
     auto dims = window::GetWindowSize();
+
+    imui::Text("Hello, there", dims.x / 2.f, dims.y / 2.f);
     imui::Text("Hello, there", dims.x / 2.f, dims.y / 2.f);
 
     imui::Render();

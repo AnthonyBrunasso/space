@@ -63,7 +63,7 @@ SetupUI()
   return true;
 }
 
-void
+float
 RenderText(const char* msg, float x, float y, const v4f& color)
 {
   auto& font = kUI.font;
@@ -104,7 +104,7 @@ RenderText(const char* msg, float x, float y, const v4f& color)
     float test_y = y - (float)row->yoffset - (float)row->height;
     if (test_y < min_y) min_y = test_y;
   }
-  min_y = y - min_y;
+  min_y = fabsf(y - min_y);
 
   for (int i = 0; i < msg_len; ++i) {
     TextPoint text_point[6];
@@ -128,7 +128,7 @@ RenderText(const char* msg, float x, float y, const v4f& color)
     float v_h = (float)row->height;
 
     float offset_start_x = x/* - row->xoffset*/;
-    float offset_start_y = y - row->yoffset + fabsf(min_y);
+    float offset_start_y = y - row->yoffset + min_y;
 
 #if 0
     printf("id=%i char=%c width=%i height=%i xoffset=%i yoffset=%i"
@@ -161,6 +161,7 @@ RenderText(const char* msg, float x, float y, const v4f& color)
     glDrawArrays(GL_TRIANGLES, 0, 6);  // Draw the character 
     x += v_w;
   }
+  return min_y;
 }
 
 void

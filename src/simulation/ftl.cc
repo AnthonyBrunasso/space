@@ -25,6 +25,13 @@ FtlUpdate(const Ship* ship, FtlState* ftl)
   if (!frame_offset) {
     // No Jump
   } else if (frame_offset >= kFtlFrameTime) {
+    for (int i = 0; i < kUsedMissile; ++i) {
+      kMissile[i] = kZeroMissile;
+    }
+    for (int i = 0; i < kUsedAsteroid; ++i) {
+      kAsteroid[i] = kZeroAsteroid;
+    }
+
     // ftl becomes tangible again after a jump completes
     ftl->state_flags |= FLAG(kFtlTangible);
     ftl->frame += kFtlFrameTime;

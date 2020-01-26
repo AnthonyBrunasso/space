@@ -360,7 +360,7 @@ Decide()
   if (!kUsedMissile) {
     Missile* missile = UseMissile();
     missile->transform = Transform{.position = v3f(300.f, -1000.f, 0.f)};
-    missile->flags = 0;
+    missile->flags = FLAG(kMissileAiFlight);
   }
 
   for (int i = 0; i < kUsedMissile; ++i) {
@@ -373,6 +373,8 @@ Decide()
       *missile = kZeroMissile;
       continue;
     }
+
+    if (action != kMissileAiFlight) continue;
 
     missile->transform.position += v3f(0.0f, 5.f, 0.f);
   }

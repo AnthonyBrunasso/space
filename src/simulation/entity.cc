@@ -43,6 +43,7 @@ enum AsteroidAiGoals {
 };
 enum MissileAiGoals {
   kMissileAiExplode,
+  kMissileAiFlight,
 };
 enum FtlFlag {
   kFtlTangible = 0,

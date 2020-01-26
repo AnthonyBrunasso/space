@@ -2,6 +2,7 @@
 #include "gl/gl.cc"
 #include "renderer/renderer.cc"
 #include "simulation/camera.cc"
+#include "gfx/gfx.cc"
 
 void
 AlignToGrid(math::Vec2f grid, math::Rectf* world)
@@ -17,6 +18,12 @@ void
 RenderGrid()
 {
   auto dims = window::GetWindowSize();
+  rgg::RenderLine(math::Vec3f(-dims.x / 2.f, 0.0f, 0.0f),
+                  math::Vec3f(dims.x / 2.f, 0.0f, 0.0f),
+                  math::Vec4f(1.0f, 0.0f, 0.0f, 1.0f));
+  rgg::RenderLine(math::Vec3f(0.0f, -dims.y / 2.f, 0.0f),
+                  math::Vec3f(0.0f, dims.y / 2.f, 0.0f),
+                  math::Vec4f(0.0f, 0.0f, 1.0f, 1.0f));
   math::Rectf world;
   world.min = {-dims.x / 2.f, -dims.y / 2.f};
   world.max = {dims.x / 2.f, dims.y / 2.f};
@@ -34,7 +41,7 @@ RenderGrid()
 
 math::Mat4f PerspectiveProjection(math::Vec2f dims)
 {
-  return math::CreateOrthographicMatrix<float>(
+  return math::Ortho(
       dims.x, 0.f, dims.y, 0.f, 0.0f, 0.f);
 }
 
@@ -43,7 +50,7 @@ main(int argc, char** argv)
 {
   if (!window::Create("Graphics Explore", 800, 800)) return 1;
   
-  rgg::Initialize();
+  gfx::Initialize();
 
 
   while (!window::ShouldClose()) {
@@ -54,29 +61,14 @@ main(int argc, char** argv)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-#if 0
-    rgg::RenderCircle(math::Vec3f(0.0f, 0.0f, 0.0f), 25.0f,
-                      math::Vec4f(0.0f, 0.0f, 1.0f, 1.0f));
-
-    rgg::RenderCircle(math::Vec3f(100.0f, 0.0f, 0.0f), 40.0f, 50.0f,
-                      math::Vec4f(0.0f, 0.0f, 1.0f, 1.0f));
-#endif
-    auto dims = window::GetWindowSize();
-
-    rgg::RenderSmoothRectangle(math::Rect(0.0f, 0.0f, 50.0f, 50.0f),
-                               18.0f, math::Vec4f(0.23f, 0.45f, 0.55f, 0.35f));  
-
-
-    rgg::RenderLine(math::Vec3f(-dims.x / 2.f, 0.0f, 0.0f),
-                    math::Vec3f(dims.x / 2.f, 0.0f, 0.0f),
-                    math::Vec4f(1.0f, 0.0f, 0.0f, 1.0f));
-
-    rgg::RenderLine(math::Vec3f(0.0f, -dims.y / 2.f, 0.0f),
-                    math::Vec3f(0.0f, dims.y / 2.f, 0.0f),
-                    math::Vec4f(0.0f, 0.0f, 1.0f, 1.0f));
-
-    
     RenderGrid();
+
+    auto dims = window::GetWindowSize();
+    imui::Text("Hello, there", dims.x / 2.f, dims.y / 2.f);
+
+    imui::Render();
+
+    imui::Reset();
 
     window::SwapBuffers();
   }

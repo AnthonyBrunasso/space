@@ -99,10 +99,7 @@ id=101 char=e width=15 height=15 xoffset=0 yoffset=11 start_x=747.000 start_y=38
 int
 main(int argc, char** argv)
 {
-  if (!window::Create("Graphics Explore", 800, 800)) return 1;
-  
   gfx::Initialize();
-
 
   while (!window::ShouldClose()) {
     PlatformEvent event;

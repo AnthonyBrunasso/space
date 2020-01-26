@@ -51,13 +51,10 @@ RenderStringWithBoundingBox(const char* msg, v2f pos, v2f dims)
   int msg_len = strlen(msg);
   imui::Text(msg, pos);
 
-  rgg::GetObserver()->projection =
-      math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f);
-
+  rgg::ModifyObserver mod(
+      math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f), math::Identity());
   rgg::RenderLineRectangle(rgg::GetTextRect(msg, msg_len, pos),
                            v4f(1.0f, 0.0f, 0.0f, 1.0f));
-
-  rgg::GetObserver()->projection = Projection(window::GetWindowSize());
 }
 
 // Test used for testing bounding box on sentences and using it to do modal

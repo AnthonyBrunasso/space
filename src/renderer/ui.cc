@@ -64,7 +64,7 @@ SetupUI()
 }
 
 float
-GetTextOffsetFromY(const char* msg, float y, int msg_len)
+GetTextHeight(const char* msg, int msg_len)
 {
   auto& font = kUI.font;
   // TODO: Bit of a hack. This finds the lowest point of the resulting vert
@@ -73,13 +73,25 @@ GetTextOffsetFromY(const char* msg, float y, int msg_len)
   // provided x,y. This is required because the generated font sheet has
   // origin top left and provides yoffset, the vertical distortion to line
   // characters up, in regards to the top left of each character in the sheet.
-  float min_y = y;
+  float max_y = -1000.0f;
   for (int i = 0; i < msg_len; ++i) {
     const FntMetadataRow* row = &font.metadata.rows[msg[i]];
-    float test_y = y - (float)row->yoffset - (float)row->height;
-    if (test_y < min_y) min_y = test_y;
+    float test_y = (float)row->yoffset + (float)row->height;
+    if (test_y > max_y) max_y = test_y;
   }
-  return fabsf(y - min_y);
+  return max_y;
+}
+
+float
+GetTextWidth(const char* msg, int msg_len)
+{
+  auto& font = kUI.font;
+  float width = 0.0f;
+  for (int i = 0; i < msg_len; ++i) {
+    const FntMetadataRow* row = &font.metadata.rows[msg[i]];
+    width += (float)row->width;
+  }
+  return width;
 }
 
 void
@@ -110,7 +122,7 @@ RenderText(const char* msg, float x, float y, const v4f& color)
 #endif
 
   int msg_len = strlen(msg);
-  float offset_y = GetTextOffsetFromY(msg, y, msg_len);
+  float height = GetTextHeight(msg, msg_len);
   for (int i = 0; i < msg_len; ++i) {
     TextPoint text_point[6];
 
@@ -133,7 +145,7 @@ RenderText(const char* msg, float x, float y, const v4f& color)
     float v_h = (float)row->height;
 
     float offset_start_x = x/* - row->xoffset*/;
-    float offset_start_y = y - row->yoffset + offset_y;
+    float offset_start_y = y - row->yoffset + height;
 
 #if 0
     printf("id=%i char=%c width=%i height=%i xoffset=%i yoffset=%i"

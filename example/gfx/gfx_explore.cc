@@ -39,7 +39,7 @@ RenderGrid()
   rgg::RenderGrid(grid1, world1, v4f(0.050f, 0.215f, 0.050f, 0.55f));
 }
 
-math::Mat4f PerspectiveProjection(v2f dims)
+math::Mat4f Projection(v2f dims)
 {
   return math::Ortho(
       dims.x, 0.f, dims.y, 0.f, 0.0f, 0.f);
@@ -57,15 +57,31 @@ main(int argc, char** argv)
     PlatformEvent event;
     while (window::PollEvent(&event)) {}
 
-    rgg::GetObserver()->projection = PerspectiveProjection(window::GetWindowSize());
+    auto dims = window::GetWindowSize();
+
+    rgg::GetObserver()->projection = Projection(dims);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     RenderGrid();
 
-    auto dims = window::GetWindowSize();
 
-    imui::Text("Hello, there", dims.x / 2.f, dims.y / 2.f);
+    const char* msg = "Hello, there";
+
+    int msg_len = strlen(msg);
+    float height = rgg::GetTextHeight(msg, msg_len);
+    float width = rgg::GetTextWidth(msg, msg_len);
+
+    imui::Text(msg, dims.x / 2.f, dims.y / 2.f);
+
+    rgg::GetObserver()->projection =
+      math::Ortho2(
+          dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f);
+
+    rgg::RenderLineRectangle(math::Rect(dims.x / 2.f, dims.y / 2.f, width, height),
+                             v4f(1.0f, 0.0f, 0.0f, 1.0f));
+
+    rgg::GetObserver()->projection = Projection(window::GetWindowSize());
 
     imui::Render();
 

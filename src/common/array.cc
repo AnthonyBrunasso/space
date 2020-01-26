@@ -13,6 +13,7 @@
   constexpr uint64_t kMax##type = max_count;       \
                                                    \
   static type k##type[max_count];                  \
+  static type kZero##type;                         \
                                                    \
   static uint64_t kUsed##type;                     \
                                                    \

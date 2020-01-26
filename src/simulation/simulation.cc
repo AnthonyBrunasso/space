@@ -408,7 +408,7 @@ Decide()
       replaced = BfsReplace(missile->tile_hit, 8, kTileOpen, kTileVacuum);
       printf("missile impact %d %d replaced %lu tiles\n", missile->tile_hit.x,
              missile->tile_hit.y, replaced);
-      memset(missile, 0, sizeof(Missile));
+      *missile = kZeroMissile;
       continue;
     }
 
@@ -420,8 +420,8 @@ Decide()
     uint64_t action = TZCNT(asteroid->flags);
 
     if (action == kAsteroidAiImplode) {
-      printf("memset asteroid %d\n", i);
-      memset(asteroid, 0, sizeof(Asteroid));
+      printf("zero asteroid %d\n", i);
+      *asteroid = kZeroAsteroid;
       continue;
     }
 

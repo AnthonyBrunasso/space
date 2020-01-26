@@ -7,10 +7,10 @@
 #include "entity_registry.cc"
 
 // Data used by game simulation
-#define DECLARE_GAME_TYPE(type, max_count)                            \
-  DECLARE_ARRAY(type, max_count)                                      \
-  static EntityRegistry kInit##type(k##type, &kUsed##type, max_count, \
-                                    sizeof(type));
+#define DECLARE_GAME_TYPE(type, max_count)                               \
+  DECLARE_ARRAY(type, max_count)                                         \
+  static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type, \
+                                    max_count, sizeof(type));
 
 #define DECLARE_GAME_QUEUE(type, count) DECLARE_QUEUE(type, count)
 

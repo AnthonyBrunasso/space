@@ -63,6 +63,26 @@ static RGG kRGG;
 #include "texture.cc"
 #include "ui.cc"
 
+class ModifyObserver {
+public:
+  ModifyObserver(const math::Mat4f& proj, const math::Mat4f& view)
+  {
+    projection_ = kObserver.projection;
+    view_ = kObserver.view;
+    kObserver.projection = proj;
+    kObserver.view = view;
+  }
+
+  ~ModifyObserver()
+  {
+    kObserver.projection = projection_;
+    kObserver.view = view_;
+  }
+private:
+  math::Mat4f projection_;
+  math::Mat4f view_;
+};
+
 Observer*
 GetObserver()
 {

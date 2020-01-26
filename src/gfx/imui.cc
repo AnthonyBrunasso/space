@@ -68,11 +68,8 @@ Render()
   }
 
   auto dims = window::GetWindowSize();
-  auto projection = rgg::GetObserver()->projection;
-  auto view = rgg::GetObserver()->view;
-  rgg::GetObserver()->projection =
-      math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f);
-  rgg::GetObserver()->view = math::Identity();
+  rgg::ModifyObserver mod(
+      math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f), math::Identity());
   for (int i = kReadUIClickRender; i < kWriteUIClickRender; ++i) {
     UIClickRender* render = &kUIClickRender[i % kMaxUIClickRender];
     rgg::RenderLineRectangle(
@@ -84,9 +81,6 @@ Render()
       PopUIClickRender();
     }
   }
-
-  rgg::GetObserver()->projection = projection;
-  rgg::GetObserver()->view = view;
 }
 
 void

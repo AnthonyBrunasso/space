@@ -114,6 +114,7 @@ struct Ship {
   float sys_turret;
   float used_power;
   float power_delta;
+  uint64_t level;
   bool running;
 };
 DECLARE_GAME_TYPE(Ship, 1);

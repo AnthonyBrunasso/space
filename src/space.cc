@@ -91,8 +91,7 @@ v3f
 CoordToWorld(v2f xy)
 {
   auto dims = window::GetWindowSize();
-  return camera::ScreenToWorldSpace(GetLocalCamera(),
-                                    v3f(xy - dims * 0.5f));
+  return camera::ScreenToWorldSpace(GetLocalCamera(), v3f(xy - dims * 0.5f));
 }
 
 void
@@ -289,24 +288,23 @@ main(int argc, char** argv)
     v2i tile = simulation::WorldToTilePos(mouse.xy());
     sprintf(buffer, "Minerals: %lu", kShip[0].mineral);
     imui::Text(buffer);
+    sprintf(buffer, "Level: %lu", kShip[0].level);
+    imui::Text(buffer);
     if (simulation::TileOk(tile)) {
       sprintf(buffer, "Type %d", simulation::kTilemap.map[tile.y][tile.x].type);
       imui::Text(buffer);
     }
-    if (simulation::GameOver()) {
+    if (simulation::SimulationOver()) {
       sprintf(buffer, "Game Over");
       imui::Text(buffer);
+    } else if (simulation::FtlReady()) {
+      if (imui::Button(math::Rect(10, 10, 40, 40),
+                       v4f(1.0f, 0.0f, 1.0f, 0.75f))) {
+        simulation::FtlJump();
+      }
     }
+
     imui::EndText();
-
-    static float derp;
-    if (imui::Button(math::Rect(10, 10, 40, 40),
-                     v4f(1.0f, 1.0f, 1.0f, 0.5f))) {
-      derp += 0.05f;
-    }
-
-    imui::Button(math::Rect(55, 10, 40, 40),
-                 v4f(1.0f, 1.0f - derp, 1.0f - derp, 0.5f));
 
 #ifndef HEADLESS
     // The bottom left and top right of the screen with regards to the camera.

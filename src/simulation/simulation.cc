@@ -41,13 +41,13 @@ enum MissileAiGoals {
 
 constexpr float kDsqOperate = 50.f * 35.f;
 constexpr float kDsqSelect = 25.f * 25.f;
+constexpr uint64_t kFtlCost = 100;
 
 bool
 Initialize()
 {
-  v3f pos[] = {
-      v3f(300.f, 300.f, 0.f), v3f(100.f, 130.f, 0),
-      v3f(300.f, 400.f, 0), v3f(650.f, 460.f, 0)};
+  v3f pos[] = {v3f(300.f, 300.f, 0.f), v3f(100.f, 130.f, 0),
+               v3f(300.f, 400.f, 0), v3f(650.f, 460.f, 0)};
   const v3f scale = v3f(0.25f, 0.25f, 0.f);
   uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
   for (int i = 0; i < ARRAY_LENGTH(pos); ++i) {
@@ -383,8 +383,7 @@ Decide()
 
   if (!kUsedMissile) {
     Missile* missile = UseMissile();
-    missile->transform =
-        Transform{.position = v3f(300.f, -1000.f, 0.f)};
+    missile->transform = Transform{.position = v3f(300.f, -1000.f, 0.f)};
     missile->flags = 0;
   }
 
@@ -455,9 +454,15 @@ Decide()
 }
 
 bool
-GameOver()
+SimulationOver()
 {
   return !(kShip[0].running);
+}
+
+bool
+FtlReady()
+{
+  return kShip[0].sys_engine > .5f && kShip[0].mineral >= kFtlCost;
 }
 
 void
@@ -516,6 +521,13 @@ Update()
 
   RegistryCompact();
 }  // namespace simulation
+
+void
+FtlJump()
+{
+  kShip[0].mineral -= kFtlCost;
+  kShip[0].level += 1;
+}
 
 uint64_t
 SelectUnit(v3f world)

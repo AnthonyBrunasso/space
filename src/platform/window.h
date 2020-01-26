@@ -28,7 +28,7 @@ struct PlatformEvent {
   // Type of event.
   PlatformEventType type;
   // Screen space the event took place in.
-  math::Vec2f position;
+  v2f position;
   // Event Detail
   union {
     char key;
@@ -48,7 +48,7 @@ void SwapBuffers();
 
 bool ShouldClose();
 
-math::Vec2f GetWindowSize();
+v2f GetWindowSize();
 
-math::Vec2f GetCursorPosition();
+v2f GetCursorPosition();
 }  // namespace window

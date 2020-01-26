@@ -7,8 +7,8 @@
 void
 VectorAddition()
 {
-  math::Vec2i a(3, 4);
-  math::Vec2i b(9, 2);
+  v2i a(3, 4);
+  v2i b(9, 2);
   ASSERT_TRUE(a.x == 3);
   ASSERT_TRUE(a.y == 4);
   ASSERT_TRUE(b.x == 9);
@@ -40,8 +40,8 @@ VectorAddition()
 void
 VectorSubtraction()
 {
-  math::Vec2i a(3, 4);
-  math::Vec2i b(9, 2);
+  v2i a(3, 4);
+  v2i b(9, 2);
   auto c = a - b;
   ASSERT_TRUE(c.x == -6);
   ASSERT_TRUE(c.y == 2);
@@ -53,7 +53,7 @@ VectorSubtraction()
 void
 VectorScalarMultiplication()
 {
-  math::Vec2i a(3, 4);
+  v2i a(3, 4);
   int b = 3;
   auto c = a * b;
   ASSERT_TRUE(c.x == 9);
@@ -66,7 +66,7 @@ VectorScalarMultiplication()
 void
 VectorScalarDivision()
 {
-  math::Vec2i a(9, 6);
+  v2i a(9, 6);
   int b = 3;
   auto c = a / b;
   ASSERT_TRUE(c.x == 3);
@@ -79,16 +79,16 @@ VectorScalarDivision()
 void
 VectorDotProduct()
 {
-  math::Vec2i a(3, 4);
-  math::Vec2i b(9, 2);
+  v2i a(3, 4);
+  v2i b(9, 2);
   ASSERT_TRUE(math::Dot(a, b) == 35);
 }
 
 void
 VectorNormalization()
 {
-  math::Vec2f a(3.0f, 4.0f);
-  math::Vec2f b = math::Normalize(a);
+  v2f a(3.0f, 4.0f);
+  v2f b = math::Normalize(a);
   ASSERT_TRUE(b.x == 0.6f);
   ASSERT_TRUE(b.y == 0.8f);
   ASSERT_TRUE(math::Length(b) == 1.0f);
@@ -97,15 +97,15 @@ VectorNormalization()
 void
 VectorSquaredLength()
 {
-  math::Vec2i a(3, 4);
+  v2i a(3, 4);
   ASSERT_TRUE(math::LengthSquared(a) == 25.0f);
 }
 
 void
 VectorZeroInitialization()
 {
-  math::Vec2i a;
-  math::Vec2f b;
+  v2i a;
+  v2f b;
   math::Vec2d c;
   ASSERT_TRUE(a.x == 0);
   ASSERT_TRUE(a.y == 0);

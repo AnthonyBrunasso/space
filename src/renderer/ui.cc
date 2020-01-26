@@ -64,7 +64,7 @@ SetupUI()
 }
 
 void
-RenderText(const char* msg, float x, float y, const math::Vec4f& color)
+RenderText(const char* msg, float x, float y, const v4f& color)
 {
   auto& font = kUI.font;
 
@@ -165,11 +165,11 @@ RenderText(const char* msg, float x, float y, const math::Vec4f& color)
 
 void
 RenderButton(const char* text, const math::Rect& rect,
-             const math::Vec4f& color) {
+             const v4f& color) {
   glUseProgram(kRGG.smooth_rectangle_program.reference);
   glBindVertexArray(kTextureState.vao_reference);
-  math::Vec3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, 0.0f);
-  math::Vec3f scale(rect.width, rect.height, 1.f);
+  v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, 0.0f);
+  v3f scale(rect.width, rect.height, 1.f);
   math::Mat4f model = math::Model(pos, scale);
   auto sz = window::GetWindowSize();
   math::Mat4f projection = math::Ortho2(

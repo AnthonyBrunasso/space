@@ -13,8 +13,8 @@
 #define DECLARE_GAME_QUEUE(type, count) DECLARE_QUEUE(type, count)
 
 struct Transform {
-  math::Vec3f position;
-  math::Vec3f scale = math::Vec3f(1.f, 1.f, 1.f);
+  v3f position;
+  v3f scale = v3f(1.f, 1.f, 1.f);
   math::Quatf orientation;
 };
 
@@ -48,9 +48,9 @@ const char* const crew_aname[] = {
   };
 
 float
-dsq(math::Vec3f dst, math::Vec3f src)
+dsq(v3f dst, v3f src)
 {
-  math::Vec3f delta = dst - src;
+  v3f delta = dst - src;
   return delta.x * delta.x + delta.y * delta.y;
 }
 
@@ -68,7 +68,7 @@ struct Command {
     kVacuum = 3,
   };
   Type type;
-  math::Vec2f destination;
+  v2f destination;
 };
 
 DECLARE_GAME_QUEUE(Command, 16);
@@ -84,15 +84,15 @@ constexpr uint64_t kPodMaxMineral = 100;
 struct Pod {
   Transform transform;
   uint64_t think_flags = 0;
-  math::Vec2f goal;
-  math::Vec2f last_heading;
+  v2f goal;
+  v2f last_heading;
   uint64_t mineral;
 };
 DECLARE_GAME_TYPE(Pod, 8);
 
 struct Unit {
   Transform transform;
-  math::Vec3f vacuum;
+  v3f vacuum;
   Command command;
   uint64_t think_flags = 0;
   int kind = 0;
@@ -121,7 +121,7 @@ DECLARE_GAME_TYPE(Ship, 1);
 struct Missile {
   Transform transform;
   uint64_t flags;
-  math::Vec2i tile_hit;
+  v2i tile_hit;
 };
 DECLARE_GAME_TYPE(Missile, 8);
 

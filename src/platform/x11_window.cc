@@ -192,7 +192,7 @@ PollEvent(PlatformEvent* event)
 {
   event->type = NOT_IMPLEMENTED;
   event->key = 0;
-  event->position = math::Vec2f(0.f, 0.f);
+  event->position = v2f(0.f, 0.f);
 
   XEvent xev;
   while (XCheckWindowEvent(display, window_id, -1, &xev)) {
@@ -233,16 +233,16 @@ PollEvent(PlatformEvent* event)
   return false;
 }
 
-math::Vec2f
+v2f
 GetWindowSize()
 {
-  return math::Vec2f(width_pixels, height_pixels);
+  return v2f(width_pixels, height_pixels);
 }
 
-math::Vec2f
+v2f
 GetCursorPosition()
 {
-  return math::Vec2f(mouse_x, mouse_y);
+  return v2f(mouse_x, mouse_y);
 }
 
 bool

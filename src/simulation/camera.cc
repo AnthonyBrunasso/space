@@ -19,11 +19,11 @@
 #include "renderer/renderer.cc"
 
 struct Camera {
-  math::Vec3f position;
+  v3f position;
   math::Quatf orientation;
   // Vector of movement for the camera
   //   Useful for stateful translation (i.e. the duration of keypress)
-  math::Vec2f motion;
+  v2f motion;
 };
 
 namespace camera
@@ -42,12 +42,12 @@ SetView(const Camera* cam, math::Mat4f* view)
 
 // Transform matrix is orientating the click to take into consideration
 // camera rotation / scale / translation.
-math::Vec3f
-ScreenToWorldSpace(const Camera* cam, const math::Vec3f screen)
+v3f
+ScreenToWorldSpace(const Camera* cam, const v3f screen)
 {
   math::Mat4f camera_transform = math::Rotation(cam->orientation) *
                                  math::Translation(cam->position);
-  math::Vec3f ret = camera_transform * screen;
+  v3f ret = camera_transform * screen;
 
   return ret;
 }
@@ -55,12 +55,12 @@ ScreenToWorldSpace(const Camera* cam, const math::Vec3f screen)
 void
 InitialCamera(Camera* cam)
 {
-  cam->position = math::Vec3f(400.f, 400.f, 0.f);
-  // cam->orientation.Set(45.f, math::Vec3f(0.f, 0.f, 1.f));
+  cam->position = v3f(400.f, 400.f, 0.f);
+  // cam->orientation.Set(45.f, v3f(0.f, 0.f, 1.f));
 }
 
 void
-OrientCamera(const math::Vec3f& dir, Camera* cam)
+OrientCamera(const v3f& dir, Camera* cam)
 {
   cam->orientation.Set(0.f, dir);
 }

@@ -4,7 +4,7 @@
 
 struct Combined {
   uint64_t entity_id;
-  math::Vec3f vec;
+  v3f vec;
 } __attribute__((packed));
 
 int
@@ -14,7 +14,7 @@ main()
   std::cout << sizeof(uint64_t) << std::endl;
   std::cout << sizeof(Combined) << std::endl;
 
-  math::Vec3f data;
+  v3f data;
 
   data.x = 0;
   data.y = 1;

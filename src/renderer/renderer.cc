@@ -242,9 +242,9 @@ CreateRenderable(int vert_count, GLfloat* verts, GLenum mode)
 }
 
 void
-RenderTag(const RenderTag& tag, const math::Vec3f& position,
-          const math::Vec3f& scale, const math::Quatf& orientation,
-          const math::Vec4f& color)
+RenderTag(const RenderTag& tag, const v3f& position,
+          const v3f& scale, const math::Quatf& orientation,
+          const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(tag.vao_reference);
@@ -259,8 +259,8 @@ RenderTag(const RenderTag& tag, const math::Vec3f& position,
 }
 
 void
-RenderTriangle(const math::Vec3f& position, const math::Vec3f& scale,
-               const math::Quatf& orientation, const math::Vec4f& color)
+RenderTriangle(const v3f& position, const v3f& scale,
+               const math::Quatf& orientation, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.triangle_vao_reference);
@@ -275,8 +275,8 @@ RenderTriangle(const math::Vec3f& position, const math::Vec3f& scale,
 }
 
 void
-RenderRectangle(const math::Vec3f& position, const math::Vec3f& scale,
-                const math::Quatf& orientation, const math::Vec4f& color)
+RenderRectangle(const v3f& position, const v3f& scale,
+                const math::Quatf& orientation, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.rectangle_vao_reference);
@@ -291,14 +291,14 @@ RenderRectangle(const math::Vec3f& position, const math::Vec3f& scale,
 }
 
 void
-RenderRectangle(const math::Rect& rect, const math::Vec4f& color)
+RenderRectangle(const math::Rect& rect, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   // Texture state has quad with length 1 geometry. This makes scaling simpler
   // as we can use the width / height directly in scale matrix.
   glBindVertexArray(kTextureState.vao_reference);
-  math::Vec3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, 0.0f);
-  math::Vec3f scale(rect.width, rect.height, 1.f);
+  v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, 0.0f);
+  v3f scale(rect.width, rect.height, 1.f);
   math::Mat4f model = math::Model(pos, scale);
   math::Mat4f matrix = kObserver.projection * kObserver.view * model;
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
@@ -310,12 +310,12 @@ RenderRectangle(const math::Rect& rect, const math::Vec4f& color)
 
 void
 RenderSmoothRectangle(const math::Rect& rect, float smoothing_radius,
-                      const math::Vec4f& color)
+                      const v4f& color)
 {
   glUseProgram(kRGG.smooth_rectangle_program.reference);
   glBindVertexArray(kTextureState.vao_reference);
-  math::Vec3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, 0.0f);
-  math::Vec3f scale(rect.width, rect.height, 1.f);
+  v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, 0.0f);
+  v3f scale(rect.width, rect.height, 1.f);
   math::Mat4f model = math::Model(pos, scale);
   math::Mat4f view_projection = kObserver.projection * kObserver.view;
   glUniform1f(kRGG.smooth_rectangle_program.smoothing_radius_uniform,
@@ -330,14 +330,14 @@ RenderSmoothRectangle(const math::Rect& rect, float smoothing_radius,
 }
 
 void
-RenderCircle(const math::Vec3f& position, float inner_radius,
-             float outer_radius, const math::Vec4f& color)
+RenderCircle(const v3f& position, float inner_radius,
+             float outer_radius, const v4f& color)
 {
   glUseProgram(kRGG.circle_program.reference);
   glBindVertexArray(kTextureState.vao_reference);
   // Translate and rotate the circle appropriately.
   math::Mat4f model = math::Model(
-      position, math::Vec3f(outer_radius * 2.f, outer_radius * 2.f, 0.0f));
+      position, v3f(outer_radius * 2.f, outer_radius * 2.f, 0.0f));
   math::Mat4f view_pojection = kObserver.projection * kObserver.view;
   glUniform1f(kRGG.circle_program.inner_radius_uniform, inner_radius);
   glUniform1f(kRGG.circle_program.outer_radius_uniform, outer_radius);
@@ -350,14 +350,14 @@ RenderCircle(const math::Vec3f& position, float inner_radius,
 }
 
 void
-RenderCircle(const math::Vec3f& position, float radius,
-             const math::Vec4f& color)
+RenderCircle(const v3f& position, float radius,
+             const v4f& color)
 {
   RenderCircle(position, 0.0f, radius, color);
 }
 
 math::Mat4f
-CreateLineTransform(const math::Vec3f& start, const math::Vec3f& end)
+CreateLineTransform(const v3f& start, const v3f& end)
 {
   // Line is the length of a meter on the horizontal axis.
   //
@@ -365,19 +365,19 @@ CreateLineTransform(const math::Vec3f& start, const math::Vec3f& end)
   // to meet the start / end nature of the line component.
 
   // Position is the midpoint of the start and end.
-  math::Vec3f translation = (start + end) / 2.f;
+  v3f translation = (start + end) / 2.f;
   // Angle between the two points in 2d.
-  math::Vec3f diff = end - start;
+  v3f diff = end - start;
   float angle = atan2(diff.y, diff.x) * (180.f / PI);
   float distance = math::Length(diff);
   return math::Model(
-      translation, math::Vec3f(distance / 2.f, distance / 2.f, 1.f),
-      math::Quatf(angle, math::Vec3f(0.f, 0.f, -1.f)));
+      translation, v3f(distance / 2.f, distance / 2.f, 1.f),
+      math::Quatf(angle, v3f(0.f, 0.f, -1.f)));
 }
 
 void
-RenderLine(const math::Vec3f& start, const math::Vec3f& end,
-           const math::Vec4f& color)
+RenderLine(const v3f& start, const v3f& end,
+           const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.line_vao_reference);
@@ -391,7 +391,7 @@ RenderLine(const math::Vec3f& start, const math::Vec3f& end,
 }
 
 void
-RenderGrid(math::Vec2f grid, math::Rectf bounds, const math::Vec4f& color)
+RenderGrid(v2f grid, math::Rectf bounds, const v4f& color)
 {
   // Prepare Geometry and color
   glUseProgram(kRGG.geometry_program.reference);
@@ -399,13 +399,13 @@ RenderGrid(math::Vec2f grid, math::Rectf bounds, const math::Vec4f& color)
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
 
-  math::Vec2f& bottom_left = bounds.min;
-  math::Vec2f& top_right = bounds.max;
+  v2f& bottom_left = bounds.min;
+  v2f& top_right = bounds.max;
 
   // Draw horizontal lines.
   for (float y = bottom_left.y; y < top_right.y; y += grid.y) {
-    auto start = math::Vec3f(bottom_left.x, y, 0.f);
-    auto end = math::Vec3f(top_right.x, y, 0.f);
+    auto start = v3f(bottom_left.x, y, 0.f);
+    auto end = v3f(top_right.x, y, 0.f);
     math::Mat4f matrix =
         kObserver.projection * kObserver.view * CreateLineTransform(start, end);
     glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
@@ -415,8 +415,8 @@ RenderGrid(math::Vec2f grid, math::Rectf bounds, const math::Vec4f& color)
 
   // Draw vertical lines.
   for (float x = bottom_left.x; x < top_right.x; x += grid.x) {
-    auto start = math::Vec3f(x, bottom_left.y, 0.f);
-    auto end = math::Vec3f(x, top_right.y, 0.f);
+    auto start = v3f(x, bottom_left.y, 0.f);
+    auto end = v3f(x, top_right.y, 0.f);
     math::Mat4f matrix =
         kObserver.projection * kObserver.view * CreateLineTransform(start, end);
     glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,

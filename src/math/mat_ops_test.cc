@@ -17,7 +17,7 @@ void
 CreateTranslationMatrix()
 {
   math::Mat4f translation_matrix =
-      math::CreateTranslationMatrix(math::Vec3f(1.0f, 2.0f, 3.0f));
+      math::CreateTranslationMatrix(v3f(1.0f, 2.0f, 3.0f));
   math::Mat4f desired{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
                       0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 2.0f, 3.0f, 1.0f};
   assert(translation_matrix == desired);

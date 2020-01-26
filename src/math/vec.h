@@ -489,11 +489,11 @@ Normalize(const Vec4<T>& v)
   return v / Length(v);
 }
 
-using Vec2i = Vec2<int>;
-using Vec2f = Vec2<float>;
-
-using Vec3f = Vec3<float>;
-
-using Vec4f = Vec4<float>;
-
 }  // namespace math
+
+using v2i = math::Vec2<int>;
+using v2f = math::Vec2<float>;
+
+using v3f = math::Vec3<float>;
+
+using v4f = math::Vec4<float>;

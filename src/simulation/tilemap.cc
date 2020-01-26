@@ -24,7 +24,7 @@ enum TileType {
 };
 
 struct Tile {
-  math::Vec2i pos;
+  v2i pos;
   TileType type;
 };
 
@@ -33,14 +33,14 @@ struct Tilemap {
 };
 
 constexpr int kMaxNeighbor = 8;
-static const math::Vec2i kNeighbor[kMaxNeighbor] = {
-    math::Vec2i(-1, 0), math::Vec2i(1, 0),   math::Vec2i(0, 1),
-    math::Vec2i(0, -1), math::Vec2i(1, 1),   math::Vec2i(-1, 1),
-    math::Vec2i(1, -1), math::Vec2i(-1, -1),
+static const v2i kNeighbor[kMaxNeighbor] = {
+    v2i(-1, 0), v2i(1, 0),   v2i(0, 1),
+    v2i(0, -1), v2i(1, 1),   v2i(-1, 1),
+    v2i(1, -1), v2i(-1, -1),
 };
 
 static Tilemap kTilemap;
-static math::Vec2i kInvalidTile = math::Vec2i{-1, -1};
+static v2i kInvalidTile = v2i{-1, -1};
 
 // clang-format off
 static int kDefaultMap[kMapHeight][kMapWidth] = {
@@ -93,7 +93,7 @@ InitializeTilemap()
 }
 
 // Returns the center position of the tile.
-math::Vec2f
+v2f
 TileToWorld(const Tile& tile)
 {
   return {(tile.pos.x * kTileWidth) + kTileWidth / 2.f,
@@ -101,15 +101,15 @@ TileToWorld(const Tile& tile)
 }
 
 // Returns the center position of the tile.
-math::Vec2f
-TilePosToWorld(const math::Vec2i& pos)
+v2f
+TilePosToWorld(const v2i& pos)
 {
   return {((float)pos.x * kTileWidth) + kTileWidth / 2.f,
           ((float)pos.y * kTileHeight) + kTileHeight / 2.f};
 }
 
-math::Vec2i
-WorldToTilePos(const math::Vec2f& pos)
+v2i
+WorldToTilePos(const v2f& pos)
 {
   int x = (int)pos.x / kTileWidth;
   int y = (int)pos.y / kTileHeight;
@@ -118,7 +118,7 @@ WorldToTilePos(const math::Vec2f& pos)
 
 // Returns true for positions that exist as a tile in kTilemap
 bool
-TileOk(math::Vec2i pos)
+TileOk(v2i pos)
 {
   if (pos.x < 0) return false;
   if (pos.x >= kMapWidth) return false;
@@ -129,57 +129,57 @@ TileOk(math::Vec2i pos)
 
 // Returns kTileBlock for non-existent tiles, and TileType otherwise.
 TileType
-TileTypeSafe(const math::Vec2i& pos)
+TileTypeSafe(const v2i& pos)
 {
   if (!TileOk(pos)) return kTileBlock;
   return kTilemap.map[pos.y][pos.x].type;
 }
 
 // Returns any neighbor of type kTileOpen
-math::Vec2i
-TileOpenAdjacent(const math::Vec2i pos)
+v2i
+TileOpenAdjacent(const v2i pos)
 {
   if (TileTypeSafe(pos) == kTileOpen) return pos;
 
   for (int i = 0; i < kMaxNeighbor; ++i) {
-    math::Vec2i neighbor = pos + kNeighbor[i];
+    v2i neighbor = pos + kNeighbor[i];
     if (TileTypeSafe(neighbor) == kTileOpen) return neighbor;
   }
 
   return kInvalidTile;
 }
 
-math::Vec3f
-TileAvoidWalls(const math::Vec2i pos)
+v3f
+TileAvoidWalls(const v2i pos)
 {
-  math::Vec2i avoidance = {};
+  v2i avoidance = {};
   for (int i = 0; i < kMaxNeighbor; ++i) {
-    math::Vec2i neighbor = pos + kNeighbor[i];
+    v2i neighbor = pos + kNeighbor[i];
     if (TileTypeSafe(neighbor) != kTileOpen) {
-      math::Vec2i away = (pos - neighbor);
+      v2i away = (pos - neighbor);
       avoidance += away;
     }
   }
 
-  return math::Vec3f(avoidance.x, avoidance.y, 0.0f);
+  return v3f(avoidance.x, avoidance.y, 0.0f);
 }
 
-math::Vec3f
-TileVacuum(const math::Vec2i pos)
+v3f
+TileVacuum(const v2i pos)
 {
-  math::Vec2i attraction = {};
+  v2i attraction = {};
   for (int i = 0; i < kMaxNeighbor; ++i) {
-    math::Vec2i neighbor = pos + kNeighbor[i];
+    v2i neighbor = pos + kNeighbor[i];
     if (TileTypeSafe(neighbor) != kTileOpen) {
-      math::Vec2i toward = (neighbor - pos);
+      v2i toward = (neighbor - pos);
       attraction += toward;
     }
   }
 
-  return math::Vec3f(attraction.x, attraction.y, 0.0f);
+  return v3f(attraction.x, attraction.y, 0.0f);
 }
 
-math::Vec2i
+v2i
 TypeOnGrid(TileType type)
 {
   for (int i = 0; i < kMapHeight; ++i) {
@@ -194,7 +194,7 @@ TypeOnGrid(TileType type)
   return {-1, -1};
 }
 
-math::Vec2i
+v2i
 AdjacentOnGrid(TileType type)
 {
   for (int i = 0; i < kMapHeight; ++i) {

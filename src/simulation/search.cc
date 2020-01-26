@@ -7,12 +7,12 @@
 namespace simulation
 {
 struct PathNode {
-  math::Vec2i from;
+  v2i from;
   bool checked;
 };
 
 struct Path {
-  math::Vec2i tile[kMapHeight * kMapWidth];
+  v2i tile[kMapHeight * kMapWidth];
   int size;
 };
 
@@ -20,7 +20,7 @@ struct Search {
   // Map used for pathfinding calculations.
   PathNode path_map[kMapHeight][kMapWidth];
   // BFS queue.
-  math::Vec2i queue[kMapHeight * kMapWidth];
+  v2i queue[kMapHeight * kMapWidth];
   int queue_size;
   int queue_ptr;
   // The resulting path as calculated from the last call to PathTo.
@@ -30,7 +30,7 @@ struct Search {
 static Search kSearch;
 
 Path*
-PathTo(const math::Vec2i& start, const math::Vec2i& end)
+PathTo(const v2i& start, const v2i& end)
 {
   if (!TileOk(end)) return nullptr;
   if (!TileOk(start)) return nullptr;
@@ -59,7 +59,7 @@ PathTo(const math::Vec2i& start, const math::Vec2i& end)
     if (node == end) break;
 
     for (int i = 0; i < kMaxNeighbor; ++i) {
-      const math::Vec2i neighbor = node + kNeighbor[i];
+      const v2i neighbor = node + kNeighbor[i];
       if (TileTypeSafe(neighbor) != kTileOpen) continue;
 
       if (path_map[neighbor.y][neighbor.x].checked == true) continue;
@@ -93,7 +93,7 @@ PathTo(const math::Vec2i& start, const math::Vec2i& end)
 }
 
 uint64_t
-BfsReplace(math::Vec2i start, const uint64_t limit, TileType seek, TileType set)
+BfsReplace(v2i start, const uint64_t limit, TileType seek, TileType set)
 {
   uint64_t count = 0;
   if (!TileOk(start)) return count;
@@ -123,7 +123,7 @@ BfsReplace(math::Vec2i start, const uint64_t limit, TileType seek, TileType set)
 
     auto& node = queue[qptr++];
     for (int i = 0; i < kMaxNeighbor; ++i) {
-      const math::Vec2i neighbor = node + kNeighbor[i];
+      const v2i neighbor = node + kNeighbor[i];
       if (!TileOk(neighbor)) continue;
       if (path_map[neighbor.y][neighbor.x].checked == true) continue;
       path_map[neighbor.y][neighbor.x].checked = true;

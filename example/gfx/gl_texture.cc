@@ -4,7 +4,7 @@
 #include "simulation/camera.cc"
 
 void
-AlignToGrid(math::Vec2f grid, math::Rectf* world)
+AlignToGrid(v2f grid, math::Rectf* world)
 {
   float x_align = fmodf(world->min.x, grid.x);
   float y_align = fmodf(world->min.y, grid.y);
@@ -21,18 +21,18 @@ RenderGrid()
   world.min = {-dims.x / 2.f, -dims.y / 2.f};
   world.max = {dims.x / 2.f, dims.y / 2.f};
 
-  const math::Vec2f grid2(50.f, 50.f);
+  const v2f grid2(50.f, 50.f);
   math::Rectf world2 = world;
   AlignToGrid(grid2, &world2);
-  rgg::RenderGrid(grid2, world2, math::Vec4f(0.207f, 0.317f, 0.360f, 0.60f));
+  rgg::RenderGrid(grid2, world2, v4f(0.207f, 0.317f, 0.360f, 0.60f));
 
-  const math::Vec2f grid1(25.f, 25.f);
+  const v2f grid1(25.f, 25.f);
   math::Rectf world1 = world;
   AlignToGrid(grid1, &world1);
-  rgg::RenderGrid(grid1, world1, math::Vec4f(0.050f, 0.215f, 0.050f, 0.55f));
+  rgg::RenderGrid(grid1, world1, v4f(0.050f, 0.215f, 0.050f, 0.55f));
 }
 
-math::Mat4f PerspectiveProjection(math::Vec2f dims)
+math::Mat4f PerspectiveProjection(v2f dims)
 {
   return math::CreateOrthographicMatrix<float>(
       dims.x, 0.f, dims.y, 0.f, 0.0f, 0.f);
@@ -59,15 +59,15 @@ main(int argc, char** argv)
 
   rgg::RenderRectangle(
       math::Rect(0.0f, 0.0f, 50.0f, 50.0f),
-      math::Vec4f(1.0f, 0.0f, 0.0f, 1.0f));
+      v4f(1.0f, 0.0f, 0.0f, 1.0f));
 
   rgg::RenderRectangle(
       math::Rect(texture.width - 25.0f, texture.height - 25.0f, 25.0f, 25.0f),
-      math::Vec4f(0.0f, 1.0f, 0.0f, 1.0f));
+      v4f(0.0f, 1.0f, 0.0f, 1.0f));
 
   rgg::RenderRectangle(
       math::Rect(texture.width - 10.0f, 0.0f, 10.0f, 10.0f),
-      math::Vec4f(0.0f, 0.0f, 1.0f, 1.0f));
+      v4f(0.0f, 0.0f, 1.0f, 1.0f));
 
   rgg::EndRenderTo();
 
@@ -101,7 +101,7 @@ main(int argc, char** argv)
                        math::Rect(20.0f, -200.0f, 10.0f, 10.0f));
 
 
-    rgg::RenderText("Texture", 50.0f, 100.0f, math::Vec4f(1.f, 1.f, 1.f, 1.f));
+    rgg::RenderText("Texture", 50.0f, 100.0f, v4f(1.f, 1.f, 1.f, 1.f));
 
     RenderGrid();
 

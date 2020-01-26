@@ -15,12 +15,12 @@ struct Text {
 };
 
 struct UIClick {
-  math::Vec2f pos;
+  v2f pos;
 };
 
 struct Button {
   math::Rect rect;
-  math::Vec4f color;
+  v4f color;
 };
 
 DECLARE_ARRAY(Text, 32);
@@ -45,7 +45,7 @@ Render()
 
   for (int i = 0; i < kUsedText; ++i) {
     Text* text = &kText[i];
-    rgg::RenderText(text->msg, text->screen_x, text->screen_y, math::Vec4f());
+    rgg::RenderText(text->msg, text->screen_x, text->screen_y, v4f());
   }
 }
 
@@ -77,7 +77,7 @@ IsButtonClicked(const math::Rect& rect)
 }
 
 bool
-Button(const math::Rect& rect, const math::Vec4f& color)
+Button(const math::Rect& rect, const v4f& color)
 {
   struct Button* button = UseButton();
   if (!button) {
@@ -90,7 +90,7 @@ Button(const math::Rect& rect, const math::Vec4f& color)
 }
 
 void
-MouseClick(math::Vec2f pos)
+MouseClick(v2f pos)
 {
   UIClick* click = UseUIClick();
   if (!click) {

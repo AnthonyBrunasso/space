@@ -17,7 +17,7 @@ struct Gfx {
 };
 
 static Gfx kGfx;
-static math::Vec4f kWhite = math::Vec4f(1.f, 1.f, 1.f, 1.f);
+static v4f kWhite = v4f(1.f, 1.f, 1.f, 1.f);
 
 bool
 Initialize()
@@ -59,8 +59,8 @@ Initialize()
   for (int i = 0; i < kPodVert * 3; ++i) pod[i] *= 15.f;          // HA
   for (int i = 0; i < kMissileVert * 3; ++i) missile[i] *= 15.f;  // HA
   for (int i = 0; i < kExhaustVert * 3; ++i) exhaust[i] *= 15.f;  // HA
-  kGfx.asteroid_aabb.min = math::Vec3f(10000.0f, 10000.0f, 10000.0f);
-  kGfx.asteroid_aabb.max = math::Vec3f(-10000.0f, -10000.0f, -10000.0f);
+  kGfx.asteroid_aabb.min = v3f(10000.0f, 10000.0f, 10000.0f);
+  kGfx.asteroid_aabb.max = v3f(-10000.0f, -10000.0f, -10000.0f);
   for (int i = 0; i < kFloatCount; i += 3) {
     auto& aabb = kGfx.asteroid_aabb;
     float x = asteroid[i];
@@ -81,7 +81,7 @@ Initialize()
 }
 
 void
-AlignToGrid(math::Vec2f grid, math::Rectf* world)
+AlignToGrid(v2f grid, math::Rectf* world)
 {
   float x_align = fmodf(world->min.x, grid.x);
   float y_align = fmodf(world->min.y, grid.y);
@@ -97,19 +97,19 @@ Reset()
 }
 
 void
-Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
+Render(const math::Rectf visible_world, v2f mouse, v2f screen)
 {
   using namespace simulation;
 
-  const math::Vec2f grid2(50.f, 50.f);
+  const v2f grid2(50.f, 50.f);
   math::Rectf world2 = visible_world;
   AlignToGrid(grid2, &world2);
-  rgg::RenderGrid(grid2, world2, math::Vec4f(0.207f, 0.317f, 0.360f, 0.60f));
+  rgg::RenderGrid(grid2, world2, v4f(0.207f, 0.317f, 0.360f, 0.60f));
 
-  const math::Vec2f grid1(25.f, 25.f);
+  const v2f grid1(25.f, 25.f);
   math::Rectf world1 = visible_world;
   AlignToGrid(grid1, &world1);
-  rgg::RenderGrid(grid1, world1, math::Vec4f(0.050f, 0.215f, 0.050f, 0.45f));
+  rgg::RenderGrid(grid1, world1, v4f(0.050f, 0.215f, 0.050f, 0.45f));
 
   // Base ship
   float sys_power = .0f;
@@ -132,15 +132,15 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
   }
 
   {
-    math::Vec2i grid = TypeOnGrid(kTileEngine);
-    grid += math::Vec2i(-1, 2);
-    math::Vec3f world = TilePosToWorld(grid);
-    math::Vec4f engine_color =
-        math::Vec4f(1.f * sys_engine, 0.f, 1.f * sys_engine, 1.f);
-    rgg::RenderTag(kGfx.exhaust_tag, world, math::Vec3f(escale, 1.f, 1.f),
+    v2i grid = TypeOnGrid(kTileEngine);
+    grid += v2i(-1, 2);
+    v3f world = TilePosToWorld(grid);
+    v4f engine_color =
+        v4f(1.f * sys_engine, 0.f, 1.f * sys_engine, 1.f);
+    rgg::RenderTag(kGfx.exhaust_tag, world, v3f(escale, 1.f, 1.f),
                    math::Quatf(0.f, 0.f, 0.f, 1.f), engine_color);
     rgg::RenderTag(kGfx.exhaust_tag, world,
-                   math::Vec3f(fmodf(escale + 1.f, 2.f), 1.f, 1.f),
+                   v3f(fmodf(escale + 1.f, 2.f), 1.f, 1.f),
                    math::Quatf(0.f, 0.f, 0.f, 1.f), engine_color);
     escale += .1f;
   }
@@ -152,30 +152,30 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
 
       if (type_id == kTileOpen) continue;
 
-      math::Vec4f color;
+      v4f color;
       switch (type_id) {
         case kTileBlock:
-          color = math::Vec4f(1.f, 1.f, 1.f, 1.f);
+          color = v4f(1.f, 1.f, 1.f, 1.f);
           break;
         case kTileEngine:
-          color = math::Vec4f(1.0f * sys_engine, 0.0f, 1.f * sys_engine, 1.0f);
+          color = v4f(1.0f * sys_engine, 0.0f, 1.f * sys_engine, 1.0f);
           break;
         case kTilePower:
-          color = math::Vec4f(0.0f, 0.0f, 0.75f * sys_power, 1.0f);
+          color = v4f(0.0f, 0.0f, 0.75f * sys_power, 1.0f);
           break;
         case kTileMine:
-          color = math::Vec4f(0.0, 0.75f * sys_mine, 0.0f, 1.0f);
+          color = v4f(0.0, 0.75f * sys_mine, 0.0f, 1.0f);
           break;
         case kTileVacuum:
-          color = math::Vec4f(0.33f, 0.33f, 0.33f, 1.f);
+          color = v4f(0.33f, 0.33f, 0.33f, 1.f);
           break;
         case kTileTurret:
-          color = math::Vec4f(1.f * sys_turret, 0.f, 0.f, 1.f);
+          color = v4f(1.f * sys_turret, 0.f, 0.f, 1.f);
           break;
       };
 
-      rgg::RenderRectangle(math::Vec3f(TileToWorld(*tile)),
-                           math::Vec3f(1.f / 2.f, 1.f / 2.f, 1.f),
+      rgg::RenderRectangle(v3f(TileToWorld(*tile)),
+                           v3f(1.f / 2.f, 1.f / 2.f, 1.f),
                            math::Quatf(0.f, 0.f, 0.f, 1.f), color);
     }
   }
@@ -183,25 +183,25 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
 
-    const math::Vec3f* p = &unit->transform.position;
-    math::Vec2f grid = TilePosToWorld(WorldToTilePos(p->xy()));
+    const v3f* p = &unit->transform.position;
+    v2f grid = TilePosToWorld(WorldToTilePos(p->xy()));
 
-    math::Vec4f color;
+    v4f color;
     switch (unit->kind) {
       case 0:
-        color = math::Vec4f(0.26f, 0.33f, 0.68f, 1.f);
+        color = v4f(0.26f, 0.33f, 0.68f, 1.f);
         break;
       case 1:
-        color = math::Vec4f(0.66f, 0.33f, 0.33f, 1.f);
+        color = v4f(0.66f, 0.33f, 0.33f, 1.f);
         break;
       case 2:
-        color = math::Vec4f(0.74f, 0.33f, 0.33f, 1.f);
+        color = v4f(0.74f, 0.33f, 0.33f, 1.f);
         break;
       case 3:
-        color = math::Vec4f(0.86f, 0.33f, 0.33f, 1.f);
+        color = v4f(0.86f, 0.33f, 0.33f, 1.f);
         break;
       case 4:
-        color = math::Vec4f(0.99f, 0.33f, 0.33f, 1.f);
+        color = v4f(0.99f, 0.33f, 0.33f, 1.f);
         break;
       default:
         break;
@@ -210,28 +210,28 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
     rgg::RenderRectangle(unit->transform.position, unit->transform.scale,
                          unit->transform.orientation, color);
 
-    math::Vec4f hilite;
+    v4f hilite;
     switch (unit->kind) {
       case 0:
-        hilite = math::Vec4f(1.f, 0.f, 0.f, .45f);
+        hilite = v4f(1.f, 0.f, 0.f, .45f);
         break;
       default:
-        hilite = math::Vec4f(5.f, 5.f, 5.f, .45f);
+        hilite = v4f(5.f, 5.f, 5.f, .45f);
         break;
     };
 
     if (dsq(unit->transform.position, mouse) < kDsqSelect) {
       // Highlight the unit that would be selected on mouse click
-      rgg::RenderRectangle(math::Vec3f(grid),
-                           math::Vec3f(1.f / 2.f, 1.f / 2.f, 1.f),
+      rgg::RenderRectangle(v3f(grid),
+                           v3f(1.f / 2.f, 1.f / 2.f, 1.f),
                            math::Quatf(0.f, 0.f, 0.f, 1.f), hilite);
     }
 
     if (unit->command.type != Command::kMove) continue;
 
     // Show the path they are on if they have one.
-    math::Vec2i start = WorldToTilePos(p->xy());
-    math::Vec2i end = WorldToTilePos(unit->command.destination);
+    v2i start = WorldToTilePos(p->xy());
+    v2i end = WorldToTilePos(unit->command.destination);
 
     auto* path = PathTo(start, end);
     if (!path || path->size <= 1) {
@@ -240,10 +240,10 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
 
     for (int i = 0; i < path->size; ++i) {
       auto* t = &path->tile[i];
-      rgg::RenderRectangle(math::Vec3f(TilePosToWorld(*t)),
-                           math::Vec3f(1.f / 3.f, 1.f / 3.f, 1.f),
+      rgg::RenderRectangle(v3f(TilePosToWorld(*t)),
+                           v3f(1.f / 3.f, 1.f / 3.f, 1.f),
                            math::Quatf(0.f, 0.f, 0.f, 1.f),
-                           math::Vec4f(0.33f, 0.33f, 0.33f, 0.40f));
+                           v4f(0.33f, 0.33f, 0.33f, 0.40f));
     }
   }
 
@@ -260,13 +260,13 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
                    missile->transform.scale, missile->transform.orientation,
                    kWhite);
 
-    math::Vec2i tile = WorldToTilePos(missile->transform.position.xy());
+    v2i tile = WorldToTilePos(missile->transform.position.xy());
     if (!TileOk(tile)) continue;
     if (kShip[0].crew_think_flags & FLAG(kUnitAiTurret)) {
-      math::Vec2i grid = TypeOnGrid(kTileTurret);
-      math::Vec2f pos = TilePosToWorld(grid);
+      v2i grid = TypeOnGrid(kTileTurret);
+      v2f pos = TilePosToWorld(grid);
       rgg::RenderLine(missile->transform.position, pos,
-                      math::Vec4f(1.0f, 0.0, 0.0, 1.f));
+                      v4f(1.0f, 0.0, 0.0, 1.f));
     }
   }
 
@@ -277,8 +277,8 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
   }
 
   if (power_notify >= 10.f) {
-    math::Vec2i grid = TypeOnGrid(kTilePower);
-    math::Vec3f world = TilePosToWorld(grid);
+    v2i grid = TypeOnGrid(kTilePower);
+    v3f world = TilePosToWorld(grid);
     rgg::RenderCircle(world, power_notify - 10.f, power_notify, kWhite);
   }
   power_notify -= 1.f;
@@ -299,12 +299,12 @@ Render(const math::Rectf visible_world, math::Vec2f mouse, math::Vec2f screen)
       sprintf(buffer, "%u < %s < %u", unit->aknown_min[j], crew_aname[j],
               unit->aknown_max[j]);
       rgg::RenderText(buffer, screen.x - 225.f, screen.y - (j + 1) * 25.f,
-                      math::Vec4f());
+                      v4f());
     }
     sprintf(buffer, "%04.02fX %04.02fY", unit->transform.position.x,
             unit->transform.position.y);
     rgg::RenderText(buffer, screen.x - 225.f, screen.y - (CREWA_MAX + 1) * 25.f,
-                    math::Vec4f());
+                    v4f());
     break;
   }
 

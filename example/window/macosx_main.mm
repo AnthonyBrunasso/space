@@ -64,7 +64,7 @@ main(int argc, char** argv)
     while (window::PollEvent(&event)) {
     }
 
-    math::Vec2f size = window::GetWindowSize();
+    math::v2f size = window::GetWindowSize();
     std::cout << size.x << " " << size.y << std::endl;
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

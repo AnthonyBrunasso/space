@@ -18,7 +18,7 @@ Identity()
 }
 
 Mat4f
-Translation(const Vec3f& translation)
+Translation(const v3f& translation)
 {
   return Mat4f(1.0f, 0.0f, 0.0f, 0.0f,
                0.0f, 1.0f, 0.0f, 0.0f,
@@ -27,7 +27,7 @@ Translation(const Vec3f& translation)
 }
 
 Mat4f
-Scale(const Vec3f& scale)
+Scale(const v3f& scale)
 {
   return Mat4f(scale.x, 0.0f,    0.0f, 0.0f,
                0.0f, scale.y,    0.0f, 0.0f,
@@ -59,7 +59,7 @@ Rotation(const Quatf& quat)
 }
 
 Mat4f
-View(const Vec3f& translation, const Quatf& quat)
+View(const v3f& translation, const Quatf& quat)
 {
   auto mat = Rotation(quat).Transpose();
   Mat4f view;
@@ -143,7 +143,7 @@ Ortho2(float right, float left, float top, float bottom, float far_clip,
 }
 
 Mat4f
-Model(const math::Vec3f& position, const math::Vec3f& scale,
+Model(const v3f& position, const v3f& scale,
       const math::Quatf& quat) {
   Mat4f model;
   model[0] = scale.x * (1.f - 2.f * quat.y * quat.y - 2.f * quat.z * quat.z);
@@ -166,7 +166,7 @@ Model(const math::Vec3f& position, const math::Vec3f& scale,
 }
 
 Mat4f
-Model(const math::Vec3f& position, const math::Vec3f& scale) {
+Model(const v3f& position, const v3f& scale) {
   Mat4f model;
   model[0] = scale.x;
   model[1] = 0.0f;

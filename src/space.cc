@@ -79,30 +79,30 @@ SetProjection()
 {
   // TODO (AN): revisit camera assumptions
 #ifdef HEADLESS
-  math::Vec2f size = {1280.0f, 720.0f};
+  v2f size = {1280.0f, 720.0f};
 #else
-  math::Vec2f size = window::GetWindowSize();
+  v2f size = window::GetWindowSize();
 #endif
   rgg::GetObserver()->projection = math::Ortho(
       size.x, 0.f, size.y, 0.f, /* 2d so leave near/far 0*/ 0.f, 0.f);
 }
 
-math::Vec3f
-CoordToWorld(math::Vec2f xy)
+v3f
+CoordToWorld(v2f xy)
 {
   auto dims = window::GetWindowSize();
   return camera::ScreenToWorldSpace(GetLocalCamera(),
-                                    math::Vec3f(xy - dims * 0.5f));
+                                    v3f(xy - dims * 0.5f));
 }
 
 void
 SimulationEvent(const PlatformEvent* event, const Camera* camera,
-                math::Vec2f* translation)
+                v2f* translation)
 {
   switch (event->type) {
     case MOUSE_DOWN: {
       if (event->button == BUTTON_LEFT) {
-        math::Vec3f pos = CoordToWorld(event->position);
+        v3f pos = CoordToWorld(event->position);
         uint64_t unit = simulation::SelectUnit(pos);
         if (unit != kMaxUnit) {
           simulation::ToggleAi(unit);
@@ -285,7 +285,7 @@ main(int argc, char** argv)
     auto mouse = CoordToWorld(window::GetCursorPosition());
     sprintf(buffer, "Mouse Pos In World:(%.1f,%.1f)", mouse.x, mouse.y);
     imui::Text(buffer, 3.f, sz.y - 105.f);
-    math::Vec2i tile = simulation::WorldToTilePos(mouse.xy());
+    v2i tile = simulation::WorldToTilePos(mouse.xy());
     sprintf(buffer, "Minerals: %lu", kShip[0].mineral);
     imui::Text(buffer, 3.f, sz.y - 130.f);
     if (simulation::TileOk(tile)) {
@@ -299,19 +299,19 @@ main(int argc, char** argv)
 
     static float derp;
     if (imui::Button(math::Rect(10, 10, 40, 40),
-                     math::Vec4f(1.0f, 1.0f, 1.0f, 0.5f))) {
+                     v4f(1.0f, 1.0f, 1.0f, 0.5f))) {
       derp += 0.05f;
     }
 
     imui::Button(math::Rect(55, 10, 40, 40),
-                 math::Vec4f(1.0f, 1.0f - derp, 1.0f - derp, 0.5f));
+                 v4f(1.0f, 1.0f - derp, 1.0f - derp, 0.5f));
 
 #ifndef HEADLESS
     // The bottom left and top right of the screen with regards to the camera.
     const Camera* cam = GetLocalCamera();
-    const math::Vec2f dims = window::GetWindowSize();
-    math::Vec3f top_right = CoordToWorld(dims);
-    math::Vec3f bottom_left = CoordToWorld({0.f, 0.f});
+    const v2f dims = window::GetWindowSize();
+    v3f top_right = CoordToWorld(dims);
+    v3f bottom_left = CoordToWorld({0.f, 0.f});
     gfx::Render(math::Rectf{bottom_left.xy(), top_right.xy()}, mouse.xy(),
                 dims);
 #endif

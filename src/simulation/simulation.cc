@@ -45,10 +45,10 @@ constexpr float kDsqSelect = 25.f * 25.f;
 bool
 Initialize()
 {
-  math::Vec3f pos[] = {
-      math::Vec3f(300.f, 300.f, 0.f), math::Vec3f(100.f, 130.f, 0),
-      math::Vec3f(300.f, 400.f, 0), math::Vec3f(650.f, 460.f, 0)};
-  const math::Vec3f scale = math::Vec3f(0.25f, 0.25f, 0.f);
+  v3f pos[] = {
+      v3f(300.f, 300.f, 0.f), v3f(100.f, 130.f, 0),
+      v3f(300.f, 400.f, 0), v3f(650.f, 460.f, 0)};
+  const v3f scale = v3f(0.25f, 0.25f, 0.f);
   uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
   for (int i = 0; i < ARRAY_LENGTH(pos); ++i) {
     Unit* unit = UseUnit();
@@ -135,8 +135,8 @@ Think()
       kShip[i].danger += 1;
       for (int j = 0; j < kUsedUnit; ++j) {
         Unit* unit = &kUnit[j];
-        math::Vec2i grid = TypeOnGrid(kTilePower);
-        math::Vec2f power_module = TilePosToWorld(grid);
+        v2i grid = TypeOnGrid(kTilePower);
+        v2f power_module = TilePosToWorld(grid);
         if (dsq(unit->transform.position, power_module) < kDsqOperate) {
           if (operator_save_power(unit, kShip[i].power_delta)) {
             unit->think_flags |= FLAG(kUnitAiSavePower);
@@ -151,7 +151,7 @@ Think()
 
     // Crew objectives
     uint64_t satisfied = 0;
-    math::Vec2i module_position;
+    v2i module_position;
     module_position = TypeOnGrid(kTilePower);
     for (int j = 0; j < kUsedUnit; ++j) {
       if (dsq(kUnit[j].transform.position, TilePosToWorld(module_position)) <
@@ -196,7 +196,7 @@ Think()
 
   for (int i = 0; i < kUsedMissile; ++i) {
     Missile* missile = &kMissile[i];
-    math::Vec2i tile = WorldToTilePos(missile->transform.position.xy());
+    v2i tile = WorldToTilePos(missile->transform.position.xy());
     if (!TileOk(tile)) continue;
 
     if (kTilemap.map[tile.y][tile.x].type == kTileBlock) {
@@ -214,11 +214,11 @@ Think()
     Pod* pod = &kPod[i];
     // Keep-state on AiReturn
     const uint64_t keep_state = pod->think_flags & FLAG(kPodAiReturn);
-    math::Vec2f goal;
+    v2f goal;
     uint64_t think_flags = 0;
 
     // Goal is to return home, unless overidden
-    math::Vec2i grid = TypeOnGrid(kTileMine);
+    v2i grid = TypeOnGrid(kTileMine);
     goal = TilePosToWorld(grid);
 
     // TODO (AN): No ship/pod link exists yet
@@ -243,7 +243,7 @@ Think()
     }
     // Begin the journey home
     else if (pod->mineral >= kPodMaxMineral) {
-      math::Vec2f home;
+      v2f home;
       goal = home;
       think_flags |= FLAG(kPodAiReturn);
     } else {
@@ -328,8 +328,8 @@ Decide()
         break;
     };
 
-    math::Vec2i grid = AdjacentOnGrid(type);
-    math::Vec2f pos = TilePosToWorld(grid);
+    v2i grid = AdjacentOnGrid(type);
+    v2f pos = TilePosToWorld(grid);
     unit->command = Command{.type = Command::kMove, .destination = pos};
   }
 
@@ -340,7 +340,7 @@ Decide()
     }
     if (kShip[i].think_flags & FLAG(kShipAiSpawnPod)) {
       Pod* pod = UsePod();
-      pod->transform = Transform{.position = math::Vec3f(520.f, 600.f, 0.f)};
+      pod->transform = Transform{.position = v3f(520.f, 600.f, 0.f)};
     }
 
     if (kShip[i].crew_think_flags & FLAG(kUnitAiPower))
@@ -376,7 +376,7 @@ Decide()
 
   if (!kUsedAsteroid) {
     Asteroid* asteroid = UseAsteroid();
-    asteroid->transform = Transform{.position = math::Vec3f(800.f, 750.f, 0.f)};
+    asteroid->transform = Transform{.position = v3f(800.f, 750.f, 0.f)};
     asteroid->mineral_source = 200.f;
     asteroid->flags = 0;
   }
@@ -384,7 +384,7 @@ Decide()
   if (!kUsedMissile) {
     Missile* missile = UseMissile();
     missile->transform =
-        Transform{.position = math::Vec3f(300.f, -1000.f, 0.f)};
+        Transform{.position = v3f(300.f, -1000.f, 0.f)};
     missile->flags = 0;
   }
 
@@ -401,7 +401,7 @@ Decide()
       continue;
     }
 
-    missile->transform.position += math::Vec3f(0.0f, 5.f, 0.f);
+    missile->transform.position += v3f(0.0f, 5.f, 0.f);
   }
 
   for (int i = 0; i < kUsedAsteroid; ++i) {
@@ -416,7 +416,7 @@ Decide()
 
     asteroid->mineral_source -= (action == kAsteroidAiDeplete);
     asteroid->transform.scale =
-        math::Vec3f(1.f, 1.f, 1.f) * (asteroid->mineral_source / 200.f);
+        v3f(1.f, 1.f, 1.f) * (asteroid->mineral_source / 200.f);
     asteroid->transform.position.x -= 1.0f;
     if (asteroid->transform.position.x < 0.f) {
       asteroid->transform.position.x = 800.f;
@@ -428,7 +428,7 @@ Decide()
 
     uint64_t action = TZCNT(pod->think_flags);
     uint64_t mineral = 0;
-    math::Vec3f dir;
+    v3f dir;
     switch (action) {
       case kPodAiLostPower:
         dir = pod->last_heading;
@@ -471,14 +471,14 @@ Update()
   for (int i = 0; i < kUsedUnit;) {
     Unit* unit = &kUnit[i];
     Transform* transform = &unit->transform;
-    math::Vec2i tilepos = WorldToTilePos(transform->position.xy());
+    v2i tilepos = WorldToTilePos(transform->position.xy());
 
     if (!TileOk(tilepos)) {
       ReleaseUnit(i);
       continue;
     }
 
-    if (unit->vacuum == math::Vec3f()) {
+    if (unit->vacuum == v3f()) {
       // Crew has been sucked away into the vacuum
       if (kTilemap.map[tilepos.y][tilepos.x].type == kTileVacuum) {
         unit->vacuum = TileVacuum(tilepos);
@@ -492,7 +492,7 @@ Update()
       case Command::kMine: {
       } break;
       case Command::kMove: {
-        math::Vec2i end = WorldToTilePos(unit->command.destination);
+        v2i end = WorldToTilePos(unit->command.destination);
 
         auto* path = PathTo(tilepos, end);
         if (!path || path->size <= 1) {
@@ -500,7 +500,7 @@ Update()
           break;
         }
 
-        math::Vec3f dest = TilePosToWorld(path->tile[1]);
+        v3f dest = TilePosToWorld(path->tile[1]);
         auto dir = math::Normalize(dest - transform->position.xy());
         transform->position += (dir * 1.f) + (TileAvoidWalls(tilepos) * .15f);
       } break;
@@ -518,7 +518,7 @@ Update()
 }  // namespace simulation
 
 uint64_t
-SelectUnit(math::Vec3f world)
+SelectUnit(v3f world)
 {
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];

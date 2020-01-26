@@ -19,12 +19,12 @@ struct Quat {
   {
   }
 
-  Quat(float angle_degrees, const Vec3f& axis) { Set(angle_degrees, axis); }
+  Quat(float angle_degrees, const v3f& axis) { Set(angle_degrees, axis); }
 
-  Quat() : Quat(0.0f, Vec3f(0.f, 0.f, 1.f)) { Set(angle_degrees, axis); }
+  Quat() : Quat(0.0f, v3f(0.f, 0.f, 1.f)) { Set(angle_degrees, axis); }
 
   void
-  Set(float new_angle, const Vec3f& new_axis)
+  Set(float new_angle, const v3f& new_axis)
   {
     angle_degrees = new_angle;
     axis = Normalize(new_axis);
@@ -43,24 +43,24 @@ struct Quat {
     Set(angle, axis);
   }
 
-  Vec3f
+  v3f
   Forward() const
   {
-    return Vec3f(-2.f * x * z + 2.f * w * y, -2.f * y * z - 2.f * w * x,
+    return v3f(-2.f * x * z + 2.f * w * y, -2.f * y * z - 2.f * w * x,
                  -1.f + 2.f * x * x + 2.f * y * y);
   }
 
-  Vec3f
+  v3f
   Up() const
   {
-    return Vec3f(2.f * x * y + 2.f * w * z, 1.f - 2.f * x * x - 2.f * z * z,
+    return v3f(2.f * x * y + 2.f * w * z, 1.f - 2.f * x * x - 2.f * z * z,
                  2.f * y * z - 2.f * w * x);
   }
 
-  Vec3f
+  v3f
   Left() const
   {
-    return Vec3f(-2.f * x * z + 2.f * w * y, -2.f * y * z - 2.f * w * x,
+    return v3f(-2.f * x * z + 2.f * w * y, -2.f * y * z - 2.f * w * x,
                  -1.f + 2.f * x * x + 2.f * y * y);
   }
 
@@ -69,7 +69,7 @@ struct Quat {
   T y;
   T z;
 
-  Vec3f axis;
+  v3f axis;
   float angle_degrees;
 };
 

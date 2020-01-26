@@ -193,8 +193,8 @@ HandleMouseEvent(bool is_down, PlatformEvent* event, PlatformButton button) {
   POINT p;
   p.x = ps.x; p.y = ps.y;
   ScreenToClient(kWindow.hwnd, &p);
-  math::Vec2f dims = GetWindowSize();
-  event->position = math::Vec2f(p.x, dims.y - p.y);
+  v2f dims = GetWindowSize();
+  event->position = v2f(p.x, dims.y - p.y);
   event->type = is_down? MOUSE_DOWN : MOUSE_UP;
   event->button = button;
 }
@@ -468,7 +468,7 @@ PollEvent(PlatformEvent* event)
 {
   event->type = NOT_IMPLEMENTED;
   event->key = 0;
-  event->position = math::Vec2f(0.f, 0.f);
+  event->position = v2f(0.f, 0.f);
   kWindow.platform_event = event;
 
   MSG msg;
@@ -498,22 +498,22 @@ ShouldClose()
   return kWindow.should_close;
 }
 
-math::Vec2f
+v2f
 GetWindowSize()
 {
   RECT rect;
   GetClientRect(kWindow.hwnd, &rect);
-  return math::Vec2f((float)rect.right - rect.left, (float)rect.bottom - rect.top);
+  return v2f((float)rect.right - rect.left, (float)rect.bottom - rect.top);
 }
 
 
-math::Vec2f
+v2f
 GetCursorPosition()
 {
   POINT cursor;
   GetCursorPos(&cursor);
   ScreenToClient(kWindow.hwnd, &cursor);
-  math::Vec2f dims = GetWindowSize();
-  return math::Vec2f((float)cursor.x, dims.y - (float)cursor.y);
+  v2f dims = GetWindowSize();
+  return v2f((float)cursor.x, dims.y - (float)cursor.y);
 }
 }  // namespace window

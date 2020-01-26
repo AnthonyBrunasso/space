@@ -91,7 +91,7 @@ main()
   color_location = glGetUniformLocation(shader_program, "color_uniform");
   std::cout << "color_location: " << color_location << std::endl;
 
-  math::Vec4f color(1.f, 0.f, 1.f, 0.25f);
+  v4f color(1.f, 0.f, 1.f, 0.25f);
 
   while (!window::ShouldClose()) {
     PlatformEvent event;

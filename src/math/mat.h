@@ -235,9 +235,9 @@ using Mat4f = Mat<float, 4, 4>;
 //
 // m * v = [ x, ycos(theta) - zsin(theta), ysin(theta) + zcos(theta) ]
 template <class T>
-Vec3f operator*(const Mat<T, 4, 4>& lhs, const Vec3f& rhs)
+v3f operator*(const Mat<T, 4, 4>& lhs, const v3f& rhs)
 {
-  return Vec3f(
+  return v3f(
       lhs(0, 0) * rhs.x + lhs(0, 1) * rhs.y + lhs(0, 2) * rhs.z + lhs(0, 3),
       lhs(1, 0) * rhs.x + lhs(1, 1) * rhs.y + lhs(1, 2) * rhs.z + lhs(1, 3),
       lhs(2, 0) * rhs.x + lhs(2, 1) * rhs.y + lhs(2, 2) * rhs.z + lhs(2, 3));

@@ -227,7 +227,7 @@ PollEvent(PlatformEvent* event)
 {
   event->type = NOT_IMPLEMENTED;
   event->key = 0;
-  event->position = math::Vec2f(0.f, 0.f);
+  event->position = v2f(0.f, 0.f);
 
   NSEvent* nsevent = [NSApp nextEventMatchingMask:NSEventMaskAny
                                         untilDate:[NSDate distantPast]
@@ -253,19 +253,19 @@ ShouldClose()
   return false;
 }
 
-math::Vec2f
+v2f
 GetWindowSize()
 {
   NSRect frame = [kWindow.nsview frame];
-  return math::Vec2f(frame.size.width, frame.size.height);
+  return v2f(frame.size.width, frame.size.height);
 }
 
-math::Vec2f
+v2f
 GetCursorPosition()
 {
   NSPoint pos;
   pos = [kWindow.nswindow mouseLocationOutsideOfEventStream];
   // Change origin of screen to be top left to be consistent with other platforms.
-  return math::Vec2f(pos.x, pos.y);
+  return v2f(pos.x, pos.y);
 }
 }  // namespace window

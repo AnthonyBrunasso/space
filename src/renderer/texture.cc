@@ -140,8 +140,8 @@ RenderTexture(const Texture& texture, const math::Rect& src,
 #endif
   glBindBuffer(GL_ARRAY_BUFFER, kTextureState.uv_vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(uv), uv, GL_DYNAMIC_DRAW);
-  math::Vec3f pos(dest.x + dest.width / 2.f, dest.y + dest.height / 2.f,0.0f);
-  math::Vec3f scale(dest.width, dest.height, 1.f);
+  v3f pos(dest.x + dest.width / 2.f, dest.y + dest.height / 2.f,0.0f);
+  v3f scale(dest.width, dest.height, 1.f);
   math::Mat4f model = math::Model(pos, scale);
   math::Mat4f matrix = kObserver.projection * kObserver.view * model;
   glUniformMatrix4fv(kTextureState.matrix_uniform, 1, GL_FALSE, &matrix[0]);

@@ -84,9 +84,9 @@ MatrixVectorMultiplyTranslate()
       1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f,
       0.f, 0.f, 1.f, 0.f, 1.f, 2.f, 3.f, 1.f,
   };
-  math::Vec3f point(0.f, 0.f, 0.f);
-  math::Vec3f result = translate * point;
-  ASSERT_EQ(result, math::Vec3f(1.f, 2.f, 3.f));
+  v3f point(0.f, 0.f, 0.f);
+  v3f result = translate * point;
+  ASSERT_EQ(result, v3f(1.f, 2.f, 3.f));
 }
 
 void
@@ -96,9 +96,9 @@ MatrixVectorMultiplyScale()
       1.f, 0.f, 0.f, 0.f, 0.f, 2.f, 0.f, 0.f,
       0.f, 0.f, 3.f, 0.f, 0.f, 0.f, 0.f, 1.f,
   };
-  math::Vec3f point(1.f, 1.f, 1.f);
-  math::Vec3f result = scale * point;
-  ASSERT_EQ(result, math::Vec3f(1.f, 2.f, 3.f));
+  v3f point(1.f, 1.f, 1.f);
+  v3f result = scale * point;
+  ASSERT_EQ(result, v3f(1.f, 2.f, 3.f));
 }
 
 int

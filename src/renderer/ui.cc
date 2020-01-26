@@ -116,8 +116,6 @@ RenderText(const char* msg, v2f pos, const v4f& color)
 #endif
 
   int msg_len = strlen(msg);
-  float width, height, min_y_offset;
-  GetTextInfo(msg, msg_len, &width, &height, &min_y_offset);
   for (int i = 0; i < msg_len; ++i) {
     TextPoint text_point[6];
 
@@ -140,7 +138,7 @@ RenderText(const char* msg, v2f pos, const v4f& color)
     float v_h = (float)row->height;
 
     float offset_start_x = pos.x/* - row->xoffset*/;
-    float offset_start_y = pos.y - row->yoffset + height;
+    float offset_start_y = pos.y - row->yoffset + font.metadata.line_height;
 
 #if 0
     printf("id=%i char=%c width=%i height=%i xoffset=%i yoffset=%i"

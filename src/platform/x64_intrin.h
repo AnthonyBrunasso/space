@@ -1,3 +1,7 @@
+// TODO (AN): Reconsider file structure.
+// This file provides access to hardware intrinsics.
+// The platform layer provides software alternatives which we don't care about.
+// ASM would allow simplification and relocation to common/
 #pragma once
 
 #include <cstdint>

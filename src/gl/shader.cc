@@ -11,10 +11,10 @@
 namespace gl
 {
 constexpr uint64_t length = 4096;
-static char buffer[length];
+static char kBuffer[length];
 
 uint64_t
-GetShaderInfoLog(uint32_t shader_reference, uint64_t length, char log[length])
+GetShaderInfoLog(uint32_t shader_reference, uint64_t length, char* log)
 {
   int actual_length = 0;
   glGetShaderInfoLog(shader_reference, length, &actual_length, log);
@@ -22,7 +22,7 @@ GetShaderInfoLog(uint32_t shader_reference, uint64_t length, char log[length])
 }
 
 uint64_t
-GetProgramInfoLog(uint32_t program_reference, uint64_t length, char log[length])
+GetProgramInfoLog(uint32_t program_reference, uint64_t length, char* log)
 {
   int actual_length = 0;
   glGetProgramInfoLog(program_reference, length, &actual_length, log);
@@ -38,8 +38,8 @@ CompileShader(GLenum shader_type, const GLchar* const* src, GLuint* id)
   int params = -1;
   glGetShaderiv(*id, GL_COMPILE_STATUS, &params);
   if (params != GL_TRUE) {
-    GetShaderInfoLog(*id, length, buffer);
-    printf("Shader Log: %s\n", buffer);
+    GetShaderInfoLog(*id, length, kBuffer);
+    printf("Shader Log: %s\n", kBuffer);
     return false;
   }
   return true;
@@ -60,8 +60,8 @@ LinkShaders(GLuint* id, int n, ...)
   int params = -1;
   glGetProgramiv(*id, GL_LINK_STATUS, &params);
   if (params != GL_TRUE) {
-    GetProgramInfoLog(*id, length, buffer);
-    printf("Program Log: %s\n", buffer);
+    GetProgramInfoLog(*id, length, kBuffer);
+    printf("Program Log: %s\n", kBuffer);
     return false;
   }
   return true;

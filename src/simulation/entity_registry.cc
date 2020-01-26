@@ -25,10 +25,7 @@ class EntityRegistry
   EntityRegistry(void* buffer, uint64_t* count_ptr, uint32_t max, uint32_t size)
   {
     assert(kUsedRegistry < MAX_REGISTRY);
-    kRegistry[kUsedRegistry] = (Registry){.ptr = buffer,
-                                          .memb_count = count_ptr,
-                                          .memb_max = max,
-                                          .memb_size = size};
+    kRegistry[kUsedRegistry] = {buffer, count_ptr, max, size};
     kUsedRegistry += 1;
   }
 };
@@ -43,13 +40,16 @@ RegistryCompact()
     int upper = *r->memb_count - 1;
     // printf("Check %d [%lu entities]\n", i, *r->memb_count);
     const uint32_t memb_size = r->memb_size;
-    uint8_t zero[memb_size];
-    memset(&zero, 0, memb_size);
     uint64_t count = 0;
     for (; lower <= upper; ++lower) {
       uint8_t* lower_ent = (uint8_t*)r->ptr + lower * memb_size;
-
-      bool empty_lower = memcmp(lower_ent, zero, memb_size) == 0;
+      bool empty_lower = true; 
+      for (int i = 0; i < memb_size; ++i) {
+        if (lower_ent[i] != 0) {
+          empty_lower = false;
+          break;
+        }
+      }
       if (empty_lower) {
         uint8_t* upper_ent = (uint8_t*)r->ptr + upper * memb_size;
         memcpy(lower_ent, upper_ent, memb_size);

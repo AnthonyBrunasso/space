@@ -135,8 +135,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     v2i grid = TypeOnGrid(kTileEngine);
     grid += v2i(-1, 2);
     v3f world = TilePosToWorld(grid);
-    v4f engine_color =
-        v4f(1.f * sys_engine, 0.f, 1.f * sys_engine, 1.f);
+    v4f engine_color = v4f(1.f * sys_engine, 0.f, 1.f * sys_engine, 1.f);
     rgg::RenderTag(kGfx.exhaust_tag, world, v3f(escale, 1.f, 1.f),
                    math::Quatf(0.f, 0.f, 0.f, 1.f), engine_color);
     rgg::RenderTag(kGfx.exhaust_tag, world,
@@ -145,6 +144,9 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     escale += .1f;
   }
 
+  float fft =
+      float(kShip[0].frame - kShip[0].ftl.frame) * (1.f / kFtlFrameTime);
+  float ship_alpha = 1.f - fft;
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
       const Tile* tile = &kTilemap.map[i][j];
@@ -155,7 +157,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
       v4f color;
       switch (type_id) {
         case kTileBlock:
-          color = v4f(1.f, 1.f, 1.f, 1.f);
+          color = v4f(1.f, 1.f, 1.f, ship_alpha);
           break;
         case kTileEngine:
           color = v4f(1.0f * sys_engine, 0.0f, 1.f * sys_engine, 1.0f);
@@ -222,8 +224,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
 
     if (dsq(unit->transform.position, mouse) < kDsqSelect) {
       // Highlight the unit that would be selected on mouse click
-      rgg::RenderRectangle(v3f(grid),
-                           v3f(1.f / 2.f, 1.f / 2.f, 1.f),
+      rgg::RenderRectangle(v3f(grid), v3f(1.f / 2.f, 1.f / 2.f, 1.f),
                            math::Quatf(0.f, 0.f, 0.f, 1.f), hilite);
     }
 
@@ -240,10 +241,9 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
 
     for (int i = 0; i < path->size; ++i) {
       auto* t = &path->tile[i];
-      rgg::RenderRectangle(v3f(TilePosToWorld(*t)),
-                           v3f(1.f / 3.f, 1.f / 3.f, 1.f),
-                           math::Quatf(0.f, 0.f, 0.f, 1.f),
-                           v4f(0.33f, 0.33f, 0.33f, 0.40f));
+      rgg::RenderRectangle(
+          v3f(TilePosToWorld(*t)), v3f(1.f / 3.f, 1.f / 3.f, 1.f),
+          math::Quatf(0.f, 0.f, 0.f, 1.f), v4f(0.33f, 0.33f, 0.33f, 0.40f));
     }
   }
 

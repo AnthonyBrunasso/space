@@ -46,7 +46,7 @@ math::Mat4f Projection(v2f dims)
 }
 
 void
-RenderString(const char* msg, v2f pos, v2f dims)
+RenderStringWithBoundingBox(const char* msg, v2f pos, v2f dims)
 {
   int msg_len = strlen(msg);
   imui::Text(msg, pos);
@@ -82,11 +82,11 @@ id=101 char=e width=15 height=15 xoffset=0 yoffset=11 start_x=747.000 start_y=38
 #endif
   auto dims = window::GetWindowSize();
 
-  RenderString("quick", v2f(dims.x / 2.f, dims.y / 2.f), dims);
-  RenderString("The quick brown fox", v2f(dims.x / 2.f, dims.y / 2.f + 40.0f), dims);
-  RenderString("this, sentence, has, commas", v2f(dims.x / 2.f, dims.y / 2.f + 80.0f), dims);
-  RenderString("I kInd. OF, h4te_ font", v2f(dims.x / 2.f, dims.y / 2.f + 120.0f), dims);
-  RenderString("1.32241 + 32569 = yo momma", v2f(dims.x / 2.f, dims.y / 2.f + 160.0f), dims);
+  RenderStringWithBoundingBox("quick", v2f(dims.x / 2.f, dims.y / 2.f), dims);
+  RenderStringWithBoundingBox("The quick brown fox", v2f(dims.x / 2.f, dims.y / 2.f + 40.0f), dims);
+  RenderStringWithBoundingBox("this, sentence, has, commas", v2f(dims.x / 2.f, dims.y / 2.f + 80.0f), dims);
+  RenderStringWithBoundingBox("I kInd. OF, h4te_ font", v2f(dims.x / 2.f, dims.y / 2.f + 120.0f), dims);
+  RenderStringWithBoundingBox("1.32241 + 32569 = yo momma", v2f(dims.x / 2.f, dims.y / 2.f + 160.0f), dims);
 
   imui::BeginText(v2f(dims.x / 2.f - 400.0f, dims.y / 2.f + 160.0f));
   imui::Text("1.32241 + 32569 = yo momma");

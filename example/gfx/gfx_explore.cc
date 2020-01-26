@@ -64,21 +64,37 @@ main(int argc, char** argv)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     RenderGrid();
-
-
+#if 0
+id=72 char=H width=17 height=20 xoffset=1 yoffset=6 start_x=640.000 start_y=386.000 tex_w=0.066 tex_h=0.078
+id=101 char=e width=15 height=15 xoffset=0 yoffset=11 start_x=657.000 start_y=381.000 tex_w=0.059 tex_h=0.059
+id=108 char=l width=4 height=20 xoffset=1 yoffset=6 start_x=672.000 start_y=386.000 tex_w=0.016 tex_h=0.078
+id=108 char=l width=4 height=20 xoffset=1 yoffset=6 start_x=676.000 start_y=386.000 tex_w=0.016 tex_h=0.078
+id=111 char=o width=15 height=15 xoffset=0 yoffset=11 start_x=680.000 start_y=381.000 tex_w=0.059 tex_h=0.059
+id=44 char=, width=4 height=6 xoffset=2 yoffset=24 start_x=695.000 start_y=368.000 tex_w=0.016 tex_h=0.023
+id=32 char=  width=3 height=1 xoffset=-1 yoffset=31 start_x=699.000 start_y=361.000 tex_w=0.012 tex_h=0.004
+id=116 char=t width=8 height=20 xoffset=0 yoffset=6 start_x=702.000 start_y=386.000 tex_w=0.031 tex_h=0.078
+id=104 char=h width=13 height=20 xoffset=1 yoffset=6 start_x=710.000 start_y=386.000 tex_w=0.051 tex_h=0.078
+id=101 char=e width=15 height=15 xoffset=0 yoffset=11 start_x=723.000 start_y=381.000 tex_w=0.059 tex_h=0.059
+id=114 char=r width=9 height=15 xoffset=1 yoffset=11 start_x=738.000 start_y=381.000 tex_w=0.035 tex_h=0.059
+id=101 char=e width=15 height=15 xoffset=0 yoffset=11 start_x=747.000 start_y=381.000 tex_w=0.059 tex_h=0.059
+#endif
     const char* msg = "Hello, there";
-
+    
+    v2f pos(dims.x / 2.f, dims.y / 2.f);
     int msg_len = strlen(msg);
-    float height = rgg::GetTextHeight(msg, msg_len);
+    float offset, max_y, min_y;
+    rgg::GetTextHeightInfo(msg, msg_len, &offset, &max_y, &min_y);
     float width = rgg::GetTextWidth(msg, msg_len);
 
-    imui::Text(msg, dims.x / 2.f, dims.y / 2.f);
+    //printf("(%.2f, %.2f)\n", width, offset);
+
+    imui::Text(msg, pos.x, pos.y);
 
     rgg::GetObserver()->projection =
       math::Ortho2(
           dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f);
 
-    rgg::RenderLineRectangle(math::Rect(dims.x / 2.f, dims.y / 2.f, width, height),
+    rgg::RenderLineRectangle(math::Rect(pos.x, pos.y, width, fmax(offset - min_y, max_y)),
                              v4f(1.0f, 0.0f, 0.0f, 1.0f));
 
     rgg::GetObserver()->projection = Projection(window::GetWindowSize());

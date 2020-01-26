@@ -17,7 +17,7 @@ struct Font {
 
 struct UI {
   Font font;
-  };
+};
 
 static UI kUI;
 
@@ -63,24 +63,25 @@ SetupUI()
   return true;
 }
 
-float
-GetTextHeight(const char* msg, int msg_len)
+void
+GetTextHeightInfo(const char* msg, int msg_len, float* offset,
+                  float* max_height, float* min_height)
 {
   auto& font = kUI.font;
-  // TODO: Bit of a hack. This finds the lowest point of the resulting vert
-  // list after the entire string has been constructed. Using that point all
-  // the other characters will be lifted to orient themselves against the
-  // provided x,y. This is required because the generated font sheet has
-  // origin top left and provides yoffset, the vertical distortion to line
-  // characters up, in regards to the top left of each character in the sheet.
-  float max_y = -1000.0f;
+  *offset = -1000.0f;
+  *min_height = 1000.0f;
+  *max_height = -1000.0f;
   for (int i = 0; i < msg_len; ++i) {
+    if (msg[i] == ' ') continue;
     const FntMetadataRow* row = &font.metadata.rows[msg[i]];
-    float test_y = (float)row->yoffset + (float)row->height;
-    if (test_y > max_y) max_y = test_y;
+    float offset_y = (float)row->yoffset + (float)row->height;
+    if (offset_y > *offset) *offset = offset_y;
+    float y = (float)row->height;
+    if (y < *min_height) *min_height = y;
+    if (y > *max_height) *max_height = y;
   }
-  return max_y;
 }
+
 
 float
 GetTextWidth(const char* msg, int msg_len)
@@ -122,7 +123,8 @@ RenderText(const char* msg, float x, float y, const v4f& color)
 #endif
 
   int msg_len = strlen(msg);
-  float height = GetTextHeight(msg, msg_len);
+  float offset, max_height, min_height;
+  GetTextHeightInfo(msg, msg_len, &offset, &max_height, &min_height);
   for (int i = 0; i < msg_len; ++i) {
     TextPoint text_point[6];
 
@@ -145,7 +147,7 @@ RenderText(const char* msg, float x, float y, const v4f& color)
     float v_h = (float)row->height;
 
     float offset_start_x = x/* - row->xoffset*/;
-    float offset_start_y = y - row->yoffset + height;
+    float offset_start_y = y - row->yoffset + offset;
 
 #if 0
     printf("id=%i char=%c width=%i height=%i xoffset=%i yoffset=%i"

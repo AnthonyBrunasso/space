@@ -1,5 +1,6 @@
 #pragma once
 
+#include <climits>
 #include <cstdio>
 
 #include "math/vec.h"
@@ -34,13 +35,12 @@ struct Tilemap {
 
 constexpr int kMaxNeighbor = 8;
 static const v2i kNeighbor[kMaxNeighbor] = {
-    v2i(-1, 0), v2i(1, 0),   v2i(0, 1),
-    v2i(0, -1), v2i(1, 1),   v2i(-1, 1),
-    v2i(1, -1), v2i(-1, -1),
+    v2i(-1, 0), v2i(1, 0),  v2i(0, 1),  v2i(0, -1),
+    v2i(1, 1),  v2i(-1, 1), v2i(1, -1), v2i(-1, -1),
 };
 
 static Tilemap kTilemap;
-static v2i kInvalidTile = v2i{-1, -1};
+static v2i kInvalidTile = v2i{0, 0};
 
 // clang-format off
 static int kDefaultMap[kMapHeight][kMapWidth] = {

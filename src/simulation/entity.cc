@@ -15,16 +15,54 @@
 
 #define DECLARE_GAME_QUEUE(type, count) DECLARE_QUEUE(type, count)
 
+// Common Flags
+enum ShipAiGoals {
+  kShipAiSpawnPod,
+  kShipAiPowerSurge,
+  kShipAiGoals = 64,
+};
+enum UnitAiGoals {
+  kUnitAiPower = 0,
+  kUnitAiMine,
+  kUnitAiThrust,
+  kUnitAiTurret,
+  kUnitAiSavePower,
+  kUnitAiGoals = 64,
+};
+enum PodAiGoals {
+  kPodAiLostPower,
+  kPodAiGather,
+  kPodAiUnload,
+  kPodAiReturn,
+  kPodAiApproach,
+  kPodAiGoals = 64,
+};
+enum AsteroidAiGoals {
+  kAsteroidAiImplode,
+  kAsteroidAiDeplete,
+};
+enum MissileAiGoals {
+  kMissileAiExplode,
+};
+enum FtlFlag {
+  kFtlTangible = 0,
+};
+
+// Common Structures 
 struct Transform {
   v3f position;
   v3f scale = v3f(1.f, 1.f, 1.f);
   math::Quatf orientation;
 };
 
-enum FtlFlag {
-  kFtlTangible = 0,
+struct FtlState {
+  // Number of frames the ftl is active: (frame - ftl_frame)
+  uint64_t frame;
+  // Stateful sideffect Flags
+  uint64_t state_flags = FLAG(kFtlTangible);
 };
 
+// TODO (AN): Move crew
 enum CrewAttrib {
   CREWA_STR,
   CREWA_INT,
@@ -54,6 +92,7 @@ const char* const crew_aname[] = {
       3,            \
   };
 
+// TODO (AN): Utiilty fnc
 float
 dsq(v3f dst, v3f src)
 {
@@ -103,6 +142,7 @@ struct Unit {
   Command command;
   uint64_t think_flags = 0;
   int kind = 0;
+  int ship = 0;
   uint8_t acurrent[CREWA_MAX];
   uint8_t aknown_min[CREWA_MAX] = CREW_AWORST;
   uint8_t aknown_max[CREWA_MAX] = CREW_ABEST;
@@ -110,12 +150,6 @@ struct Unit {
 
 DECLARE_GAME_TYPE(Unit, 8);
 
-struct FtlState {
-  // Number of frames the ftl is active: (frame - ftl_frame)
-  uint64_t frame;
-  // Stateful sideffect Flags
-  uint64_t state_flags = FLAG(kFtlTangible);
-};
 struct Ship {
   uint64_t think_flags = 0;
   uint64_t crew_think_flags = 0;

@@ -7,39 +7,11 @@
 
 #include "entity.cc"
 #include "ftl.cc"
+#include "mhitu.cc"
 #include "search.cc"
 
 namespace simulation
 {
-enum ShipAiGoals {
-  kShipAiSpawnPod,
-  kShipAiPowerSurge,
-  kShipAiGoals = 64,
-};
-enum UnitAiGoals {
-  kUnitAiPower = 0,
-  kUnitAiMine,
-  kUnitAiThrust,
-  kUnitAiTurret,
-  kUnitAiSavePower,
-  kUnitAiGoals = 64,
-};
-enum PodAiGoals {
-  kPodAiLostPower,
-  kPodAiGather,
-  kPodAiUnload,
-  kPodAiReturn,
-  kPodAiApproach,
-  kPodAiGoals = 64,
-};
-enum AsteroidAiGoals {
-  kAsteroidAiImplode,
-  kAsteroidAiDeplete,
-};
-enum MissileAiGoals {
-  kMissileAiExplode,
-};
-
 constexpr float kDsqOperate = 50.f * 35.f;
 constexpr float kDsqSelect = 25.f * 25.f;
 
@@ -199,14 +171,12 @@ Think()
     v2i tile = WorldToTilePos(missile->transform.position.xy());
     if (!TileOk(tile)) continue;
 
+    // ship entering ftl, cannot strike
+    if (kShip[0].frame - kShip[0].ftl.frame > 1) continue;
+
     if (kTilemap.map[tile.y][tile.x].type == kTileBlock) {
-      if (kShip[0].crew_think_flags & FLAG(kUnitAiTurret)) {
-        missile->flags = FLAG(kMissileAiExplode);
-        missile->tile_hit = {-1, -1};
-      } else {
-        missile->flags = FLAG(kMissileAiExplode);
-        missile->tile_hit = {tile.x, tile.y + 1};
-      }
+      missile->flags = FLAG(kMissileAiExplode);
+      missile->tile_hit = {tile.x, (tile.y + 1)};
     }
   }
 
@@ -399,9 +369,7 @@ Decide()
     uint64_t replaced;
 
     if (action == kMissileAiExplode) {
-      replaced = BfsReplace(missile->tile_hit, 8, kTileOpen, kTileVacuum);
-      printf("missile impact %d %d replaced %lu tiles\n", missile->tile_hit.x,
-             missile->tile_hit.y, replaced);
+      MissileHitShip(&kShip[0], missile);
       *missile = kZeroMissile;
       continue;
     }

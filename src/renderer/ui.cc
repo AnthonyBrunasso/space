@@ -96,7 +96,7 @@ math::Rect
 GetTextRect(const char* msg, int msg_len, float x, float y)
 {
   float offset, max_y, min_y, width;
-  rgg::GetTextInfo(msg, msg_len, &offset, &max_y, &min_y, &width);
+  GetTextInfo(msg, msg_len, &offset, &max_y, &min_y, &width);
   return math::Rect(x, y, width, fmax(offset - min_y, max_y));
 }
 

@@ -72,10 +72,9 @@ Render()
       math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f), math::Identity());
   for (int i = kReadUIClickRender; i < kWriteUIClickRender; ++i) {
     UIClickRender* render = &kUIClickRender[i % kMaxUIClickRender];
-    rgg::RenderLineRectangle(
-        math::Rect(render->pos.x - 2.5f, render->pos.y - 2.5f, 5.f, 5.f),
-                   v4f(1.f, 1.f, 1.f,
-                      ((float)render->render_frames / kClickForFrames)));
+    rgg::RenderCircle(render->pos, 5.f,
+                      v4f(1.f, 1.f, 1.f,
+                          (float)render->render_frames / kClickForFrames));
     --render->render_frames;
     if (!render->render_frames) {
       PopUIClickRender();

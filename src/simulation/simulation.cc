@@ -39,6 +39,7 @@ Initialize()
 
   UseShip();
   kShip[0].running = true;
+  kShip[0].level = 1;
 
   InitializeTilemap();
 
@@ -357,10 +358,12 @@ Decide()
     asteroid->flags = 0;
   }
 
-  if (!kUsedMissile) {
+  static float next_missile = 0.f;
+  while (kUsedMissile < kShip[0].level) {
     Missile* missile = UseMissile();
-    missile->transform = Transform{.position = v3f(300.f, -1000.f, 0.f)};
+    missile->transform = Transform{.position = v3f(300.f+next_missile, -1000.f, 0.f)};
     missile->flags = FLAG(kMissileAiFlight);
+    next_missile = fmodf(next_missile + 50.f, 150.f);
   }
 
   for (int i = 0; i < kUsedMissile; ++i) {

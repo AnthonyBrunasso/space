@@ -111,6 +111,23 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
   AlignToGrid(grid1, &world1);
   rgg::RenderGrid(grid1, world1, v4f(0.050f, 0.215f, 0.050f, 0.45f));
 
+  // Unit hover-over text
+  constexpr int MAX_HOVERTEXT = CREWA_MAX + 1;
+  char hover_text[MAX_HOVERTEXT][64] = {"", "", "", "", ""};
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* unit = &kUnit[i];
+    if (dsq(unit->transform.position, mouse) >= kDsqSelect) continue;
+
+    for (int j = 0; j < CREWA_MAX; ++j) {
+      snprintf(hover_text[j], 64, "[%u,%u] %s", unit->aknown_min[j],
+               unit->aknown_max[j], crew_aname[j]);
+    }
+    snprintf(hover_text[CREWA_MAX], 64, "(%04.02f,%04.02f)",
+             unit->transform.position.x, unit->transform.position.y);
+
+    break;
+  }
+
   // Base ship
   float sys_power = .0f;
   float sys_engine = .0f;
@@ -289,24 +306,12 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
                    pod->transform.orientation, kWhite);
   }
 
-  // Unit hover-over text
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
-    if (dsq(unit->transform.position, mouse) >= kDsqSelect) continue;
-
-    char buffer[64];
-    imui::BeginText(v2f(screen.x - 225.f, screen.y - 30.0f));
-    for (int j = 0; j < CREWA_MAX; ++j) {
-      sprintf(buffer, "%u < %s < %u", unit->aknown_min[j], crew_aname[j],
-              unit->aknown_max[j]);
-      imui::Text(buffer, kWhite);
-    }
-    sprintf(buffer, "%04.02fX %04.02fY", unit->transform.position.x,
-            unit->transform.position.y);
-    imui::Text(buffer, kWhite);
-    imui::EndText();
-    break;
+  // Hover text
+  imui::BeginText(v2f(screen.x - 225.f, screen.y - 30.0f));
+  for (int j = 0; j < MAX_HOVERTEXT + 1; ++j) {
+    imui::Text(hover_text[j], kWhite);
   }
+  imui::EndText();
 
   // Ui
   imui::Render();

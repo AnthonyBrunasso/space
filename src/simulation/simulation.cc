@@ -361,7 +361,8 @@ Decide()
   static float next_missile = 0.f;
   while (kUsedMissile < kShip[0].level) {
     Missile* missile = UseMissile();
-    missile->transform = Transform{.position = v3f(300.f+next_missile, -1000.f, 0.f)};
+    missile->transform =
+        Transform{.position = v3f(300.f + next_missile, -1000.f, 0.f)};
     missile->flags = FLAG(kMissileAiFlight);
     next_missile = fmodf(next_missile + 50.f, 150.f);
   }
@@ -453,7 +454,7 @@ Update()
     v2i tilepos = WorldToTilePos(transform->position.xy());
 
     if (!TileOk(tilepos)) {
-      ReleaseUnit(i);
+      *unit = kZeroUnit;
       continue;
     }
 

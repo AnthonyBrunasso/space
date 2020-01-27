@@ -25,13 +25,3 @@
     return t;                                      \
   }                                                \
                                                    \
-  void Release##type(uint64_t id)                  \
-  {                                                \
-    uint64_t used = kUsed##type;                   \
-    if (!used) return;                             \
-    if (id >= used) return;                        \
-    used -= 1;                                     \
-    kUsed##type = used;                            \
-    if (id == used) return;                        \
-    k##type[id] = k##type[used];                   \
-  }

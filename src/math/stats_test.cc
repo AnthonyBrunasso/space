@@ -47,5 +47,6 @@ main()
   printf("%f rolling stddev\n", rolling_stddev);
   float rolling_rsdev = 100 * rolling_stddev / fabs(StatsMean(&foo));
   printf("%f rolling rsdev\n", rolling_rsdev);
+  printf("%f via api\n", 100.f*StatsUnbiasedRsDev(&foo));
   return 0;
 }

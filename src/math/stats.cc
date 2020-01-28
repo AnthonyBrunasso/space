@@ -27,10 +27,10 @@ StatsVariance(const Stats *accum)
 }
 
 double
-StatsRsDev(const Stats *accum)
+StatsUnbiasedRsDev(const Stats *accum)
 {
-  double mean = StatsMean(accum);
-  return StatsVariance(accum) / (mean * mean);
+  return sqrt(accum->moments[2] /
+              (StatsMean(accum) * StatsMean(accum) * (accum->moments[0] - 1)));
 }
 
 double

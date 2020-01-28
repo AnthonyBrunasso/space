@@ -3,43 +3,43 @@
 #include <cmath>
 
 struct Stats {
-  double moments[3];
-  double min;
-  double max;
+  float moments[3];
+  float min;
+  float max;
 };
 
-double
+float
 StatsCount(const Stats *accum)
 {
   return accum->moments[0];
 }
 
-double
+float
 StatsMean(const Stats *accum)
 {
   return accum->moments[1];
 }
 
-double
+float
 StatsVariance(const Stats *accum)
 {
   return accum->moments[2] / accum->moments[0];
 }
 
-double
+float
 StatsUnbiasedRsDev(const Stats *accum)
 {
-  return sqrt(accum->moments[2] / (accum->moments[1] * accum->moments[1] *
+  return sqrtf(accum->moments[2] / (accum->moments[1] * accum->moments[1] *
                                    (accum->moments[0] - 1)));
 }
 
-double
+float
 StatsMin(const Stats *accum)
 {
   return accum->min;
 }
 
-double
+float
 StatsMax(const Stats *accum)
 {
   return accum->max;
@@ -60,14 +60,14 @@ StatsInitArray(unsigned n, Stats stats[static n])
 }
 
 void
-StatsAdd(double sample, Stats *accum)
+StatsAdd(float sample, Stats *accum)
 {
   // Calculate
-  double n = accum->moments[0];
-  double n1 = n + 1.0;
-  double diff_from_mean = sample - accum->moments[1];
-  double mean_accum = diff_from_mean / n1;
-  double delta2 = mean_accum * diff_from_mean * n;
+  float n = accum->moments[0];
+  float n1 = n + 1.0;
+  float diff_from_mean = sample - accum->moments[1];
+  float mean_accum = diff_from_mean / n1;
+  float delta2 = mean_accum * diff_from_mean * n;
 
   // Apply
   accum->moments[0] += 1.0;
@@ -75,6 +75,6 @@ StatsAdd(double sample, Stats *accum)
   accum->moments[2] += delta2;
 
   // Min/max
-  accum->max = fmax(sample, accum->max);
-  accum->min = fmin(sample, accum->min);
+  accum->max = fmaxf(sample, accum->max);
+  accum->min = fminf(sample, accum->min);
 }

@@ -9,7 +9,7 @@ struct Stats {
 };
 
 double
-StatsSampleCount(const Stats *accum)
+StatsCount(const Stats *accum)
 {
   return accum->moments[0];
 }
@@ -29,36 +29,20 @@ StatsVariance(const Stats *accum)
 double
 StatsUnbiasedRsDev(const Stats *accum)
 {
-  return sqrt(accum->moments[2] /
-              (StatsMean(accum) * StatsMean(accum) * (accum->moments[0] - 1)));
+  return sqrt(accum->moments[2] / (accum->moments[1] * accum->moments[1] *
+                                   (accum->moments[0] - 1)));
 }
 
 double
-stats_min(const Stats *accum)
+StatsMin(const Stats *accum)
 {
   return accum->min;
 }
 
 double
-stats_max(const Stats *accum)
+StatsMax(const Stats *accum)
 {
   return accum->max;
-}
-
-static void
-add_sample(double newValue, Stats *accum)
-{
-  // Calculate
-  double n = StatsSampleCount(accum);
-  double n1 = n + 1.0;
-  double diff_from_mean = newValue - StatsMean(accum);
-  double mean_accum = diff_from_mean / n1;
-  double delta2 = mean_accum * diff_from_mean * n;
-
-  // Apply
-  accum->moments[0] += 1.0;
-  accum->moments[1] += mean_accum;
-  accum->moments[2] += delta2;
 }
 
 void
@@ -76,9 +60,21 @@ StatsInitArray(unsigned n, Stats stats[static n])
 }
 
 void
-StatsSampleAdd(double sample, Stats *accum)
+StatsAdd(double sample, Stats *accum)
 {
-  add_sample(sample, accum);
-  accum->max = fmaxl(sample, accum->max);
-  accum->min = fminl(sample, accum->min);
+  // Calculate
+  double n = accum->moments[0];
+  double n1 = n + 1.0;
+  double diff_from_mean = sample - accum->moments[1];
+  double mean_accum = diff_from_mean / n1;
+  double delta2 = mean_accum * diff_from_mean * n;
+
+  // Apply
+  accum->moments[0] += 1.0;
+  accum->moments[1] += mean_accum;
+  accum->moments[2] += delta2;
+
+  // Min/max
+  accum->max = fmax(sample, accum->max);
+  accum->min = fmin(sample, accum->min);
 }

@@ -33,20 +33,20 @@ main()
 
   StatsInit(&foo);
   for (int i = 0; i < kLen; ++i) {
-    StatsSampleAdd(vals[i], &foo);
+    StatsAdd(vals[i], &foo);
   }
 
-  printf("%f samples\n", StatsSampleCount(&foo));
+  printf("%f samples\n", StatsCount(&foo));
   printf("%f rolling mean\n", StatsMean(&foo));
   printf("%f rolling variance\n", StatsVariance(&foo));
   printf("%f rolling sample variance\n",
-         StatsVariance(&foo) / (StatsSampleCount(&foo) - 1));
+         StatsVariance(&foo) / (StatsCount(&foo) - 1));
 
-  float rolling_stddev = sqrt(StatsVariance(&foo) * StatsSampleCount(&foo) /
-                              (StatsSampleCount(&foo) - 1));
+  float rolling_stddev =
+      sqrt(StatsVariance(&foo) * StatsCount(&foo) / (StatsCount(&foo) - 1));
   printf("%f rolling stddev\n", rolling_stddev);
   float rolling_rsdev = 100 * rolling_stddev / fabs(StatsMean(&foo));
   printf("%f rolling rsdev\n", rolling_rsdev);
-  printf("%f via api\n", 100.f*StatsUnbiasedRsDev(&foo));
+  printf("%f via api\n", 100.f * StatsUnbiasedRsDev(&foo));
   return 0;
 }

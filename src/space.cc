@@ -17,6 +17,7 @@ struct State {
   Clock_t game_clock;
   // Time it took to run a frame.
   uint64_t frame_time_usec = 0;
+  Stats stats;
   // Rough estimate of round-trip time
   uint64_t rtt_usec = 0;
   uint64_t turn_queue_depth = 0;
@@ -226,6 +227,7 @@ main(int argc, char** argv)
          1 + ((ANDN(PAGE - 1, max_ptr) - ANDN(PAGE - 1, min_ptr)) / PAGE));
 
   // Reset State
+  StatsInit(&kGameState.stats);
   kGameState.game_updates = 0;
   kGameState.game_jerk = 0;
   kGameState.frame_target_usec = 1000.f * 1000.f / kGameState.framerate;
@@ -275,7 +277,9 @@ main(int argc, char** argv)
     auto sz = window::GetWindowSize();
     char buffer[50];
     imui::BeginText(v2f(3.f, sz.y - 30.f));
-    sprintf(buffer, "Frame Time:%06lu us", kGameState.frame_time_usec);
+    sprintf(buffer, "Frame Time:%04.02f us [%02.02f%%]",
+            StatsMean(&kGameState.stats),
+            100.f * StatsUnbiasedRsDev(&kGameState.stats));
     imui::Text(buffer);
     sprintf(buffer, "Network Rtt:%06lu us [%lu/%lu queue]", kGameState.rtt_usec,
             kGameState.turn_queue_depth, MAX_NETQUEUE);
@@ -318,7 +322,9 @@ main(int argc, char** argv)
     imui::Reset();
 
     // Capture frame time before the potential stall on vertical sync
-    kGameState.frame_time_usec = platform::delta_usec(&kGameState.game_clock);
+    const uint64_t elapsed_usec = platform::delta_usec(&kGameState.game_clock);
+    kGameState.frame_time_usec = elapsed_usec;
+    StatsAdd(elapsed_usec, &kGameState.stats);
 
 #ifndef HEADLESS
     window::SwapBuffers();

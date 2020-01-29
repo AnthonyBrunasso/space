@@ -1,5 +1,5 @@
 #!/bin/bash
-source ./run_constants.sh
+source ./bash_constants.sh
 
 if [ -n "$unix" ]; then
   echo Building with $CXX $CXXFLAGS

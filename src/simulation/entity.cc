@@ -142,7 +142,7 @@ DECLARE_GAME_TYPE(Pod, 8);
 
 struct Unit {
   Transform transform;
-  v3f vacuum;
+  v3f vacuum = v3f();
   Command command;
   uint64_t think_flags = 0;
   uint64_t state_flags = 0;

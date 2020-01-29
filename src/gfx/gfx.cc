@@ -211,15 +211,18 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
         color = v4f(0.26f, 0.33f, 0.68f, 1.f);
         break;
       case 1:
-        color = v4f(0.66f, 0.33f, 0.33f, 1.f);
+        color = v4f(0.50f, .33f, .33f, 1.f);
         break;
       case 2:
-        color = v4f(0.74f, 0.33f, 0.33f, 1.f);
+        color = v4f(0.66f, 0.33f, 0.33f, 1.f);
         break;
       case 3:
-        color = v4f(0.86f, 0.33f, 0.33f, 1.f);
+        color = v4f(0.74f, 0.33f, 0.33f, 1.f);
         break;
       case 4:
+        color = v4f(0.86f, 0.33f, 0.33f, 1.f);
+        break;
+      case 5:
         color = v4f(0.99f, 0.33f, 0.33f, 1.f);
         break;
       default:
@@ -228,6 +231,12 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     // Draw the player.
     rgg::RenderRectangle(unit->transform.position, unit->transform.scale,
                          unit->transform.orientation, color);
+
+    // Space suit
+    if (unit->state_flags & FLAG(kUnitStateSpaceSuit)) {
+      rgg::RenderCircle(unit->transform.position, 13.f, 15.f,
+                        v4f(0.99f, 0.33f, 0.33f, 1.f));
+    }
 
     v4f hilite;
     switch (unit->kind) {

@@ -19,7 +19,8 @@ bool
 Initialize()
 {
   v3f pos[] = {v3f(300.f, 300.f, 0.f), v3f(100.f, 130.f, 0),
-               v3f(300.f, 400.f, 0), v3f(650.f, 460.f, 0)};
+               v3f(300.f, 400.f, 0), v3f(650.f, 460.f, 0),
+               v3f(100.f, 577.f, 0.f)};
   const v3f scale = v3f(0.25f, 0.25f, 0.f);
   uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
   for (int i = 0; i < ARRAY_LENGTH(pos); ++i) {
@@ -30,6 +31,7 @@ Initialize()
     // Everybody is unique!
     unit->kind = i + 1;
   }
+  kUnit[4].state_flags = FLAG(kUnitStateSpaceSuit);
 
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];

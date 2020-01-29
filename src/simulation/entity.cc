@@ -29,6 +29,9 @@ enum UnitAiGoals {
   kUnitAiSavePower,
   kUnitAiGoals = 64,
 };
+enum UnitState {
+  kUnitStateSpaceSuit,
+};
 enum PodAiGoals {
   kPodAiLostPower,
   kPodAiGather,
@@ -142,6 +145,7 @@ struct Unit {
   v3f vacuum;
   Command command;
   uint64_t think_flags = 0;
+  uint64_t state_flags = 0;
   int kind = 0;
   int ship = 0;
   uint8_t acurrent[CREWA_MAX];

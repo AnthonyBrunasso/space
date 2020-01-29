@@ -56,7 +56,7 @@ Initialize()
    3.0, 0.3f, 0.0, 0.0f, 0.0f, 0.0f};
   // clang-format on
   for (int i = 0; i < kFloatCount; ++i) asteroid[i] *= 15.f;      // HA
-  for (int i = 0; i < kPodVert * 3; ++i) pod[i] *= 15.f;          // HA
+  for (int i = 0; i < kPodVert * 3; ++i) pod[i] *= 22.f;          // HA
   for (int i = 0; i < kMissileVert * 3; ++i) missile[i] *= 15.f;  // HA
   for (int i = 0; i < kExhaustVert * 3; ++i) exhaust[i] *= 15.f;  // HA
   kGfx.asteroid_aabb.min = v3f(10000.0f, 10000.0f, 10000.0f);
@@ -202,6 +202,10 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
 
+    if (unit->state_flags & FLAG(kUnitStateInSpace)) {
+      continue;
+    }
+
     const v3f* p = &unit->transform.position;
     v2f grid = TilePosToWorld(WorldToTilePos(p->xy()));
 
@@ -234,7 +238,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
 
     // Space suit
     if (unit->state_flags & FLAG(kUnitStateSpaceSuit)) {
-      rgg::RenderCircle(unit->transform.position, 13.f, 15.f,
+      rgg::RenderCircle(unit->transform.position, 12.f, 14.f,
                         v4f(0.99f, 0.33f, 0.33f, 1.f));
     }
 
@@ -313,6 +317,14 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     Pod* pod = &kPod[i];
     rgg::RenderTag(kGfx.pod_tag, pod->transform.position, pod->transform.scale,
                    pod->transform.orientation, kWhite);
+
+    if (pod->think_flags & FLAG(kPodAiUnmanned)) continue;
+
+    rgg::RenderRectangle(pod->transform.position + v2f(15.f, 15.f),
+                         v3f(0.25f, 0.25f, 0.f), pod->transform.orientation,
+                         v4f(0.99f, 0.33f, 0.33f, 1.f));
+    rgg::RenderCircle(pod->transform.position + v2f(15.f, 15.f), 12.f, 14.f,
+                      v4f(0.99f, 0.33f, 0.33f, 1.f));
   }
 
   // Hover text

@@ -6,6 +6,8 @@
 
 #include "entity.cc"
 
+namespace simulation
+{
 constexpr uint64_t kFtlFrameTime = 60;
 constexpr uint64_t kFtlCost = 100;
 
@@ -41,3 +43,5 @@ FtlUpdate(const Ship* ship, FtlState* ftl)
 
   return false;
 }
+
+}  // namespace simulation

@@ -31,9 +31,12 @@ enum UnitAiGoals {
 };
 enum UnitState {
   kUnitStateSpaceSuit,
+  kUnitStateInSpace,
 };
+// TODO (AN): Document/test priority behaviors
 enum PodAiGoals {
   kPodAiLostPower,
+  kPodAiUnmanned,
   kPodAiGather,
   kPodAiUnload,
   kPodAiReturn,

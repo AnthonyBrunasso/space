@@ -13,6 +13,9 @@
 
 namespace simulation
 {
+constexpr float kDsqOperate = 50.f * 35.f;
+constexpr float kDsqOperatePod = 75.f * 75.f;
+
 bool
 Initialize()
 {
@@ -57,7 +60,7 @@ bool
 operator_save_power(Unit* unit, float power_delta)
 {
   uint8_t int_check = power_delta / 5.0;
-#ifdef AI_DEBUG
+#ifdef DEBUG_AI
   printf("%u int check to save_power %04.02f\n", int_check, power_delta);
 #endif
   bool success = (unit->acurrent[CREWA_INT] > int_check);
@@ -184,7 +187,8 @@ Think()
   for (int i = 0; i < kUsedPod; ++i) {
     Pod* pod = &kPod[i];
     // Keep-state on AiReturn
-    const uint64_t keep_state = pod->think_flags & FLAG(kPodAiReturn);
+    constexpr uint64_t keep = (FLAG(kPodAiReturn) | FLAG(kPodAiUnmanned));
+    const uint64_t keep_state = pod->think_flags & keep;
     v2f goal;
     uint64_t think_flags = 0;
 
@@ -192,13 +196,25 @@ Think()
     v2i grid = TypeOnGrid(kTileMine);
     goal = TilePosToWorld(grid);
 
-    // TODO (AN): No ship/pod link exists yet
-    if (kShip[0].sys_power < .5f) {
+    if (kShip[0].sys_mine < .5f) {
       think_flags |= FLAG(kPodAiLostPower);
     }
 
     // Stateful return home
-    if (keep_state) {
+    if (keep_state & FLAG(kPodAiUnmanned)) {
+      think_flags = keep_state;
+      // Waiting for spaceman in a spacesuit
+      for (int j = 0; j < kUsedUnit; ++j) {
+        if (0 == (kUnit[j].state_flags & FLAG(kUnitStateSpaceSuit))) continue;
+        if (dsq(kUnit[j].transform.position, pod->transform.position) <
+            kDsqOperatePod) {
+          printf("Crew in space %d\n", j);
+          think_flags = ANDN(FLAG(kPodAiUnmanned), think_flags);
+          kUnit[j].state_flags |= FLAG(kUnitStateInSpace);
+          break;
+        }
+      }
+    } else if (keep_state & FLAG(kPodAiReturn)) {
       // Pod has finished unloading
       if (pod->mineral == 0) {
         // derp
@@ -236,7 +252,7 @@ Think()
 
     pod->think_flags = think_flags;
     pod->goal = goal;
-#if AI_DEBUG
+#if DEBUG_AI
     printf("pod think 0x%lx keep_state 0x%lx minerals %lu \n", think_flags,
            keep_state, pod->mineral);
 #endif
@@ -264,7 +280,7 @@ Decide()
     // hero saves the day!
     if (unit->think_flags & FLAG(kUnitAiSavePower)) {
       kShip[0].power_delta = 0.0f;
-#ifdef AI_DEBUG
+#ifdef DEBUG_AI
       printf("Unit %lu prevented the power surge from damaging the ship\n",
              unit - kUnit);
 #endif
@@ -276,7 +292,7 @@ Decide()
     if (!possible) continue;
 
     uint64_t action = TZCNT(possible);
-#if AI_DEBUG
+#if DEBUG_AI
     printf(
         "[ %d unit ] [ 0x%lx think ] [ 0x%lx possible ] ship crew_think_flags "
         "0x%lx \n",
@@ -314,6 +330,7 @@ Decide()
     if (ship->think_flags & FLAG(kShipAiSpawnPod)) {
       Pod* pod = UsePod();
       pod->transform = Transform{.position = v3f(520.f, 600.f, 0.f)};
+      pod->think_flags = FLAG(kPodAiUnmanned);
     }
 
     if (ship->crew_think_flags & FLAG(kUnitAiPower))
@@ -407,7 +424,7 @@ Decide()
 
     uint64_t action = TZCNT(pod->think_flags);
     uint64_t mineral = 0;
-    v3f dir;
+    v3f dir = v3f();
     switch (action) {
       case kPodAiLostPower:
         dir = pod->last_heading;
@@ -426,8 +443,14 @@ Decide()
         kShip[0].mineral += MIN(5, pod->mineral);
         pod->mineral -= MIN(5, pod->mineral);
         break;
+      case kPodAiUnmanned:
+        break;
     };
 
+#ifdef DEBUG_AI
+    printf("pod ai [ action %lu ] [ think %lu ] [dir %f %f]\n", action,
+           pod->think_flags, dir.x, dir.y);
+#endif
     pod->transform.position += dir * 2.0;
     pod->last_heading = dir.xy();
   }

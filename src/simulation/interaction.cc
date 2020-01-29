@@ -4,7 +4,6 @@
 
 namespace simulation
 {
-constexpr float kDsqOperate = 50.f * 35.f;
 constexpr float kDsqSelect = 25.f * 25.f;
 
 bool

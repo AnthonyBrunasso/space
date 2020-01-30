@@ -88,6 +88,7 @@ id=101 char=e width=15 height=15 xoffset=0 yoffset=11 start_x=747.000 start_y=38
   imui::Text("I kInd. OF, h4te_ font", gfx::kWhite);
   imui::Text("The quick brown fox", gfx::kWhite);
   imui::Text("quick", gfx::kWhite);
+  imui::Text("To TL td tj Tj Pj pj PJ", gfx::kWhite);
   imui::EndText();
 }
 

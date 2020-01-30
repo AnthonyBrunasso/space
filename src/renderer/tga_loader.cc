@@ -4,6 +4,12 @@
 #include <cstdlib>
 #include <cstring>
 
+struct Kerning {
+  int second[16];
+  int amount[16];
+  int count = 0;
+};
+
 // http://tfc.duke.free.fr/coding/tga_specs.pdf
 struct FntMetadataRow {
   int id;
@@ -14,6 +20,7 @@ struct FntMetadataRow {
   int xoffset;
   int yoffset;
   int xadvance;
+  Kerning kerning;
 };
 
 struct FntMetadata {
@@ -38,10 +45,28 @@ LoadFntMetadata(const char* file)
     }
     // First 5 lines are header.
     if (i <= 5) continue;
-    // After that comes the kernings.
-    if (i > 100) return metadata;
+    if (i == 101) continue;
     // TODO: These offsets looks like they are pretty predictable but
     // maybe they're not?? This is quick and works for now so just keep this.
+
+    // Kernings.
+    if (i > 100) {
+      //printf("%s\n", line);
+      int id = atoi(&line[14]);
+      FntMetadataRow* row = &metadata.rows[id];
+      Kerning* kerning = &row->kerning;
+      kerning->second[kerning->count] = atoi(&line[25]);
+      kerning->amount[kerning->count] = atoi(&line[36]);
+#if 0
+      printf("first: %i second: %i amount: %i\n",
+             id, kerning->second[kerning->count],
+             kerning->amount[kerning->count]);
+#endif
+      ++kerning->count;
+      continue;
+    }
+    // Character metadata.
+    printf("%s\n", line);
     int id = atoi(&line[8]);
     FntMetadataRow* row = &metadata.rows[id];
     row->id = atoi(&line[8]);

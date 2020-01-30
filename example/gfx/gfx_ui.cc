@@ -76,7 +76,6 @@ id=114 char=r width=9 height=15 xoffset=1 yoffset=11 start_x=738.000 start_y=381
 id=101 char=e width=15 height=15 xoffset=0 yoffset=11 start_x=747.000 start_y=381.000 tex_w=0.059 tex_h=0.059
 #endif
   auto dims = window::GetWindowSize();
-
   RenderStringWithBoundingBox("quick", v2f(dims.x / 2.f, dims.y / 2.f), dims);
   RenderStringWithBoundingBox("The quick brown fox", v2f(dims.x / 2.f, dims.y / 2.f + 40.0f), dims);
   RenderStringWithBoundingBox("this, sentence, has, commas", v2f(dims.x / 2.f, dims.y / 2.f + 80.0f), dims);
@@ -89,6 +88,7 @@ id=101 char=e width=15 height=15 xoffset=0 yoffset=11 start_x=747.000 start_y=38
   imui::Text("The quick brown fox", gfx::kWhite);
   imui::Text("quick", gfx::kWhite);
   imui::Text("To TL td tj Tj Pj pj PJ", gfx::kWhite);
+  imui::Text("1023", gfx::kWhite);
   imui::EndText();
 }
 

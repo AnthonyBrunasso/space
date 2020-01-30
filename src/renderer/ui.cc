@@ -98,7 +98,6 @@ GetTextRect(const char* msg, int msg_len, v2f pos)
 {
   float width, height, min_y_offset;
   GetTextInfo(msg, msg_len, &width, &height, &min_y_offset);
-  //printf("width: %.2f height: %.2f\n", width, height);
   return math::Rect(pos.x, pos.y, width, height - min_y_offset);
 }
 

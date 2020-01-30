@@ -5,8 +5,8 @@
 #include <cstring>
 
 struct Kerning {
-  int second[16];
-  int amount[16];
+  int second[20];
+  int amount[20];
   int count = 0;
 };
 
@@ -20,7 +20,7 @@ struct FntMetadataRow {
   int xoffset;
   int yoffset;
   int xadvance;
-  Kerning kerning;
+  Kerning kerning = {};
 };
 
 struct FntMetadata {
@@ -54,14 +54,10 @@ LoadFntMetadata(const char* file)
       //printf("%s\n", line);
       int id = atoi(&line[14]);
       FntMetadataRow* row = &metadata.rows[id];
+      assert(row->id != 0 && row->id == id);
       Kerning* kerning = &row->kerning;
       kerning->second[kerning->count] = atoi(&line[25]);
       kerning->amount[kerning->count] = atoi(&line[36]);
-#if 0
-      printf("first: %i second: %i amount: %i\n",
-             id, kerning->second[kerning->count],
-             kerning->amount[kerning->count]);
-#endif
       ++kerning->count;
       continue;
     }

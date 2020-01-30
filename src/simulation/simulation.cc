@@ -375,13 +375,14 @@ Decide()
     asteroid->flags = 0;
   }
 
+  const float missile_xrange = 50.f * kShip[0].level;
   static float next_missile = 0.f;
   while (kUsedMissile < kShip[0].level) {
     Missile* missile = UseMissile();
     missile->transform =
         Transform{.position = v3f(300.f + next_missile, -1000.f, 0.f)};
     missile->flags = FLAG(kMissileAiFlight);
-    next_missile = fmodf(next_missile + 50.f, 150.f);
+    next_missile = fmodf(next_missile + 50.f, missile_xrange);
   }
 
   for (int i = 0; i < kUsedMissile; ++i) {

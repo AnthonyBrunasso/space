@@ -65,6 +65,15 @@ SetupUI()
   return true;
 }
 
+int GetNextKerning(const FntMetadataRow* row, int second) {
+  for (int i = 0; i < row->kerning.count; ++i) {
+    if (row->kerning.second[i] == second) {
+      return row->kerning.amount[i];
+    }
+  }
+  return 0;
+}
+
 void
 GetTextInfo(const char* msg, int msg_len, float* width, float* height,
             float* min_y_offset)
@@ -73,11 +82,14 @@ GetTextInfo(const char* msg, int msg_len, float* width, float* height,
   *height = font.metadata.line_height;
   *width = 0.0f;
   *min_y_offset = 1000.0f;
+  int kerning_offset = 0;
   for (int i = 0; i < msg_len; ++i) {
     const FntMetadataRow* row = &font.metadata.rows[msg[i]];
-    *width += (float)row->width;
+    *width += (float)row->xadvance + kerning_offset;
     float y_offset = (float)row->yoffset;
     if (y_offset < *min_y_offset) *min_y_offset = y_offset;
+    if (i == msg_len - 1) continue;
+    kerning_offset = GetNextKerning(row, msg[i + 1]);
   }
 }
 
@@ -124,7 +136,7 @@ RenderText(const char* msg, v2f pos, const v4f& color)
     TextPoint text_point[6];
 
     const FntMetadataRow* row = &font.metadata.rows[msg[i]];
-
+    //printf("%i\n", msg[i]);
     // The character trying to render is invalid. This means the font sheet
     // has no corresponding entry for the ascii id msg[i].
     // This could occur if you are attempting to render a '\n'
@@ -140,7 +152,7 @@ RenderText(const char* msg, v2f pos, const v4f& color)
     // using the screen width and height.
     float v_w = (float)row->width;
     float v_h = (float)row->height;
-
+    
     float offset_start_x = pos.x + (float)kerning_offset;
     float offset_start_y = pos.y - row->yoffset + font.metadata.line_height;
 
@@ -177,11 +189,7 @@ RenderText(const char* msg, v2f pos, const v4f& color)
     if (i == msg_len - 1) continue;
     // Get the next kerning offset.
     int second = msg[i + 1];
-    for (int j = 0; j < row->kerning.count; ++j) {
-      if (row->kerning.second[i] == second) {
-        kerning_offset = row->kerning.amount[i];
-      }
-    }
+    kerning_offset = GetNextKerning(row, second);
   }
 }
 

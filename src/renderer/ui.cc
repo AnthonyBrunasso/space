@@ -119,6 +119,7 @@ RenderText(const char* msg, v2f pos, const v4f& color)
 #endif
 
   int msg_len = strlen(msg);
+  int kerning_offset = 0;
   for (int i = 0; i < msg_len; ++i) {
     TextPoint text_point[6];
 
@@ -140,7 +141,7 @@ RenderText(const char* msg, v2f pos, const v4f& color)
     float v_w = (float)row->width;
     float v_h = (float)row->height;
 
-    float offset_start_x = pos.x/* - row->xoffset*/;
+    float offset_start_x = pos.x + (float)kerning_offset;
     float offset_start_y = pos.y - row->yoffset + font.metadata.line_height;
 
 #if 0
@@ -172,7 +173,15 @@ RenderText(const char* msg, v2f pos, const v4f& color)
     glBindBuffer(GL_ARRAY_BUFFER, font.vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(text_point), text_point, GL_DYNAMIC_DRAW);
     glDrawArrays(GL_TRIANGLES, 0, 6);  // Draw the character 
-    pos.x += v_w;
+    pos.x += row->xadvance;
+    if (i == msg_len - 1) continue;
+    // Get the next kerning offset.
+    int second = msg[i + 1];
+    for (int j = 0; j < row->kerning.count; ++j) {
+      if (row->kerning.second[i] == second) {
+        kerning_offset = row->kerning.amount[i];
+      }
+    }
   }
 }
 

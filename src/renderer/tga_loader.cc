@@ -66,7 +66,6 @@ LoadFntMetadata(const char* file)
       continue;
     }
     // Character metadata.
-    printf("%s\n", line);
     int id = atoi(&line[8]);
     FntMetadataRow* row = &metadata.rows[id];
     row->id = atoi(&line[8]);

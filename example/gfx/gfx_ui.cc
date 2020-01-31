@@ -64,7 +64,7 @@ void
 TextTest()
 {
   auto dims = window::GetWindowSize();
-
+#if 1
   RenderStringWithBoundingBox(
       "quick", v2f(dims.x / 2.f, dims.y / 2.f), dims);
   RenderStringWithBoundingBox(
@@ -75,17 +75,23 @@ TextTest()
       "I kInd. OF, h4te_ font", v2f(dims.x / 2.f, dims.y / 2.f + 120.0f), dims);
   RenderStringWithBoundingBox(
       "1.32241 + 32569 = yo momma", v2f(dims.x / 2.f, dims.y / 2.f + 160.0f), dims);
+#endif
+
 
   imui::BeginText(v2f(dims.x / 2.f - 400.0f, dims.y / 2.f + 160.0f));
   imui::TextOptions options;
   options.highlight_color = v4f(1.0f, 0.0f, 0.0f, 1.0f);
   options.color = gfx::kWhite;
-  imui::Text("1.32241 + 32569 = yo momma", options);
-  imui::Text("I kInd. OF, h4te_ font", options);
-  imui::Text("The quick brown fox", options);
-  imui::Text("quick", options);
-  imui::Text("To TL td tj Tj Pj pj PJ", options);
-  imui::Text("1023", options);
+  static bool is_clicked = false;
+  if (imui::Text("Debug", options).highlighted) {
+    imui::Text("1.32241 + 32569 = yo momma", options);
+    imui::Text("I kInd. OF, h4te_ font", options);
+    imui::Text("The quick brown fox", options);
+    imui::Text("quick", options);
+    imui::Text("To TL td tj Tj Pj pj PJ", options);
+    imui::Text("1023", options);
+  }
+  imui::Text("Test", options);
   imui::EndText();
 }
 

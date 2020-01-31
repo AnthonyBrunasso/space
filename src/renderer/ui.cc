@@ -184,7 +184,7 @@ RenderText(const char* msg, v2f pos, const v4f& color)
     glBindBuffer(GL_ARRAY_BUFFER, font.vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(text_point), text_point, GL_DYNAMIC_DRAW);
     glDrawArrays(GL_TRIANGLES, 0, 6);  // Draw the character 
-    pos.x += row->xadvance;
+    pos.x += row->xadvance + kerning_offset;
     if (i == msg_len - 1) continue;
     // Get the next kerning offset.
     int second = msg[i + 1];

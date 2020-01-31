@@ -316,7 +316,7 @@ main(int argc, char** argv)
       imui::Text(buffer);
     } else if (simulation::ShipFtlReady()) {
       if (imui::Button(math::Rect(10, 10, 40, 40),
-                       v4f(1.0f, 0.0f, 1.0f, 0.75f))) {
+                       v4f(1.0f, 0.0f, 1.0f, 0.75f)).clicked) {
         simulation::ShipFtlInit();
       }
     }

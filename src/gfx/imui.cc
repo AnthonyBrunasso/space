@@ -12,7 +12,7 @@ constexpr int kClickForFrames = 100;
 
 static const v4f kWhite(1.f, 1.f, 1.f, 1.f);
 
-struct TextData {
+struct Result {
   math::Rect rect;
   bool highlighted = false;
   bool clicked = false;
@@ -120,10 +120,10 @@ Indent(int spaces)
   kIMUI.begin_mode.pos.x += spaces * row->xadvance;
 }
 
-TextData
+Result
 Text(const char* msg, v2f pos, TextOptions options)
 {
-  TextData data;
+  Result data;
   struct Text* text = UseText();
   if (!text) {
     printf("imui text count exhausted.\n");
@@ -146,7 +146,7 @@ Text(const char* msg, v2f pos, TextOptions options)
   return data;
 }
 
-TextData
+Result
 Text(const char* msg, v2f pos)
 {
   return Text(msg, pos, {kWhite, kWhite});
@@ -160,18 +160,18 @@ Begin(v2f start)
   begin_mode.set = true; 
 }
 
-TextData
+Result
 Text(const char* msg, TextOptions options)
 {
   auto& begin_mode = kIMUI.begin_mode;
   // Call StartText before this.
   assert(kIMUI.begin_mode.set);
-  TextData data = Text(msg, begin_mode.pos, options);
+  Result data = Text(msg, begin_mode.pos, options);
   begin_mode.pos.y -= data.rect.height;
   return data;
 }
 
-TextData
+Result
 Text(const char* msg)
 {
   return Text(msg, {kWhite, kWhite});
@@ -183,17 +183,21 @@ End()
   kIMUI.begin_mode.set = false; 
 }
 
-bool
+Result
 Button(const math::Rect& rect, const v4f& color)
 {
   struct Button* button = UseButton();
+  Result result;
   if (!button) {
     printf("imui button count exhausted.\n");
-    return false;
+    return result;
   }
   button->rect = rect;
   button->color = color;
-  return IsRectClicked(rect);
+  result.clicked = IsRectClicked(rect);
+  result.highlighted = IsRectHighlighted(rect);
+  result.rect = rect;
+  return result;
 }
 
 void

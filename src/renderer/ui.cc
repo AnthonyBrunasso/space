@@ -71,7 +71,7 @@ GetNextKerning(const char* msg, int msg_len, int first, int second)
   if (first == msg_len - 1) return 0;
   const FntMetadataRow* row = &kUI.font.metadata.rows[msg[first]];
   for (int i = 0; i < row->kerning.count; ++i) {
-    if (row->kerning.second[i] == second) {
+    if (row->kerning.second[i] == msg[second]) {
       return row->kerning.amount[i];
     }
   }

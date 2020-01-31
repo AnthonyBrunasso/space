@@ -18,6 +18,7 @@ struct Gfx {
 
 static Gfx kGfx;
 static v4f kWhite = v4f(1.f, 1.f, 1.f, 1.f);
+static v4f kRed = v4f(1.f, 0.f, 0.f, 1.f);
 
 bool
 Initialize()

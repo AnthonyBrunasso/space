@@ -300,16 +300,16 @@ main(int argc, char** argv)
       sprintf(buffer, "Mouse Pos In World: (%.1f,%.1f)", mouse.x, mouse.y);
       imui::Text(buffer);
       v2i tile = simulation::WorldToTilePos(mouse.xy());
-      sprintf(buffer, "Minerals: %lu", kShip[0].mineral);
-      imui::Text(buffer);
-      sprintf(buffer, "Level: %lu", kShip[0].level);
-      imui::Text(buffer);
       if (simulation::TileOk(tile)) {
         sprintf(buffer, "Type: %d", simulation::kTilemap.map[tile.y][tile.x].type);
         imui::Text(buffer);
       }
       imui::Indent(-2);
     }
+    sprintf(buffer, "Minerals: %lu", kShip[0].mineral);
+    imui::Text(buffer);
+    sprintf(buffer, "Level: %lu", kShip[0].level);
+    imui::Text(buffer);
 
     if (simulation::SimulationOver()) {
       sprintf(buffer, "Game Over");

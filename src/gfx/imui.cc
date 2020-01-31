@@ -43,13 +43,13 @@ struct Button {
   v4f color;
 };
 
-struct TextMode {
+struct BeginMode {
   v2f pos;
   bool set;
 };
 
 struct IMUI {
-  TextMode text_mode;
+  BeginMode begin_mode;
 };
 
 static IMUI kIMUI;
@@ -112,6 +112,15 @@ IsRectClicked(math::Rect rect)
   return false;
 }
 
+void
+Indent(int spaces)
+{
+  auto& font = rgg::kUI.font;
+  FntMetadataRow* row = &font.metadata.rows[' '];
+  if (!row) return;
+  kIMUI.begin_mode.pos.x += spaces * row->xadvance;
+}
+
 TextData
 Text(const char* msg, v2f pos, TextOptions options)
 {
@@ -125,8 +134,8 @@ Text(const char* msg, v2f pos, TextOptions options)
     printf("text provided surpasses max allowed imui character count.\n");
     return data;
   }
-  auto& text_mode = kIMUI.text_mode;
-  data.rect = rgg::GetTextRect(msg, strlen(msg), text_mode.pos);
+  auto& begin_mode = kIMUI.begin_mode;
+  data.rect = rgg::GetTextRect(msg, strlen(msg), begin_mode.pos);
   data.highlighted = IsRectHighlighted(data.rect);
   data.clicked = IsRectClicked(data.rect);
   strcpy(text->msg, msg);
@@ -145,21 +154,21 @@ Text(const char* msg, v2f pos)
 }
 
 void
-BeginText(v2f start)
+Begin(v2f start)
 {
-  auto& text_mode = kIMUI.text_mode;
-  text_mode.pos = start;
-  text_mode.set = true; 
+  auto& begin_mode = kIMUI.begin_mode;
+  begin_mode.pos = start;
+  begin_mode.set = true; 
 }
 
 TextData
 Text(const char* msg, TextOptions options)
 {
-  auto& text_mode = kIMUI.text_mode;
+  auto& begin_mode = kIMUI.begin_mode;
   // Call StartText before this.
-  assert(kIMUI.text_mode.set);
-  TextData data = Text(msg, text_mode.pos, options);
-  text_mode.pos.y -= data.rect.height;
+  assert(kIMUI.begin_mode.set);
+  TextData data = Text(msg, begin_mode.pos, options);
+  begin_mode.pos.y -= data.rect.height;
   return data;
 }
 
@@ -170,9 +179,9 @@ Text(const char* msg)
 }
 
 void
-EndText()
+End()
 {
-  kIMUI.text_mode.set = false; 
+  kIMUI.begin_mode.set = false; 
 }
 
 bool

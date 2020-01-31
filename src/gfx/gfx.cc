@@ -328,11 +328,11 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
   }
 
   // Hover text
-  imui::BeginText(v2f(screen.x - 225.f, screen.y - 30.0f));
+  imui::Begin(v2f(screen.x - 225.f, screen.y - 30.0f));
   for (int j = 0; j < MAX_HOVERTEXT + 1; ++j) {
     //imui::Text(hover_text[j], kWhite);
   }
-  imui::EndText();
+  imui::End();
 
   // Ui
   imui::Render();

@@ -10,6 +10,19 @@ namespace imui
 constexpr int kMaxTextSize = 128;
 constexpr int kClickForFrames = 100;
 
+static const v4f kWhite(1.f, 1.f, 1.f, 1.f);
+
+struct TextData {
+  math::Rect rect;
+  bool highlighted = false;
+  bool clicked = false;
+};
+
+struct TextOptions {
+  v4f color = kWhite;
+  v4f highlight_color = v4f();
+};
+
 struct Text {
   char msg[kMaxTextSize];
   v2f pos;
@@ -83,27 +96,52 @@ Render()
   }
 }
 
-void
-Text(const char* msg, v2f pos, v4f color)
+bool
+IsRectHighlighted(math::Rect rect)
 {
+  return math::PointInRect(window::GetCursorPosition(), rect);
+}
+
+bool
+IsRectClicked(math::Rect rect)
+{
+  for (int i = 0; i < kUsedUIClick; ++i) {
+    UIClick* click = &kUIClick[i];
+    if (math::PointInRect(click->pos, rect)) return true;
+  }
+  return false;
+}
+
+TextData
+Text(const char* msg, v2f pos, TextOptions options)
+{
+  TextData data;
   struct Text* text = UseText();
   if (!text) {
     printf("imui text count exhausted.\n");
-    return;
+    return data;
   }
   if (strlen(msg) > kMaxTextSize) {
     printf("text provided surpasses max allowed imui character count.\n");
-    return;
+    return data;
   }
+  auto& text_mode = kIMUI.text_mode;
+  data.rect = rgg::GetTextRect(msg, strlen(msg), text_mode.pos);
+  data.highlighted = IsRectHighlighted(data.rect);
+  data.clicked = IsRectClicked(data.rect);
   strcpy(text->msg, msg);
   text->pos = pos;
-  text->color = color;
+  text->color = options.color;
+  if (data.highlighted && options.highlight_color != v4f()) {
+    text->color = options.highlight_color;
+  }
+  return data;
 }
 
-void
+TextData
 Text(const char* msg, v2f pos)
 {
-  Text(msg, pos, v4f(1.0f, 1.0f, 1.0f, 1.0f));
+  return Text(msg, pos, {kWhite, kWhite});
 }
 
 void
@@ -114,37 +152,27 @@ BeginText(v2f start)
   text_mode.set = true; 
 }
 
-void
-Text(const char* msg, v4f color)
+TextData
+Text(const char* msg, TextOptions options)
 {
   auto& text_mode = kIMUI.text_mode;
   // Call StartText before this.
   assert(kIMUI.text_mode.set);
-  Text(msg, text_mode.pos, color);
-  math::Rect rect = rgg::GetTextRect(msg, strlen(msg), text_mode.pos);
-  text_mode.pos.y -= rect.height;
+  TextData data = Text(msg, text_mode.pos, options);
+  text_mode.pos.y -= data.rect.height;
+  return data;
 }
 
-void
+TextData
 Text(const char* msg)
 {
-  Text(msg, v4f(1.f, 1.f, 1.f, 1.f));
+  return Text(msg, {kWhite, kWhite});
 }
 
 void
 EndText()
 {
   kIMUI.text_mode.set = false; 
-}
-
-bool
-IsButtonClicked(const math::Rect& rect)
-{
-  for (int i = 0; i < kUsedUIClick; ++i) {
-    UIClick* click = &kUIClick[i];
-    if (math::PointInRect(click->pos, rect)) return true;
-  }
-  return false;
 }
 
 bool
@@ -157,7 +185,7 @@ Button(const math::Rect& rect, const v4f& color)
   }
   button->rect = rect;
   button->color = color;
-  return IsButtonClicked(rect);
+  return IsRectClicked(rect);
 }
 
 void

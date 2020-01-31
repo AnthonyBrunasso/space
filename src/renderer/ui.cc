@@ -65,7 +65,11 @@ SetupUI()
   return true;
 }
 
-int GetNextKerning(const FntMetadataRow* row, int second) {
+int
+GetNextKerning(const char* msg, int msg_len, int first, int second)
+{
+  if (first == msg_len - 1) return 0;
+  const FntMetadataRow* row = &kUI.font.metadata.rows[msg[first]];
   for (int i = 0; i < row->kerning.count; ++i) {
     if (row->kerning.second[i] == second) {
       return row->kerning.amount[i];
@@ -88,8 +92,7 @@ GetTextInfo(const char* msg, int msg_len, float* width, float* height,
     *width += (float)row->xadvance + kerning_offset;
     float y_offset = (float)row->yoffset;
     if (y_offset < *min_y_offset) *min_y_offset = y_offset;
-    if (i == msg_len - 1) continue;
-    kerning_offset = GetNextKerning(row, msg[i + 1]);
+    kerning_offset = GetNextKerning(msg, msg_len, i, i + 1);
   }
 }
 
@@ -185,10 +188,7 @@ RenderText(const char* msg, v2f pos, const v4f& color)
     glBufferData(GL_ARRAY_BUFFER, sizeof(text_point), text_point, GL_DYNAMIC_DRAW);
     glDrawArrays(GL_TRIANGLES, 0, 6);  // Draw the character 
     pos.x += row->xadvance + kerning_offset;
-    if (i == msg_len - 1) continue;
-    // Get the next kerning offset.
-    int second = msg[i + 1];
-    kerning_offset = GetNextKerning(row, second);
+    kerning_offset = GetNextKerning(msg, msg_len, i, i + 1);
 #if 0
     printf("%c(%i) to %c(%i) offset:%i\n",
             msg[i], msg[i], msg[i + 1], msg[i + 1], kerning_offset);

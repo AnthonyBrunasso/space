@@ -155,7 +155,7 @@ RenderText(const char* msg, v2f pos, const v4f& color)
     float v_w = (float)row->width;
     float v_h = (float)row->height;
     
-    float offset_start_x = pos.x + row->xoffset + (float)kerning_offset;
+    float offset_start_x = pos.x + row->xoffset + kerning_offset;
     float offset_start_y = pos.y - row->yoffset + font.metadata.line_height;
 
 #if 0

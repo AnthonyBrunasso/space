@@ -20,14 +20,31 @@ sound -
     minimize external dependencies for the sake of build time / complexity but would
     not be surprised if we had to adopt one for this task.
 
-AI -
+ui -
+
+  anthony: Pane with options.
+  anthony: Header on ui panes.
+  anthony: Close ui pane.
+  anthony: Minimize ui pane.
+  anthony: Move ui pane.
+  anthony: Sliders.
+  anthony: Button relative to pane.
+  anthony: imui::SameLine() or something - renders next imui call on same line.
+  anthony: Text input.
+  anthony: Some sort of button feedback options. Highlight on hover / click effect.
+  anthony: Function to test whether cursor is intersecting with any UI element. Can
+           be used to determine if interaction is in game vs ui.
+
+platform -
+
+  anthony: Bring macosx window to focus when starting. Currently game starts in background.
 
 graphics - 
 
   anthony: Implement camera zoom. This will require implementing an inverse function.
   anthony: Load bitmaps.
-  anthony: Implement UI panes. Rendering after a pane call will render UI in regards
-           to that pane which can be minimized / moved.
+  anthony: Antialias inner rings on circles.
+  anthony: Dynamic lighting.
 
 network -
   AWS space_server in us-west-2 (oregon)

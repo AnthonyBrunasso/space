@@ -93,7 +93,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
 
   // Unit hover-over text
   constexpr int MAX_HOVERTEXT = CREWA_MAX + 1;
-  char hover_text[MAX_HOVERTEXT][64] = {"", "", "", "", ""};
+  static char hover_text[MAX_HOVERTEXT][64];
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     if (dsq(unit->transform.position, mouse) >= kDsqSelect) continue;
@@ -310,7 +310,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
   // Hover text
   imui::Begin(v2f(screen.x - 225.f, screen.y - 30.0f));
   for (int j = 0; j < MAX_HOVERTEXT + 1; ++j) {
-    //imui::Text(hover_text[j], kWhite);
+    imui::Text(hover_text[j]);
   }
   imui::End();
 

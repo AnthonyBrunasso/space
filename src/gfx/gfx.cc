@@ -13,7 +13,6 @@ struct Gfx {
   RenderTag pod_tag;
   RenderTag missile_tag;
   RenderTag exhaust_tag;
-  math::AxisAlignedRect asteroid_aabb;
 };
 
 static Gfx kGfx;
@@ -60,20 +59,6 @@ Initialize()
   for (int i = 0; i < kPodVert * 3; ++i) pod[i] *= 22.f;          // HA
   for (int i = 0; i < kMissileVert * 3; ++i) missile[i] *= 15.f;  // HA
   for (int i = 0; i < kExhaustVert * 3; ++i) exhaust[i] *= 15.f;  // HA
-  kGfx.asteroid_aabb.min = v3f(10000.0f, 10000.0f, 10000.0f);
-  kGfx.asteroid_aabb.max = v3f(-10000.0f, -10000.0f, -10000.0f);
-  for (int i = 0; i < kFloatCount; i += 3) {
-    auto& aabb = kGfx.asteroid_aabb;
-    float x = asteroid[i];
-    float y = asteroid[i];
-    float z = asteroid[i];
-    if (x < aabb.min.x) aabb.min.x = x;
-    if (x > aabb.max.x) aabb.max.x = x;
-    if (y < aabb.min.y) aabb.min.y = y;
-    if (y > aabb.max.y) aabb.max.y = y;
-    if (z < aabb.min.z) aabb.min.z = z;
-    if (z > aabb.max.z) aabb.max.z = z;
-  }
   kGfx.asteroid_tag = rgg::CreateRenderable(kVertCount, asteroid, GL_LINE_LOOP);
   kGfx.pod_tag = rgg::CreateRenderable(kPodVert, pod, GL_LINE_LOOP);
   kGfx.missile_tag = rgg::CreateRenderable(kMissileVert, missile, GL_LINE_LOOP);

@@ -369,8 +369,8 @@ RenderSmoothRectangle(const math::Rect& rect, float smoothing_radius,
 }
 
 void
-RenderCircle(const v3f& position, float inner_radius,
-             float outer_radius, const v4f& color)
+RenderCircle(const v3f& position, float inner_radius, float outer_radius,
+             const v4f& color)
 {
   glUseProgram(kRGG.circle_program.reference);
   glBindVertexArray(kTextureState.vao_reference);
@@ -389,8 +389,7 @@ RenderCircle(const v3f& position, float inner_radius,
 }
 
 void
-RenderCircle(const v3f& position, float radius,
-             const v4f& color)
+RenderCircle(const v3f& position, float radius, const v4f& color)
 {
   RenderCircle(position, 0.0f, radius, color);
 }
@@ -415,8 +414,7 @@ CreateLineTransform(const v3f& start, const v3f& end)
 }
 
 void
-RenderLine(const v3f& start, const v3f& end,
-           const v4f& color)
+RenderLine(const v3f& start, const v3f& end, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.line_vao_reference);

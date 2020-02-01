@@ -77,12 +77,6 @@ AlignToGrid(v2f grid, math::Rectf* world)
 }
 
 void
-Reset()
-{
-  imui::Reset();
-}
-
-void
 Render(const math::Rectf visible_world, v2f mouse, v2f screen)
 {
   using namespace simulation;

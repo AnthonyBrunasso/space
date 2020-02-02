@@ -48,11 +48,13 @@ StatsMax(const Stats *accum)
 void
 StatsInit(Stats *accum)
 {
-  *accum = (Stats){.min = ~0u};
+  memset(accum->moments, 0, sizeof(accum->moments));
+  accum->min = ~0u;
+  accum->max = 0.f;
 }
 
 void
-StatsInitArray(unsigned n, Stats stats[static n])
+StatsInitArray(unsigned n, Stats *stats)
 {
   for (int i = 0; i < n; ++i) {
     StatsInit(&stats[i]);

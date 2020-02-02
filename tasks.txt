@@ -13,6 +13,14 @@ Delete items when they are done.
 ---------- TASKS ---------- 
 
 gameplay -
+  crew spawning
+  damage repair, hull repair
+  ship invaders
+  support N modules
+  build modules (show radius of effects)
+  hover select can show module radius (turret)
+  crew exhaustion: restoration via beds and cafeteria
+  prototype building ship extensions while in space
 
 sound -
 
@@ -52,3 +60,4 @@ network -
   server authoritative packet reordering
   rewrite udp_ack flow (severe packet loss cases for 2p+)
   shrink netqueue depth under good conditions
+  pause frames (eventually)

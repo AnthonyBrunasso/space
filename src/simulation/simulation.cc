@@ -327,6 +327,10 @@ Decide()
       puts("ship danger triggered game over");
       ship->running = false;
     }
+    else if (kUsedUnit <= 1) {
+      puts("one man crew triggered game over");
+      ship->running = false;
+    }
     if (ship->think_flags & FLAG(kShipAiSpawnPod)) {
       Pod* pod = UsePod();
       pod->transform = Transform{.position = v3f(520.f, 600.f, 0.f)};

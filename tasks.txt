@@ -39,6 +39,7 @@ ui -
   anthony: Button relative to pane.
   anthony: imui::SameLine() or something - renders next imui call on same line.
   anthony: Text input.
+  anthony: Event log.
   anthony: Some sort of button feedback options. Highlight on hover / click effect.
   anthony: Function to test whether cursor is intersecting with any UI element. Can
            be used to determine if interaction is in game vs ui.
@@ -50,9 +51,10 @@ platform -
 graphics - 
 
   anthony: Implement camera zoom. This will require implementing an inverse function.
-  anthony: Load bitmaps.
   anthony: Antialias inner rings on circles.
   anthony: Dynamic lighting.
+  anthony: Load bitmaps.
+  anthony: Moving background, so it actually looks like we're flying.
 
 network -
   AWS space_server in us-west-2 (oregon)

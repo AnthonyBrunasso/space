@@ -74,26 +74,28 @@ TextTest()
   RenderStringWithBoundingBox(
       "I kInd. OF, h4te_ font", v2f(dims.x / 2.f, dims.y / 2.f + 120.0f), dims);
   RenderStringWithBoundingBox(
-      "1.32241 + 32569 = yo momma", v2f(dims.x / 2.f, dims.y / 2.f + 160.0f), dims);
+      "1.32241 + 32569 = NUMBER", v2f(dims.x / 2.f, dims.y / 2.f + 160.0f), dims);
 #endif
 
 
-  imui::Begin(v2f(dims.x / 2.f - 400.0f, dims.y / 2.f + 160.0f));
-  imui::TextOptions options;
-  options.highlight_color = v4f(1.0f, 0.0f, 0.0f, 1.0f);
-  options.color = gfx::kWhite;
+  imui::PaneOptions pane_options;
+  pane_options.settings = imui::PaneOptions::kAutoResize;
+  imui::Begin(v2f(dims.x / 2.f - 400.0f, dims.y / 2.f + 160.0f), pane_options);
+  imui::TextOptions text_options;
+  text_options.highlight_color = v4f(1.0f, 0.0f, 0.0f, 1.0f);
+  text_options.color = gfx::kWhite;
   static bool is_clicked = false;
-  if (imui::Text("Debug", options).highlighted) {
+  if (imui::Text("Debug", text_options).highlighted) {
     imui::Indent(5);
-    imui::Text("1.32241 + 32569 = yo momma", options);
-    imui::Text("I kInd. OF, h4te_ font", options);
-    imui::Text("The quick brown fox", options);
-    imui::Text("quick", options);
-    imui::Text("To TL td tj Tj Pj pj PJ", options);
-    imui::Text("1023", options);
+    imui::Text("1.32241 + 32569 = NUMBER");
+    imui::Text("I kInd. OF, h4te_ font");
+    imui::Text("The quick brown fox");
+    imui::Text("quick");
+    imui::Text("To TL td tj Tj Pj pj PJ");
+    imui::Text("1023");
     imui::Indent(-5);
   }
-  imui::Text("Test", options);
+  imui::Text("Test");
   imui::End();
 }
 

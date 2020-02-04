@@ -11,6 +11,7 @@ constexpr int kMaxTextSize = 128;
 constexpr int kClickForFrames = 100;
 
 static const v4f kWhite(1.f, 1.f, 1.f, 1.f);
+static const v4f kPaneColor(0.f, 0.f, 0.f, 0.5f);
 
 struct Result {
   math::Rect rect;
@@ -23,10 +24,26 @@ struct TextOptions {
   v4f highlight_color = v4f();
 };
 
+struct PaneOptions {
+  enum Settings {
+    kNone = 0x0,
+    kFixedSize = 0x1,
+    kAutoResize = 0x2,
+  };
+  Settings settings = kNone;
+  float width = 0.f;
+  float height = 0.f;
+};
+
 struct Text {
   char msg[kMaxTextSize];
   v2f pos;
   v4f color;
+};
+
+struct Pane {
+  math::Rect rect;
+  PaneOptions options;
 };
 
 struct UIClick {
@@ -46,6 +63,7 @@ struct Button {
 struct BeginMode {
   v2f pos;
   bool set;
+  Pane* pane;
 };
 
 struct IMUI {
@@ -57,6 +75,7 @@ static IMUI kIMUI;
 DECLARE_ARRAY(Text, 32);
 DECLARE_ARRAY(Button, 16);
 DECLARE_ARRAY(UIClick, 8);
+DECLARE_ARRAY(Pane, 8);
 DECLARE_QUEUE(UIClickRender, 8);
 
 void
@@ -65,11 +84,21 @@ Reset()
   kUsedText = 0;
   kUsedButton = 0;
   kUsedUIClick = 0;
+  kUsedPane = 0;
 }
 
 void
 Render()
 {
+  auto dims = window::GetWindowSize();
+  rgg::ModifyObserver mod(
+      math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f), math::Identity());
+
+  for (int i = 0; i < kUsedPane; ++i) {
+    Pane* pane = &kPane[i];
+    rgg::RenderRectangle(pane->rect, kPaneColor);
+  }
+
   for (int i = 0; i < kUsedButton; ++i) {
     Button* button = &kButton[i];
     rgg::RenderButton("test", button->rect, button->color);
@@ -80,9 +109,6 @@ Render()
     rgg::RenderText(text->msg, text->pos, text->color);
   }
 
-  auto dims = window::GetWindowSize();
-  rgg::ModifyObserver mod(
-      math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f), math::Identity());
   for (int i = kReadUIClickRender; i < kWriteUIClickRender; ++i) {
     UIClickRender* render = &kUIClickRender[i % kMaxUIClickRender];
     rgg::RenderCircle(render->pos, 3.5f,
@@ -153,11 +179,50 @@ Text(const char* msg, v2f pos)
 }
 
 void
+Begin(v2f start, const PaneOptions& pane_options)
+{
+  auto& begin_mode = kIMUI.begin_mode;
+  // End must be called before Begin.
+  assert(!begin_mode.set);
+  begin_mode.pos = start;
+  begin_mode.set = true; 
+  begin_mode.pane = UsePane();
+  begin_mode.pane->rect.x = start.x;
+  begin_mode.pane->rect.y = start.y;
+  begin_mode.pane->rect.width = pane_options.width;
+  begin_mode.pane->rect.height = pane_options.height;
+  begin_mode.pane->options = pane_options;
+}
+
+void
 Begin(v2f start)
 {
   auto& begin_mode = kIMUI.begin_mode;
+  // End must be called before Begin.
+  assert(!begin_mode.set);
   begin_mode.pos = start;
   begin_mode.set = true; 
+  begin_mode.pane = nullptr;
+}
+
+void
+UpdatePane(const math::Rect& rect, Pane* pane)
+{
+  if (!pane) return;
+  switch (pane->options.settings) {
+  case PaneOptions::kNone: break;
+  case PaneOptions::kFixedSize: break;
+  case PaneOptions::kAutoResize: {
+    auto& begin_mode = kIMUI.begin_mode;
+    begin_mode.pane->rect.y = begin_mode.pos.y;
+    begin_mode.pane->rect.height += rect.height;
+    float width = (rect.x + rect.width) - begin_mode.pane->rect.x;
+    if (width > begin_mode.pane->rect.width) {
+      begin_mode.pane->rect.width = width;
+    }
+  } break;
+  default: break;
+  }
 }
 
 Result
@@ -167,6 +232,7 @@ Text(const char* msg, TextOptions options)
   // Call StartText before this.
   assert(kIMUI.begin_mode.set);
   Result data = Text(msg, begin_mode.pos, options);
+  UpdatePane(data.rect, begin_mode.pane);
   begin_mode.pos.y -= data.rect.height;
   return data;
 }

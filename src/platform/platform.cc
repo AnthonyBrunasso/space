@@ -14,11 +14,13 @@
 #include "window.cc"
 
 #if _WIN32
+#include "win32_affinity.cc"
 #include "win32_filesystem.cc"
 #include "win32_sleep.cc"
 #include "win32_thread.cc"
 #include "win32_udp.cc"
 #else
+#include "unix_affinity.cc"
 #include "unix_filesystem.cc"
 #include "unix_sleep.cc"
 #include "unix_thread.cc"

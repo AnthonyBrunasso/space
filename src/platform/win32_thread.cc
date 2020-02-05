@@ -62,4 +62,23 @@ thread_exit(ThreadInfo* t, uint64_t value)
 {
 }
 
+unsigned
+thread_affinity_count(ThreadInfo* t)
+{
+  // TODO
+  return UINT_MAX;
+}
+
+bool
+thread_affinity_set(ThreadInfo* t, int cpu_index)
+{
+  // TODO
+}
+
+bool
+thread_affinity_clear(ThreadInfo* t, int cpu_index)
+{
+  // TODO
+}
+
 }

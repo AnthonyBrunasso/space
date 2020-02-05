@@ -213,6 +213,12 @@ main(int argc, char** argv)
     return 1;
   }
 
+  // main thread affinity set to core 0
+  if (platform::affinity_count() > 1) {
+    platform::affinity_set(0);
+    printf("Game process may run on %d cores\n", platform::affinity_count());
+  }
+
   uint64_t bytes = 0;
   uint64_t min_ptr = UINT64_MAX;
   uint64_t max_ptr = 0;
@@ -292,8 +298,8 @@ main(int argc, char** argv)
               100.f * StatsUnbiasedRsDev(&kGameState.stats));
       imui::Indent(2);
       imui::Text(buffer);
-      sprintf(buffer, "Network Rtt: %06lu us [%lu/%lu queue]", kGameState.rtt_usec,
-              kGameState.turn_queue_depth, MAX_NETQUEUE);
+      sprintf(buffer, "Network Rtt: %06lu us [%lu/%lu queue]",
+              kGameState.rtt_usec, kGameState.turn_queue_depth, MAX_NETQUEUE);
       imui::Text(buffer);
       sprintf(buffer, "Window Size: %ix%i", (int)sz.x, (int)sz.y);
       imui::Text(buffer);
@@ -301,7 +307,8 @@ main(int argc, char** argv)
       imui::Text(buffer);
       v2i tile = simulation::WorldToTilePos(mouse.xy());
       if (simulation::TileOk(tile)) {
-        sprintf(buffer, "Type: %d", simulation::kTilemap.map[tile.y][tile.x].type);
+        sprintf(buffer, "Type: %d",
+                simulation::kTilemap.map[tile.y][tile.x].type);
         imui::Text(buffer);
       }
       imui::Indent(-2);
@@ -315,8 +322,8 @@ main(int argc, char** argv)
       sprintf(buffer, "Game Over");
       imui::Text(buffer);
     } else if (simulation::ShipFtlReady()) {
-      if (imui::Button(math::Rect(10, 10, 40, 40),
-                       v4f(1.0f, 0.0f, 1.0f, 0.75f)).clicked) {
+      if (imui::Button(math::Rect(10, 10, 40, 40), v4f(1.0f, 0.0f, 1.0f, 0.75f))
+              .clicked) {
         simulation::ShipFtlInit();
       }
     }

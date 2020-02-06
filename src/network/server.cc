@@ -69,10 +69,10 @@ server_main(void* void_arg)
   ServerParam* arg = (ServerParam*)void_arg;
 
   // network thread affinity set to anything but core 0
-  if (platform::thread_affinity_count(&thread) > 1) {
-    platform::thread_affinity_clear(&thread, 0);
+  if (platform::thread_affinity_count() > 1) {
+    platform::thread_affinity_clear(0);
     printf("Server thread may run on %d cores\n",
-           platform::thread_affinity_count(&thread));
+           platform::thread_affinity_count());
   }
 
   uint8_t in_buffer[MAX_BUFFER];

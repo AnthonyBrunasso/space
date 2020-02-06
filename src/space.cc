@@ -214,9 +214,9 @@ main(int argc, char** argv)
   }
 
   // main thread affinity set to core 0
-  if (platform::affinity_count() > 1) {
-    platform::affinity_set(0);
-    printf("Game process may run on %d cores\n", platform::affinity_count());
+  if (platform::thread_affinity_count() > 1) {
+    platform::thread_affinity_set(0);
+    printf("Game thread may run on %d cores\n", platform::thread_affinity_count());
   }
 
   uint64_t bytes = 0;

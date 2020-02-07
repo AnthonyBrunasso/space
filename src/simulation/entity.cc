@@ -84,20 +84,15 @@ const char* const crew_aname[] = {
     "dexterity",
     "constitution",
 };
-#define CREW_ABEST \
+#define CREW_A(val) \
   {                \
-      18,          \
-      18,          \
-      18,          \
-      18,          \
+      val,          \
+      val,          \
+      val,          \
+      val,          \
   };
-#define CREW_AWORST \
-  {                 \
-      3,            \
-      3,            \
-      3,            \
-      3,            \
-  };
+#define CREW_ABEST CREW_A(18)
+#define CREW_AWORST CREW_A(3)
 
 // TODO (AN): Utiilty fnc
 float
@@ -105,12 +100,6 @@ dsq(v3f dst, v3f src)
 {
   v3f delta = dst - src;
   return delta.x * delta.x + delta.y * delta.y;
-}
-
-float
-transform_dsq(Transform* dst, Transform* src)
-{
-  return dsq(dst->position, src->position);
 }
 
 struct Command {
@@ -145,8 +134,8 @@ DECLARE_GAME_TYPE(Pod, 8);
 
 struct Unit {
   Transform transform;
-  v3f vacuum = v3f();
   Command command;
+  v3f vacuum = v3f();
   uint64_t think_flags = 0;
   uint64_t state_flags = 0;
   int kind = 0;

@@ -242,7 +242,8 @@ Think()
         // TODO: nearest dsq
         think_flags |= FLAG(kPodAiApproach);
         goal = asteroid->transform.position.xy();
-        if (transform_dsq(&asteroid->transform, &pod->transform) < 900.f) {
+        if (dsq(asteroid->transform.position, pod->transform.position) <
+            900.f) {
           think_flags |= FLAG(kPodAiGather);
           asteroid->flags |= FLAG(kAsteroidAiDeplete);
         }
@@ -326,8 +327,7 @@ Decide()
     if (ship->danger > 20) {
       puts("ship danger triggered game over");
       ship->running = false;
-    }
-    else if (kUsedUnit <= 1) {
+    } else if (kUsedUnit <= 1) {
       puts("one man crew triggered game over");
       ship->running = false;
     }
@@ -466,6 +466,7 @@ SimulationOver()
 {
   return !(kShip[0].running);
 }
+
 
 void
 Update()

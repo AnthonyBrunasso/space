@@ -127,6 +127,10 @@ SimulationEvent(const PlatformEvent* event, const Camera* camera,
         case 'd': {
           translation->x = 1.f;
         } break;
+        case 'm': {
+          v3f pos = CoordToWorld(event->position);
+          simulation::PlaceModuleMine(pos);
+        } break;
         default:
           break;
       }

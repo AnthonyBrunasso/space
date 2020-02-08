@@ -30,6 +30,10 @@ struct PaneOptions {
     kAutoResize,
     kFixedSize,
   };
+  PaneOptions() = default;
+  PaneOptions(float width, float height) :
+    size_mode(kFixedSize), width(width), height(height) {}
+
   SizeMode size_mode = kAutoResize;
   float width = 0.f;
   float height = 0.f;
@@ -190,7 +194,7 @@ Begin(v2f start, const PaneOptions& pane_options)
   begin_mode.set = true; 
   begin_mode.pane = UsePane();
   begin_mode.pane->rect.x = start.x;
-  begin_mode.pane->rect.y = start.y;
+  begin_mode.pane->rect.y = start.y - pane_options.height;
   begin_mode.pane->rect.width = pane_options.width;
   begin_mode.pane->rect.height = pane_options.height;
   begin_mode.pane->options = pane_options;

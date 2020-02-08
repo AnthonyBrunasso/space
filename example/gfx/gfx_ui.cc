@@ -100,7 +100,7 @@ TextTest()
   }
 
   {
-    imui::PaneOptions pane_options;
+    imui::PaneOptions pane_options(300.0f, 300.0f);
     imui::TextOptions text_options;
     text_options.scale = 0.75f;
     imui::Begin(v2f(dims.x / 2.f + 200.0f, dims.y / 2.f + 160.0f), pane_options);

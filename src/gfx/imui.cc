@@ -25,12 +25,11 @@ struct TextOptions {
 };
 
 struct PaneOptions {
-  enum Settings {
-    kNone = 0x0,
-    kFixedSize = 0x1,
-    kAutoResize = 0x2,
+  enum SizeMode {
+    kAutoResize,
+    kFixedSize,
   };
-  Settings settings = kNone;
+  SizeMode size_mode = kAutoResize;
   float width = 0.f;
   float height = 0.f;
 };
@@ -209,9 +208,7 @@ void
 UpdatePane(const math::Rect& rect, Pane* pane)
 {
   if (!pane) return;
-  switch (pane->options.settings) {
-  case PaneOptions::kNone: break;
-  case PaneOptions::kFixedSize: break;
+  switch (pane->options.size_mode) {
   case PaneOptions::kAutoResize: {
     auto& begin_mode = kIMUI.begin_mode;
     begin_mode.pane->rect.y = begin_mode.pos.y;
@@ -221,7 +218,8 @@ UpdatePane(const math::Rect& rect, Pane* pane)
       begin_mode.pane->rect.width = width;
     }
   } break;
-  default: break;
+  case PaneOptions::kFixedSize: break;
+    default: break;
   }
 }
 

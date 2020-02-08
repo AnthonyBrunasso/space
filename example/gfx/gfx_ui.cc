@@ -79,7 +79,6 @@ TextTest()
 
 
   imui::PaneOptions pane_options;
-  pane_options.settings = imui::PaneOptions::kAutoResize;
   imui::Begin(v2f(dims.x / 2.f - 400.0f, dims.y / 2.f + 160.0f), pane_options);
   imui::TextOptions text_options;
   text_options.highlight_color = v4f(1.0f, 0.0f, 0.0f, 1.0f);

@@ -143,7 +143,7 @@ Indent(int spaces)
 {
   auto& font = rgg::kUI.font;
   FntMetadataRow* row = &font.metadata.rows[' '];
-  if (!row) return;
+  if (!row || !row->id) return;
   kIMUI.begin_mode.pos.x += spaces * row->xadvance;
 }
 
@@ -222,7 +222,7 @@ UpdatePane(const math::Rect& rect, Pane* pane)
     }
   } break;
   case PaneOptions::kFixedSize: break;
-    default: break;
+  default: break;
   }
 }
 

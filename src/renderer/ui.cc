@@ -142,7 +142,6 @@ RenderText(const char* msg, v2f pos, float scale, const v4f& color)
   int msg_len = strlen(msg);
   int kerning_offset = 0;
   for (int i = 0; i < msg_len; ++i) {
-    TextPoint text_point[6];
 
     const FntMetadataRow* row = &font.metadata.rows[msg[i]];
     //printf("%i\n", msg[i]);
@@ -174,16 +173,14 @@ RenderText(const char* msg, v2f pos, float scale, const v4f& color)
            row->yoffset, offset_start_x, offset_start_y, tex_w, tex_h);
 #endif
 
-    text_point[0] = {offset_start_x, offset_start_y, tex_x, tex_y};
-    text_point[1] = {offset_start_x + v_w, offset_start_y, tex_x + tex_w,
-                     tex_y};
-    text_point[2] = {offset_start_x + v_w, offset_start_y - v_h,
-                     tex_x + tex_w, tex_y + tex_h};
-    text_point[3] = {offset_start_x + v_w, offset_start_y - v_h,
-                     tex_x + tex_w, tex_y + tex_h};
-    text_point[4] = {offset_start_x, offset_start_y - v_h, tex_x,
-                     tex_y + tex_h};
-    text_point[5] = {offset_start_x, offset_start_y, tex_x, tex_y};
+    TextPoint text_point[6] = {
+      {offset_start_x, offset_start_y, tex_x, tex_y},
+      {offset_start_x + v_w, offset_start_y, tex_x + tex_w, tex_y},
+      {offset_start_x + v_w, offset_start_y - v_h, tex_x + tex_w, tex_y + tex_h},
+      {offset_start_x + v_w, offset_start_y - v_h, tex_x + tex_w, tex_y + tex_h},
+      {offset_start_x, offset_start_y - v_h, tex_x, tex_y + tex_h},
+      {offset_start_x, offset_start_y, tex_x, tex_y}
+    };
 
 #if 0
     text_point[0].Pr();

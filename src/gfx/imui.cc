@@ -22,6 +22,7 @@ struct Result {
 struct TextOptions {
   v4f color = kWhite;
   v4f highlight_color = v4f();
+  float scale = 1.0f;
 };
 
 struct PaneOptions {
@@ -37,7 +38,8 @@ struct PaneOptions {
 struct Text {
   char msg[kMaxTextSize];
   v2f pos;
-  v4f color;
+  v4f color; // TODO: This is duplicated in TextOptions
+  TextOptions options;
 };
 
 struct Pane {
@@ -105,7 +107,7 @@ Render()
 
   for (int i = 0; i < kUsedText; ++i) {
     Text* text = &kText[i];
-    rgg::RenderText(text->msg, text->pos, text->color);
+    rgg::RenderText(text->msg, text->pos, text->options.scale, text->color);
   }
 
   for (int i = kReadUIClickRender; i < kWriteUIClickRender; ++i) {
@@ -159,7 +161,7 @@ Text(const char* msg, v2f pos, TextOptions options)
     return data;
   }
   auto& begin_mode = kIMUI.begin_mode;
-  data.rect = rgg::GetTextRect(msg, strlen(msg), begin_mode.pos);
+  data.rect = rgg::GetTextRect(msg, strlen(msg), begin_mode.pos, options.scale);
   data.highlighted = IsRectHighlighted(data.rect);
   data.clicked = IsRectClicked(data.rect);
   strcpy(text->msg, msg);
@@ -168,6 +170,7 @@ Text(const char* msg, v2f pos, TextOptions options)
   if (data.highlighted && options.highlight_color != v4f()) {
     text->color = options.highlight_color;
   }
+  text->options = options; 
   return data;
 }
 

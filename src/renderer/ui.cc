@@ -97,15 +97,22 @@ GetTextInfo(const char* msg, int msg_len, float* width, float* height,
 }
 
 math::Rect
-GetTextRect(const char* msg, int msg_len, v2f pos)
+GetTextRect(const char* msg, int msg_len, v2f pos, float scale)
 {
   float width, height, min_y_offset;
   GetTextInfo(msg, msg_len, &width, &height, &min_y_offset);
-  return math::Rect(pos.x, pos.y, width, height - min_y_offset);
+  return math::Rect(
+      pos.x, pos.y, width * scale, height * scale - min_y_offset * scale);
+}
+
+math::Rect
+GetTextRect(const char* msg, int msg_len, v2f pos)
+{
+  return GetTextRect(msg, msg_len, pos, 1.0f);
 }
 
 void
-RenderText(const char* msg, v2f pos, const v4f& color)
+RenderText(const char* msg, v2f pos, float scale, const v4f& color)
 {
   auto& font = kUI.font;
 
@@ -152,11 +159,13 @@ RenderText(const char* msg, v2f pos, const v4f& color)
 
     // Verts are subject to projection given by an orhthographic matrix
     // using the screen width and height.
-    float v_w = (float)row->width;
-    float v_h = (float)row->height;
+    float v_w = (float)row->width * scale;
+    float v_h = (float)row->height * scale;
     
-    float offset_start_x = pos.x + row->xoffset + kerning_offset;
-    float offset_start_y = pos.y - row->yoffset + font.metadata.line_height;
+    float offset_start_x = pos.x + (float)row->xoffset * scale +
+                                   (float)kerning_offset * scale;
+    float offset_start_y = pos.y - (float)row->yoffset * scale +
+                                   (float)font.metadata.line_height * scale;
 
 #if 0
     printf("id=%i char=%c width=%i height=%i xoffset=%i yoffset=%i"
@@ -187,13 +196,19 @@ RenderText(const char* msg, v2f pos, const v4f& color)
     glBindBuffer(GL_ARRAY_BUFFER, font.vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(text_point), text_point, GL_DYNAMIC_DRAW);
     glDrawArrays(GL_TRIANGLES, 0, 6);  // Draw the character 
-    pos.x += row->xadvance + kerning_offset;
+    pos.x += (float)row->xadvance * scale + (float)kerning_offset * scale;
     kerning_offset = GetNextKerning(msg, msg_len, i, i + 1);
 #if 0
     printf("%c(%i) to %c(%i) offset:%i\n",
             msg[i], msg[i], msg[i + 1], msg[i + 1], kerning_offset);
 #endif
   }
+}
+
+void
+RenderText(const char* msg, v2f pos, const v4f& color)
+{
+  RenderText(msg, pos, 1.0f, color);
 }
 
 void

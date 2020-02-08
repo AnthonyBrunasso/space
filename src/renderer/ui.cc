@@ -142,7 +142,6 @@ RenderText(const char* msg, v2f pos, float scale, const v4f& color)
   int msg_len = strlen(msg);
   int kerning_offset = 0;
   for (int i = 0; i < msg_len; ++i) {
-
     const FntMetadataRow* row = &font.metadata.rows[msg[i]];
     //printf("%i\n", msg[i]);
     // The character trying to render is invalid. This means the font sheet

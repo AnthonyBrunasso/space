@@ -43,6 +43,7 @@ struct Text {
   char msg[kMaxTextSize];
   v2f pos;
   v4f color; // TODO: This is duplicated in TextOptions
+  math::Rect rect;
   TextOptions options;
 };
 
@@ -67,7 +68,8 @@ struct Button {
 
 struct BeginMode {
   v2f pos;
-  bool set;
+  bool set = false;
+  int text_calls = 0;
   Pane* pane;
 };
 
@@ -82,6 +84,14 @@ DECLARE_ARRAY(Button, 16);
 DECLARE_ARRAY(UIClick, 8);
 DECLARE_ARRAY(Pane, 8);
 DECLARE_QUEUE(UIClickRender, 8);
+
+bool
+GetUIClick(v2f* pos)
+{
+  if (!kUsedUIClick) return false;
+  *pos = kUIClick[0].pos;
+  return true;
+}
 
 void
 Reset()
@@ -151,6 +161,56 @@ Indent(int spaces)
   kIMUI.begin_mode.pos.x += spaces * row->xadvance;
 }
 
+void
+UpdatePaneOnCall(const math::Rect& rect, Pane* pane)
+{
+  if (!pane) return;
+  auto& begin_mode = kIMUI.begin_mode;
+  // Must call Begin() before UI rendering starts and End() when it's done.
+  assert(begin_mode.set);
+  switch (pane->options.size_mode) {
+  case PaneOptions::kAutoResize: {
+    begin_mode.pane->rect.y = begin_mode.pos.y;
+    begin_mode.pane->rect.height += rect.height;
+    float width = (rect.x + rect.width) - begin_mode.pane->rect.x;
+    if (width > begin_mode.pane->rect.width) {
+      begin_mode.pane->rect.width = width;
+    }
+  } break;
+  case PaneOptions::kFixedSize: break;
+  default: break;
+  }
+}
+
+void
+UpdatePaneOnEnd(Pane* pane)
+{
+  if (!pane) return;
+  auto& begin_mode = kIMUI.begin_mode;
+  assert(begin_mode.set);
+  switch (pane->options.size_mode) {
+  case PaneOptions::kAutoResize: break;
+  case PaneOptions::kFixedSize: {
+    int start = kUsedText - 1;
+    int end = kUsedText - begin_mode.text_calls;
+    assert(start < kMaxText);
+    assert(end >= 0);
+    int move_text = begin_mode.text_calls - 1;
+    for (; start >= end; --start) {
+      struct Text* text = &kText[start];
+      text->pos.y += text->rect.height * move_text;
+      v2f text_top_left = text->pos + v2f(0.f, text->rect.height);
+      // Discard the text element if it is outside of the pane.
+      if (!math::PointInRect(text_top_left, pane->rect)) {
+        CompressText(start);
+        continue;
+      }
+    }
+  } break;
+  default: break;
+  }
+}
+
 Result
 Text(const char* msg, v2f pos, TextOptions options)
 {
@@ -175,13 +235,37 @@ Text(const char* msg, v2f pos, TextOptions options)
     text->color = options.highlight_color;
   }
   text->options = options; 
+  text->rect = data.rect;
+  ++begin_mode.text_calls;
   return data;
 }
 
+// TODO(abrunasso): Consider removing. I think only allowing UI calls between
+// Consider making all UI calls occur between Begin / End. Otherwise there
+// will be many code paths for UI elements and state becomes hard to reason
+// about.
 Result
 Text(const char* msg, v2f pos)
 {
   return Text(msg, pos, {kWhite, kWhite});
+}
+
+Result
+Text(const char* msg, TextOptions options)
+{
+  auto& begin_mode = kIMUI.begin_mode;
+  // Call StartText before this.
+  assert(kIMUI.begin_mode.set);
+  Result data = Text(msg, begin_mode.pos, options);
+  UpdatePaneOnCall(data.rect, begin_mode.pane);
+  begin_mode.pos.y -= data.rect.height;
+  return data;
+}
+
+Result
+Text(const char* msg)
+{
+  return Text(msg, {kWhite, kWhite});
 }
 
 void
@@ -192,9 +276,10 @@ Begin(v2f start, const PaneOptions& pane_options)
   assert(!begin_mode.set);
   begin_mode.pos = start;
   begin_mode.set = true; 
+  begin_mode.text_calls = 0;
   begin_mode.pane = UsePane();
   begin_mode.pane->rect.x = start.x;
-  begin_mode.pane->rect.y = start.y - pane_options.height;
+  begin_mode.pane->rect.y = start.y;
   begin_mode.pane->rect.width = pane_options.width;
   begin_mode.pane->rect.height = pane_options.height;
   begin_mode.pane->options = pane_options;
@@ -212,45 +297,9 @@ Begin(v2f start)
 }
 
 void
-UpdatePane(const math::Rect& rect, Pane* pane)
-{
-  if (!pane) return;
-  switch (pane->options.size_mode) {
-  case PaneOptions::kAutoResize: {
-    auto& begin_mode = kIMUI.begin_mode;
-    begin_mode.pane->rect.y = begin_mode.pos.y;
-    begin_mode.pane->rect.height += rect.height;
-    float width = (rect.x + rect.width) - begin_mode.pane->rect.x;
-    if (width > begin_mode.pane->rect.width) {
-      begin_mode.pane->rect.width = width;
-    }
-  } break;
-  case PaneOptions::kFixedSize: break;
-  default: break;
-  }
-}
-
-Result
-Text(const char* msg, TextOptions options)
-{
-  auto& begin_mode = kIMUI.begin_mode;
-  // Call StartText before this.
-  assert(kIMUI.begin_mode.set);
-  Result data = Text(msg, begin_mode.pos, options);
-  UpdatePane(data.rect, begin_mode.pane);
-  begin_mode.pos.y -= data.rect.height;
-  return data;
-}
-
-Result
-Text(const char* msg)
-{
-  return Text(msg, {kWhite, kWhite});
-}
-
-void
 End()
 {
+  UpdatePaneOnEnd(kIMUI.begin_mode.pane);
   kIMUI.begin_mode.set = false; 
 }
 

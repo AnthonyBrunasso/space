@@ -123,15 +123,15 @@ PointInPolygon(const v2f& point, const uint64_t polygon_size, v2f* polygon)
 bool
 PointInRect(const v2f& point, const AxisAlignedRect& rect)
 {
-  return (point.x > rect.min.x && point.x < rect.max.x) &&
-         (point.y > rect.min.y && point.y < rect.max.y);
+  return (point.x >= rect.min.x && point.x <= rect.max.x) &&
+         (point.y >= rect.min.y && point.y <= rect.max.y);
 }
 
 bool
 PointInRect(const v2f& point, const Rect& rect)
 {
-  return (point.x > rect.x && point.x < rect.x + rect.width) &&
-         (point.y > rect.y && point.y < rect.y + rect.height);
+  return (point.x >= rect.x && point.x <= rect.x + rect.width) &&
+         (point.y >= rect.y && point.y <= rect.y + rect.height);
 }
 
 }  // namespace math

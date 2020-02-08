@@ -34,6 +34,12 @@ struct State {
 
 static State kGameState;
 
+struct EventMsg {
+  char msg[64];
+};
+
+DECLARE_QUEUE(EventMsg, 8);
+
 // TODO (AN): Revisit cameras
 const Camera*
 GetLocalCamera()
@@ -333,6 +339,27 @@ main(int argc, char** argv)
       }
     }
 
+    imui::End();
+
+    imui::PaneOptions pane_options(350.0f, 100.0f); 
+    imui::TextOptions text_options;
+    text_options.scale = 0.75f;
+    v2f pos;
+    if (imui::GetUIClick(&pos)) {
+      sprintf(buffer, "ui click event pos (%.2f, %.2f)", pos.x, pos.y); 
+      EventMsg e;
+      strcpy(e.msg, buffer);
+      if (CountEventMsg() == kMaxEventMsg) {
+        PopEventMsg();
+      }
+      PushEventMsg(e);
+    }
+    
+    imui::Begin(v2f(0.f, 0.f), pane_options);
+    for (int i = kReadEventMsg; i < kWriteEventMsg; ++i) {
+      EventMsg* e = &kEventMsg[i % kMaxEventMsg];
+      imui::Text(e->msg, text_options);
+    }
     imui::End();
 
 #ifndef HEADLESS

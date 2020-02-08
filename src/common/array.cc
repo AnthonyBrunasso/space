@@ -8,7 +8,8 @@
 //    kUsed<type> - The in-use count of the given type.
 // Methods:
 //    Use<type>() - Function to request use of a instance of type.
-//    Release<type>() - Function to return an instance of type.
+//    Compress<type>(int idx) - Compresses the array starting at idx by moving
+//    all elements that occur after idx down one element in the array.
 #define DECLARE_ARRAY(type, max_count)             \
   constexpr uint64_t kMax##type = max_count;       \
                                                    \
@@ -25,3 +26,12 @@
     return t;                                      \
   }                                                \
                                                    \
+  void Compress##type(int idx)                     \
+  {                                                \
+    if (idx >= kMax##type) return;                 \
+    if (idx < 0) return;                           \
+    for (int i = idx; i < kUsed##type; ++i) {      \
+      k##type[i] = k##type[i + 1];                 \
+    }                                              \
+    --kUsed##type;                                 \
+  }                                                \

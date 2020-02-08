@@ -100,13 +100,10 @@ TextTest()
   }
 
   {
-    imui::PaneOptions pane_options(300.0f, 300.0f);
+    imui::PaneOptions pane_options(300.0f, 100.0f);
     imui::TextOptions text_options;
     text_options.scale = 0.75f;
-    imui::Begin(v2f(dims.x / 2.f + 200.0f, dims.y / 2.f + 160.0f), pane_options);
-    imui::Text("This font is smaller.", text_options);
-    imui::Text("Than the normal font.", text_options);
-    imui::Text("2341 + 3234 = 18923", text_options);
+    imui::Begin(v2f(0.0f, 0.0f), pane_options);
     imui::End();
   }
 }

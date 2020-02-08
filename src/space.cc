@@ -288,7 +288,8 @@ main(int argc, char** argv)
     char buffer[50];
     static bool enable_debug = false;
     auto mouse = CoordToWorld(window::GetCursorPosition());
-    imui::Begin(v2f(3.f, sz.y - 30.f));
+    imui::PaneOptions options;
+    imui::Begin(v2f(3.f, sz.y - 30.f), options);
     imui::TextOptions debug_options;
     debug_options.color = gfx::kWhite;
     debug_options.highlight_color = gfx::kRed;

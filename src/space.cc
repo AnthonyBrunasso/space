@@ -341,20 +341,19 @@ main(int argc, char** argv)
 
     imui::End();
 
-    imui::PaneOptions pane_options(350.0f, 100.0f); 
-    imui::TextOptions text_options;
-    text_options.scale = 0.75f;
     v2f pos;
     if (imui::GetUIClick(&pos)) {
-      sprintf(buffer, "ui click event pos (%.2f, %.2f)", pos.x, pos.y); 
       EventMsg e;
-      strcpy(e.msg, buffer);
+      sprintf(e.msg, "ui click event pos (%.2f, %.2f)", pos.x, pos.y); 
       if (CountEventMsg() == kMaxEventMsg) {
         PopEventMsg();
       }
       PushEventMsg(e);
     }
-    
+
+    imui::PaneOptions pane_options(300.0f, 100.0f); 
+    imui::TextOptions text_options;
+    text_options.scale = 0.7f;
     imui::Begin(v2f(0.f, 0.f), pane_options);
     for (int i = kReadEventMsg; i < kWriteEventMsg; ++i) {
       EventMsg* e = &kEventMsg[i % kMaxEventMsg];

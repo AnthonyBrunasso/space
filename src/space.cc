@@ -220,7 +220,8 @@ main(int argc, char** argv)
   // main thread affinity set to core 0
   if (platform::thread_affinity_count() > 1) {
     platform::thread_affinity_set(0);
-    printf("Game thread may run on %d cores\n", platform::thread_affinity_count());
+    printf("Game thread may run on %d cores\n",
+           platform::thread_affinity_count());
   }
 
   uint64_t bytes = 0;
@@ -285,7 +286,8 @@ main(int argc, char** argv)
 
     // Misc debug/feedback
     auto sz = window::GetWindowSize();
-    char buffer[50];
+#define BUFFER_SIZE 64
+    char buffer[BUFFER_SIZE];
     static bool enable_debug = false;
     auto mouse = CoordToWorld(window::GetCursorPosition());
     imui::PaneOptions options;
@@ -298,33 +300,34 @@ main(int argc, char** argv)
     }
 
     if (enable_debug) {
-      sprintf(buffer, "Frame Time: %04.02f us [%02.02f%%]",
-              StatsMean(&kGameState.stats),
-              100.f * StatsUnbiasedRsDev(&kGameState.stats));
+      snprintf(buffer, BUFFER_SIZE, "Frame Time: %04.02f us [%02.02f%%]",
+               StatsMean(&kGameState.stats),
+               100.f * StatsUnbiasedRsDev(&kGameState.stats));
       imui::Indent(2);
       imui::Text(buffer);
-      sprintf(buffer, "Network Rtt: %06lu us [%lu/%lu queue]",
-              kGameState.rtt_usec, kGameState.turn_queue_depth, MAX_NETQUEUE);
+      snprintf(buffer, BUFFER_SIZE, "Network Rtt: %06lu us [%lu/%lu queue]",
+               kGameState.rtt_usec, kGameState.turn_queue_depth, MAX_NETQUEUE);
       imui::Text(buffer);
-      sprintf(buffer, "Window Size: %ix%i", (int)sz.x, (int)sz.y);
+      snprintf(buffer, BUFFER_SIZE, "Window Size: %ix%i", (int)sz.x, (int)sz.y);
       imui::Text(buffer);
-      sprintf(buffer, "Mouse Pos In World: (%.1f,%.1f)", mouse.x, mouse.y);
+      snprintf(buffer, BUFFER_SIZE, "Mouse Pos In World: (%.1f,%.1f)", mouse.x,
+               mouse.y);
       imui::Text(buffer);
       v2i tile = simulation::WorldToTilePos(mouse.xy());
       if (simulation::TileOk(tile)) {
-        sprintf(buffer, "Type: %d",
-                simulation::kTilemap.map[tile.y][tile.x].type);
+        snprintf(buffer, BUFFER_SIZE, "Type: %d",
+                 simulation::kTilemap.map[tile.y][tile.x].type);
         imui::Text(buffer);
       }
       imui::Indent(-2);
     }
-    sprintf(buffer, "Minerals: %lu", kShip[0].mineral);
+    snprintf(buffer, BUFFER_SIZE, "Minerals: %lu", kShip[0].mineral);
     imui::Text(buffer);
-    sprintf(buffer, "Level: %lu", kShip[0].level);
+    snprintf(buffer, BUFFER_SIZE, "Level: %lu", kShip[0].level);
     imui::Text(buffer);
 
     if (simulation::SimulationOver()) {
-      sprintf(buffer, "Game Over");
+      snprintf(buffer, BUFFER_SIZE, "Game Over");
       imui::Text(buffer);
     } else if (simulation::ShipFtlReady()) {
       if (imui::Button(math::Rect(10, 10, 40, 40), v4f(1.0f, 0.0f, 1.0f, 0.75f))
@@ -337,11 +340,12 @@ main(int argc, char** argv)
 
     v2f pos;
     if (imui::GetUIClick(&pos)) {
-      int len = sprintf(buffer, "ui click event pos (%.2f, %.2f)", pos.x, pos.y); 
+      int len = snprintf(buffer, BUFFER_SIZE, "ui click event pos (%.2f, %.2f)",
+                         pos.x, pos.y);
       Log(buffer, len);
     }
 
-    imui::PaneOptions pane_options(300.0f, 100.0f); 
+    imui::PaneOptions pane_options(300.0f, 100.0f);
     imui::TextOptions text_options;
     text_options.scale = 0.7f;
     imui::Begin(v2f(0.f, 0.f), pane_options);

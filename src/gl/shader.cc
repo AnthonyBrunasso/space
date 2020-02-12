@@ -93,7 +93,7 @@ PrintProgramInfoString(GLuint program_reference)
     if (size > 1) {
       for (int j = 0; j < size; j++) {
         char long_name[64];
-        std::sprintf(long_name, "%s[%i]", name, j);
+        std::snprintf(long_name, 64, "%s[%i]", name, j);
         int location = glGetAttribLocation(program_reference, long_name);
         printf("%d) type: %s name: %s location: %d ", i, GLTypeToString(type),
                long_name, location);
@@ -117,7 +117,7 @@ PrintProgramInfoString(GLuint program_reference)
     if (size > 1) {
       for (int j = 0; j < size; j++) {
         char long_name[64];
-        std::sprintf(long_name, "%s[%i]", name, j);
+        std::snprintf(long_name, 64, "%s[%i]", name, j);
         int location = glGetUniformLocation(program_reference, long_name);
         printf("%d) type: %s name: %s location: %d ", i, GLTypeToString(type),
                long_name, location);

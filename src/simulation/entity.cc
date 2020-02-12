@@ -143,6 +143,7 @@ struct Unit {
   uint8_t acurrent[CREWA_MAX];
   uint8_t aknown_min[CREWA_MAX] = CREW_AWORST;
   uint8_t aknown_max[CREWA_MAX] = CREW_ABEST;
+  char unused[4];
 };
 
 DECLARE_GAME_TYPE(Unit, 8);
@@ -161,7 +162,7 @@ struct Ship {
   uint64_t level;
   uint64_t frame;
   FtlState ftl;
-  bool running;
+  uint64_t running;
 };
 DECLARE_GAME_TYPE(Ship, 1);
 

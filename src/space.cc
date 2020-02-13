@@ -340,9 +340,7 @@ main(int argc, char** argv)
 
     v2f pos;
     if (imui::GetUIClick(&pos)) {
-      int len = snprintf(buffer, BUFFER_SIZE, "ui click event pos (%.2f, %.2f)",
-                         pos.x, pos.y);
-      Log(buffer, len);
+      LOGFMT("ui click event pos (%.2f, %.2f)", pos.x, pos.y);
     }
 
     imui::PaneOptions pane_options(300.0f, 100.0f);

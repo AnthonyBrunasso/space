@@ -9,6 +9,8 @@ struct LogMessage {
 };
 
 DECLARE_QUEUE(LogMessage, 32);
+static char kLogLine[MAX_LOGMESSAGE];
+static int kLineLen;
 
 void
 Log(const char* logline, unsigned len)
@@ -40,4 +42,9 @@ LogCount()
 {
   return kWriteLogMessage - kReadLogMessage;
 }
+
+#define LOG(x) (Log(x, strlen(x)))
+#define LOGFMT(fmt, ...)                                           \
+  kLineLen = snprintf(kLogLine, MAX_LOGMESSAGE, fmt, __VA_ARGS__); \
+  Log(kLogLine, kLineLen);
 

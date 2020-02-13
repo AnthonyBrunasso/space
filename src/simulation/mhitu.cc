@@ -17,7 +17,8 @@ MissileHitShip(Ship* ship, Missile* mi)
   if (laser_defense) return;
 
   uint64_t replaced = BfsReplace(hit, 8, kTileOpen, kTileVacuum);
-  printf("mi impact %d %d replaced %lu tiles\n", hit.x, hit.y, replaced);
+
+  LOGFMT("mi impact %d %d replaced %lu tiles", hit.x, hit.y, replaced);
 }
 
 }  // namespace simulation

@@ -58,6 +58,8 @@ BindAddr(Udp4 peer, const char* host, const char* service_or_port)
   bind(peer.socket, (const struct sockaddr*)result->ai_addr,
        result->ai_addrlen);
 
+  freeaddrinfo(result);
+
   return true;
 }
 

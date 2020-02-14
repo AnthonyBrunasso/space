@@ -19,8 +19,8 @@ struct State {
   uint64_t frame_time_usec = 0;
   Stats stats;
   // Input determinism check
-  uint64_t input_hash = 5381;
-  uint64_t simulation_hash = 5381;
+  uint64_t input_hash = DJB2_CONST;
+  uint64_t simulation_hash = DJB2_CONST;
   // Rough estimate of round-trip time
   uint64_t rtt_usec = 0;
   uint64_t turn_queue_depth = 0;

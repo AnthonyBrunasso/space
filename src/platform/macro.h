@@ -32,3 +32,5 @@
 // System memory block
 #define PAGE (4 * 1024)
 
+#define DJB2_CONST 5381
+

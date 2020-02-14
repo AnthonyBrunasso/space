@@ -50,8 +50,12 @@ Initialize()
 }
 
 bool
-VerifyIntegrity()
+VerifyIntegrity(uint64_t* hash)
 {
+  for (int i = 0; i < kUsedRegistry; ++i) {
+    uint64_t len = kRegistry[i].memb_size * kRegistry[i].memb_max;
+    djb2_hash_more((const uint8_t*)kRegistry[i].ptr, len, hash);
+  }
   // TODO (AN): Checksum of kEntity compared to end of last frame
   return true;
 }
@@ -466,7 +470,6 @@ SimulationOver()
 {
   return !(kShip[0].running);
 }
-
 
 void
 Update()

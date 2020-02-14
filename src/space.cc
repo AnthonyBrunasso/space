@@ -20,6 +20,7 @@ struct State {
   Stats stats;
   // Input determinism check
   uint64_t input_hash = 5381;
+  uint64_t simulation_hash = 5381;
   // Rough estimate of round-trip time
   uint64_t rtt_usec = 0;
   uint64_t turn_queue_depth = 0;
@@ -264,8 +265,9 @@ main(int argc, char** argv)
 
     uint64_t slot = NETQUEUE_SLOT(kGameState.logic_updates);
     if (SlotReady(slot)) {
-      // Verify the simulation has not changed outside this block
-      if (!simulation::VerifyIntegrity()) exit(4);
+      // Hash the simulation state every 0th slot
+      if (!slot)
+        if (!simulation::VerifyIntegrity(&kGameState.simulation_hash)) exit(4);
 
       // Game Mutation: Apply player commands for turn N
       InputBuffer* game_turn = GetSlot(slot);
@@ -319,6 +321,9 @@ main(int argc, char** argv)
                mouse.y);
       imui::Text(buffer);
       snprintf(buffer, BUFFER_SIZE, "Input hash: 0x%lx", kGameState.input_hash);
+      imui::Text(buffer);
+      snprintf(buffer, BUFFER_SIZE, "Sim hash: 0x%lx",
+               kGameState.simulation_hash);
       imui::Text(buffer);
       v2i tile = simulation::WorldToTilePos(mouse.xy());
       if (simulation::TileOk(tile)) {

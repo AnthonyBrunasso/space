@@ -18,6 +18,8 @@ struct State {
   // Time it took to run a frame.
   uint64_t frame_time_usec = 0;
   Stats stats;
+  // Input determinism check
+  uint64_t input_hash = 5381;
   // Rough estimate of round-trip time
   uint64_t rtt_usec = 0;
   uint64_t turn_queue_depth = 0;
@@ -99,6 +101,9 @@ void
 SimulationEvent(const PlatformEvent* event, const Camera* camera,
                 v2f* translation)
 {
+  djb2_hash_more((const uint8_t*)event, sizeof(PlatformEvent),
+                 &kGameState.input_hash);
+
   switch (event->type) {
     case MOUSE_DOWN: {
       if (event->button == BUTTON_LEFT) {
@@ -312,6 +317,8 @@ main(int argc, char** argv)
       imui::Text(buffer);
       snprintf(buffer, BUFFER_SIZE, "Mouse Pos In World: (%.1f,%.1f)", mouse.x,
                mouse.y);
+      imui::Text(buffer);
+      snprintf(buffer, BUFFER_SIZE, "Input hash: 0x%lx", kGameState.input_hash);
       imui::Text(buffer);
       v2i tile = simulation::WorldToTilePos(mouse.xy());
       if (simulation::TileOk(tile)) {

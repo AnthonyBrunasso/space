@@ -39,22 +39,22 @@ Mat4f
 Rotation(const Quatf& quat)
 {
   Mat4f rotation;
-  rotation[0] = 1.f - 2.f * quat.y * quat.y - 2.f * quat.z * quat.z;
-  rotation[1] = 2.f * quat.x * quat.y - 2.f * quat.w * quat.z;
-  rotation[2] = 2.f * quat.x * quat.z + 2 * quat.w * quat.y;
-  rotation[3] = 0.0f;
-  rotation[4] = 2.f * quat.x * quat.y + 2.f * quat.w * quat.z;
-  rotation[5] = 1.f - 2.f * quat.x * quat.x - 2.f * quat.z * quat.z;
-  rotation[6] = 2.f * quat.y * quat.z - 2.f * quat.w * quat.x;
-  rotation[7] = 0.0f;
-  rotation[8] = 2.f * quat.x * quat.z - 2.f * quat.w * quat.y;
-  rotation[9] = 2.f * quat.y * quat.z + 2.f * quat.w * quat.x;
-  rotation[10] = 1.f - 2.f * quat.x * quat.x - 2.f * quat.y * quat.y;
-  rotation[11] = 0.0f;
-  rotation[12] = 0.0f;
-  rotation[13] = 0.0f;
-  rotation[14] = 0.0f;
-  rotation[15] = 1.0f;
+  rotation.data_[0] = 1.f - 2.f * quat.y * quat.y - 2.f * quat.z * quat.z;
+  rotation.data_[1] = 2.f * quat.x * quat.y - 2.f * quat.w * quat.z;
+  rotation.data_[2] = 2.f * quat.x * quat.z + 2 * quat.w * quat.y;
+  rotation.data_[3] = 0.0f;
+  rotation.data_[4] = 2.f * quat.x * quat.y + 2.f * quat.w * quat.z;
+  rotation.data_[5] = 1.f - 2.f * quat.x * quat.x - 2.f * quat.z * quat.z;
+  rotation.data_[6] = 2.f * quat.y * quat.z - 2.f * quat.w * quat.x;
+  rotation.data_[7] = 0.0f;
+  rotation.data_[8] = 2.f * quat.x * quat.z - 2.f * quat.w * quat.y;
+  rotation.data_[9] = 2.f * quat.y * quat.z + 2.f * quat.w * quat.x;
+  rotation.data_[10] = 1.f - 2.f * quat.x * quat.x - 2.f * quat.y * quat.y;
+  rotation.data_[11] = 0.0f;
+  rotation.data_[12] = 0.0f;
+  rotation.data_[13] = 0.0f;
+  rotation.data_[14] = 0.0f;
+  rotation.data_[15] = 1.0f;
   return rotation;
 }
 
@@ -63,22 +63,22 @@ View(const v3f& translation, const Quatf& quat)
 {
   auto mat = Rotation(quat).Transpose();
   Mat4f view;
-  view[0] = mat[0];
-  view[1] = mat[1];
-  view[2] = mat[2];
-  view[3] = 0.0f;
-  view[4] = mat[4];
-  view[5] = mat[5];
-  view[6] = mat[6];
-  view[7] = 0.0f;
-  view[8] = mat[8];
-  view[9] = mat[9];
-  view[10] = mat[10];
-  view[11] = 0.0f;
-  view[12] = -translation.x;
-  view[13] = -translation.y;
-  view[14] = -translation.z;
-  view[15] = 1.0f;
+  view.data_[0] = mat.data_[0];
+  view.data_[1] = mat.data_[1];
+  view.data_[2] = mat.data_[2];
+  view.data_[3] = 0.0f;
+  view.data_[4] = mat.data_[4];
+  view.data_[5] = mat.data_[5];
+  view.data_[6] = mat.data_[6];
+  view.data_[7] = 0.0f;
+  view.data_[8] = mat.data_[8];
+  view.data_[9] = mat.data_[9];
+  view.data_[10] = mat.data_[10];
+  view.data_[11] = 0.0f;
+  view.data_[12] = -translation.x;
+  view.data_[13] = -translation.y;
+  view.data_[14] = -translation.z;
+  view.data_[15] = 1.0f;
   return view;
 }
 
@@ -146,44 +146,44 @@ Mat4f
 Model(const v3f& position, const v3f& scale,
       const math::Quatf& quat) {
   Mat4f model;
-  model[0] = scale.x * (1.f - 2.f * quat.y * quat.y - 2.f * quat.z * quat.z);
-  model[1] = scale.y * (2.f * quat.x * quat.y - 2.f * quat.w * quat.z);
-  model[2] = scale.z * (2.f * quat.x * quat.z + 2 * quat.w * quat.y);
-  model[3] = 0.0f;
-  model[4] = scale.x * (2.f * quat.x * quat.y + 2.f * quat.w * quat.z);
-  model[5] = scale.y * (1.f - 2.f * quat.x * quat.x - 2.f * quat.z * quat.z);
-  model[6] = scale.z * (2.f * quat.y * quat.z - 2.f * quat.w * quat.x);
-  model[7] = 0.0f;
-  model[8] = scale.x * (2.f * quat.x * quat.z - 2.f * quat.w * quat.y);
-  model[9] = scale.y * (2.f * quat.y * quat.z + 2.f * quat.w * quat.x);
-  model[10] = scale.z * (1.f - 2.f * quat.x * quat.x - 2.f * quat.y * quat.y);
-  model[11] = 0.0f;
-  model[12] = position.x;
-  model[13] = position.y;
-  model[14] = position.z;
-  model[15] = 1.0f;
+  model.data_[0] = scale.x * (1.f - 2.f * quat.y * quat.y - 2.f * quat.z * quat.z);
+  model.data_[1] = scale.y * (2.f * quat.x * quat.y - 2.f * quat.w * quat.z);
+  model.data_[2] = scale.z * (2.f * quat.x * quat.z + 2 * quat.w * quat.y);
+  model.data_[3] = 0.0f;
+  model.data_[4] = scale.x * (2.f * quat.x * quat.y + 2.f * quat.w * quat.z);
+  model.data_[5] = scale.y * (1.f - 2.f * quat.x * quat.x - 2.f * quat.z * quat.z);
+  model.data_[6] = scale.z * (2.f * quat.y * quat.z - 2.f * quat.w * quat.x);
+  model.data_[7] = 0.0f;
+  model.data_[8] = scale.x * (2.f * quat.x * quat.z - 2.f * quat.w * quat.y);
+  model.data_[9] = scale.y * (2.f * quat.y * quat.z + 2.f * quat.w * quat.x);
+  model.data_[10] = scale.z * (1.f - 2.f * quat.x * quat.x - 2.f * quat.y * quat.y);
+  model.data_[11] = 0.0f;
+  model.data_[12] = position.x;
+  model.data_[13] = position.y;
+  model.data_[14] = position.z;
+  model.data_[15] = 1.0f;
   return model;
 }
 
 Mat4f
 Model(const v3f& position, const v3f& scale) {
   Mat4f model;
-  model[0] = scale.x;
-  model[1] = 0.0f;
-  model[2] = 0.0f;
-  model[3] = 0.0f;
-  model[4] = 0.0f;
-  model[5] = scale.y;
-  model[6] = 0.0f;
-  model[7] = 0.0f;
-  model[8] = 0.0f;
-  model[9] = 0.0f;
-  model[10] = scale.z;
-  model[11] = 0.0f;
-  model[12] = position.x;
-  model[13] = position.y;
-  model[14] = position.z;
-  model[15] = 1.0f;
+  model.data_[0] = scale.x;
+  model.data_[1] = 0.0f;
+  model.data_[2] = 0.0f;
+  model.data_[3] = 0.0f;
+  model.data_[4] = 0.0f;
+  model.data_[5] = scale.y;
+  model.data_[6] = 0.0f;
+  model.data_[7] = 0.0f;
+  model.data_[8] = 0.0f;
+  model.data_[9] = 0.0f;
+  model.data_[10] = scale.z;
+  model.data_[11] = 0.0f;
+  model.data_[12] = position.x;
+  model.data_[13] = position.y;
+  model.data_[14] = position.z;
+  model.data_[15] = 1.0f;
   return model;
 }
 

@@ -131,7 +131,7 @@ RenderText(const char* msg, v2f pos, float scale, const v4f& color)
   auto sz = window::GetWindowSize();
   math::Mat4f projection = math::Ortho2(
       sz.x, 0.f, sz.y, 0.f, /* 2d so leave near/far 0*/ 0.f, 0.f);
-  glUniformMatrix4fv(font.matrix_uniform, 1, GL_FALSE, &projection[0]);
+  glUniformMatrix4fv(font.matrix_uniform, 1, GL_FALSE, &projection.data_[0]);
   glUniform4f(font.color_uniform, color.x, color.y, color.z, color.w);
 
 #if 0
@@ -224,8 +224,8 @@ RenderButton(const char* text, const math::Rect& rect,
   glUniform4f(kRGG.smooth_rectangle_program.color_uniform, color.x, color.y,
               color.z, color.w);
   glUniformMatrix4fv(kRGG.smooth_rectangle_program.model_uniform, 1, GL_FALSE,
-                     &model[0]);
+                     &model.data_[0]);
   glUniformMatrix4fv(kRGG.smooth_rectangle_program.view_projection_uniform, 1,
-                     GL_FALSE, &view_projection[0]);
+                     GL_FALSE, &view_projection.data_[0]);
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }

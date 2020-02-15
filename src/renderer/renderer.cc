@@ -274,7 +274,7 @@ RenderTag(const RenderTag& tag, const v3f& position,
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
-                     &matrix[0]);
+                     &matrix.data_[0]);
   glDrawArrays(tag.mode, 0, tag.vert_count);
 }
 
@@ -290,7 +290,7 @@ RenderTriangle(const v3f& position, const v3f& scale,
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
-                     &matrix[0]);
+                     &matrix.data_[0]);
   glDrawArrays(GL_LINE_LOOP, 0, 3);
 }
 
@@ -306,7 +306,7 @@ RenderRectangle(const v3f& position, const v3f& scale,
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
-                     &matrix[0]);
+                     &matrix.data_[0]);
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -324,7 +324,7 @@ RenderRectangle(const math::Rect& rect, const v4f& color)
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
-                     &matrix[0]);
+                     &matrix.data_[0]);
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -342,7 +342,7 @@ RenderLineRectangle(const math::Rect& rect, const v4f& color)
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
-                     &matrix[0]);
+                     &matrix.data_[0]);
   glDrawArrays(GL_LINE_LOOP, 0, 4);
 }
 
@@ -362,9 +362,9 @@ RenderSmoothRectangle(const math::Rect& rect, float smoothing_radius,
   glUniform4f(kRGG.smooth_rectangle_program.color_uniform, color.x, color.y,
               color.z, color.w);
   glUniformMatrix4fv(kRGG.smooth_rectangle_program.model_uniform, 1, GL_FALSE,
-                     &model[0]);
+                     &model.data_[0]);
   glUniformMatrix4fv(kRGG.smooth_rectangle_program.view_projection_uniform, 1,
-                     GL_FALSE, &view_projection[0]);
+                     GL_FALSE, &view_projection.data_[0]);
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -382,9 +382,10 @@ RenderCircle(const v3f& position, float inner_radius, float outer_radius,
   glUniform1f(kRGG.circle_program.outer_radius_uniform, outer_radius);
   glUniform4f(kRGG.circle_program.color_uniform, color.x, color.y, color.z,
               color.w);
-  glUniformMatrix4fv(kRGG.circle_program.model_uniform, 1, GL_FALSE, &model[0]);
+  glUniformMatrix4fv(kRGG.circle_program.model_uniform, 1, GL_FALSE,
+                     &model.data_[0]);
   glUniformMatrix4fv(kRGG.circle_program.view_projection_uniform, 1, GL_FALSE,
-                     &view_pojection[0]);
+                     &view_pojection.data_[0]);
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -423,7 +424,7 @@ RenderLine(const v3f& start, const v3f& end, const v4f& color)
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
-                     &matrix[0]);
+                     &matrix.data_[0]);
   glDrawArrays(GL_LINES, 0, 2);
 }
 
@@ -446,7 +447,7 @@ RenderGrid(v2f grid, math::Rectf bounds, const v4f& color)
     math::Mat4f matrix =
         kObserver.projection * kObserver.view * CreateLineTransform(start, end);
     glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
-                       &matrix[0]);
+                       &matrix.data_[0]);
     glDrawArrays(GL_LINES, 0, 2);
   }
 
@@ -457,7 +458,7 @@ RenderGrid(v2f grid, math::Rectf bounds, const v4f& color)
     math::Mat4f matrix =
         kObserver.projection * kObserver.view * CreateLineTransform(start, end);
     glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
-                       &matrix[0]);
+                       &matrix.data_[0]);
     glDrawArrays(GL_LINES, 0, 2);
   }
 }

@@ -9,18 +9,19 @@
 
 namespace math
 {
-// column major matrix
-template <typename T, size_t M, size_t N>
-class Mat
+// DONT MESS WITH ME CLANG FORMAT!!!!!!
+// clang-format off
+template <typename T>
+class Mat4
 {
  public:
-  Mat() = default;
-  // This is common case for game code. A 4x4 matrix has 16 entries.
-  // Each row here corresponds with a column of the matrix.
-  Mat(T c11, T c21, T c31, T c41, T c12, T c22, T c32, T c42, T c13, T c23,
-      T c33, T c43, T c14, T c24, T c34, T c44)
+  Mat4() = default;
+
+  Mat4(T c11, T c21, T c31, T c41,
+       T c12, T c22, T c32, T c42,
+       T c13, T c23, T c33, T c43,
+       T c14, T c24, T c34, T c44)
   {
-    assert(16 == M * N);  // Only allowed on 4x4 matrix.
     data_[0] = c11;
     data_[1] = c21;
     data_[2] = c31;
@@ -39,75 +40,53 @@ class Mat
     data_[15] = c44;
   }
 
-  void
-  Init(int n, ...)
-  {
-    assert(n == M * N);
-    va_list vl;
-    va_start(vl, n);
-    for (int i = 0; i < n; i++) {
-      data_[i] = va_arg(vl, T);
-    }
-    va_end(vl);
-  }
-
   T&
   operator()(size_t m, size_t n)
   {
-    assert(m * n < M * N);
+    assert(m * n < 16);
     return data_[n * M + m];
   }
 
   const T&
   operator()(size_t m, size_t n) const
   {
-    assert(m * n < M * N);
-    return data_[n * M + m];
+    assert(m * n < 16);
+    return data_[n * 4 + m];
   }
 
-  T& operator[](size_t i) { return data_[i]; }
-
-  size_t
-  rows() const
-  {
-    return M;
-  }
-  size_t
-  cols() const
-  {
-    return N;
+  // Get the i'th column of the matrix as a vec4
+  v4f& operator[](size_t i) {
+    assert(i < 4 && i >= 0);
+    return *((math::Vec4f*)(data_[i * 4]));
   }
 
   bool
-  operator==(const Mat& rhs) const
+  operator==(const Mat4& rhs) const
   {
-    if (M != rhs.rows() || N != rhs.cols()) return false;
-    return memcmp(data_, rhs.data_, M * N) == 0;
+    return memcmp(data_, rhs.data_, 16) == 0;
   }
 
   bool
-  operator!=(const Mat& rhs) const
+  operator!=(const Mat4& rhs) const
   {
     return !(data_ == rhs.data_);
   }
 
-  Mat<T, N, M>
+  Mat4
   Transpose() const
   {
-    Mat<T, N, M> t;
-    for (size_t i = 0; i < N; ++i) {
-      for (size_t j = 0; j < M; ++j) {
-        t(i, j) = (*this)(j, i);
-      }
-    }
-    return t;
+    return Mat4(
+      data_[0], data_[4], data_[8], data_[12],
+      data_[1], data_[5], data_[9], data_[13],
+      data_[2], data_[6], data_[10], data_[14],
+      data_[3], data_[7], data_[11], data_[15]);
   }
 
-  T data_[M * N];
+  T data_[16];
 };
 
 inline void
-Print4x4Matrix(const Mat<float, 4, 4>& mat)
+Print4x4Matrix(const Mat4<float>& mat)
 {
   printf(
       "%.3f, %.3f, %.3f, %.3f\n"
@@ -121,79 +100,172 @@ Print4x4Matrix(const Mat<float, 4, 4>& mat)
 
 // This is fun... It's impossible for a program to compile if the
 // multplication is invalid.
-template <typename T, size_t M, size_t N, size_t P>
-Mat<T, M, P> operator*(const Mat<T, M, N>& lhs, const Mat<T, N, P>& rhs)
+template <typename T>
+Mat4<T> operator*(const Mat4<T>& lhs, const Mat4<T>& rhs)
 {
-  Mat<T, M, P> r;
-  for (int i = 0; i < M; ++i) {
-    for (int j = 0; j < P; ++j) {
-      r(i, j) = T(0);
-      for (int k = 0; k < N; ++k) {
-        r(i, j) += lhs(i, k) * rhs(k, j);
-      }
-    }
-  }
+  auto& l = lhs.data_;
+  auto& r = rhs.data_;
+  Mat4<T> result;
+  auto& d = result.data_;
+
+  // TODO(abrunasso): Optimize. Use simd.
+  d[0] = l[0] * r[0] + l[4] * r[1] + l[8] * r[2] + l[12] * r[3];
+  d[1] = l[1] * r[0] + l[5] * r[1] + l[9] * r[2] + l[13] * r[3];
+  d[2] = l[2] * r[0] + l[6] * r[1] + l[10] * r[2] + l[14] * r[3];
+  d[3] = l[3] * r[0] + l[7] * r[1] + l[11] * r[2] + l[15] * r[3];
+
+  d[4] = l[0] * r[4] + l[4] * r[5] + l[8] * r[6] + l[12] * r[7];
+  d[5] = l[1] * r[4] + l[5] * r[5] + l[9] * r[6] + l[13] * r[7];
+  d[6] = l[2] * r[4] + l[6] * r[5] + l[10] * r[6] + l[14] * r[7];
+  d[7] = l[3] * r[4] + l[7] * r[5] + l[11] * r[6] + l[15] * r[7];
+
+  d[8 ] = l[0] * r[8] + l[4] * r[9] + l[8]  * r[10] + l[12] * r[11];
+  d[9 ] = l[1] * r[8] + l[5] * r[9] + l[9]  * r[10] + l[13] * r[11];
+  d[10] = l[2] * r[8] + l[6] * r[9] + l[10] * r[10] + l[14] * r[11];
+  d[11] = l[3] * r[8] + l[7] * r[9] + l[11] * r[10] + l[15] * r[11];
+
+  d[12] = l[0] * r[12] + l[4] * r[13] + l[8]  * r[14] + l[12] * r[15];
+  d[13] = l[1] * r[12] + l[5] * r[13] + l[9]  * r[14] + l[13] * r[15];
+  d[14] = l[2] * r[12] + l[6] * r[13] + l[10] * r[14] + l[14] * r[15];
+  d[15] = l[3] * r[12] + l[7] * r[13] + l[11] * r[14] + l[15] * r[15];
+
+  return result;
+}
+
+template <typename T>
+Mat4<T> operator*(const Mat4<T>& lhs, const T& rhs)
+{
+  Mat4<T> r;
+  r.data_[0] = lhs.data_[0] * rhs;
+  r.data_[1] = lhs.data_[1] * rhs;
+  r.data_[2] = lhs.data_[2] * rhs;
+  r.data_[3] = lhs.data_[3] * rhs;
+  r.data_[4] = lhs.data_[4] * rhs;
+  r.data_[5] = lhs.data_[5] * rhs;
+  r.data_[6] = lhs.data_[6] * rhs;
+  r.data_[7] = lhs.data_[7] * rhs;
+  r.data_[8] = lhs.data_[8] * rhs;
+  r.data_[9] = lhs.data_[9] * rhs;
+  r.data_[10] = lhs.data_[10] * rhs;
+  r.data_[11] = lhs.data_[11] * rhs;
+  r.data_[12] = lhs.data_[12] * rhs;
+  r.data_[13] = lhs.data_[13] * rhs;
+  r.data_[14] = lhs.data_[14] * rhs;
+  r.data_[15] = lhs.data_[15] * rhs;
   return r;
 }
 
-template <typename T, size_t M, size_t N>
-Mat<T, M, N> operator*(const Mat<T, M, N>& lhs, const T& rhs)
-{
-  Mat<T, M, N> r;
-  for (size_t i = 0; i < M * N; ++i) r.data_[i] = lhs.data_[i] * rhs;
-  return r;
-}
-
-template <typename T, size_t M, size_t N>
-Mat<T, M, N> operator*(const T& rhs, const Mat<T, M, N>& lhs)
+template <typename T>
+Mat4<T> operator*(const T& rhs, const Mat4<T>& lhs)
 {
   return lhs * rhs;
 }
 
-template <typename T, size_t M, size_t N>
-Mat<T, M, N>
-operator/(const Mat<T, M, N>& lhs, const T& rhs)
+template <typename T>
+Mat4<T>
+operator/(const Mat4<T>& lhs, const T& rhs)
 {
-  Mat<T, M, N> r;
-  for (size_t i = 0; i < M * N; ++i) r.data_[i] = lhs.data_[i] / rhs;
+  Mat4<T> r;
+  r.data_[0] = lhs.data_[0] / rhs;
+  r.data_[1] = lhs.data_[1] / rhs;
+  r.data_[2] = lhs.data_[2] / rhs;
+  r.data_[3] = lhs.data_[3] / rhs;
+  r.data_[4] = lhs.data_[4] / rhs;
+  r.data_[5] = lhs.data_[5] / rhs;
+  r.data_[6] = lhs.data_[6] / rhs;
+  r.data_[7] = lhs.data_[7] / rhs;
+  r.data_[8] = lhs.data_[8] / rhs;
+  r.data_[9] = lhs.data_[9] / rhs;
+  r.data_[10] = lhs.data_[10] / rhs;
+  r.data_[11] = lhs.data_[11] / rhs;
+  r.data_[12] = lhs.data_[12] / rhs;
+  r.data_[13] = lhs.data_[13] / rhs;
+  r.data_[14] = lhs.data_[14] / rhs;
+  r.data_[15] = lhs.data_[15] / rhs;
   return r;
 }
 
-template <typename T, size_t M, size_t N>
-Mat<T, M, N>
-operator+(const Mat<T, M, N>& lhs, const T& rhs)
+template <typename T>
+Mat4<T>
+operator+(const Mat4<T>& lhs, const T& rhs)
 {
-  Mat<T, M, N> r;
-  for (size_t i = 0; i < M * N; ++i) r.data_[i] = lhs.data_[i] + rhs;
+  Mat4<T> r;
+  r.data_[0] = lhs.data_[0] + rhs;
+  r.data_[1] = lhs.data_[1] + rhs;
+  r.data_[2] = lhs.data_[2] + rhs;
+  r.data_[3] = lhs.data_[3] + rhs;
+  r.data_[4] = lhs.data_[4] + rhs;
+  r.data_[5] = lhs.data_[5] + rhs;
+  r.data_[6] = lhs.data_[6] + rhs;
+  r.data_[7] = lhs.data_[7] + rhs;
+  r.data_[8] = lhs.data_[8] + rhs;
+  r.data_[9] = lhs.data_[9] + rhs;
+  r.data_[10] = lhs.data_[10] + rhs;
+  r.data_[11] = lhs.data_[11] + rhs;
+  r.data_[12] = lhs.data_[12] + rhs;
+  r.data_[13] = lhs.data_[13] + rhs;
+  r.data_[14] = lhs.data_[14] + rhs;
+  r.data_[15] = lhs.data_[15] + rhs;
   return r;
 }
 
-template <typename T, size_t M, size_t N>
-Mat<T, M, N>
-operator+(const T& rhs, const Mat<T, M, N>& lhs)
+template <typename T>
+Mat4<T>
+operator+(const T& rhs, const Mat4<T>& lhs)
 {
   return lhs + rhs;
 }
 
-template <typename T, size_t M, size_t N>
-Mat<T, M, N>
-operator-(const Mat<T, M, N>& lhs, const T& rhs)
+template <typename T>
+Mat4<T>
+operator-(const Mat4<T>& lhs, const T& rhs)
 {
-  Mat<T, M, N> r;
-  for (size_t i = 0; i < M * N; ++i) r.data_[i] = lhs.data_[i] - rhs;
+  Mat4<T> r;
+  r.data_[0] = lhs.data_[0] - rhs;
+  r.data_[1] = lhs.data_[1] - rhs;
+  r.data_[2] = lhs.data_[2] - rhs;
+  r.data_[3] = lhs.data_[3] - rhs;
+  r.data_[4] = lhs.data_[4] - rhs;
+  r.data_[5] = lhs.data_[5] - rhs;
+  r.data_[6] = lhs.data_[6] - rhs;
+  r.data_[7] = lhs.data_[7] - rhs;
+  r.data_[8] = lhs.data_[8] - rhs;
+  r.data_[9] = lhs.data_[9] - rhs;
+  r.data_[10] = lhs.data_[10] - rhs;
+  r.data_[11] = lhs.data_[11] - rhs;
+  r.data_[12] = lhs.data_[12] - rhs;
+  r.data_[13] = lhs.data_[13] - rhs;
+  r.data_[14] = lhs.data_[14] - rhs;
+  r.data_[15] = lhs.data_[15] - rhs;
+  return r;
+
+}
+
+template <typename T>
+Mat4<T>
+operator-(const Mat4<T>& lhs, const Mat4<T>& rhs)
+{
+  Mat4<T> r;
+  r.data_[0] = lhs.data_[0] - rhs.data_[0];
+  r.data_[1] = lhs.data_[1] - rhs.data_[1];
+  r.data_[2] = lhs.data_[2] - rhs.data_[2];
+  r.data_[3] = lhs.data_[3] - rhs.data_[3];
+  r.data_[4] = lhs.data_[4] - rhs.data_[4];
+  r.data_[5] = lhs.data_[5] - rhs.data_[5];
+  r.data_[6] = lhs.data_[6] - rhs.data_[6];
+  r.data_[7] = lhs.data_[7] - rhs.data_[7];
+  r.data_[8] = lhs.data_[8] - rhs.data_[8];
+  r.data_[9] = lhs.data_[9] - rhs.data_[9];
+  r.data_[10] = lhs.data_[10] - rhs.data_[10];
+  r.data_[11] = lhs.data_[11] - rhs.data_[11];
+  r.data_[12] = lhs.data_[12] - rhs.data_[12];
+  r.data_[13] = lhs.data_[13] - rhs.data_[13];
+  r.data_[14] = lhs.data_[14] - rhs.data_[14];
+  r.data_[15] = lhs.data_[15] - rhs.data_[15];
   return r;
 }
 
-template <typename T, size_t M, size_t N>
-Mat<T, M, N>
-operator-(const Mat<T, M, N>& lhs, const Mat<T, M, N>& rhs)
-{
-  Mat<T, M, N> r;
-  for (size_t i = 0; i < M * N; ++i) r.data_[i] = lhs.data_[i] - rhs.data_[i];
-  return r;
-}
-
-using Mat4f = Mat<float, 4, 4>;
+using Mat4f = Mat4<float>;
 
 // Ths matrix vector multiplication is written as if the vector was
 // augmented with a 1 (x, y, z, 1). And mutiplied against a matrix
@@ -235,7 +307,7 @@ using Mat4f = Mat<float, 4, 4>;
 //
 // m * v = [ x, ycos(theta) - zsin(theta), ysin(theta) + zcos(theta) ]
 template <class T>
-v3f operator*(const Mat<T, 4, 4>& lhs, const v3f& rhs)
+v3f operator*(const Mat4<T>& lhs, const v3f& rhs)
 {
   return v3f(
       lhs(0, 0) * rhs.x + lhs(0, 1) * rhs.y + lhs(0, 2) * rhs.z + lhs(0, 3),
@@ -243,4 +315,5 @@ v3f operator*(const Mat<T, 4, 4>& lhs, const v3f& rhs)
       lhs(2, 0) * rhs.x + lhs(2, 1) * rhs.y + lhs(2, 2) * rhs.z + lhs(2, 3));
 }
 
+// clang-format on
 }  // namespace math

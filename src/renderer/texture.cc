@@ -145,6 +145,6 @@ RenderTexture(const Texture& texture, const math::Rect& src,
   v3f scale(dest.width, dest.height, 1.f);
   math::Mat4f model = math::Model(pos, scale);
   math::Mat4f matrix = kObserver.projection * kObserver.view * model;
-  glUniformMatrix4fv(kTextureState.matrix_uniform, 1, GL_FALSE, &matrix[0]);
+  glUniformMatrix4fv(kTextureState.matrix_uniform, 1, GL_FALSE, &matrix.data_[0]);
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }

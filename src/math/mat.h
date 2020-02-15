@@ -44,7 +44,7 @@ class Mat4
   operator()(size_t m, size_t n)
   {
     assert(m * n < 16);
-    return data_[n * M + m];
+    return data_[n * 4 + m];
   }
 
   const T&

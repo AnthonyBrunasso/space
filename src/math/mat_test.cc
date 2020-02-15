@@ -1,5 +1,7 @@
 #include <cassert>
 
+#include <cstdio>
+
 #include "mat.h"
 #include "vec.h"
 

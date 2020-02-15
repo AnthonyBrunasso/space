@@ -96,7 +96,7 @@ Rotation(const Quatf& quat)
 Mat4f
 View(const v3f& translation, const Quatf& quat)
 {
-  auto mat = Inverse(Rotation(quat));
+  auto mat = Rotation(quat).Transpose();
   Mat4f view;
   view.data_[0] = mat.data_[0];
   view.data_[1] = mat.data_[1];

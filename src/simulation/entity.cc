@@ -55,7 +55,7 @@ enum FtlFlag {
   kFtlTangible = 0,
 };
 
-// Common Structures 
+// Common Structures
 struct Transform {
   v3f position;
   v3f scale = v3f(1.f, 1.f, 1.f);
@@ -85,7 +85,7 @@ const char* const crew_aname[] = {
     "constitution",
 };
 #define CREW_A(val) \
-  {                \
+  {                 \
       val,          \
       val,          \
       val,          \
@@ -169,6 +169,7 @@ DECLARE_GAME_TYPE(Ship, 1);
 struct Missile {
   Transform transform;
   uint64_t flags;
+  uint64_t hit_frame;
   v2i tile_hit;
 };
 DECLARE_GAME_TYPE(Missile, 8);

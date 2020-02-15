@@ -169,6 +169,8 @@ Think()
 
   for (int i = 0; i < kUsedMissile; ++i) {
     Missile* missile = &kMissile[i];
+    if (missile->flags & FLAG(kMissileAiExplode)) continue;
+
     v2i tile = WorldToTilePos(missile->transform.position.xy());
     if (!TileOk(tile)) continue;
 
@@ -177,6 +179,7 @@ Think()
 
     if (kTilemap.map[tile.y][tile.x].type == kTileBlock) {
       missile->flags = FLAG(kMissileAiExplode);
+      missile->hit_frame = kShip[0].frame;
       missile->tile_hit = {tile.x, (tile.y + 1)};
     }
   }
@@ -400,8 +403,9 @@ Decide()
     uint64_t replaced;
 
     if (action == kMissileAiExplode) {
-      MissileHitShip(&kShip[0], missile);
-      *missile = kZeroMissile;
+      if (!MissileHitSimulation(&kShip[0], missile)) {
+        *missile = kZeroMissile;
+      }
       continue;
     }
 

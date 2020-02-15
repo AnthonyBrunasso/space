@@ -224,6 +224,13 @@ WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
     case WM_LBUTTONUP: {
       HandleMouseEvent(false, platform_event, BUTTON_LEFT);
     } break;
+    case WM_RBUTTONDOWN: {
+      HandleMouseEvent(true, platform_event, BUTTON_RIGHT);
+    } break;
+    case WM_RBUTTONUP: {
+      HandleMouseEvent(false, platform_event, BUTTON_RIGHT);
+    } break;
+
     default: {
       result = DefWindowProcA(window, msg, wparam, lparam); 
     } break;

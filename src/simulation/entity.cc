@@ -104,7 +104,8 @@ DECLARE_GAME_QUEUE(Command, 16);
 struct Asteroid {
   Transform transform;
   uint64_t mineral_source;
-  uint64_t flags = 0;
+  unsigned implode : 1;
+  unsigned deplete : 1;
 };
 DECLARE_GAME_TYPE(Asteroid, 8);
 

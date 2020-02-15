@@ -160,11 +160,7 @@ Think()
 
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
-    if (asteroid->mineral_source < .5f) {
-      asteroid->flags = FLAG(kAsteroidAiImplode);
-    } else {
-      asteroid->flags = 0;
-    }
+    asteroid->implode = (asteroid->mineral_source < .5f);
   }
 
   for (int i = 0; i < kUsedMissile; ++i) {
@@ -245,7 +241,7 @@ Think()
         if (dsq(asteroid->transform.position, pod->transform.position) <
             900.f) {
           think_flags |= FLAG(kPodAiGather);
-          asteroid->flags |= FLAG(kAsteroidAiDeplete);
+          asteroid->deplete = 1;
         }
         break;
       }
@@ -384,7 +380,8 @@ Decide()
     Asteroid* asteroid = UseAsteroid();
     asteroid->transform = Transform{.position = v3f(800.f, 750.f, 0.f)};
     asteroid->mineral_source = 200.f;
-    asteroid->flags = 0;
+    asteroid->deplete = 0;
+    asteroid->implode = 0;
   }
 
   const float missile_xrange = 50.f * kShip[0].level;
@@ -416,15 +413,14 @@ Decide()
 
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
-    uint64_t action = TZCNT(asteroid->flags);
 
-    if (action == kAsteroidAiImplode) {
-      printf("zero asteroid %d\n", i);
+    if (asteroid->implode) {
+      LOG("Asteroid imploded.");
       *asteroid = kZeroAsteroid;
       continue;
     }
 
-    asteroid->mineral_source -= (action == kAsteroidAiDeplete);
+    asteroid->mineral_source -= asteroid->deplete;
     asteroid->transform.scale =
         v3f(1.f, 1.f, 1.f) * (asteroid->mineral_source / 200.f);
     asteroid->transform.position.x -= 1.0f;

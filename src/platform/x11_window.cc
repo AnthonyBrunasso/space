@@ -197,6 +197,14 @@ PollEvent(PlatformEvent* event)
   XEvent xev;
   while (XCheckWindowEvent(display, window_id, -1, &xev)) {
     switch (xev.type) {
+      // Save Absolute x,y of the last mouse motion
+      case MotionNotify: {
+        mouse_x = xev.xmotion.x;
+        mouse_y = height_pixels - xev.xmotion.y;
+      }  // FALLTHRU
+      default:
+        // Discard unhandled events
+        continue;
       case KeyPress:
         event->type = KEY_DOWN;
         event->key = XLookupKeysym(&xev.xkey, 0);
@@ -216,13 +224,6 @@ PollEvent(PlatformEvent* event)
         event->type = MOUSE_UP;
         event->button = (PlatformButton)xev.xbutton.button;
         event->position = {xev.xbutton.x, xev.xbutton.y};
-        break;
-      // Absolute x,y of the last mouse motion
-      // event->type remains NOT_IMPLEMENTED: the motion is processed and
-      // discarded
-      case MotionNotify:
-        mouse_x = xev.xmotion.x;
-        mouse_y = height_pixels - xev.xmotion.y;
         break;
     }
 

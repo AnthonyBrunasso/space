@@ -39,10 +39,6 @@ enum PodAiGoals {
   kPodAiApproach,
   kPodAiGoals = 64,
 };
-enum AsteroidAiGoals {
-  kAsteroidAiImplode,
-  kAsteroidAiDeplete,
-};
 
 // Common Structures
 struct Transform {
@@ -87,9 +83,8 @@ dsq(v3f dst, v3f src)
 struct Command {
   enum Type {
     kNone = 0,
-    kMine = 1,
-    kMove = 2,
-    kVacuum = 3,
+    kMove,
+    kVacuum,
   };
   Type type;
   v2f destination;

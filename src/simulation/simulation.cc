@@ -500,8 +500,6 @@ Update()
     switch (unit->command.type) {
       case Command::kNone: {
       } break;
-      case Command::kMine: {
-      } break;
       case Command::kMove: {
         v2i end = WorldToTilePos(unit->command.destination);
 

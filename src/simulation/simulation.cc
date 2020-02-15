@@ -34,12 +34,6 @@ Initialize()
   }
   kUnit[4].state_flags = FLAG(kUnitStateSpaceSuit);
 
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
-    printf("UNIT %i: %.2f,%.2f\n", i, unit->transform.position.x,
-           unit->transform.position.y);
-  }
-
   UseShip();
   kShip[0].running = true;
   kShip[0].level = 1;
@@ -64,9 +58,7 @@ bool
 operator_save_power(Unit* unit, float power_delta)
 {
   uint8_t int_check = power_delta / 5.0;
-#ifdef DEBUG_AI
-  printf("%u int check to save_power %04.02f\n", int_check, power_delta);
-#endif
+  LOGFMT("%u intelligence check on power utilization %04.02f", int_check, power_delta);
   bool success = (unit->acurrent[CREWA_INT] > int_check);
   // On success, update the known crew intelligence
   unit->aknown_min[CREWA_INT] =

@@ -345,7 +345,7 @@ main(int argc, char** argv)
       snprintf(buffer, BUFFER_SIZE, "Game Over");
       imui::Text(buffer);
     } else if (simulation::ShipFtlReady()) {
-      if (imui::Button(math::Rect(10, 10, 40, 40), v4f(1.0f, 0.0f, 1.0f, 0.75f))
+      if (imui::Button(math::Rect(10, 100, 40, 40), v4f(1.0f, 0.0f, 1.0f, 0.75f))
               .clicked) {
         simulation::ControlShipFtl();
       }

@@ -22,6 +22,11 @@ gameplay -
   crew exhaustion: restoration via beds and cafeteria
   prototype building ship extensions while in space
 
+ai -
+  c file with branching?
+  local "blackboard" for arbitrary bytes associated with a stateful event at a time
+  global "blackboard" for group decisions (do we have a game example of groupthink for ai?)
+
 sound -
 
   : Develop a system for playing audio / sound files. I think we should do our best to

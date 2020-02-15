@@ -107,16 +107,17 @@ SimulationEvent(const PlatformEvent* event, const Camera* camera,
 
   switch (event->type) {
     case MOUSE_DOWN: {
+      imui::MouseClick(event->position);
+      v3f pos = CoordToWorld(event->position);
+
       if (event->button == BUTTON_LEFT) {
-        v3f pos = CoordToWorld(event->position);
+        // Control
         uint64_t unit = simulation::SelectUnit(pos);
-        if (unit != kMaxUnit) {
-          simulation::ToggleAi(unit);
-        } else {
-          Command command = {Command::kMove, pos.xy()};
-          PushCommand(command);
-        }
-        imui::MouseClick(event->position);
+        simulation::ControlUnit(unit);
+      } else if (event->button == BUTTON_RIGHT) {
+        // Move
+        Command command = {Command::kMove, pos.xy()};
+        PushCommand(command);
       }
     } break;
     case KEY_DOWN: {

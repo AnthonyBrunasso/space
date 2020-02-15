@@ -34,15 +34,11 @@ SelectUnit(v3f world)
 }
 
 void
-ToggleAi(uint64_t i)
+ControlUnit(uint64_t unit_id)
 {
-  if (i >= kMaxUnit) return;
-
-  printf("toggle ai %lu %d\n", i, kUnit[i].kind);
-  if (kUnit[i].kind) {
-    kUnit[i].kind = 0;
-  } else {
-    kUnit[i].kind = MAX(1, i);
+  for (int i = 0; i < kUsedUnit; ++i) {
+    bool is_unit = i == unit_id;
+    kUnit[i].kind = !is_unit * (i + 1);
   }
 }
 

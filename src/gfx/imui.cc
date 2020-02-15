@@ -58,6 +58,7 @@ struct Pane {
 
 struct UIClick {
   v2f pos;
+  PlatformButton button;
 };
 
 struct UIClickRender {
@@ -90,10 +91,11 @@ DECLARE_ARRAY(Pane, 8);
 DECLARE_QUEUE(UIClickRender, 8);
 
 bool
-GetUIClick(v2f* pos)
+GetUIClick(v2f* pos, PlatformButton* b)
 {
   if (!kUsedUIClick) return false;
   *pos = kUIClick[0].pos;
+  *b = kUIClick[0].button;
   return true;
 }
 
@@ -329,7 +331,7 @@ Button(const math::Rect& rect, const v4f& color)
 }
 
 void
-MouseClick(v2f pos)
+MouseClick(v2f pos, PlatformButton b)
 {
   UIClick* click = UseUIClick();
   if (!click) {
@@ -337,6 +339,7 @@ MouseClick(v2f pos)
     return;
   }
   click->pos = pos;
+  click->button = b;
   PushUIClickRender({pos, kClickForFrames});
 }
 

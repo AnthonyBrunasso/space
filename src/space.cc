@@ -107,7 +107,7 @@ SimulationEvent(const PlatformEvent* event, const Camera* camera,
 
   switch (event->type) {
     case MOUSE_DOWN: {
-      imui::MouseClick(event->position);
+      imui::MouseClick(event->position, event->button);
       v3f pos = CoordToWorld(event->position);
 
       if (event->button == BUTTON_LEFT) {
@@ -352,8 +352,9 @@ main(int argc, char** argv)
     imui::End();
 
     v2f pos;
-    if (imui::GetUIClick(&pos)) {
-      LOGFMT("ui click event pos (%.2f, %.2f)", pos.x, pos.y);
+    PlatformButton b;
+    if (imui::GetUIClick(&pos, &b)) {
+      LOGFMT("ui click [%d] event pos (%.2f, %.2f)", b, pos.x, pos.y);
     }
 
     imui::PaneOptions pane_options(300.0f, 100.0f);

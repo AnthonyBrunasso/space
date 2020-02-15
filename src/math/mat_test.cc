@@ -1,12 +1,25 @@
 #include <cassert>
 
 #include "mat.h"
+#include "vec.h"
 
 #define ASSERT_EQ(a, b) (assert(a == b))
 
 void
-MatrixInitialization()
+MatrixIndexing()
 {
+  math::Mat4f m1(1.0f, 0.0f, 2.0f, 0.0f,
+                 0.0f, 1.0f, 0.0f, 0.0f,
+                 3.0f, 0.0f, 1.0f, 0.0f,
+                 0.0f, 0.0f, 0.0f, 1.0f);
+  math::Mat4f m2(1.0f, 0.0f, 2.0f, 0.0f,
+                 0.0f, 1.0f, 0.0f, 0.0f,
+                 3.0f, 0.0f, 1.0f, 0.0f,
+                 0.0f, 0.0f, 0.0f, 1.0f);
+  ASSERT_EQ(m1[0], v4f(1.0f, 0.0f, 2.0f, 0.0f));
+  ASSERT_EQ(m1[1], v4f(0.0f, 1.0f, 0.0f, 0.0f));
+  ASSERT_EQ(m1[2], v4f(3.0f, 0.0f, 1.0f, 0.0f));
+  ASSERT_EQ(m1[3], v4f(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
 void
@@ -29,40 +42,10 @@ MatrixMultiplication()
   ASSERT_EQ(r, d);
 }
 
-void
-MatrixDivision()
-{
-}
-
-void
-MatrixAddition()
-{
-}
-
-void
-MatrixSubtraction()
-{
-}
-
-void
-MatrixVectorMultiplyTranslate()
-{
-}
-
-void
-MatrixVectorMultiplyScale()
-{
-}
-
 int
 main(int argc, char** argv)
 {
-  //MatrixInitialization();
+  MatrixIndexing();
   MatrixMultiplication();
-  //MatrixDivision();
-  //MatrixAddition();
-  //MatrixSubtraction();
-  //MatrixVectorMultiplyTranslate();
-  //MatrixVectorMultiplyScale();
   return 0;
 }

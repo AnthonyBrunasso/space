@@ -165,8 +165,6 @@ Think()
 
   for (int i = 0; i < kUsedMissile; ++i) {
     Missile* missile = &kMissile[i];
-    if (missile->flags & FLAG(kMissileAiExplode)) continue;
-
     v2i tile = WorldToTilePos(missile->transform.position.xy());
     if (!TileOk(tile)) continue;
 
@@ -174,8 +172,8 @@ Think()
     if (kShip[0].ftl_frame) continue;
 
     if (kTilemap.map[tile.y][tile.x].type == kTileBlock) {
-      missile->flags = FLAG(kMissileAiExplode);
-      missile->hit_frame = kShip[0].frame;
+      missile->explode_frame += 1;
+      missile->y_velocity = 0;
       missile->tile_hit = {tile.x, (tile.y + 1)};
     }
   }
@@ -390,25 +388,23 @@ Decide()
     Missile* missile = UseMissile();
     missile->transform =
         Transform{.position = v3f(300.f + next_missile, -1000.f, 0.f)};
-    missile->flags = FLAG(kMissileAiFlight);
+    missile->y_velocity = 5;
     next_missile = fmodf(next_missile + 50.f, missile_xrange);
   }
 
   for (int i = 0; i < kUsedMissile; ++i) {
     Missile* missile = &kMissile[i];
-    uint64_t action = TZCNT(missile->flags);
-    uint64_t replaced;
 
-    if (action == kMissileAiExplode) {
-      if (!MissileHitSimulation(&kShip[0], missile)) {
+    if (missile->explode_frame) {
+      const bool laser_defense =
+          kShip[0].crew_think_flags & FLAG(kUnitAiTurret);
+
+      if (laser_defense || !MissileHitSimulation(missile)) {
         *missile = kZeroMissile;
       }
-      continue;
     }
 
-    if (action != kMissileAiFlight) continue;
-
-    missile->transform.position += v3f(0.0f, 5.f, 0.f);
+    missile->transform.position += v3f(0.0f, float(missile->y_velocity), 0.f);
   }
 
   for (int i = 0; i < kUsedAsteroid; ++i) {

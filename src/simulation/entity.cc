@@ -43,10 +43,6 @@ enum AsteroidAiGoals {
   kAsteroidAiImplode,
   kAsteroidAiDeplete,
 };
-enum MissileAiGoals {
-  kMissileAiExplode,
-  kMissileAiFlight,
-};
 
 // Common Structures
 struct Transform {
@@ -156,9 +152,9 @@ DECLARE_GAME_TYPE(Ship, 1);
 
 struct Missile {
   Transform transform;
-  uint64_t flags;
-  uint64_t hit_frame;
   v2i tile_hit;
+  signed y_velocity : 3 + 1;
+  unsigned explode_frame : 6;
 };
 DECLARE_GAME_TYPE(Missile, 8);
 

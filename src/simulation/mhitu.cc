@@ -8,23 +8,22 @@
 
 namespace simulation
 {
-uint64_t
-MissileHitSimulation(Ship* ship, Missile* mi)
-{
-  uint64_t hit_frame = ship->frame - mi->hit_frame;
-  const bool laser_defense = ship->crew_think_flags & FLAG(kUnitAiTurret);
+constexpr uint64_t kMissileExplodeTime = 40;
 
-  if (laser_defense) return 0;
+uint64_t
+MissileHitSimulation(Missile* mi)
+{
+  uint64_t explode_frame = mi->explode_frame;
 
   const v2i hit = mi->tile_hit;
-  if (hit_frame % 5 == 0) {
+  if (explode_frame % 5 == 1) {
     uint64_t replaced = BfsReplace(hit, 1, kTileOpen, kTileVacuum);
 
-    LOGFMT("%ld mi impact %d %d replaced %lu tiles", hit_frame, hit.x, hit.y,
-           replaced);
+    LOGFMT("%ld mi impact %d %d replaced %lu tiles", explode_frame, hit.x,
+           hit.y, replaced);
   }
 
-  return 40 - hit_frame;
+  return kMissileExplodeTime - explode_frame;
 }
 
 }  // namespace simulation

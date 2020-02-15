@@ -141,8 +141,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     escale += .1f;
   }
 
-  float fft =
-      float(kShip[0].frame - kShip[0].ftl.frame) * (1.f / kFtlFrameTime);
+  float fft = kShip[0].ftl_frame * (1.f / kFtlFrameTime);
   float ship_alpha = 1.f - fft;
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
@@ -182,7 +181,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
 
-    if (unit->state_flags & FLAG(kUnitStateInSpace)) {
+    if (unit->inspace) {
       continue;
     }
 
@@ -217,7 +216,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
                          unit->transform.orientation, color);
 
     // Space suit
-    if (unit->state_flags & FLAG(kUnitStateSpaceSuit)) {
+    if (unit->spacesuit) {
       rgg::RenderCircle(unit->transform.position, 12.f, 14.f,
                         v4f(0.99f, 0.33f, 0.33f, 1.f));
     }

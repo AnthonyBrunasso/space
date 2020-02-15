@@ -14,9 +14,9 @@ ShipFtlReady()
 }
 
 void
-ShipFtlInit()
+ControlShipFtl()
 {
-  FtlInit(&kShip[0].ftl);
+  kShip[0].ftl_frame = 1;
 }
 
 uint64_t

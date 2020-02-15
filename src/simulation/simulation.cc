@@ -32,7 +32,7 @@ Initialize()
     // Everybody is unique!
     unit->kind = i + 1;
   }
-  kUnit[4].state_flags = FLAG(kUnitStateSpaceSuit);
+  kUnit[4].spacesuit = 1;
 
   UseShip();
   kShip[0].running = true;
@@ -175,7 +175,7 @@ Think()
     if (!TileOk(tile)) continue;
 
     // ship entering ftl, cannot strike
-    if (kShip[0].frame - kShip[0].ftl.frame > 1) continue;
+    if (kShip[0].ftl_frame) continue;
 
     if (kTilemap.map[tile.y][tile.x].type == kTileBlock) {
       missile->flags = FLAG(kMissileAiExplode);
@@ -205,12 +205,12 @@ Think()
       think_flags = keep_state;
       // Waiting for spaceman in a spacesuit
       for (int j = 0; j < kUsedUnit; ++j) {
-        if (0 == (kUnit[j].state_flags & FLAG(kUnitStateSpaceSuit))) continue;
+        if (!kUnit[j].spacesuit) continue;
         if (dsq(kUnit[j].transform.position, pod->transform.position) <
             kDsqOperatePod) {
           printf("Crew in space %d\n", j);
           think_flags = ANDN(FLAG(kPodAiUnmanned), think_flags);
-          kUnit[j].state_flags |= FLAG(kUnitStateInSpace);
+          kUnit[j].inspace = 1;
           break;
         }
       }
@@ -374,7 +374,7 @@ Decide()
     ship->power_delta = fmaxf(used_power - ship->used_power, ship->power_delta);
     ship->used_power = used_power;
 
-    bool jumped = FtlUpdate(ship, &ship->ftl);
+    const bool jumped = (FtlSimulation(ship) == 0);
     // Jump side effects
     ship->mineral -= jumped * kFtlCost;
     ship->level += jumped;
@@ -481,6 +481,8 @@ Update()
 {
   if (!kShip[0].running) return;
   kShip[0].frame += 1;
+  // Advance ftl_frame, if active
+  kShip[0].ftl_frame += (kShip[0].ftl_frame > 0);
 
   Think();
   Decide();

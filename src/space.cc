@@ -347,7 +347,7 @@ main(int argc, char** argv)
     } else if (simulation::ShipFtlReady()) {
       if (imui::Button(math::Rect(10, 10, 40, 40), v4f(1.0f, 0.0f, 1.0f, 0.75f))
               .clicked) {
-        simulation::ShipFtlInit();
+        simulation::ControlShipFtl();
       }
     }
 

@@ -29,10 +29,6 @@ enum UnitAiGoals {
   kUnitAiSavePower,
   kUnitAiGoals = 64,
 };
-enum UnitState {
-  kUnitStateSpaceSuit,
-  kUnitStateInSpace,
-};
 // TODO (AN): Document/test priority behaviors
 enum PodAiGoals {
   kPodAiLostPower,
@@ -51,22 +47,12 @@ enum MissileAiGoals {
   kMissileAiExplode,
   kMissileAiFlight,
 };
-enum FtlFlag {
-  kFtlTangible = 0,
-};
 
 // Common Structures
 struct Transform {
   v3f position;
   v3f scale = v3f(1.f, 1.f, 1.f);
   math::Quatf orientation;
-};
-
-struct FtlState {
-  // Number of frames the ftl is active: (frame - ftl_frame)
-  uint64_t frame;
-  // Stateful sideffect Flags
-  uint64_t state_flags = FLAG(kFtlTangible);
 };
 
 // TODO (AN): Move crew
@@ -137,13 +123,14 @@ struct Unit {
   Command command;
   v3f vacuum = v3f();
   uint64_t think_flags = 0;
-  uint64_t state_flags = 0;
   int kind = 0;
   int ship = 0;
   uint8_t acurrent[CREWA_MAX];
   uint8_t aknown_min[CREWA_MAX] = CREW_AWORST;
   uint8_t aknown_max[CREWA_MAX] = CREW_ABEST;
-  char unused[4];
+  // Bit Fields
+  unsigned spacesuit : 1;
+  unsigned inspace : 1;
 };
 
 DECLARE_GAME_TYPE(Unit, 8);
@@ -161,8 +148,8 @@ struct Ship {
   float power_delta;
   uint64_t level;
   uint64_t frame;
-  FtlState ftl;
   uint64_t running;
+  unsigned ftl_frame : 6;
 };
 DECLARE_GAME_TYPE(Ship, 1);
 

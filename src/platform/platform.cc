@@ -9,6 +9,7 @@
 
 #include "x64_intrin.h"
 
+#include "affinity.cc"
 #include "platform_clock.cc"
 #include "platform_getopt.cc"
 #include "window.cc"

@@ -326,6 +326,8 @@ main(int argc, char** argv)
       snprintf(buffer, BUFFER_SIZE, "Sim hash: 0x%lx",
                kGameState.simulation_hash);
       imui::Text(buffer);
+      const char* ui_err = imui::LastErrorString();
+      if (ui_err) imui::Text(ui_err);
       v2i tile = simulation::WorldToTilePos(mouse.xy());
       if (simulation::TileOk(tile)) {
         snprintf(buffer, BUFFER_SIZE, "Type: %d",

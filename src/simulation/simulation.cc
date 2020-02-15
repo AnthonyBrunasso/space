@@ -58,7 +58,8 @@ bool
 operator_save_power(Unit* unit, float power_delta)
 {
   uint8_t int_check = power_delta / 5.0;
-  LOGFMT("%u intelligence check on power utilization %04.02f", int_check, power_delta);
+  LOGFMT("%u intelligence check on power utilization %04.02f", int_check,
+         power_delta);
   bool success = (unit->acurrent[CREWA_INT] > int_check);
   // On success, update the known crew intelligence
   unit->aknown_min[CREWA_INT] =
@@ -259,6 +260,17 @@ Think()
 void
 Decide()
 {
+  if (CountCommand()) {
+    Command c = PopCommand();
+    for (int i = 0; i < kUsedUnit; ++i) {
+      Unit* unit = &kUnit[i];
+      if (unit->kind == 0) {
+        unit->command = c;
+        break;
+      }
+    }
+  }
+
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     // Busy unit
@@ -266,11 +278,8 @@ Decide()
       continue;
     }
 
-    // Obedient Unit
-    if (unit->think_flags == 0) {
-      if (CountCommand()) {
-        unit->command = PopCommand();
-      }
+    // Obedient Unit, no think
+    if (unit->kind == 0) {
       continue;
     }
 

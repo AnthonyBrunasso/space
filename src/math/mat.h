@@ -55,7 +55,7 @@ class Mat4
   }
 
   // Get the i'th column of the matrix as a vec4
-  v4f& operator[](size_t i) {
+  v4f& operator[](size_t i) const {
     assert(i < 4 && i >= 0);
     return *((v4f*)(&data_[i * 4]));
   }

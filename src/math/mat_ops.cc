@@ -9,6 +9,41 @@ namespace math
 #define ONE_DEG_IN_RAD (2.0 * PI) / 360.0  // 0.017444444
 
 Mat4f
+Inverse(const Mat4f& m)
+{
+  v3f& a = *(v3f*)(&m[0]);
+  v3f& b = *(v3f*)(&m[1]);
+  v3f& c = *(v3f*)(&m[2]);
+  v3f& d = *(v3f*)(&m[3]);
+
+  float x = m.data_[3];
+  float y = m.data_[7];
+  float z = m.data_[11];
+  float w = m.data_[15];
+
+  v3f s = Cross(a, b);
+  v3f t = Cross(c, d);
+  v3f u = a * y - b * x;
+  v3f v = c * w - d * z;
+
+  float inv_det = 1.f / (Dot(s, v) + Dot(t, u));
+  s *= inv_det;
+  t *= inv_det;
+  u *= inv_det;
+  v *= inv_det;
+
+  v3f r0 = Cross(b, v) + t * y;
+  v3f r1 = Cross(v, a) - t * x;
+  v3f r2 = Cross(d, u) + s * w;
+  v3f r3 = Cross(u, c) - s * z;
+
+  return Mat4f(r0.x, r1.x, r2.x, r3.x,
+               r0.y, r1.y, r2.y, r3.y,
+               r0.z, r1.z, r2.z, r3.z,
+               -Dot(b, t), Dot(a, t), -Dot(d, s), Dot(c, s));
+}
+
+Mat4f
 Identity()
 {
   return Mat4f(1.0f, 0.0f, 0.0f, 0.0f,
@@ -61,7 +96,7 @@ Rotation(const Quatf& quat)
 Mat4f
 View(const v3f& translation, const Quatf& quat)
 {
-  auto mat = Rotation(quat).Transpose();
+  auto mat = Inverse(Rotation(quat));
   Mat4f view;
   view.data_[0] = mat.data_[0];
   view.data_[1] = mat.data_[1];

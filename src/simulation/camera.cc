@@ -56,7 +56,6 @@ void
 InitialCamera(Camera* cam)
 {
   cam->position = v3f(400.f, 400.f, 0.f);
-  // cam->orientation.Set(45.f, v3f(0.f, 0.f, 1.f));
 }
 
 void

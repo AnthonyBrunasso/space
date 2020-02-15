@@ -18,6 +18,8 @@ struct Gfx {
 static Gfx kGfx;
 static v4f kWhite = v4f(1.f, 1.f, 1.f, 1.f);
 static v4f kRed = v4f(1.f, 0.f, 0.f, 1.f);
+constexpr int MAX_HOVERTEXT = CREWA_MAX + 1;
+static char hover_text[MAX_HOVERTEXT][64];
 
 bool
 Initialize()
@@ -92,8 +94,6 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
   rgg::RenderGrid(grid1, world1, v4f(0.050f, 0.215f, 0.050f, 0.45f));
 
   // Unit hover-over text
-  constexpr int MAX_HOVERTEXT = CREWA_MAX + 1;
-  static char hover_text[MAX_HOVERTEXT][64];
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     if (dsq(unit->transform.position, mouse) >= kDsqSelect) continue;
@@ -309,7 +309,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
 
   // Hover text
   imui::Begin(v2f(screen.x - 225.f, screen.y - 30.0f));
-  for (int i = 0; i < MAX_HOVERTEXT + 1; ++i) {
+  for (int i = 0; i < MAX_HOVERTEXT; ++i) {
     imui::Text(hover_text[i]);
   }
   imui::End();

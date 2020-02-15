@@ -84,7 +84,7 @@ struct IMUI {
 
 static IMUI kIMUI;
 
-DECLARE_ARRAY(Text, 32);
+DECLARE_ARRAY(Text, 64);
 DECLARE_ARRAY(Button, 16);
 DECLARE_ARRAY(UIClick, 8);
 DECLARE_ARRAY(Pane, 8);

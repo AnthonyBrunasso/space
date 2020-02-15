@@ -23,8 +23,8 @@ Log(const char* logline, unsigned len)
     kReadLogMessage += 1;
 
   unsigned bucket = kWriteLogMessage % kMaxLogMessage;
-  memcpy(&kLogMessage[bucket], logline, len);
-  kLogMessage[bucket].buffer[MAX_LOGMESSAGE - 1] = 0;
+  memcpy(&kLogMessage[bucket].buffer[0], logline, len);
+  memset(&kLogMessage[bucket].buffer[len], 0, MAX_LOGMESSAGE - len);
   kWriteLogMessage += 1;
 }
 

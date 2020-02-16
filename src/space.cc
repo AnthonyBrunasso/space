@@ -139,10 +139,6 @@ SimulationEvent(const PlatformEvent* event, const Camera* camera,
         case 'd': {
           translation->x = 1.f;
         } break;
-        case 'm': {
-          v3f pos = CoordToWorld(event->position);
-          simulation::PlaceModuleMine(pos);
-        } break;
         default:
           break;
       }
@@ -335,11 +331,6 @@ main(int argc, char** argv)
       const char* ui_err = imui::LastErrorString();
       if (ui_err) imui::Text(ui_err);
       v2i tile = simulation::WorldToTilePos(mouse.xy());
-      if (simulation::TileOk(tile)) {
-        snprintf(buffer, BUFFER_SIZE, "Type: %d",
-                 simulation::kTilemap.map[tile.y][tile.x].type);
-        imui::Text(buffer);
-      }
       imui::Indent(-2);
     }
     snprintf(buffer, BUFFER_SIZE, "Minerals: %lu", kShip[0].mineral);
@@ -351,7 +342,8 @@ main(int argc, char** argv)
       snprintf(buffer, BUFFER_SIZE, "Game Over");
       imui::Text(buffer);
     } else if (simulation::ShipFtlReady()) {
-      if (imui::Button(math::Rect(10, 100, 40, 40), v4f(1.0f, 0.0f, 1.0f, 0.75f))
+      if (imui::Button(math::Rect(10, 100, 40, 40),
+                       v4f(1.0f, 0.0f, 1.0f, 0.75f))
               .clicked) {
         simulation::ControlShipFtl();
       }

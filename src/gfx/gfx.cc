@@ -1,6 +1,7 @@
 #pragma once
 
 #include "imui.cc"
+#include "math/vec.h"
 #include "platform/platform.cc"
 #include "renderer/renderer.cc"
 
@@ -128,53 +129,55 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     escale = .1f;
   }
 
+  for (int i = 0; i < kUsedModule; ++i) {
+    Module* module = &kModule[i];
+    v4f color;
+    if (module->mod_mine) {
+      color = v4f(0.0, 0.75f * sys_mine, 0.0f, 1.0f);
+    } else if (module->mod_power) {
+      color = v4f(0.0f, 0.0f, 0.75f * sys_power, 1.0f);
+    } else if (module->mod_engine) {
+      color = v4f(1.0f * sys_engine, 0.0f, 1.f * sys_engine, 1.0f);
+    } else if (module->mod_turret) {
+      color = v4f(1.f * sys_turret, 0.f, 0.f, 1.f);
+    } else {
+      continue;
+    }
+    rgg::RenderRectangle(
+        v3f(simulation::TilePosToWorld(v2i{module->cx, module->cy})),
+        v3f(1.f / 2.f, 1.f / 2.f, 1.f), math::Quatf(0.f, 0.f, 0.f, 1.f), color);
+  }
+
   {
-    v2i grid = TypeOnGrid(kTileEngine);
-    grid += v2i(-1, 2);
-    v3f world = TilePosToWorld(grid);
-    v4f engine_color = v4f(1.f * sys_engine, 0.f, 1.f * sys_engine, 1.f);
-    rgg::RenderTag(kGfx.exhaust_tag, world, v3f(escale, 1.f, 1.f),
-                   math::Quatf(0.f, 0.f, 0.f, 1.f), engine_color);
-    rgg::RenderTag(kGfx.exhaust_tag, world,
-                   v3f(fmodf(escale + 1.f, 2.f), 1.f, 1.f),
-                   math::Quatf(0.f, 0.f, 0.f, 1.f), engine_color);
-    escale += .1f;
+    v3f world;
+    for (int i = 0; i < kUsedModule; ++i) {
+      Module* mod = &kModule[i];
+      if (!mod->mod_engine) continue;
+      world = TilePosToWorld(v2i(mod->cx, mod->cy));
+      v4f engine_color = v4f(1.f * sys_engine, 0.f, 1.f * sys_engine, 1.f);
+      rgg::RenderTag(kGfx.exhaust_tag, world, v3f(escale, 1.f, 1.f),
+                     math::Quatf(0.f, 0.f, 0.f, 1.f), engine_color);
+      rgg::RenderTag(kGfx.exhaust_tag, world,
+                     v3f(fmodf(escale + 1.f, 2.f), 1.f, 1.f),
+                     math::Quatf(0.f, 0.f, 0.f, 1.f), engine_color);
+      escale += .1f;
+      break;
+    }
   }
 
   float fft = kShip[0].ftl_frame * (1.f / kFtlFrameTime);
   float ship_alpha = 1.f - fft;
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
-      const Tile* tile = &kTilemap.map[i][j];
-      uint64_t type_id = tile->type;
-
-      if (type_id == kTileOpen) continue;
+      const Tile* tile = &kTilemap[i][j];
 
       v4f color;
-      switch (type_id) {
-        case kTileBlock:
-          color = v4f(1.f, 1.f, 1.f, ship_alpha);
-          break;
-        case kTileEngine:
-          color = v4f(1.0f * sys_engine, 0.0f, 1.f * sys_engine, 1.0f);
-          break;
-        case kTilePower:
-          color = v4f(0.0f, 0.0f, 0.75f * sys_power, 1.0f);
-          break;
-        case kTileMine:
-          color = v4f(0.0, 0.75f * sys_mine, 0.0f, 1.0f);
-          break;
-        case kTileVacuum:
-          color = v4f(0.33f, 0.33f, 0.33f, 1.f);
-          break;
-        case kTileTurret:
-          color = v4f(1.f * sys_turret, 0.f, 0.f, 1.f);
-          break;
-      };
-
-      rgg::RenderRectangle(v3f(TileToWorld(*tile)),
-                           v3f(1.f / 2.f, 1.f / 2.f, 1.f),
-                           math::Quatf(0.f, 0.f, 0.f, 1.f), color);
+      if (tile->blocked) {
+        color = v4f(1.f, 1.f, 1.f, ship_alpha);
+        rgg::RenderRectangle(v3f(TileToWorld(*tile)),
+                             v3f(1.f / 2.f, 1.f / 2.f, 1.f),
+                             math::Quatf(0.f, 0.f, 0.f, 1.f), color);
+      }
     }
   }
 
@@ -263,7 +266,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
                    kWhite);
   }
 
-  for (int i = 0; i < kUsedMissile; ++i) {
+  for (int i = 0, j = 0; i < kUsedMissile; ++i) {
     Missile* missile = &kMissile[i];
     rgg::RenderTag(kGfx.missile_tag, missile->transform.position,
                    missile->transform.scale, missile->transform.orientation,
@@ -271,26 +274,29 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
 
     v2i tile = WorldToTilePos(missile->transform.position.xy());
     if (!TileOk(tile)) continue;
-    if (kShip[0].crew_think_flags & FLAG(kUnitAiTurret)) {
-      v2i grid = TypeOnGrid(kTileTurret);
-      v2f pos = TilePosToWorld(grid);
+
+    for (; j < kUsedModule; ++j) {
+      Module* mod = &kModule[j];
+      if (!mod->mod_turret) continue;
+      v2f pos = TilePosToWorld(v2i(mod->cx, mod->cy));
       rgg::RenderLine(missile->transform.position, pos,
                       v4f(1.0f, 0.0, 0.0, 1.f));
     }
   }
 
   // Alerts
-  static float power_notify = 0.f;
-  if (kShip[0].power_delta > 0.0f && power_notify <= 0.0f) {
-    power_notify = 50.f;
-  }
+  // TODO (AN): make a render system
+  // static float power_notify = 0.f;
+  // if (kShip[0].power_delta > 0.0f && power_notify <= 0.0f) {
+  //  power_notify = 50.f;
+  //}
 
-  if (power_notify >= 10.f) {
-    v2i grid = TypeOnGrid(kTilePower);
-    v3f world = TilePosToWorld(grid);
-    rgg::RenderCircle(world, power_notify - 10.f, power_notify, kWhite);
-  }
-  power_notify -= 1.f;
+  // if (power_notify >= 10.f) {
+  //  /*v2i grid = TypeOnGrid(kTilePower);
+  //  v3f world = TilePosToWorld(grid);
+  //  rgg::RenderCircle(world, power_notify - 10.f, power_notify, kWhite);*/
+  //}
+  // power_notify -= 1.f;
 
   for (int i = 0; i < kUsedPod; ++i) {
     Pod* pod = &kPod[i];

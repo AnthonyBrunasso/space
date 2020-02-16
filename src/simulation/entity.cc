@@ -113,8 +113,7 @@ DECLARE_GAME_TYPE(Pod, 8);
 struct Unit {
   Transform transform;
   Command command;
-  v3f vacuum = v3f();
-  uint64_t think_flags = 0;
+  v2f vacuum;
   int kind = 0;
   int ship = 0;
   uint8_t acurrent[CREWA_MAX];
@@ -126,7 +125,6 @@ struct Unit {
 };
 
 DECLARE_GAME_TYPE(Unit, 8);
-
 struct Ship {
   uint64_t think_flags = 0;
   uint64_t crew_think_flags = 0;
@@ -153,3 +151,12 @@ struct Missile {
 };
 DECLARE_GAME_TYPE(Missile, 8);
 
+struct Module {
+  unsigned cx : 5;
+  unsigned cy : 5;
+  unsigned mod_power : 1;
+  unsigned mod_engine : 1;
+  unsigned mod_mine : 1;
+  unsigned mod_turret : 1;
+};
+DECLARE_GAME_TYPE(Module, 32);

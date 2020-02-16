@@ -42,13 +42,4 @@ ControlUnit(uint64_t unit_id)
   }
 }
 
-void
-PlaceModuleMine(v3f world_pos)
-{
-  v2i tile_pos = WorldToTilePos(world_pos.xy());
-  if (!TileOk(tile_pos)) return;
-
-  kTilemap.map[tile_pos.y][tile_pos.x].type = kTileMine;
-}
-
 }  // namespace simulation

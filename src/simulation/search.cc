@@ -60,7 +60,8 @@ PathTo(const v2i& start, const v2i& end)
 
     for (int i = 0; i < kMaxNeighbor; ++i) {
       const v2i neighbor = node + kNeighbor[i];
-      if (TileTypeSafe(neighbor) != kTileOpen) continue;
+      if (!TileOk(neighbor)) continue;
+      if (kTilemap[neighbor.y][neighbor.x].blocked) continue;
 
       if (path_map[neighbor.y][neighbor.x].checked == true) continue;
       path_map[neighbor.y][neighbor.x].checked = true;
@@ -92,13 +93,13 @@ PathTo(const v2i& start, const v2i& end)
   return &kSearch.path;
 }
 
-uint64_t
+/*uint64_t
 BfsReplace(v2i start, const uint64_t limit, TileType seek, TileType set)
 {
   uint64_t count = 0;
   if (!TileOk(start)) return count;
-  if (kTilemap.map[start.y][start.x].type == seek) {
-    kTilemap.map[start.y][start.x].type = set;
+  if (kTilemap[start.y][start.x].type == seek) {
+    kTilemap[start.y][start.x].type = set;
     ++count;
   }
 
@@ -141,6 +142,6 @@ BfsReplace(v2i start, const uint64_t limit, TileType seek, TileType set)
   }
 
   return count;
-}
+}*/
 
 }  // namespace simulation

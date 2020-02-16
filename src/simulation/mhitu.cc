@@ -17,9 +17,9 @@ MissileHitSimulation(Missile* mi)
 
   const v2i hit = mi->tile_hit;
   if (explode_frame % 5 == 1) {
-    uint64_t replaced = BfsReplace(hit, 1, kTileOpen, kTileVacuum);
+    uint64_t replaced = 0;// = BfsReplace(hit, 1, kTileOpen, kTileVacuum);
 
-    LOGFMT("%ld mi impact %d %d replaced %lu tiles", explode_frame, hit.x,
+    LOGFMT("%ld mi impact %d %d replaced %lu tiles (disabled)", explode_frame, hit.x,
            hit.y, replaced);
   }
 

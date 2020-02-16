@@ -58,36 +58,58 @@ bool
 operator_save_power(Unit* unit, float power_delta)
 {
   uint8_t int_check = power_delta / 5.0;
-  LOGFMT("%u intelligence check on power utilization %04.02f", int_check,
-         power_delta);
   bool success = (unit->acurrent[CREWA_INT] > int_check);
+  LOGFMT("%u intelligence check on power utilization %04.02f [%d]", int_check,
+         power_delta, success);
   // On success, update the known crew intelligence
   unit->aknown_min[CREWA_INT] =
       MAX(unit->aknown_min[CREWA_INT], success * int_check);
   return success;
 }
 
+v2f
+ModuleToWorld(Module* mod)
+{
+  return TilePosToWorld(v2i(mod->cx, mod->cy));
+}
+
 void
 Think()
 {
   for (int i = 0; i < kUsedUnit; ++i) {
-    switch (kUnit[i].kind) {
+    Unit* unit = &kUnit[i];
+    switch (unit->kind) {
       default:
       case 0:
         // Just takes orders
-        kUnit[i].think_flags = 0;
         break;
       case 1:
-        kUnit[i].think_flags = FLAG(kUnitAiPower);
+        for (int k = 0; k < kUsedModule; ++k) {
+          Module* mod = &kModule[k];
+          if (mod->mod_power)
+            unit->command = Command{Command::kMove, ModuleToWorld(mod)};
+        }
         break;
       case 2:
-        kUnit[i].think_flags = FLAG(kUnitAiMine);
+        for (int k = 0; k < kUsedModule; ++k) {
+          Module* mod = &kModule[k];
+          if (mod->mod_mine)
+            unit->command = Command{Command::kMove, ModuleToWorld(mod)};
+        }
         break;
       case 3:
-        kUnit[i].think_flags = FLAG(kUnitAiThrust);
+        for (int k = 0; k < kUsedModule; ++k) {
+          Module* mod = &kModule[k];
+          if (mod->mod_engine)
+            unit->command = Command{Command::kMove, ModuleToWorld(mod)};
+        }
         break;
       case 4:
-        kUnit[i].think_flags = FLAG(kUnitAiTurret);
+        for (int k = 0; k < kUsedModule; ++k) {
+          Module* mod = &kModule[k];
+          if (mod->mod_turret)
+            unit->command = Command{Command::kMove, ModuleToWorld(mod)};
+        }
         break;
     };
   }
@@ -108,12 +130,18 @@ Think()
       kShip[i].danger += 1;
       for (int j = 0; j < kUsedUnit; ++j) {
         Unit* unit = &kUnit[j];
-        v2i grid = TypeOnGrid(kTilePower);
-        v2f power_module = TilePosToWorld(grid);
-        if (dsq(unit->transform.position, power_module) < kDsqOperate) {
-          if (operator_save_power(unit, kShip[i].power_delta)) {
-            unit->think_flags |= FLAG(kUnitAiSavePower);
-            break;
+        for (int k = 0; k < kUsedModule; ++k) {
+          Module* mod = &kModule[k];
+          if (!mod->mod_power) continue;
+          if (dsq(unit->transform.position,
+                  TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate) {
+            if (operator_save_power(unit, kShip[i].power_delta)) {
+              kShip[0].power_delta = 0.0f;
+              LOGFMT(
+                  "Unit %lu prevented the power surge from damaging the ship.",
+                  unit - kUnit);
+              break;
+            }
           }
         }
       }
@@ -125,33 +153,49 @@ Think()
     // Crew objectives
     uint64_t satisfied = 0;
     v2i module_position;
-    module_position = TypeOnGrid(kTilePower);
     for (int j = 0; j < kUsedUnit; ++j) {
-      if (dsq(kUnit[j].transform.position, TilePosToWorld(module_position)) <
-          kDsqOperate)
-        satisfied |= FLAG(kUnitAiPower);
+      Unit* unit = &kUnit[j];
+      for (int k = 0; k < kUsedModule; ++k) {
+        Module* mod = &kModule[k];
+        if (mod->mod_power &&
+            dsq(unit->transform.position,
+                TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate)
+          satisfied |= FLAG(kUnitAiPower);
+      }
     }
 
     if (kShip[i].sys_power >= 1.0f) {
-      module_position = TypeOnGrid(kTileEngine);
       for (int j = 0; j < kUsedUnit; ++j) {
-        if (dsq(kUnit[j].transform.position, TilePosToWorld(module_position)) <
-            kDsqOperate)
-          satisfied |= FLAG(kUnitAiThrust);
+        Unit* unit = &kUnit[j];
+        for (int k = 0; k < kUsedModule; ++k) {
+          Module* mod = &kModule[k];
+          if (mod->mod_engine &&
+              dsq(unit->transform.position,
+                  TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate)
+            satisfied |= FLAG(kUnitAiThrust);
+        }
       }
 
-      module_position = TypeOnGrid(kTileMine);
       for (int j = 0; j < kUsedUnit; ++j) {
-        if (dsq(kUnit[j].transform.position, TilePosToWorld(module_position)) <
-            kDsqOperate)
-          satisfied |= FLAG(kUnitAiMine);
+        Unit* unit = &kUnit[j];
+        for (int k = 0; k < kUsedModule; ++k) {
+          Module* mod = &kModule[k];
+          if (mod->mod_mine &&
+              dsq(unit->transform.position,
+                  TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate)
+            satisfied |= FLAG(kUnitAiMine);
+        }
       }
 
-      module_position = TypeOnGrid(kTileTurret);
       for (int j = 0; j < kUsedUnit; ++j) {
-        if (dsq(kUnit[j].transform.position, TilePosToWorld(module_position)) <
-            kDsqOperate)
-          satisfied |= FLAG(kUnitAiTurret);
+        Unit* unit = &kUnit[j];
+        for (int k = 0; k < kUsedModule; ++k) {
+          Module* mod = &kModule[k];
+          if (mod->mod_turret &&
+              dsq(unit->transform.position,
+                  TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate)
+            satisfied |= FLAG(kUnitAiTurret);
+        }
       }
     }
 
@@ -171,7 +215,7 @@ Think()
     // ship entering ftl, cannot strike
     if (kShip[0].ftl_frame) continue;
 
-    if (kTilemap.map[tile.y][tile.x].type == kTileBlock) {
+    if (kTilemap[tile.y][tile.x].blocked) {
       missile->explode_frame += 1;
       missile->y_velocity = 0;
       missile->tile_hit = {tile.x, (tile.y + 1)};
@@ -187,8 +231,12 @@ Think()
     uint64_t think_flags = 0;
 
     // Goal is to return home, unless overidden
-    v2i grid = TypeOnGrid(kTileMine);
-    goal = TilePosToWorld(grid);
+    for (int k = 0; k < kUsedModule; ++k) {
+      Module* mod = &kModule[k];
+      if (!mod->mod_mine) continue;
+      goal = TilePosToWorld(v2i(mod->cx, mod->cy));
+      break;
+    }
 
     if (kShip[0].sys_mine < .5f) {
       think_flags |= FLAG(kPodAiLostPower);
@@ -266,61 +314,6 @@ Decide()
         break;
       }
     }
-  }
-
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
-    // Busy unit
-    if (unit->command.type != Command::kNone) {
-      continue;
-    }
-
-    // Obedient Unit, no think
-    if (unit->kind == 0) {
-      continue;
-    }
-
-    // hero saves the day!
-    if (unit->think_flags & FLAG(kUnitAiSavePower)) {
-      kShip[0].power_delta = 0.0f;
-#ifdef DEBUG_AI
-      printf("Unit %lu prevented the power surge from damaging the ship\n",
-             unit - kUnit);
-#endif
-      continue;
-    }
-
-    // Self-motivated Unit
-    uint64_t possible = ANDN(kShip[0].crew_think_flags, unit->think_flags);
-    if (!possible) continue;
-
-    uint64_t action = TZCNT(possible);
-#if DEBUG_AI
-    printf(
-        "[ %d unit ] [ 0x%lx think ] [ 0x%lx possible ] ship crew_think_flags "
-        "0x%lx \n",
-        i, unit->think_flags, possible, kShip[0].crew_think_flags);
-    printf("%lu action\n", action);
-#endif
-    TileType type;
-    switch (action) {
-      case kUnitAiMine:
-        type = kTileMine;
-        break;
-      case kUnitAiPower:
-        type = kTilePower;
-        break;
-      case kUnitAiThrust:
-        type = kTileEngine;
-        break;
-      case kUnitAiTurret:
-        type = kTileTurret;
-        break;
-    };
-
-    v2i grid = AdjacentOnGrid(type);
-    v2f pos = TilePosToWorld(grid);
-    unit->command = Command{.type = Command::kMove, .destination = pos};
   }
 
   for (int i = 0; i < kUsedShip; ++i) {
@@ -489,9 +482,9 @@ Update()
       continue;
     }
 
-    if (unit->vacuum == v3f()) {
+    if (unit->vacuum == v2f()) {
       // Crew has been sucked away into the vacuum
-      if (kTilemap.map[tilepos.y][tilepos.x].type == kTileVacuum) {
+      if (kTilemap[tilepos.y][tilepos.x].nooxygen) {
         unit->vacuum = TileVacuum(tilepos);
         unit->command.type = Command::kVacuum;
       }
@@ -514,7 +507,8 @@ Update()
         transform->position += (dir * 1.f) + (TileAvoidWalls(tilepos) * .15f);
       } break;
       case Command::kVacuum: {
-        transform->position += (unit->vacuum * 1.5f);
+        transform->position +=
+            v3f(unit->vacuum.x * 1.5f, unit->vacuum.y * 1.5f, 0.f);
       } break;
       default:
         break;

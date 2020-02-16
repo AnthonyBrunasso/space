@@ -44,6 +44,20 @@ Initialize()
   return true;
 }
 
+void
+Reset()
+{
+  kReadCommand = 0;
+  kWriteCommand = 0;
+  kUsedAsteroid = 0;
+  kUsedPod = 0;
+  kUsedUnit = 0;
+  kUsedShip = 0;
+  kUsedMissile = 0;
+  kUsedModule = 0;
+  Initialize();
+}
+
 bool
 VerifyIntegrity()
 {

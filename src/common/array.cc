@@ -23,6 +23,7 @@
     if (kUsed##type >= kMax##type) return nullptr; \
     type* t = &k##type[kUsed##type];               \
     kUsed##type += 1;                              \
+    *t = {};                                       \
     return t;                                      \
   }                                                \
                                                    \

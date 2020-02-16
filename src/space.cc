@@ -18,7 +18,9 @@ struct State {
   Clock_t game_clock;
   // Time it took to run a frame.
   uint64_t frame_time_usec = 0;
-  // Allow yielding idle cycles to kernel
+  // (optional) limit the simulation frames (UINT64_MAX will loop infinitely)
+  uint64_t frame_limit = UINT64_MAX;
+  // (optional) yield unused cpu time to the system
   bool sleep_on_loop = true;
   // Number of times the game has been updated.
   uint64_t game_updates = 0;
@@ -109,7 +111,7 @@ int
 main(int argc, char** argv)
 {
   while (1) {
-    int opt = platform_getopt(argc, argv, "i:p:n:");
+    int opt = platform_getopt(argc, argv, "i:p:n:f:");
     if (opt == -1) break;
 
     switch (opt) {
@@ -121,6 +123,9 @@ main(int argc, char** argv)
         break;
       case 'n':
         kNetworkState.num_players = strtol(platform_optarg, NULL, 10);
+        break;
+      case 'f':
+        kGameState.frame_limit = strtol(platform_optarg, NULL, 10);
         break;
     }
   }
@@ -187,7 +192,10 @@ main(int argc, char** argv)
 #endif
   // Reset the clock for simulation
   platform::clock_init(kGameState.frame_target_usec, &kGameState.game_clock);
-  while (!window::ShouldClose()) {
+  const uint64_t frame_limit = kGameState.frame_limit;
+  for (uint64_t frame = 0; frame <= frame_limit; ++frame) {
+    if (window::ShouldClose()) break;
+
     ProcessInput();
     NetworkEgress();
     NetworkIngress(kGameState.logic_updates);

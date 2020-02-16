@@ -153,7 +153,8 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     for (int i = 0; i < kUsedModule; ++i) {
       Module* mod = &kModule[i];
       if (!mod->mod_engine) continue;
-      world = TilePosToWorld(v2i(mod->cx, mod->cy));
+      v2i hack = {-1, 2};
+      world = TilePosToWorld(v2i(mod->cx, mod->cy) + hack);
       v4f engine_color = v4f(1.f * sys_engine, 0.f, 1.f * sys_engine, 1.f);
       rgg::RenderTag(kGfx.exhaust_tag, world, v3f(escale, 1.f, 1.f),
                      math::Quatf(0.f, 0.f, 0.f, 1.f), engine_color);

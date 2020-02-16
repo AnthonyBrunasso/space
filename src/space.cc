@@ -6,6 +6,7 @@
 #include "gfx/gfx.cc"
 #include "network/network.cc"
 #include "simulation/camera.cc"
+#include "simulation/interaction.cc"
 #include "simulation/simulation.cc"
 
 struct State {
@@ -17,13 +18,6 @@ struct State {
   Clock_t game_clock;
   // Time it took to run a frame.
   uint64_t frame_time_usec = 0;
-  Stats stats;
-  // Input determinism check
-  uint64_t input_hash = DJB2_CONST;
-  uint64_t simulation_hash = DJB2_CONST;
-  // Rough estimate of round-trip time
-  uint64_t rtt_usec = 0;
-  uint64_t turn_queue_depth = 0;
   // Allow yielding idle cycles to kernel
   bool sleep_on_loop = true;
   // Number of times the game has been updated.
@@ -31,17 +25,18 @@ struct State {
   uint64_t logic_updates = 0;
   // Number of times the game frame was exceptionally delayed
   uint64_t game_jerk = 0;
-  // TODO (AN): Find a home in simulation/
-  Camera player_camera[MAX_PLAYER];
 };
 
 static State kGameState;
+// TODO (AN): Find a home in simulation/
+static Camera player_camera[MAX_PLAYER];
+static Stats stats;
 
 // TODO (AN): Revisit cameras
 const Camera*
-GetLocalCamera()
+GetMyCamera()
 {
-  return &kGameState.player_camera[kNetworkState.player_id];
+  return &player_camera[kNetworkState.player_id];
 }
 
 void
@@ -88,82 +83,15 @@ SetProjection()
 #else
   v2f size = window::GetWindowSize();
 #endif
-  rgg::GetObserver()->projection = math::Ortho(
-      size.x, 0.f, size.y, 0.f, -100.f, 0.f);
+  rgg::GetObserver()->projection =
+      math::Ortho(size.x, 0.f, size.y, 0.f, -100.f, 0.f);
 }
 
 v3f
-CoordToWorld(v2f xy)
+MyScreenToWorld(v2f xy)
 {
-  auto dims = window::GetWindowSize();
-  return camera::ScreenToWorldSpace(GetLocalCamera(), v3f(xy - dims * 0.5f));
-}
-
-void
-SimulationEvent(const PlatformEvent* event, const Camera* camera,
-                v3f* translation)
-{
-  djb2_hash_more((const uint8_t*)event, sizeof(PlatformEvent),
-                 &kGameState.input_hash);
-
-  switch (event->type) {
-    case MOUSE_WHEEL: {
-      // TODO(abrunasso): Why does this need to be negative?
-      translation->z = -0.1f * event->wheel_delta;
-    } break;
-    case MOUSE_DOWN: {
-      imui::MouseClick(event->position, event->button);
-      v3f pos = CoordToWorld(event->position);
-
-      if (event->button == BUTTON_LEFT) {
-        // Control
-        uint64_t unit = simulation::SelectUnit(pos);
-        simulation::ControlUnit(unit);
-      } else if (event->button == BUTTON_RIGHT) {
-        // Move
-        Command command = {Command::kMove, pos.xy()};
-        PushCommand(command);
-      }
-    } break;
-    case KEY_DOWN: {
-      switch (event->key) {
-        case 'w': {
-          translation->y = 1.f;
-        } break;
-        case 'a': {
-          translation->x = -1.f;
-        } break;
-        case 's': {
-          translation->y = -1.f;
-        } break;
-        case 'd': {
-          translation->x = 1.f;
-        } break;
-        default:
-          break;
-      }
-    } break;
-    case KEY_UP: {
-      switch (event->key) {
-        case 'w': {
-          translation->y = 0.f;
-        } break;
-        case 'a': {
-          translation->x = 0.f;
-        } break;
-        case 's': {
-          translation->y = 0.f;
-        } break;
-        case 'd': {
-          translation->x = 0.f;
-        } break;
-        default:
-          break;
-      }
-    } break;
-    default:
-      break;
-  }
+  return camera::ScreenToWorldSpace(GetMyCamera(),
+                                    v3f(xy - window::GetWindowSize() * 0.5f));
 }
 
 void
@@ -172,8 +100,8 @@ ProcessSimulation(int player_id, uint64_t event_count,
 {
   // Shared player control of the ship for now
   for (int i = 0; i < event_count; ++i) {
-    SimulationEvent(&event[i], &kGameState.player_camera[player_id],
-                    &kGameState.player_camera[player_id].motion);
+    simulation::ControlEvent(&event[i], &player_camera[player_id],
+                             &player_camera[player_id].motion);
   }
 }
 
@@ -208,9 +136,9 @@ main(int argc, char** argv)
 
   // Camera init
   for (int i = 0; i < MAX_PLAYER; ++i) {
-    camera::InitialCamera(&kGameState.player_camera[i]);
+    camera::InitialCamera(&player_camera[i]);
   }
-  camera::SetView(GetLocalCamera(), &rgg::GetObserver()->view);
+  camera::SetView(GetMyCamera(), &rgg::GetObserver()->view);
 
   // Projection init
   SetProjection();
@@ -246,7 +174,7 @@ main(int argc, char** argv)
          1 + ((ANDN(PAGE - 1, max_ptr) - ANDN(PAGE - 1, min_ptr)) / PAGE));
 
   // Reset State
-  StatsInit(&kGameState.stats);
+  StatsInit(&stats);
   kGameState.game_updates = 0;
   kGameState.game_jerk = 0;
   kGameState.frame_target_usec = 1000.f * 1000.f / kGameState.framerate;
@@ -261,15 +189,14 @@ main(int argc, char** argv)
   platform::clock_init(kGameState.frame_target_usec, &kGameState.game_clock);
   while (!window::ShouldClose()) {
     ProcessInput();
-    kGameState.rtt_usec = NetworkEgress() * kGameState.frame_target_usec;
+    NetworkEgress();
     NetworkIngress(kGameState.logic_updates);
-    kGameState.turn_queue_depth = NetworkReadyCount();
 
     uint64_t slot = NETQUEUE_SLOT(kGameState.logic_updates);
     if (SlotReady(slot)) {
       // Hash the simulation state every 0th slot
       if (!slot)
-        if (!simulation::VerifyIntegrity(&kGameState.simulation_hash)) exit(4);
+        if (!simulation::VerifyIntegrity()) exit(4);
 
       // Game Mutation: Apply player commands for turn N
       InputBuffer* game_turn = GetSlot(slot);
@@ -284,96 +211,26 @@ main(int argc, char** argv)
 
       // Camera
       for (int i = 0; i < MAX_PLAYER; ++i) {
-        camera::Update(&kGameState.player_camera[i]);
-        kGameState.player_camera[i].motion.z = 0.f;
+        camera::Update(&player_camera[i]);
+        player_camera[i].motion.z = 0.f;
       }
-      camera::SetView(GetLocalCamera(), &rgg::GetObserver()->view);
+      camera::SetView(GetMyCamera(), &rgg::GetObserver()->view);
 
       // Give the user an update tick. The engine runs with
       // a fixed delta so no need to provide a delta time.
       ++kGameState.logic_updates;
     }
 
-    // Misc debug/feedback
-    auto sz = window::GetWindowSize();
-#define BUFFER_SIZE 64
-    char buffer[BUFFER_SIZE];
-    static bool enable_debug = false;
-    auto mouse = CoordToWorld(window::GetCursorPosition());
-    imui::PaneOptions options;
-    imui::Begin(v2f(3.f, sz.y - 30.f), options);
-    imui::TextOptions debug_options;
-    debug_options.color = gfx::kWhite;
-    debug_options.highlight_color = gfx::kRed;
-    if (imui::Text("Debug (Click to expand)", debug_options).clicked) {
-      enable_debug = !enable_debug;
-    }
-
-    if (enable_debug) {
-      snprintf(buffer, BUFFER_SIZE, "Frame Time: %04.02f us [%02.02f%%]",
-               StatsMean(&kGameState.stats),
-               100.f * StatsUnbiasedRsDev(&kGameState.stats));
-      imui::Indent(2);
-      imui::Text(buffer);
-      snprintf(buffer, BUFFER_SIZE, "Network Rtt: %06lu us [%lu/%lu queue]",
-               kGameState.rtt_usec, kGameState.turn_queue_depth, MAX_NETQUEUE);
-      imui::Text(buffer);
-      snprintf(buffer, BUFFER_SIZE, "Window Size: %ix%i", (int)sz.x, (int)sz.y);
-      imui::Text(buffer);
-      snprintf(buffer, BUFFER_SIZE, "Mouse Pos In World: (%.1f,%.1f)", mouse.x,
-               mouse.y);
-      imui::Text(buffer);
-      snprintf(buffer, BUFFER_SIZE, "Input hash: 0x%lx", kGameState.input_hash);
-      imui::Text(buffer);
-      snprintf(buffer, BUFFER_SIZE, "Sim hash: 0x%lx",
-               kGameState.simulation_hash);
-      imui::Text(buffer);
-      const char* ui_err = imui::LastErrorString();
-      if (ui_err) imui::Text(ui_err);
-      v2i tile = simulation::WorldToTilePos(mouse.xy());
-      imui::Indent(-2);
-    }
-    snprintf(buffer, BUFFER_SIZE, "Minerals: %lu", kShip[0].mineral);
-    imui::Text(buffer);
-    snprintf(buffer, BUFFER_SIZE, "Level: %lu", kShip[0].level);
-    imui::Text(buffer);
-
-    if (simulation::SimulationOver()) {
-      snprintf(buffer, BUFFER_SIZE, "Game Over");
-      imui::Text(buffer);
-    } else if (simulation::ShipFtlReady()) {
-      if (imui::Button(math::Rect(10, 100, 40, 40),
-                       v4f(1.0f, 0.0f, 1.0f, 0.75f))
-              .clicked) {
-        simulation::ControlShipFtl();
-      }
-    }
-
-    imui::End();
-
-    v2f pos;
-    PlatformButton b;
-    if (imui::GetUIClick(&pos, &b)) {
-      LOGFMT("ui click [%d] event pos (%.2f, %.2f)", b, pos.x, pos.y);
-    }
-
-    imui::PaneOptions pane_options(300.0f, 100.0f);
-    imui::TextOptions text_options;
-    text_options.scale = 0.7f;
-    imui::Begin(v2f(0.f, 0.f), pane_options);
-    for (int i = 0, imax = LogCount(); i < imax; ++i) {
-      const char* log_msg = ReadLog(i);
-      if (!log_msg) continue;
-      imui::Text(log_msg, text_options);
-    }
-    imui::End();
-
 #ifndef HEADLESS
+    // Misc debug/feedback
+    v3f mouse = MyScreenToWorld(window::GetCursorPosition());
+    simulation::DebugPanel(mouse, stats, kGameState.frame_target_usec);
+    simulation::LogPanel();
+
     // The bottom left and top right of the screen with regards to the camera.
-    const Camera* cam = GetLocalCamera();
     const v2f dims = window::GetWindowSize();
-    v3f top_right = CoordToWorld(dims);
-    v3f bottom_left = CoordToWorld({0.f, 0.f});
+    v3f top_right = MyScreenToWorld(dims);
+    v3f bottom_left = MyScreenToWorld({0.f, 0.f});
     gfx::Render(math::Rectf{bottom_left.xy(), top_right.xy()}, mouse.xy(),
                 dims);
 #endif
@@ -382,7 +239,7 @@ main(int argc, char** argv)
     // Capture frame time before the potential stall on vertical sync
     const uint64_t elapsed_usec = platform::delta_usec(&kGameState.game_clock);
     kGameState.frame_time_usec = elapsed_usec;
-    StatsAdd(elapsed_usec, &kGameState.stats);
+    StatsAdd(elapsed_usec, &stats);
 
 #ifndef HEADLESS
     window::SwapBuffers();

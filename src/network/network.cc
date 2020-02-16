@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstdio>
 
 #include "math/math.cc"
@@ -37,6 +39,8 @@ struct NetworkState {
   InputBuffer player_input[MAX_NETQUEUE][MAX_PLAYER];
   bool player_received[MAX_NETQUEUE][MAX_PLAYER];
   uint64_t outgoing_ack[MAX_PLAYER];
+  // Number of packets sent last NetworkEgress()
+  uint64_t last_egress;
 };
 
 static NetworkState kNetworkState;
@@ -191,6 +195,7 @@ NetworkEgress()
     ++count;
   }
 
+  kNetworkState.last_egress = count;
   return count;
 }
 

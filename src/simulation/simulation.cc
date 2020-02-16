@@ -7,14 +7,15 @@
 
 #include "entity.cc"
 #include "ftl.cc"
-#include "interaction.cc"
 #include "mhitu.cc"
 #include "search.cc"
 
 namespace simulation
 {
+constexpr float kDsqSelect = 25.f * 25.f;
 constexpr float kDsqOperate = 50.f * 35.f;
 constexpr float kDsqOperatePod = 75.f * 75.f;
+static uint64_t kSimulationHash = DJB2_CONST;
 
 bool
 Initialize()
@@ -44,13 +45,13 @@ Initialize()
 }
 
 bool
-VerifyIntegrity(uint64_t* hash)
+VerifyIntegrity()
 {
   for (int i = 0; i < kUsedRegistry; ++i) {
     uint64_t len = kRegistry[i].memb_size * kRegistry[i].memb_max;
-    djb2_hash_more((const uint8_t*)kRegistry[i].ptr, len, hash);
+    djb2_hash_more((const uint8_t*)kRegistry[i].ptr, len, &kSimulationHash);
   }
-  // TODO (AN): Checksum of kEntity compared to end of last frame
+
   return true;
 }
 

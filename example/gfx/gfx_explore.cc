@@ -42,7 +42,7 @@ RenderGrid()
 math::Mat4f Projection(v2f dims)
 {
   return math::Ortho(
-      dims.x, 0.f, dims.y, 0.f, 0.0f, 0.f);
+      dims.x, 0.f, dims.y, 0.f, -100.0f, 0.f);
 }
 
 void
@@ -63,37 +63,39 @@ RenderString(const char* msg, v2f pos, v2f dims)
 int
 main(int argc, char** argv)
 {
-  if (!window::Create("Graphics Explore", 800, 800)) return 1;
+  //if (!window::Create("Graphics Explore", 800, 800)) return 1;
   
   gfx::Initialize();
 
 
   while (!window::ShouldClose()) {
+    static float zoom = 0.0f;
     PlatformEvent event;
-    while (window::PollEvent(&event)) {}
+    while (window::PollEvent(&event)) {
+      switch (event.type) {
+        case MOUSE_WHEEL: {
+          zoom += event.wheel_delta;
+        } break;
+      }
+    }
+
+    printf("zoom:%.2f\n", zoom);
 
     auto dims = window::GetWindowSize();
 
     rgg::GetObserver()->projection = Projection(dims);
+    auto camera_translation = math::Translation(v3f(0.0f, 0.0f, zoom));
+    rgg::GetObserver()->view = math::Inverse(camera_translation);
+    math::Print4x4Matrix(rgg::GetObserver()->view);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     RenderGrid();
 
-    RenderString("quick", v2f(dims.x / 2.f, dims.y / 2.f), dims);
-    RenderString("The quick brown fox", v2f(dims.x / 2.f, dims.y / 2.f + 40.0f), dims);
-    RenderString("this, sentence, has, commas", v2f(dims.x / 2.f, dims.y / 2.f + 80.0f), dims);
-    RenderString("I kInd. OF, h4te_ font", v2f(dims.x / 2.f, dims.y / 2.f + 120.0f), dims);
-    RenderString("1.32241 + 32569 = yo momma", v2f(dims.x / 2.f, dims.y / 2.f + 160.0f), dims);
-
-    imui::BeginText(v2f(dims.x / 2.f - 400.0f, dims.y / 2.f + 160.0f));
-    imui::Text("1.32241 + 32569 = yo momma");
-    imui::Text("I kInd. OF, h4te_ font");
-    imui::Text("The quick brown fox");
-    imui::Text("quick");
-    imui::EndText();
-    
-    imui::Render();
+    rgg::RenderRectangle(
+        v3f(0.0f, 0.0f, 0.0f),
+        v3f(1.0f, 1.0f, 1.0f),
+        math::Quatf(), v4f(1.0f, 1.0f, 1.0f, 1.0f));
 
     imui::Reset();
 

@@ -89,7 +89,7 @@ SetProjection()
   v2f size = window::GetWindowSize();
 #endif
   rgg::GetObserver()->projection = math::Ortho(
-      size.x, 0.f, size.y, 0.f, /* 2d so leave near/far 0*/ 0.f, 0.f);
+      size.x, 0.f, size.y, 0.f, -100.f, 0.f);
 }
 
 v3f
@@ -101,13 +101,15 @@ CoordToWorld(v2f xy)
 
 void
 SimulationEvent(const PlatformEvent* event, const Camera* camera,
-                v2f* translation)
+                v3f* translation)
 {
   djb2_hash_more((const uint8_t*)event, sizeof(PlatformEvent),
                  &kGameState.input_hash);
 
   switch (event->type) {
     case MOUSE_WHEEL: {
+      // TODO(abrunasso): Why does this need to be negative?
+      translation->z = -0.1f * event->wheel_delta;
     } break;
     case MOUSE_DOWN: {
       imui::MouseClick(event->position, event->button);
@@ -287,6 +289,7 @@ main(int argc, char** argv)
       // Camera
       for (int i = 0; i < MAX_PLAYER; ++i) {
         camera::Update(&kGameState.player_camera[i]);
+        kGameState.player_camera[i].motion.z = 0.f;
       }
       camera::SetView(GetLocalCamera(), &rgg::GetObserver()->view);
 

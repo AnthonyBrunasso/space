@@ -23,7 +23,7 @@ struct Camera {
   math::Quatf orientation;
   // Vector of movement for the camera
   //   Useful for stateful translation (i.e. the duration of keypress)
-  v2f motion;
+  v3f motion;
 };
 
 namespace camera

@@ -251,7 +251,7 @@ Think()
         if (!kUnit[j].spacesuit) continue;
         if (dsq(kUnit[j].transform.position, pod->transform.position) <
             kDsqOperatePod) {
-          printf("Crew in space %d\n", j);
+          LOGFMT("Unit %d is now in space.", j);
           think_flags = ANDN(FLAG(kPodAiUnmanned), think_flags);
           kUnit[j].inspace = 1;
           break;

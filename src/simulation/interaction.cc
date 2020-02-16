@@ -18,6 +18,7 @@ ShipFtlReady()
 void
 ControlShipFtl()
 {
+  LOG("Faster Than Light engine activated!");
   kShip[0].ftl_frame = 1;
 }
 

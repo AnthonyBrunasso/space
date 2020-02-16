@@ -209,7 +209,10 @@ TranslateEvent(NSEvent* nsevent, PlatformEvent* event)
       event->button = BUTTON_RIGHT;
       SetEventPosition(nsevent, event);
     } break;
-
+    case NSEventTypeScrollWheel: {
+      event->type = MOUSE_WHEEL;
+      event->wheel_delta = [nsevent deltaY];
+    } break;
     case NSEventTypeKeyDown: {
       event->type = KEY_DOWN;
       // TODO: Unfortunately this indicates an event can be associated with

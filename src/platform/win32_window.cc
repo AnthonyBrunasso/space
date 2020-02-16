@@ -230,7 +230,11 @@ WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
     case WM_RBUTTONUP: {
       HandleMouseEvent(false, platform_event, BUTTON_RIGHT);
     } break;
-
+    case WM_MOUSEWHEEL: {
+      platform_event->wheel_delta =
+        (float)GET_WHEEL_DELTA_WPARAM(wparam) / (float)WHEEL_DELTA;
+      platform_event->type = MOUSE_WHEEL;
+    }
     default: {
       result = DefWindowProcA(window, msg, wparam, lparam); 
     } break;

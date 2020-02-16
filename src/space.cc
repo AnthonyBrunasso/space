@@ -56,6 +56,7 @@ ProcessWindowInput(InputBuffer* input_buffer)
     switch (type) {
       case MOUSE_DOWN:
       case MOUSE_UP:
+      case MOUSE_WHEEL:
       case KEY_DOWN:
       case KEY_UP:
         input_buffer->input_event[event_count] = pevent;
@@ -106,6 +107,8 @@ SimulationEvent(const PlatformEvent* event, const Camera* camera,
                  &kGameState.input_hash);
 
   switch (event->type) {
+    case MOUSE_WHEEL: {
+    } break;
     case MOUSE_DOWN: {
       imui::MouseClick(event->position, event->button);
       v3f pos = CoordToWorld(event->position);

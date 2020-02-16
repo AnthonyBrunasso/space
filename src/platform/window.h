@@ -13,6 +13,7 @@ enum PlatformEventType {
   NOT_IMPLEMENTED,  // Event does not have translation implemented yet.
   MOUSE_DOWN,
   MOUSE_UP,
+  MOUSE_WHEEL,
   KEY_DOWN,
   KEY_UP,
 };
@@ -29,6 +30,8 @@ struct PlatformEvent {
   PlatformEventType type;
   // Screen space the event took place in.
   v2f position;
+  // Mouse wheel movement.
+  float wheel_delta;
   // Event Detail
   union {
     char key;

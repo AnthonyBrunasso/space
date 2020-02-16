@@ -8,6 +8,7 @@ _tmp/
 
 EVENTS.bin
 *.swp
+*.swo
 *.suo
 *.db
 *.ipch

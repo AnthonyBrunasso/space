@@ -199,6 +199,17 @@ TranslateEvent(NSEvent* nsevent, PlatformEvent* event)
       event->button = BUTTON_LEFT;
       SetEventPosition(nsevent, event);
     } break;
+    case NSEventTypeRightMouseDown: {
+      event->type = MOUSE_DOWN;
+      event->button = BUTTON_RIGHT;
+      SetEventPosition(nsevent, event);
+    } break;
+    case NSEventTypeRightMouseUp: {
+      event->type = MOUSE_UP;
+      event->button = BUTTON_RIGHT;
+      SetEventPosition(nsevent, event);
+    } break;
+
     case NSEventTypeKeyDown: {
       event->type = KEY_DOWN;
       // TODO: Unfortunately this indicates an event can be associated with

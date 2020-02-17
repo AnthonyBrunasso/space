@@ -6,8 +6,8 @@
 
 namespace simulation
 {
-v2f
-v2fModule(Module* mod)
+v3f
+v3fModule(Module* mod)
 {
   return TilePosToWorld(v2i(mod->cx, mod->cy));
 }

@@ -79,7 +79,7 @@ struct Command {
     kVacuum,
   };
   Type type;
-  v2f destination;
+  v3f destination;
 };
 
 DECLARE_GAME_QUEUE(Command, 16);

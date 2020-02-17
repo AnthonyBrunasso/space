@@ -100,28 +100,28 @@ Think()
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_power)
-            unit->command = Command{Command::kMove, v2fModule(mod)};
+            unit->command = Command{Command::kMove, v3fModule(mod)};
         }
         break;
       case 2:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_mine)
-            unit->command = Command{Command::kMove, v2fModule(mod)};
+            unit->command = Command{Command::kMove, v3fModule(mod)};
         }
         break;
       case 3:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_engine)
-            unit->command = Command{Command::kMove, v2fModule(mod)};
+            unit->command = Command{Command::kMove, v3fModule(mod)};
         }
         break;
       case 4:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_turret)
-            unit->command = Command{Command::kMove, v2fModule(mod)};
+            unit->command = Command{Command::kMove, v3fModule(mod)};
         }
         break;
     };
@@ -171,8 +171,7 @@ Think()
       for (int k = 0; k < kUsedModule; ++k) {
         Module* mod = &kModule[k];
         if (mod->mod_power &&
-            v3fDsq(unit->transform.position,
-                   TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate)
+            v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperate)
           satisfied |= FLAG(kUnitAiPower);
       }
     }

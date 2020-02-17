@@ -139,7 +139,7 @@ TilePosToWorld(const v2i& pos)
 }
 
 v2i
-WorldToTilePos(const v2f& pos)
+WorldToTilePos(const v3f& pos)
 {
   int x = (int)pos.x / kTileWidth;
   int y = (int)pos.y / kTileHeight;

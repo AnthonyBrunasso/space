@@ -57,8 +57,10 @@ operator_save_power(Unit* unit, float power_delta)
 }
 
 void
-Think()
+ThinkAutoMove()
 {
+  if (!kScenario.auto_move) return;
+
   for (uint64_t i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     Command c = {kUaNone};
@@ -103,6 +105,12 @@ Think()
 
     PushCommand(c);
   }
+}
+
+void
+ThinkShip()
+{
+  if (!kScenario.ship) return;
 
   for (int i = 0; i < kUsedShip; ++i) {
     // Ship already has a pod, no-op
@@ -187,11 +195,23 @@ Think()
 
     kShip[i].crew_think_flags = satisfied;
   }
+}
+
+void
+ThinkAsteroid()
+{
+  if (!kScenario.asteroid) return;
 
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
     asteroid->implode = (asteroid->mineral_source < .5f);
   }
+}
+
+void
+ThinkMissle()
+{
+  if (!kScenario.missile) return;
 
   for (int i = 0; i < kUsedMissile; ++i) {
     Missile* missile = &kMissile[i];
@@ -209,6 +229,12 @@ Think()
       missile->tile_hit = tilepos + hack;
     }
   }
+}
+
+void
+ThinkPod()
+{
+  if (!kScenario.pod) return;
 
   for (int i = 0; i < kUsedPod; ++i) {
     Pod* pod = &kPod[i];
@@ -291,16 +317,19 @@ Think()
 }
 
 void
-Decide()
+Think()
 {
-  while (CountCommand()) {
-    Command c = PopCommand();
-    Unit* unit = &kUnit[c.unit];
-    // Kind 0 accepts newest orders
-    if (unit->kind * unit->uaction) continue;
-    unit->uaction = c.type;
-    unit->data = c.data;
-  }
+  ThinkAutoMove();
+  ThinkShip();
+  ThinkAsteroid();
+  ThinkMissle();
+  ThinkPod();
+}
+
+void
+DecideShip()
+{
+  if (!kScenario.ship) return;
 
   for (int i = 0; i < kUsedShip; ++i) {
     Ship* ship = &kShip[i];
@@ -351,6 +380,12 @@ Decide()
     ship->mineral -= jumped * kFtlCost;
     ship->level += jumped;
   }
+}
+
+void
+DecideAsteroid()
+{
+  if (!kScenario.asteroid) return;
 
   if (!kUsedAsteroid) {
     Asteroid* asteroid = UseAsteroid();
@@ -359,6 +394,30 @@ Decide()
     asteroid->deplete = 0;
     asteroid->implode = 0;
   }
+
+  for (int i = 0; i < kUsedAsteroid; ++i) {
+    Asteroid* asteroid = &kAsteroid[i];
+
+    if (asteroid->implode) {
+      LOG("Asteroid imploded.");
+      *asteroid = kZeroAsteroid;
+      continue;
+    }
+
+    asteroid->mineral_source -= asteroid->deplete;
+    asteroid->transform.scale =
+        v3f(1.f, 1.f, 1.f) * (asteroid->mineral_source / 200.f);
+    asteroid->transform.position.x -= 1.0f;
+    if (asteroid->transform.position.x < 0.f) {
+      asteroid->transform.position.x = 800.f;
+    }
+  }
+}
+
+void
+DecideMissle()
+{
+  if (!kScenario.missile) return;
 
   const float missile_xrange = 50.f * kShip[0].level;
   static float next_missile = 0.f;
@@ -384,24 +443,12 @@ Decide()
 
     missile->transform.position += v3f(0.0f, float(missile->y_velocity), 0.f);
   }
+}
 
-  for (int i = 0; i < kUsedAsteroid; ++i) {
-    Asteroid* asteroid = &kAsteroid[i];
-
-    if (asteroid->implode) {
-      LOG("Asteroid imploded.");
-      *asteroid = kZeroAsteroid;
-      continue;
-    }
-
-    asteroid->mineral_source -= asteroid->deplete;
-    asteroid->transform.scale =
-        v3f(1.f, 1.f, 1.f) * (asteroid->mineral_source / 200.f);
-    asteroid->transform.position.x -= 1.0f;
-    if (asteroid->transform.position.x < 0.f) {
-      asteroid->transform.position.x = 800.f;
-    }
-  }
+void
+DecidePod()
+{
+  if (!kScenario.pod) return;
 
   for (int i = 0; i < kUsedPod; ++i) {
     Pod* pod = &kPod[i];
@@ -438,6 +485,24 @@ Decide()
     pod->transform.position += dir * 2.0;
     pod->last_heading = dir.xy();
   }
+}
+
+void
+Decide()
+{
+  while (CountCommand()) {
+    Command c = PopCommand();
+    Unit* unit = &kUnit[c.unit];
+    // Kind 0 accepts newest orders
+    if (unit->kind * unit->uaction) continue;
+    unit->uaction = c.type;
+    unit->data = c.data;
+  }
+
+  DecideShip(); 
+  DecideAsteroid();
+  DecideMissle();
+  DecidePod();
 }
 
 bool

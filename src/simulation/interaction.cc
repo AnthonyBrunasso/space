@@ -117,10 +117,26 @@ DebugPanel(const v3f& my_mouse, const Stats& stats, uint64_t frame_target_usec)
         kScenario.type = Scenario::kEmptyScenario;
         Reset();
       }
-      if (imui::Text("AI", debug_options).clicked) {
-        kScenario.type = Scenario::kAIScenario;
-        Reset();
+      imui::Indent(-2);
+    }
+    static bool features_menu = false;
+    if (imui::Text("Features", debug_options).clicked) {
+      features_menu = !features_menu;
+    }
+    if (features_menu) {
+#define UI_TOGGLE_FEATURE(name)                            \
+      snprintf(buffer, BUFFER_SIZE, "%s: %s", #name,       \
+               kScenario.##name ? "enabled" : "disabled"); \
+      if (imui::Text(buffer, debug_options).clicked) {     \
+        kScenario.##name = !kScenario.##name;              \
+        ResetScenario(false);                              \
       }
+      imui::Indent(2);
+      UI_TOGGLE_FEATURE(auto_move);
+      UI_TOGGLE_FEATURE(ship);
+      UI_TOGGLE_FEATURE(asteroid);
+      UI_TOGGLE_FEATURE(missile);
+      UI_TOGGLE_FEATURE(pod);
       imui::Indent(-2);
     }
     imui::Indent(-2);

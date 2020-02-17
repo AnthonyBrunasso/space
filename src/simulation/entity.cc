@@ -16,6 +16,15 @@
 #define DECLARE_GAME_QUEUE(type, count) DECLARE_QUEUE(type, count)
 
 // Common Flags
+enum UnitAction {
+  kUaNone = 0,
+  kUaMove,
+  kUaOperate,
+  kUaVacuum,
+};
+union UnitData {
+  v3f destination;
+};
 enum ShipAiGoals {
   kShipAiSpawnPod,
   kShipAiPowerSurge,
@@ -72,18 +81,6 @@ const char* const crew_aname[] = {
 #define CREW_ABEST CREW_A(18)
 #define CREW_AWORST CREW_A(3)
 
-struct Command {
-  enum Type {
-    kNone = 0,
-    kMove,
-    kVacuum,
-  };
-  Type type;
-  v3f destination;
-};
-
-DECLARE_GAME_QUEUE(Command, 16);
-
 struct Asteroid {
   Transform transform;
   uint64_t mineral_source;
@@ -103,8 +100,8 @@ struct Pod {
 DECLARE_GAME_TYPE(Pod, 8);
 
 struct Unit {
+  UnitData data = {};
   Transform transform;
-  Command command;
   int kind = 0;
   int ship = 0;
   uint8_t acurrent[CREWA_MAX];
@@ -113,9 +110,11 @@ struct Unit {
   // Bit Fields
   unsigned spacesuit : 1;
   unsigned inspace : 1;
+  unsigned uaction : 3;
 };
 
-DECLARE_GAME_TYPE(Unit, 8);
+constexpr unsigned kUnitBits = 3;
+DECLARE_GAME_TYPE(Unit, 1 << kUnitBits);
 struct Ship {
   uint64_t think_flags = 0;
   uint64_t crew_think_flags = 0;
@@ -151,3 +150,11 @@ struct Module {
   unsigned mod_turret : 1;
 };
 DECLARE_GAME_TYPE(Module, 32);
+
+struct Command {
+  UnitAction type;
+  UnitData data = {};
+  uint64_t unit : kUnitBits;
+};
+DECLARE_GAME_QUEUE(Command, 16);
+

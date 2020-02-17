@@ -246,11 +246,11 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
                            math::Quatf(0.f, 0.f, 0.f, 1.f), hilite);
     }
 
-    if (unit->command.type != Command::kMove) continue;
+    if (unit->uaction != kUaMove) continue;
 
     // Show the path they are on if they have one.
     v2i start = WorldToTilePos(p->xy());
-    v2i end = WorldToTilePos(unit->command.destination);
+    v2i end = WorldToTilePos(unit->data.destination);
 
     auto* path = PathTo(start, end);
     if (!path || path->size <= 1) {

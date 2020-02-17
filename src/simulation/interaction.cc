@@ -45,6 +45,15 @@ ControlUnit(uint64_t unit_id)
   }
 }
 
+unsigned
+UnitIndex()
+{
+  for (int i = 0; i < kUsedUnit; ++i) {
+    if (!kUnit[i].kind) return i;
+  }
+  return kMaxUnit;
+}
+
 void
 DebugPanel(const v3f& my_mouse, const Stats& stats, uint64_t frame_target_usec)
 {
@@ -141,13 +150,12 @@ ControlEvent(const PlatformEvent* event, const Camera* camera, v3f* translation)
           camera, v3f(event->position - window::GetWindowSize() * 0.5f));
 
       if (event->button == BUTTON_LEFT) {
-        // Control
         uint64_t unit = SelectUnit(pos);
         ControlUnit(unit);
       } else if (event->button == BUTTON_RIGHT) {
-        // Move
-        Command command = {Command::kMove, pos.xy()};
-        PushCommand(command);
+        uint64_t unit = UnitIndex();
+        LOGFMT("Order move [%lu]", unit);
+        if (unit < kUsedUnit) PushCommand({kUaMove, pos, UnitIndex()});
       }
     } break;
     case KEY_DOWN: {

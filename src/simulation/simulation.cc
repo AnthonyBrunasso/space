@@ -86,45 +86,49 @@ operator_save_power(Unit* unit, float power_delta)
 void
 Think()
 {
-  for (int i = 0; i < kUsedUnit; ++i) {
+  for (uint64_t i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
-    // Skip busy units
-    if (unit->command.type != Command::kNone) continue;
+    Command c = {kUaNone};
 
     switch (unit->kind) {
-      default:
       case 0:
-        // Just takes orders
-        break;
+        // Unit awaits human orders
+        continue;
       case 1:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
-          if (mod->mod_power)
-            unit->command = Command{Command::kMove, v3fModule(mod)};
+          if (mod->mod_power) c = (Command{kUaMove, v3fModule(mod), i});
         }
         break;
       case 2:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
-          if (mod->mod_mine)
-            unit->command = Command{Command::kMove, v3fModule(mod)};
+          if (mod->mod_mine) c = (Command{kUaMove, v3fModule(mod), i});
         }
         break;
       case 3:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
-          if (mod->mod_engine)
-            unit->command = Command{Command::kMove, v3fModule(mod)};
+          if (mod->mod_engine) c = (Command{kUaMove, v3fModule(mod), i});
         }
         break;
       case 4:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
-          if (mod->mod_turret)
-            unit->command = Command{Command::kMove, v3fModule(mod)};
+          if (mod->mod_turret) c = (Command{kUaMove, v3fModule(mod), i});
         }
         break;
     };
+
+    for (uint64_t j = 0; j < kUsedModule; ++j) {
+      Module* mod = &kModule[j];
+      if (v3fDsq(v3fModule(mod), unit->transform.position) < kDsqOperate) {
+        c = (Command{kUaOperate, v3fModule(mod), i});
+        break;
+      }
+    }
+
+    PushCommand(c);
   }
 
   for (int i = 0; i < kUsedShip; ++i) {
@@ -316,15 +320,13 @@ Think()
 void
 Decide()
 {
-  if (CountCommand()) {
+  while (CountCommand()) {
     Command c = PopCommand();
-    for (int i = 0; i < kUsedUnit; ++i) {
-      Unit* unit = &kUnit[i];
-      if (unit->kind == 0) {
-        unit->command = c;
-        break;
-      }
-    }
+    Unit* unit = &kUnit[c.unit];
+    // Kind 0 accepts newest orders
+    if (unit->kind * unit->uaction) continue;
+    unit->uaction = c.type;
+    unit->data = c.data;
   }
 
   for (int i = 0; i < kUsedShip; ++i) {
@@ -483,31 +485,32 @@ Update()
   Think();
   Decide();
 
-  for (int i = 0; i < kUsedUnit;) {
+  for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     Transform* transform = &unit->transform;
     v2i tilepos = WorldToTilePos(transform->position.xy());
     Tile* tile = TilePtr(tilepos);
 
     if (!tile) {
-      *unit = kZeroUnit;
+      *unit = {};
       continue;
     }
 
     // Crew has been sucked away into the vacuum
     if (tile->nooxygen) {
-      unit->command.type = Command::kVacuum;
+      unit->uaction = kUaVacuum;
     }
 
-    switch (unit->command.type) {
-      case Command::kNone: {
+    switch (unit->uaction) {
+      case kUaVacuum: {
+        transform->position += TileVacuum(tilepos) * 3.0f;
       } break;
-      case Command::kMove: {
-        v2i end = WorldToTilePos(unit->command.destination);
+      case kUaMove: {
+        v2i end = WorldToTilePos(unit->data.destination);
 
         auto* path = PathTo(tilepos, end);
         if (!path || path->size <= 1) {
-          unit->command = {};
+          unit->uaction = kUaNone;
           break;
         }
 
@@ -515,14 +518,7 @@ Update()
         auto dir = math::Normalize(dest - transform->position.xy());
         transform->position += (dir * 1.f) + (TileAvoidWalls(tilepos) * .15f);
       } break;
-      case Command::kVacuum: {
-        transform->position += TileVacuum(tilepos) * 3.0f;
-      } break;
-      default:
-        break;
     }
-
-    ++i;
   }
 
   RegistryCompact();

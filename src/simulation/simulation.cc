@@ -57,9 +57,9 @@ operator_save_power(Unit* unit, float power_delta)
 }
 
 void
-ThinkAutoMove()
+ThinkAI()
 {
-  if (!kScenario.auto_move) return;
+  if (!kScenario.ai) return;
 
   for (uint64_t i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
@@ -319,7 +319,7 @@ ThinkPod()
 void
 Think()
 {
-  ThinkAutoMove();
+  ThinkAI();
   ThinkShip();
   ThinkAsteroid();
   ThinkMissle();

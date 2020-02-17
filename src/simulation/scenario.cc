@@ -11,7 +11,7 @@ struct Scenario {
   Type type;
 
   // Feature enabled in the scenario.
-  unsigned auto_move : 1;
+  unsigned ai : 1;
   unsigned ship : 1;
   unsigned asteroid : 1;
   unsigned missile : 1;
@@ -26,7 +26,7 @@ InitializeScenario(bool reset_features=true)
   switch (kScenario.type) {
     case Scenario::kGameScenario: {
       if (reset_features) {
-        kScenario.auto_move = 1;
+        kScenario.ai = 1;
         kScenario.ship = 1;
         kScenario.asteroid = 1;
         kScenario.missile = 1;
@@ -55,7 +55,7 @@ InitializeScenario(bool reset_features=true)
     } break;
     case Scenario::kEmptyScenario: {
       if (reset_features) {
-        kScenario.auto_move = 0;
+        kScenario.ai = 0;
         kScenario.ship = 0;
         kScenario.asteroid = 0;
         kScenario.missile = 0;

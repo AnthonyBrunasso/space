@@ -132,7 +132,7 @@ DebugPanel(const v3f& my_mouse, const Stats& stats, uint64_t frame_target_usec)
         ResetScenario(false);                              \
       }
       imui::Indent(2);
-      UI_TOGGLE_FEATURE(auto_move);
+      UI_TOGGLE_FEATURE(ai);
       UI_TOGGLE_FEATURE(ship);
       UI_TOGGLE_FEATURE(asteroid);
       UI_TOGGLE_FEATURE(missile);
@@ -163,12 +163,6 @@ DebugPanel(const v3f& my_mouse, const Stats& stats, uint64_t frame_target_usec)
 void
 LogPanel()
 {
-  v2f pos;
-  PlatformButton b;
-  if (imui::GetUIClick(&pos, &b)) {
-    LOGFMT("ui click [%d] event pos (%.2f, %.2f)", b, pos.x, pos.y);
-  }
-
   imui::PaneOptions pane_options(300.0f, 100.0f);
   imui::TextOptions text_options;
   text_options.scale = 0.7f;

@@ -97,7 +97,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
   // Unit hover-over text
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
-    if (dsq(unit->transform.position, mouse) >= kDsqSelect) continue;
+    if (v3fDsq(unit->transform.position, mouse) >= kDsqSelect) continue;
 
     for (int j = 0; j < CREWA_MAX; ++j) {
       snprintf(hover_text[j], 64, "[%u,%u] %s", unit->aknown_min[j],
@@ -240,7 +240,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
         break;
     };
 
-    if (dsq(unit->transform.position, mouse) < kDsqSelect) {
+    if (v3fDsq(unit->transform.position, mouse) < kDsqSelect) {
       // Highlight the unit that would be selected on mouse click
       rgg::RenderRectangle(v3f(grid), v3f(1.f / 2.f, 1.f / 2.f, 1.f),
                            math::Quatf(0.f, 0.f, 0.f, 1.f), hilite);

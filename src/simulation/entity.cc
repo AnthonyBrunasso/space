@@ -72,14 +72,6 @@ const char* const crew_aname[] = {
 #define CREW_ABEST CREW_A(18)
 #define CREW_AWORST CREW_A(3)
 
-// TODO (AN): Utiilty fnc
-float
-dsq(v3f dst, v3f src)
-{
-  v3f delta = dst - src;
-  return delta.x * delta.x + delta.y * delta.y;
-}
-
 struct Command {
   enum Type {
     kNone = 0,

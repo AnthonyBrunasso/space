@@ -28,7 +28,7 @@ SelectUnit(v3f world)
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
 
-    if (dsq(unit->transform.position, world) < kDsqSelect) {
+    if (v3fDsq(unit->transform.position, world) < kDsqSelect) {
       return i;
     }
   }

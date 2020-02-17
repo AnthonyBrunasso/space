@@ -9,6 +9,7 @@
 #include "ftl.cc"
 #include "mhitu.cc"
 #include "search.cc"
+#include "util.cc"
 
 namespace simulation
 {
@@ -82,12 +83,6 @@ operator_save_power(Unit* unit, float power_delta)
   return success;
 }
 
-v2f
-ModuleToWorld(Module* mod)
-{
-  return TilePosToWorld(v2i(mod->cx, mod->cy));
-}
-
 void
 Think()
 {
@@ -105,28 +100,28 @@ Think()
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_power)
-            unit->command = Command{Command::kMove, ModuleToWorld(mod)};
+            unit->command = Command{Command::kMove, v2fModule(mod)};
         }
         break;
       case 2:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_mine)
-            unit->command = Command{Command::kMove, ModuleToWorld(mod)};
+            unit->command = Command{Command::kMove, v2fModule(mod)};
         }
         break;
       case 3:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_engine)
-            unit->command = Command{Command::kMove, ModuleToWorld(mod)};
+            unit->command = Command{Command::kMove, v2fModule(mod)};
         }
         break;
       case 4:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_turret)
-            unit->command = Command{Command::kMove, ModuleToWorld(mod)};
+            unit->command = Command{Command::kMove, v2fModule(mod)};
         }
         break;
     };
@@ -151,8 +146,8 @@ Think()
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (!mod->mod_power) continue;
-          if (dsq(unit->transform.position,
-                  TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate) {
+          if (v3fDsq(unit->transform.position,
+                     TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate) {
             if (operator_save_power(unit, kShip[i].power_delta)) {
               kShip[0].power_delta = 0.0f;
               LOGFMT(
@@ -176,8 +171,8 @@ Think()
       for (int k = 0; k < kUsedModule; ++k) {
         Module* mod = &kModule[k];
         if (mod->mod_power &&
-            dsq(unit->transform.position,
-                TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate)
+            v3fDsq(unit->transform.position,
+                   TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate)
           satisfied |= FLAG(kUnitAiPower);
       }
     }
@@ -188,8 +183,8 @@ Think()
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_engine &&
-              dsq(unit->transform.position,
-                  TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate)
+              v3fDsq(unit->transform.position,
+                     TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate)
             satisfied |= FLAG(kUnitAiThrust);
         }
       }
@@ -199,8 +194,8 @@ Think()
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_mine &&
-              dsq(unit->transform.position,
-                  TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate)
+              v3fDsq(unit->transform.position,
+                     TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate)
             satisfied |= FLAG(kUnitAiMine);
         }
       }
@@ -210,8 +205,8 @@ Think()
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_turret &&
-              dsq(unit->transform.position,
-                  TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate)
+              v3fDsq(unit->transform.position,
+                     TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate)
             satisfied |= FLAG(kUnitAiTurret);
         }
       }
@@ -268,7 +263,7 @@ Think()
       // Waiting for spaceman in a spacesuit
       for (int j = 0; j < kUsedUnit; ++j) {
         if (!kUnit[j].spacesuit) continue;
-        if (dsq(kUnit[j].transform.position, pod->transform.position) <
+        if (v3fDsq(kUnit[j].transform.position, pod->transform.position) <
             kDsqOperatePod) {
           LOGFMT("Unit %d is now in space.", j);
           think_flags = ANDN(FLAG(kPodAiUnmanned), think_flags);
@@ -284,7 +279,7 @@ Think()
       } else {
         think_flags = keep_state;
         // In range of the ship
-        if (dsq(goal, pod->transform.position) < 300.f) {
+        if (v3fDsq(goal, pod->transform.position) < 300.f) {
           // Unload the payload this tick!
           think_flags |= FLAG(kPodAiUnload);
         }
@@ -301,10 +296,10 @@ Think()
         Asteroid* asteroid = &kAsteroid[i];
         if (asteroid->mineral_source == 0) continue;
 
-        // TODO: nearest dsq
+        // TODO: nearest v3fDsq
         think_flags |= FLAG(kPodAiApproach);
         goal = asteroid->transform.position.xy();
-        if (dsq(asteroid->transform.position, pod->transform.position) <
+        if (v3fDsq(asteroid->transform.position, pod->transform.position) <
             900.f) {
           think_flags |= FLAG(kPodAiGather);
           asteroid->deplete = 1;

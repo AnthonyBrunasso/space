@@ -144,7 +144,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
       continue;
     }
     rgg::RenderRectangle(
-        v3f(simulation::TilePosToWorld(v2i{module->cx, module->cy})),
+        v3f(simulation::TilePosToWorld(v2i{(int)module->cx, (int)module->cy})),
         v3f(1.f / 2.f, 1.f / 2.f, 1.f), math::Quatf(0.f, 0.f, 0.f, 1.f), color);
   }
 

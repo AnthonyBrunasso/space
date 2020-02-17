@@ -146,8 +146,8 @@ Think()
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (!mod->mod_power) continue;
-          if (v3fDsq(unit->transform.position,
-                     TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate) {
+          if (v3fDsq(unit->transform.position, v3fModule(mod)) <
+              kDsqOperatePod) {
             if (operator_save_power(unit, kShip[i].power_delta)) {
               kShip[0].power_delta = 0.0f;
               LOGFMT(
@@ -182,8 +182,7 @@ Think()
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_engine &&
-              v3fDsq(unit->transform.position,
-                     TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate)
+              v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperate)
             satisfied |= FLAG(kUnitAiThrust);
         }
       }
@@ -193,8 +192,7 @@ Think()
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_mine &&
-              v3fDsq(unit->transform.position,
-                     TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate)
+              v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperatePod)
             satisfied |= FLAG(kUnitAiMine);
         }
       }
@@ -204,8 +202,7 @@ Think()
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_turret &&
-              v3fDsq(unit->transform.position,
-                     TilePosToWorld(v2i(mod->cx, mod->cy))) < kDsqOperate)
+              v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperate)
             satisfied |= FLAG(kUnitAiTurret);
         }
       }

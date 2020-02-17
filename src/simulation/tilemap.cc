@@ -122,6 +122,16 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
   }
 }
 
+void
+ClearTilemap()
+{
+  for (int i = 0; i < kMapHeight; ++i) {
+    for (int j = 0; j < kMapWidth; ++j) {
+      kTilemap[i][j] = {};
+    }
+  }
+}
+
 // Returns the center position of the tile.
 v2f
 TileToWorld(const Tile& tile)

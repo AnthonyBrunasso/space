@@ -66,7 +66,7 @@ DebugPanel(const v3f& my_mouse, const Stats& stats, uint64_t frame_target_usec)
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
-  if (imui::Text("Debug (Click to expand)", debug_options).clicked) {
+  if (imui::Text("Debug Menu", debug_options).clicked) {
     enable_debug = !enable_debug;
   }
 
@@ -90,11 +90,42 @@ DebugPanel(const v3f& my_mouse, const Stats& stats, uint64_t frame_target_usec)
     imui::Text(buffer);
     const char* ui_err = imui::LastErrorString();
     if (ui_err) imui::Text(ui_err);
+    imui::Indent(-2);
+  }
+
+  static bool enable_game_menu = false;
+  if (imui::Text("Game Menu", debug_options).clicked) {
+    enable_game_menu = !enable_game_menu;
+  }
+
+  if (enable_game_menu) {
+    imui::Indent(2);
     if (imui::Text("Reset Game", debug_options).clicked) {
       Reset();
     }
+    static bool scenario_menu = false;
+    if (imui::Text("Scenario", debug_options).clicked) {
+      scenario_menu = !scenario_menu;
+    }
+    if (scenario_menu) {
+      imui::Indent(2);
+      if (imui::Text("Game", debug_options).clicked) {
+        kScenario.type = Scenario::kGameScenario;
+        Reset();
+      }
+      if (imui::Text("Empty", debug_options).clicked) {
+        kScenario.type = Scenario::kEmptyScenario;
+        Reset();
+      }
+      if (imui::Text("AI", debug_options).clicked) {
+        kScenario.type = Scenario::kAIScenario;
+        Reset();
+      }
+      imui::Indent(-2);
+    }
     imui::Indent(-2);
   }
+
   snprintf(buffer, BUFFER_SIZE, "Minerals: %lu", kShip[0].mineral);
   imui::Text(buffer);
   snprintf(buffer, BUFFER_SIZE, "Level: %lu", kShip[0].level);

@@ -157,6 +157,13 @@ TileOk(v2i pos)
   return true;
 }
 
+Tile*
+TilePtr(const v2i& pos)
+{
+  if (!TileOk(pos)) return nullptr;
+  return &kTilemap[pos.y][pos.x];
+}
+
 // Returns kTileBlock for non-existent tiles, and TileType otherwise.
 bool
 TileBlockedSafe(const v2i& pos)

@@ -81,7 +81,6 @@ DebugPanel(const v3f& my_mouse, const Stats& stats, uint64_t frame_target_usec)
     imui::Text(buffer);
     const char* ui_err = imui::LastErrorString();
     if (ui_err) imui::Text(ui_err);
-    v2i tile = simulation::WorldToTilePos(my_mouse.xy());
     if (imui::Text("Reset Game", debug_options).clicked) {
       Reset();
     }

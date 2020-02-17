@@ -113,7 +113,6 @@ DECLARE_GAME_TYPE(Pod, 8);
 struct Unit {
   Transform transform;
   Command command;
-  v2f vacuum;
   int kind = 0;
   int ship = 0;
   uint8_t acurrent[CREWA_MAX];

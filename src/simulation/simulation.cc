@@ -93,6 +93,9 @@ Think()
 {
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
+    // Skip busy units
+    if (unit->command.type != Command::kNone) continue;
+
     switch (unit->kind) {
       default:
       case 0:
@@ -224,16 +227,18 @@ Think()
 
   for (int i = 0; i < kUsedMissile; ++i) {
     Missile* missile = &kMissile[i];
-    v2i tile = WorldToTilePos(missile->transform.position.xy());
-    if (!TileOk(tile)) continue;
+    v2i tilepos = WorldToTilePos(missile->transform.position.xy());
+    Tile* tile = TilePtr(tilepos);
+    if (!tile) continue;
 
     // ship entering ftl, cannot strike
     if (kShip[0].ftl_frame) continue;
 
-    if (kTilemap[tile.y][tile.x].blocked) {
+    if (tile->blocked) {
+      v2i hack(0, 1);
       missile->explode_frame += 1;
       missile->y_velocity = 0;
-      missile->tile_hit = {tile.x, (tile.y + 1)};
+      missile->tile_hit = tilepos + hack;
     }
   }
 
@@ -491,18 +496,16 @@ Update()
     Unit* unit = &kUnit[i];
     Transform* transform = &unit->transform;
     v2i tilepos = WorldToTilePos(transform->position.xy());
+    Tile* tile = TilePtr(tilepos);
 
-    if (!TileOk(tilepos)) {
+    if (!tile) {
       *unit = kZeroUnit;
       continue;
     }
 
-    if (unit->vacuum == v2f()) {
-      // Crew has been sucked away into the vacuum
-      if (kTilemap[tilepos.y][tilepos.x].nooxygen) {
-        unit->vacuum = TileVacuum(tilepos);
-        unit->command.type = Command::kVacuum;
-      }
+    // Crew has been sucked away into the vacuum
+    if (tile->nooxygen) {
+      unit->command.type = Command::kVacuum;
     }
 
     switch (unit->command.type) {
@@ -522,8 +525,7 @@ Update()
         transform->position += (dir * 1.f) + (TileAvoidWalls(tilepos) * .15f);
       } break;
       case Command::kVacuum: {
-        transform->position +=
-            v3f(unit->vacuum.x * 1.5f, unit->vacuum.y * 1.5f, 0.f);
+        transform->position += TileVacuum(tilepos) * 3.0f;
       } break;
       default:
         break;
@@ -533,6 +535,6 @@ Update()
   }
 
   RegistryCompact();
-}
+}  // namespace simulation
 
 }  // namespace simulation

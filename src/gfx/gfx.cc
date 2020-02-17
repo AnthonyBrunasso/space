@@ -170,11 +170,16 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
   float ship_alpha = 1.f - fft;
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
-      const Tile* tile = &kTilemap[i][j];
+      const Tile* tile = TilePtr(v2i(j, i));
 
       v4f color;
       if (tile->blocked) {
         color = v4f(1.f, 1.f, 1.f, ship_alpha);
+        rgg::RenderRectangle(v3f(TileToWorld(*tile)),
+                             v3f(1.f / 2.f, 1.f / 2.f, 1.f),
+                             math::Quatf(0.f, 0.f, 0.f, 1.f), color);
+      } else if (tile->nooxygen) {
+        color = v4f(1.f, 0.f, .2f, .4);
         rgg::RenderRectangle(v3f(TileToWorld(*tile)),
                              v3f(1.f / 2.f, 1.f / 2.f, 1.f),
                              math::Quatf(0.f, 0.f, 0.f, 1.f), color);
@@ -213,7 +218,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
         color = v4f(0.99f, 0.33f, 0.33f, 1.f);
         break;
       default:
-        break;
+        continue;
     }
     // Draw the player.
     rgg::RenderRectangle(unit->transform.position, unit->transform.scale,

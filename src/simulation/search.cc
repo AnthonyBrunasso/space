@@ -60,8 +60,8 @@ PathTo(const v2i& start, const v2i& end)
 
     for (int i = 0; i < kMaxNeighbor; ++i) {
       const v2i neighbor = node + kNeighbor[i];
-      if (!TileOk(neighbor)) continue;
-      if (kTilemap[neighbor.y][neighbor.x].blocked) continue;
+      Tile* neighbor_tile = TilePtr(neighbor);
+      if (!neighbor_tile || neighbor_tile->blocked) continue;
 
       if (path_map[neighbor.y][neighbor.x].checked == true) continue;
       path_map[neighbor.y][neighbor.x].checked = true;
@@ -93,14 +93,17 @@ PathTo(const v2i& start, const v2i& end)
   return &kSearch.path;
 }
 
-/*uint64_t
-BfsReplace(v2i start, const uint64_t limit, TileType seek, TileType set)
+uint64_t
+BfsRemoveOxygen(v2i start, const uint64_t limit)
 {
   uint64_t count = 0;
-  if (!TileOk(start)) return count;
-  if (kTilemap[start.y][start.x].type == seek) {
-    kTilemap[start.y][start.x].type = set;
-    ++count;
+  {
+    Tile* start_tile = TilePtr(start);
+    if (!start_tile) return count;
+    if (start_tile->nooxygen == 0) {
+      start_tile->nooxygen = 1;
+      ++count;
+    }
   }
 
   constexpr int N = kMapHeight * kMapWidth;
@@ -125,23 +128,24 @@ BfsReplace(v2i start, const uint64_t limit, TileType seek, TileType set)
     auto& node = queue[qptr++];
     for (int i = 0; i < kMaxNeighbor; ++i) {
       const v2i neighbor = node + kNeighbor[i];
-      if (!TileOk(neighbor)) continue;
+      Tile* neighbor_tile = TilePtr(neighbor);
+      if (!neighbor_tile) continue;
       if (path_map[neighbor.y][neighbor.x].checked == true) continue;
       path_map[neighbor.y][neighbor.x].checked = true;
       path_map[neighbor.y][neighbor.x].from = node;
 
-      if (kTilemap.map[neighbor.y][neighbor.x].type == seek) {
-        kTilemap.map[neighbor.y][neighbor.x].type = set;
+      if (neighbor_tile->nooxygen == 0) {
+        neighbor_tile->nooxygen = 1;
         ++count;
       }
 
-      if (kTilemap.map[neighbor.y][neighbor.x].type != kTileBlock) {
+      if (!neighbor_tile->blocked) {
         queue[qsz++] = neighbor;
       }
     }
   }
 
   return count;
-}*/
+}
 
 }  // namespace simulation

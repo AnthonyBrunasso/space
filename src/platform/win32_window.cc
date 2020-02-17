@@ -3,7 +3,7 @@
 #include <cassert>
 #include <windows.h>
 #include <gl/gl.h>
-#include <stdbool.h>
+#include <cstdbool>
 
 // https://www.khronos.org/registry/OpenGL/api/GL/glext.h
 

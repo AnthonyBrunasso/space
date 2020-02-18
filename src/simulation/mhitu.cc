@@ -19,8 +19,8 @@ MissileHitSimulation(Missile* mi)
   if (explode_frame % 5 == 1) {
     uint64_t replaced = BfsRemoveOxygen(hit, 1);
 
-    LOGFMT("%ld mi impact %d %d replaced %lu tiles (disabled)", explode_frame,
-           hit.x, hit.y, replaced);
+    LOGFMT("%ld mi impact %d %d replaced %lu tiles", explode_frame, hit.x,
+           hit.y, replaced);
   }
 
   return kMissileExplodeTime - explode_frame;

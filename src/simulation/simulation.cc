@@ -295,12 +295,11 @@ ThinkPod()
       goal = home;
       think_flags |= FLAG(kPodAiReturn);
     } else {
-      // Evaluate mining potential
-      for (int i = 0; i < kUsedAsteroid; ++i) {
-        Asteroid* asteroid = &kAsteroid[i];
-        if (asteroid->mineral_source == 0) continue;
+      uint64_t asteroid_index =
+          v3fNear(pod->transform.position, GAME_ITER(Asteroid, transform));
 
-        // TODO: nearest v3fDsq
+      if (asteroid_index < kUsedAsteroid) {
+        Asteroid* asteroid = &kAsteroid[asteroid_index];
         think_flags |= FLAG(kPodAiApproach);
         goal = asteroid->transform.position.xy();
         if (v3fDsq(asteroid->transform.position, pod->transform.position) <
@@ -308,7 +307,6 @@ ThinkPod()
           think_flags |= FLAG(kPodAiGather);
           asteroid->deplete = 1;
         }
-        break;
       }
     }
 

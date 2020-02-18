@@ -124,13 +124,13 @@ DebugPanel(const v3f& my_mouse, const Stats& stats, uint64_t frame_target_usec)
       features_menu = !features_menu;
     }
     if (features_menu) {
-#define UI_TOGGLE_FEATURE(name)                            \
-      snprintf(buffer, BUFFER_SIZE, "%s: %s", #name,       \
-               kScenario.name ? "enabled" : "disabled");   \
-      if (imui::Text(buffer, debug_options).clicked) {     \
-        kScenario.name = !kScenario.name;                  \
-        ResetScenario(false);                              \
-      }
+#define UI_TOGGLE_FEATURE(name)                      \
+  snprintf(buffer, BUFFER_SIZE, "%s: %s", #name,     \
+           kScenario.name ? "enabled" : "disabled"); \
+  if (imui::Text(buffer, debug_options).clicked) {   \
+    kScenario.name = !kScenario.name;                \
+    ResetScenario(false);                            \
+  }
       imui::Indent(2);
       UI_TOGGLE_FEATURE(ai);
       UI_TOGGLE_FEATURE(ship);
@@ -212,6 +212,16 @@ ControlEvent(const PlatformEvent* event, const Camera* camera, v3f* translation)
         } break;
         case 'd': {
           translation->x = 1.f;
+        } break;
+        case 'u': {
+          v3f pos = camera::ScreenToWorldSpace(
+              camera, v3f(event->position - window::GetWindowSize() * 0.5f));
+          uint64_t unit_index = v3fNear(pos, GAME_ITER(Unit, transform));
+          if (unit_index < kUsedUnit) {
+            Notify* n = UseNotify();
+            n->position = kUnit[unit_index].transform.position;
+            n->age = 1;
+          }
         } break;
         default:
           break;

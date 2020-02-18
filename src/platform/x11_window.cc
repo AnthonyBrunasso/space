@@ -216,8 +216,22 @@ PollEvent(PlatformEvent* event)
         event->position = {xev.xkey.x, xev.xkey.y};
         break;
       case ButtonPress:
-        event->type = MOUSE_DOWN;
-        event->button = (PlatformButton)xev.xbutton.button;
+        switch (xev.xbutton.button) {
+          case 1:
+          case 2:
+          case 3:
+            event->type = MOUSE_DOWN;
+            event->button = (PlatformButton)xev.xbutton.button;
+            break;
+          case 4:
+            event->type = MOUSE_WHEEL;
+            event->wheel_delta = 1.0f;
+            break;
+          case 5:
+            event->type = MOUSE_WHEEL;
+            event->wheel_delta = -1.0f;
+            break;
+        }
         event->position = {xev.xbutton.x, xev.xbutton.y};
         break;
       case ButtonRelease:

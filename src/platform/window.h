@@ -30,10 +30,9 @@ struct PlatformEvent {
   PlatformEventType type;
   // Screen space the event took place in.
   v2f position;
-  // Mouse wheel movement.
-  float wheel_delta;
   // Event Detail
   union {
+    float wheel_delta;
     char key;
     PlatformButton button;
   };

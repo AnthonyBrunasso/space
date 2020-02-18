@@ -532,7 +532,7 @@ Update()
     Tile* tile = TilePtr(tilepos);
 
     if (!tile) {
-      *unit = {};
+      *unit = kZeroUnit;
       continue;
     }
 
@@ -563,10 +563,11 @@ Update()
 
   for (int i = 0; i < kUsedNotify; ++i) {
     Notify* n = &kNotify[i];
-    if (POPCNT(n->age) == kNotifyAgeBits)
-      *n = {};
-    else
-      n->age += 1;
+    if (POPCNT(n->age) == kNotifyAgeBits) {
+      *n = kZeroNotify;
+    } else {
+      n->age += (n->age > 0);
+    }
   }
 
   RegistryCompact();

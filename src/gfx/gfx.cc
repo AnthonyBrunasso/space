@@ -19,6 +19,7 @@ struct Gfx {
 static Gfx kGfx;
 static v4f kWhite = v4f(1.f, 1.f, 1.f, 1.f);
 static v4f kRed = v4f(1.f, 0.f, 0.f, 1.f);
+static const math::Quatf kDefaultRotation = math::Quatf(0.f, 0.f, 0.f, 1.f);
 constexpr int MAX_HOVERTEXT = CREWA_MAX + 1;
 static char hover_text[MAX_HOVERTEXT][64];
 
@@ -145,7 +146,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     }
     rgg::RenderRectangle(
         v3f(simulation::TilePosToWorld(v2i{(int)module->cx, (int)module->cy})),
-        v3f(1.f / 2.f, 1.f / 2.f, 1.f), math::Quatf(0.f, 0.f, 0.f, 1.f), color);
+        v3f(1.f / 2.f, 1.f / 2.f, 1.f), kDefaultRotation, color);
   }
 
   {
@@ -157,10 +158,10 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
       world = TilePosToWorld(v2i(mod->cx, mod->cy) + hack);
       v4f engine_color = v4f(1.f * sys_engine, 0.f, 1.f * sys_engine, 1.f);
       rgg::RenderTag(kGfx.exhaust_tag, world, v3f(escale, 1.f, 1.f),
-                     math::Quatf(0.f, 0.f, 0.f, 1.f), engine_color);
+                     kDefaultRotation, engine_color);
       rgg::RenderTag(kGfx.exhaust_tag, world,
-                     v3f(fmodf(escale + 1.f, 2.f), 1.f, 1.f),
-                     math::Quatf(0.f, 0.f, 0.f, 1.f), engine_color);
+                     v3f(fmodf(escale + 1.f, 2.f), 1.f, 1.f), kDefaultRotation,
+                     engine_color);
       escale += .1f;
       break;
     }
@@ -176,13 +177,13 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
       if (tile->blocked) {
         color = v4f(1.f, 1.f, 1.f, ship_alpha);
         rgg::RenderRectangle(v3f(TileToWorld(*tile)),
-                             v3f(1.f / 2.f, 1.f / 2.f, 1.f),
-                             math::Quatf(0.f, 0.f, 0.f, 1.f), color);
+                             v3f(1.f / 2.f, 1.f / 2.f, 1.f), kDefaultRotation,
+                             color);
       } else if (tile->nooxygen) {
         color = v4f(1.f, 0.f, .2f, .4);
         rgg::RenderRectangle(v3f(TileToWorld(*tile)),
-                             v3f(1.f / 2.f, 1.f / 2.f, 1.f),
-                             math::Quatf(0.f, 0.f, 0.f, 1.f), color);
+                             v3f(1.f / 2.f, 1.f / 2.f, 1.f), kDefaultRotation,
+                             color);
       }
     }
   }
@@ -222,7 +223,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     }
     // Draw the player.
     rgg::RenderRectangle(unit->transform.position, unit->transform.scale,
-                         unit->transform.orientation, color);
+                         kDefaultRotation, color);
 
     // Space suit
     if (unit->spacesuit) {
@@ -243,7 +244,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     if (v3fDsq(unit->transform.position, mouse) < kDsqSelect) {
       // Highlight the unit that would be selected on mouse click
       rgg::RenderRectangle(v3f(grid), v3f(1.f / 2.f, 1.f / 2.f, 1.f),
-                           math::Quatf(0.f, 0.f, 0.f, 1.f), hilite);
+                           kDefaultRotation, hilite);
     }
 
     if (unit->uaction != kUaMove) continue;
@@ -259,24 +260,22 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
 
     for (int i = 0; i < path->size; ++i) {
       auto* t = &path->tile[i];
-      rgg::RenderRectangle(
-          v3f(TilePosToWorld(*t)), v3f(1.f / 3.f, 1.f / 3.f, 1.f),
-          math::Quatf(0.f, 0.f, 0.f, 1.f), v4f(0.33f, 0.33f, 0.33f, 0.40f));
+      rgg::RenderRectangle(v3f(TilePosToWorld(*t)),
+                           v3f(1.f / 3.f, 1.f / 3.f, 1.f), kDefaultRotation,
+                           v4f(0.33f, 0.33f, 0.33f, 0.40f));
     }
   }
 
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
     rgg::RenderTag(kGfx.asteroid_tag, asteroid->transform.position,
-                   asteroid->transform.scale, asteroid->transform.orientation,
-                   kWhite);
+                   asteroid->transform.scale, kDefaultRotation, kWhite);
   }
 
   for (int i = 0, j = 0; i < kUsedMissile; ++i) {
     Missile* missile = &kMissile[i];
     rgg::RenderTag(kGfx.missile_tag, missile->transform.position,
-                   missile->transform.scale, missile->transform.orientation,
-                   kWhite);
+                   missile->transform.scale, kDefaultRotation, kWhite);
 
     v2i tile = WorldToTilePos(missile->transform.position.xy());
     if (!TileOk(tile)) continue;
@@ -299,12 +298,12 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
   for (int i = 0; i < kUsedPod; ++i) {
     Pod* pod = &kPod[i];
     rgg::RenderTag(kGfx.pod_tag, pod->transform.position, pod->transform.scale,
-                   pod->transform.orientation, kWhite);
+                   kDefaultRotation, kWhite);
 
     if (pod->think_flags & FLAG(kPodAiUnmanned)) continue;
 
     rgg::RenderRectangle(pod->transform.position + v2f(15.f, 15.f),
-                         v3f(0.25f, 0.25f, 0.f), pod->transform.orientation,
+                         v3f(0.25f, 0.25f, 0.f), kDefaultRotation,
                          v4f(0.99f, 0.33f, 0.33f, 1.f));
     rgg::RenderCircle(pod->transform.position + v2f(15.f, 15.f), 12.f, 14.f,
                       v4f(0.99f, 0.33f, 0.33f, 1.f));

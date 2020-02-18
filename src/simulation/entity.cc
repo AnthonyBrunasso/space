@@ -57,7 +57,6 @@ enum PodAiGoals {
 struct Transform {
   v3f position;
   v3f scale = v3f(1.f, 1.f, 1.f);
-  math::Quatf orientation;
 };
 
 // TODO (AN): Move crew

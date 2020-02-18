@@ -126,9 +126,9 @@ DebugPanel(const v3f& my_mouse, const Stats& stats, uint64_t frame_target_usec)
     if (features_menu) {
 #define UI_TOGGLE_FEATURE(name)                            \
       snprintf(buffer, BUFFER_SIZE, "%s: %s", #name,       \
-               kScenario.##name ? "enabled" : "disabled"); \
+               kScenario.name ? "enabled" : "disabled");   \
       if (imui::Text(buffer, debug_options).clicked) {     \
-        kScenario.##name = !kScenario.##name;              \
+        kScenario.name = !kScenario.name;                  \
         ResetScenario(false);                              \
       }
       imui::Indent(2);

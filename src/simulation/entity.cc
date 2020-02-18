@@ -15,6 +15,10 @@
 
 #define DECLARE_GAME_QUEUE(type, count) DECLARE_QUEUE(type, count)
 
+#define GAME_ITER(type, member)                                   \
+  sizeof(type), (const uint8_t*)k##type + offsetof(type, member), \
+      (const uint8_t*)&k##type[kUsed##type]
+
 // Common Flags
 enum UnitAction {
   kUaNone = 0,

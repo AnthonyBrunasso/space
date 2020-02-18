@@ -290,19 +290,11 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     }
   }
 
-  // Alerts
-  // TODO (AN): make a render system
-  // static float power_notify = 0.f;
-  // if (kShip[0].power_delta > 0.0f && power_notify <= 0.0f) {
-  //  power_notify = 50.f;
-  //}
-
-  // if (power_notify >= 10.f) {
-  //  /*v2i grid = TypeOnGrid(kTilePower);
-  //  v3f world = TilePosToWorld(grid);
-  //  rgg::RenderCircle(world, power_notify - 10.f, power_notify, kWhite);*/
-  //}
-  // power_notify -= 1.f;
+  for (int i = 0; i < kUsedNotify; ++i) {
+    Notify* n = &kNotify[i];
+    float radius = 50.f - (n->age * 1.f);
+    rgg::RenderCircle(n->position, radius - 10.f, radius, kWhite);
+  }
 
   for (int i = 0; i < kUsedPod; ++i) {
     Pod* pod = &kPod[i];

@@ -133,6 +133,11 @@ ThinkShip()
           if (!mod->mod_power) continue;
           if (v3fDsq(unit->transform.position, v3fModule(mod)) <
               kDsqOperatePod) {
+            // Visual
+            Notify* n = UseNotify();
+            n->age = 1;
+            n->position = v3fModule(mod);
+
             if (operator_save_power(unit, kShip[i].power_delta)) {
               kShip[0].power_delta = 0.0f;
               LOGFMT(
@@ -499,7 +504,7 @@ Decide()
     unit->data = c.data;
   }
 
-  DecideShip(); 
+  DecideShip();
   DecideAsteroid();
   DecideMissle();
   DecidePod();
@@ -556,6 +561,14 @@ Update()
         transform->position += (dir * 1.f) + (TileAvoidWalls(tilepos) * .15f);
       } break;
     }
+  }
+
+  for (int i = 0; i < kUsedNotify; ++i) {
+    Notify* n = &kNotify[i];
+    if (POPCNT(n->age) == kNotifyAgeBits)
+      *n = {};
+    else
+      n->age += 1;
   }
 
   RegistryCompact();

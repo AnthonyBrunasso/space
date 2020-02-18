@@ -158,3 +158,10 @@ struct Command {
 };
 DECLARE_GAME_QUEUE(Command, 16);
 
+constexpr unsigned kNotifyAgeBits = 5;
+struct Notify {
+  v3f position;
+  unsigned age : kNotifyAgeBits;
+};
+DECLARE_GAME_TYPE(Notify, 4);
+

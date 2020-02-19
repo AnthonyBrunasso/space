@@ -3,7 +3,6 @@
 #include "math/vec.h"
 
 #include "entity.cc"
-#include "tilemap.cc"
 
 namespace simulation
 {
@@ -22,6 +21,7 @@ struct Scenario {
   unsigned asteroid : 1;
   unsigned missile : 1;
   unsigned pod : 1;
+  unsigned tilemap : 1;
 };
 
 static Scenario kScenario;
@@ -58,14 +58,13 @@ InitializeScenario(bool reset_features = true)
       UseShip();
       kShip[0].running = true;
       kShip[0].level = 1;
-
-      InitializeTilemap();
     } break;
     case Scenario::kSoloMission: {
       if (reset_features) {
         memset(&kScenario, 0, sizeof(kScenario));
         kScenario.ship = 1;
         kScenario.ai = 1;
+        kScenario.tilemap = 1;
       }
       // One ship
       UseShip();
@@ -76,15 +75,12 @@ InitializeScenario(bool reset_features = true)
       kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
       kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
       kUnit[0].kind = 0;
-
-      InitializeTilemap();
     } break;
     default:
     case Scenario::kEmptyScenario: {
       if (reset_features) {
         memset(&kScenario, 0, sizeof(kScenario));
       }
-      ClearTilemap();
     } break;
   }
   kScenario.type = (Scenario::Type)sid;

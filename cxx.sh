@@ -18,8 +18,8 @@ else
   # O0 takes about half a second off the compile time.
 fi
 
-# If more than one argument
-if [ $# -gt 1 ]; then
+# If more than one argument, and build succeeded
+if [ $? -eq 0 -a $# -gt 1 ]; then
   # pop the first argument
   shift
   # pass remaining arguments to the app

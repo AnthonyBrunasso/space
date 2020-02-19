@@ -45,8 +45,13 @@ static const v2i kNeighbor[kMaxNeighbor] = {
 };
 
 void
-InitializeTilemap()
+InitializeTilemap(int tilemap_id)
 {
+  if (!tilemap_id) {
+    memset(&kTilemap, 0, sizeof(kTilemap));
+    return;
+  }
+
   // clang-format off
 static int kDefaultMap[kMapHeight][kMapWidth] = {
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -118,16 +123,6 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
           t->mod_turret = 1;
         } break;
       };
-    }
-  }
-}
-
-void
-ClearTilemap()
-{
-  for (int i = 0; i < kMapHeight; ++i) {
-    for (int j = 0; j < kMapWidth; ++j) {
-      kTilemap[i][j] = {};
     }
   }
 }

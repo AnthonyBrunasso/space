@@ -23,12 +23,8 @@ bool
 Initialize()
 {
   InitializeScenario();
+  InitializeTilemap(kScenario.tilemap);
 
-  if (kScenario.tilemap) {
-    InitializeTilemap();
-  } else {
-    ClearTilemap();
-  }
   return true;
 }
 

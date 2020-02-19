@@ -33,6 +33,7 @@ struct Tile {
   unsigned blocked : 1;
   unsigned nooxygen : 1;
   unsigned shroud : 1;
+  unsigned fog_of_war : 1;
 };
 static_assert(sizeof(Tile) == sizeof(uint32_t),
               "Sync TileAND with the new Tile size");
@@ -108,8 +109,10 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
 
       // No modules for tilemap_id 2
       // Shroud enabled
+      // Fog enabled
       if (tilemap_id == 2) {
         tile->shroud = 1;
+        tile->fog_of_war = ~tile->blocked;
         continue;
       }
       switch (kDefaultMap[i][j]) {

@@ -184,7 +184,11 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
       const Tile* tile = TilePtr(v2i(j, i));
 
       v4f color;
-      if (tile->blocked) {
+      if (tile->fog_of_war) {
+        color = v4f(0.3f, 0.3f, 0.3f, .7);
+        rgg::RenderRectangle(v3f(TileToWorld(*tile)), kTileScale,
+                             kDefaultRotation, color);
+      } else if (tile->blocked) {
         color = v4f(1.f, 1.f, 1.f, ship_alpha);
         rgg::RenderRectangle(v3f(TileToWorld(*tile)), kTileScale,
                              kDefaultRotation, color);

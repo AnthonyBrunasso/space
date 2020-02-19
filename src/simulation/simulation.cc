@@ -544,7 +544,8 @@ Update()
     Tile noshroud;
     memset(&noshroud, 0xff, sizeof(Tile));
     noshroud.shroud = 0;
-    float tile_world_distance = 25.f * 2;
+    noshroud.fog_of_war = 0;
+    float tile_world_distance = kTileWidth * 2.0f;
     BfsAND(unit->transform.position, noshroud,
            tile_world_distance * tile_world_distance);
 

@@ -57,6 +57,7 @@ InitializeScenario(bool reset_features = true)
       }
       kUnit[4].spacesuit = 1;
 
+      // One ship
       UseShip();
       kShip[0].running = true;
       kShip[0].level = 1;
@@ -68,7 +69,12 @@ InitializeScenario(bool reset_features = true)
       UseUnit();
       kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
       kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
-      kUnit[0].kind = 0;
+      kUnit[0].kind = Unit::kPlayerControlled;
+
+      UseUnit();
+      kUnit[1].transform.position = v3f(400.f, 300.f, 0.f);
+      kUnit[1].transform.scale = v3f(0.25f, 0.25f, 0.f);
+      kUnit[1].kind = Unit::kEnemy;
     } break;
     case Scenario::kSoloMission: {
       if (reset_features) {
@@ -85,7 +91,7 @@ InitializeScenario(bool reset_features = true)
       UseUnit();
       kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
       kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
-      kUnit[0].kind = 0;
+      kUnit[0].kind = Unit::kPlayerControlled;
     } break;
     default:
     case Scenario::kEmptyScenario: {

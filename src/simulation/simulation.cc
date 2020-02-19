@@ -67,28 +67,28 @@ ThinkAI()
     Command c = {kUaNone};
 
     switch (unit->kind) {
-      case 0:
+      case Unit::kPlayerControlled:
         // Unit awaits human orders
         continue;
-      case 1:
+      case Unit::kPowerOperator:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_power) c = (Command{kUaMove, v3fModule(mod), i});
         }
         break;
-      case 2:
+      case Unit::kMiner:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_mine) c = (Command{kUaMove, v3fModule(mod), i});
         }
         break;
-      case 3:
+      case Unit::kEngineer:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_engine) c = (Command{kUaMove, v3fModule(mod), i});
         }
         break;
-      case 4:
+      case Unit::kTurretOperator:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_turret) c = (Command{kUaMove, v3fModule(mod), i});

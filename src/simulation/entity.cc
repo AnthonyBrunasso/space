@@ -102,14 +102,25 @@ struct Pod {
 };
 DECLARE_GAME_TYPE(Pod, 8);
 
+
+
 struct Unit {
   UnitData data = {};
   Transform transform;
-  int kind = 0;
+  
+  static constexpr int kPlayerControlled = 0;
+  static constexpr int kPowerOperator = 1;
+  static constexpr int kMiner = 2;
+  static constexpr int kEngineer = 3;
+  static constexpr int kTurretOperator = 4;
+  static constexpr int kEnemy = 5;
+  int kind = kPlayerControlled;
+
   int ship = 0;
   uint8_t acurrent[CREWA_MAX];
   uint8_t aknown_min[CREWA_MAX] = CREW_AWORST;
   uint8_t aknown_max[CREWA_MAX] = CREW_ABEST;
+
   // Bit Fields
   unsigned spacesuit : 1;
   unsigned inspace : 1;

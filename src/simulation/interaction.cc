@@ -109,13 +109,11 @@ DebugPanel(const v3f& my_mouse, const Stats& stats, uint64_t frame_target_usec)
     }
     if (scenario_menu) {
       imui::Indent(2);
-      if (imui::Text("Game", debug_options).clicked) {
-        kScenario.type = Scenario::kGameScenario;
-        Reset();
-      }
-      if (imui::Text("Empty", debug_options).clicked) {
-        kScenario.type = Scenario::kEmptyScenario;
-        Reset();
+      for (int i = 0; i < Scenario::kMaxScenario; ++i) {
+        if (imui::Text(kScenarioNames[i], debug_options).clicked) {
+          kScenario.type = (Scenario::Type)i;
+          Reset();
+        }
       }
       imui::Indent(-2);
     }

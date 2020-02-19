@@ -337,10 +337,10 @@ DecideShip()
   for (int i = 0; i < kUsedShip; ++i) {
     Ship* ship = &kShip[i];
     if (ship->danger > 20) {
-      puts("ship danger triggered game over");
+      LOG("The ship's reactor is melting down.");
       ship->running = false;
-    } else if (kUsedUnit <= 1) {
-      puts("one man crew triggered game over");
+    } else if (kUsedUnit < 1) {
+      LOG("The crew is dead.");
       ship->running = false;
     }
     if (ship->think_flags & FLAG(kShipAiSpawnPod)) {

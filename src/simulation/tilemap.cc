@@ -154,16 +154,16 @@ UpdateTilemap(int tilemap_id)
 v2f
 TileToWorld(const Tile& tile)
 {
-  return {(tile.cx * kTileWidth) + kTileWidth / 2.f,
-          (tile.cy * kTileHeight) + kTileHeight / 2.f};
+  return {(tile.cx * kTileWidth) + kTileWidth * 0.5f,
+          (tile.cy * kTileHeight) + kTileHeight * 0.5f};
 }
 
 // Returns the center position of the tile.
 v2f
 TilePosToWorld(const v2i& pos)
 {
-  return {((float)pos.x * kTileWidth) + kTileWidth / 2.f,
-          ((float)pos.y * kTileHeight) + kTileHeight / 2.f};
+  return {((float)pos.x * kTileWidth) + kTileWidth * 0.5f,
+          ((float)pos.y * kTileHeight) + kTileHeight * 0.5f};
 }
 
 v2i
@@ -237,7 +237,7 @@ v2f
 TileVacuum(const v2i pos)
 {
   v2f posf(pos.x * 1.f, pos.y * 1.f);
-  v2f center(kMapWidth / 2, kMapHeight / 2);
+  v2f center(kMapWidth * 0.5f, kMapHeight * 0.5f);
   return Normalize(posf - center);
 }
 

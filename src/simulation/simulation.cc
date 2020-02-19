@@ -544,7 +544,9 @@ Update()
     Tile noshroud;
     memset(&noshroud, 0xff, sizeof(Tile));
     noshroud.shroud = 0;
-    BfsAND(tilepos, 4, noshroud);
+    float tile_world_distance = 25.f * 2;
+    BfsAND(unit->transform.position, noshroud,
+           tile_world_distance * tile_world_distance);
 
     // Crew has been sucked away into the vacuum
     if (tile->nooxygen) {

@@ -148,15 +148,14 @@ BfsRemoveOxygen(v2i start, const uint64_t limit)
   return count;
 }
 
-uint64_t
-BfsAND(v2i start, const uint64_t limit, Tile keep_bits)
+void
+BfsAND(v3f origin, Tile keep_bits, float tile_dsq)
 {
-  uint64_t count = 0;
+  v2i start = WorldToTilePos(origin);
   {
     Tile* start_tile = TilePtr(start);
-    if (!start_tile) return count;
+    if (!start_tile) return;
     *start_tile = TileAND(*start_tile, keep_bits);
-    ++count;
   }
 
   constexpr int N = kMapHeight * kMapWidth;
@@ -174,9 +173,9 @@ BfsAND(v2i start, const uint64_t limit, Tile keep_bits)
   path_map[start.y][start.x].from = start;
   path_map[start.y][start.x].checked = true;
 
-  while (count < limit) {
+  while (1) {
     // No more tiles
-    if (qptr == qsz) return count;
+    if (qptr == qsz) return;
 
     auto& node = queue[qptr++];
     for (int i = 0; i < kMaxNeighbor; ++i) {
@@ -187,16 +186,17 @@ BfsAND(v2i start, const uint64_t limit, Tile keep_bits)
       path_map[neighbor.y][neighbor.x].checked = true;
       path_map[neighbor.y][neighbor.x].from = node;
 
+      v3f neighbor_world = TilePosToWorld(neighbor);
+      v3f world = neighbor_world - origin;
+      float distance = LengthSquared(world);
+      if (distance > tile_dsq) continue;
       *neighbor_tile = TileAND(*neighbor_tile, keep_bits);
-      ++count;
 
       if (!neighbor_tile->blocked) {
         queue[qsz++] = neighbor;
       }
     }
   }
-
-  return count;
 }
 
 }  // namespace simulation

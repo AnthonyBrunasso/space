@@ -22,6 +22,7 @@ static v4f kWhite = v4f(1.f, 1.f, 1.f, 1.f);
 static v4f kRed = v4f(1.f, 0.f, 0.f, 1.f);
 static const math::Quatf kDefaultRotation = math::Quatf(0.f, 0.f, 0.f, 1.f);
 static v3f kDefaultScale = v3f(1.f, 1.f, 1.f);
+static v3f kTileScale = v3f(0.5f, 0.5f, 1.f);
 constexpr int MAX_HOVERTEXT = CREWA_MAX + 1;
 static char hover_text[MAX_HOVERTEXT][64];
 
@@ -185,14 +186,16 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
       v4f color;
       if (tile->blocked) {
         color = v4f(1.f, 1.f, 1.f, ship_alpha);
-        rgg::RenderRectangle(v3f(TileToWorld(*tile)),
-                             v3f(1.f / 2.f, 1.f / 2.f, 1.f), kDefaultRotation,
-                             color);
+        rgg::RenderRectangle(v3f(TileToWorld(*tile)), kTileScale,
+                             kDefaultRotation, color);
       } else if (tile->nooxygen) {
         color = v4f(1.f, 0.f, .2f, .4);
-        rgg::RenderRectangle(v3f(TileToWorld(*tile)),
-                             v3f(1.f / 2.f, 1.f / 2.f, 1.f), kDefaultRotation,
-                             color);
+        rgg::RenderRectangle(v3f(TileToWorld(*tile)), kTileScale,
+                             kDefaultRotation, color);
+      } else if (tile->shroud) {
+        color = v4f(0.3f, 0.3f, 0.3f, .4);
+        rgg::RenderRectangle(v3f(TileToWorld(*tile)), kTileScale,
+                             kDefaultRotation, color);
       }
     }
   }

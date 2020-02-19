@@ -21,7 +21,7 @@ struct Scenario {
   unsigned asteroid : 1;
   unsigned missile : 1;
   unsigned pod : 1;
-  unsigned tilemap : 1;
+  unsigned tilemap : 2;
 };
 
 static Scenario kScenario;
@@ -64,7 +64,7 @@ InitializeScenario(bool reset_features = true)
         memset(&kScenario, 0, sizeof(kScenario));
         kScenario.ship = 1;
         kScenario.ai = 1;
-        kScenario.tilemap = 1;
+        kScenario.tilemap = 2;
       }
       // One ship
       UseShip();

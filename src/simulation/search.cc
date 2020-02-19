@@ -148,4 +148,55 @@ BfsRemoveOxygen(v2i start, const uint64_t limit)
   return count;
 }
 
+uint64_t
+BfsAND(v2i start, const uint64_t limit, Tile keep_bits)
+{
+  uint64_t count = 0;
+  {
+    Tile* start_tile = TilePtr(start);
+    if (!start_tile) return count;
+    *start_tile = TileAND(*start_tile, keep_bits);
+    ++count;
+  }
+
+  constexpr int N = kMapHeight * kMapWidth;
+  memset(kSearch.path_map, 0, sizeof(PathNode) * N);
+  kSearch.queue_size = 0;
+  kSearch.queue_ptr = 0;
+  kSearch.path.size = 0;
+
+  auto& queue = kSearch.queue;
+  int& qsz = kSearch.queue_size;
+  int& qptr = kSearch.queue_ptr;
+  auto& path_map = kSearch.path_map;
+
+  queue[qsz++] = start;
+  path_map[start.y][start.x].from = start;
+  path_map[start.y][start.x].checked = true;
+
+  while (count < limit) {
+    // No more tiles
+    if (qptr == qsz) return count;
+
+    auto& node = queue[qptr++];
+    for (int i = 0; i < kMaxNeighbor; ++i) {
+      const v2i neighbor = node + kNeighbor[i];
+      Tile* neighbor_tile = TilePtr(neighbor);
+      if (!neighbor_tile) continue;
+      if (path_map[neighbor.y][neighbor.x].checked == true) continue;
+      path_map[neighbor.y][neighbor.x].checked = true;
+      path_map[neighbor.y][neighbor.x].from = node;
+
+      *neighbor_tile = TileAND(*neighbor_tile, keep_bits);
+      ++count;
+
+      if (!neighbor_tile->blocked) {
+        queue[qsz++] = neighbor;
+      }
+    }
+  }
+
+  return count;
+}
+
 }  // namespace simulation

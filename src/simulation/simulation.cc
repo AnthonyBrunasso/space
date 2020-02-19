@@ -527,6 +527,9 @@ Update()
   Think();
   Decide();
 
+  // TODO (AN): Where does this reset really belong
+  UpdateTilemap(kScenario.tilemap);
+
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     Transform* transform = &unit->transform;
@@ -537,6 +540,12 @@ Update()
       *unit = kZeroUnit;
       continue;
     }
+
+    // Reveal the shroud
+    Tile noshroud;
+    memset(&noshroud, 0xff, sizeof(Tile));
+    noshroud.shroud = 0;
+    BfsAND(tilepos, 4, noshroud);
 
     // Crew has been sucked away into the vacuum
     if (tile->nooxygen) {

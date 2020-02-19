@@ -32,8 +32,16 @@ struct Tile {
   unsigned cy : 8;
   unsigned blocked : 1;
   unsigned nooxygen : 1;
+  unsigned shroud : 1;
 };
-static_assert(sizeof(Tile) == 4, "just fyi");
+static_assert(sizeof(Tile) == sizeof(uint32_t),
+              "Sync TileAND with the new Tile size");
+INLINE Tile
+TileAND(Tile lhs, Tile rhs)
+{
+  uint32_t res = *(uint32_t*)&lhs & *(uint32_t*)&rhs;
+  return *(Tile*)&res;
+}
 
 Tile kTilemap[kMapHeight][kMapWidth] ALIGNAS(16);
 #define INVALID_TILE v2i{0, 0};
@@ -97,6 +105,12 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
       tile->blocked = (kDefaultMap[i][j] == kTileBlock);
       tile->nooxygen = 0;
 
+      // No modules for tilemap_id 2
+      // Shroud enabled
+      if (tilemap_id == 2) {
+        tile->shroud = 1;
+        continue;
+      }
       switch (kDefaultMap[i][j]) {
         case kTileEngine: {
           Module* t = UseModule();
@@ -125,6 +139,14 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
       };
     }
   }
+}
+
+void
+UpdateTilemap(int tilemap_id)
+{
+  if (tilemap_id != 2) return;
+  for (int i = 0; i < kMapHeight; ++i)
+    for (int j = 0; j < kMapWidth; ++j) kTilemap[i][j].shroud = 1;
 }
 
 // Returns the center position of the tile.

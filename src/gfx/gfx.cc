@@ -13,6 +13,7 @@ struct Gfx {
   RenderTag asteroid_tag;
   RenderTag pod_tag;
   RenderTag missile_tag;
+  RenderTag triangle_tag;
   RenderTag exhaust_tag;
 };
 
@@ -20,6 +21,7 @@ static Gfx kGfx;
 static v4f kWhite = v4f(1.f, 1.f, 1.f, 1.f);
 static v4f kRed = v4f(1.f, 0.f, 0.f, 1.f);
 static const math::Quatf kDefaultRotation = math::Quatf(0.f, 0.f, 0.f, 1.f);
+static v3f kDefaultScale = v3f(1.f, 1.f, 1.f);
 constexpr int MAX_HOVERTEXT = CREWA_MAX + 1;
 static char hover_text[MAX_HOVERTEXT][64];
 
@@ -50,6 +52,10 @@ Initialize()
   GLfloat missile[kPodVert*3] = 
   {0.0f, 0.0f, 0.0f, 2.0f, 0.0f, 0.0f,
    2.0f, 4.0f, 0.0f, 0.0f, 4.0f, 0.0f};
+  constexpr int kTriangleVert = 3;
+  GLfloat triangle[kTriangleVert*3] = 
+  {0.0f, 0.0f, 0.0f, 2.0f, 0.0f, 0.0f,
+   1.0f, 2.0f, 0.0f};
   constexpr int kExhaustVert = 12;
   GLfloat exhaust[kExhaustVert*3] = 
   {0.0f, 3.0f, 0.0f, 3.0f, 3.0f, 0.0f,
@@ -59,13 +65,16 @@ Initialize()
    4.2f, 0.9f, 0.0, 3.5f, 0.6f, 0.0f,
    3.0, 0.3f, 0.0, 0.0f, 0.0f, 0.0f};
   // clang-format on
-  for (int i = 0; i < kFloatCount; ++i) asteroid[i] *= 15.f;      // HA
-  for (int i = 0; i < kPodVert * 3; ++i) pod[i] *= 22.f;          // HA
-  for (int i = 0; i < kMissileVert * 3; ++i) missile[i] *= 15.f;  // HA
-  for (int i = 0; i < kExhaustVert * 3; ++i) exhaust[i] *= 15.f;  // HA
+  for (int i = 0; i < kFloatCount; ++i) asteroid[i] *= 15.f;       // HA
+  for (int i = 0; i < kPodVert * 3; ++i) pod[i] *= 22.f;           // HA
+  for (int i = 0; i < kMissileVert * 3; ++i) missile[i] *= 15.f;   // HA
+  for (int i = 0; i < kTriangleVert * 3; ++i) triangle[i] *= 8.f;  // HA
+  for (int i = 0; i < kExhaustVert * 3; ++i) exhaust[i] *= 15.f;   // HA
   kGfx.asteroid_tag = rgg::CreateRenderable(kVertCount, asteroid, GL_LINE_LOOP);
   kGfx.pod_tag = rgg::CreateRenderable(kPodVert, pod, GL_LINE_LOOP);
   kGfx.missile_tag = rgg::CreateRenderable(kMissileVert, missile, GL_LINE_LOOP);
+  kGfx.triangle_tag =
+      rgg::CreateRenderable(kTriangleVert, triangle, GL_LINE_LOOP);
   kGfx.exhaust_tag = rgg::CreateRenderable(kExhaustVert, exhaust, GL_LINE_LOOP);
   return status;
 }

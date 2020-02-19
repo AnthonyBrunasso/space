@@ -9,6 +9,7 @@ namespace simulation
 struct Scenario {
   enum Type {
     kGameScenario = 0,
+    kCombatScenario,
     kSoloMission,
     kEmptyScenario,
     kMaxScenario,
@@ -27,6 +28,7 @@ struct Scenario {
 static Scenario kScenario;
 constexpr const char* kScenarioNames[Scenario::kMaxScenario] = {
     "Game",
+    "Combat",
     "Solo",
     "Empty",
 };
@@ -58,6 +60,15 @@ InitializeScenario(bool reset_features = true)
       UseShip();
       kShip[0].running = true;
       kShip[0].level = 1;
+    } break;
+    case Scenario::kCombatScenario: {
+      if (reset_features) {
+        memset(&kScenario, 0, sizeof(kScenario));
+      }
+      UseUnit();
+      kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
+      kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
+      kUnit[0].kind = 0;
     } break;
     case Scenario::kSoloMission: {
       if (reset_features) {

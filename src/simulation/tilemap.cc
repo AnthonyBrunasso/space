@@ -55,8 +55,9 @@ static const v2i kNeighbor[kMaxNeighbor] = {
 void
 InitializeTilemap(int tilemap_id)
 {
+  memset(&kTilemap, 0, sizeof(kTilemap));
+
   if (!tilemap_id) {
-    memset(&kTilemap, 0, sizeof(kTilemap));
     return;
   }
 

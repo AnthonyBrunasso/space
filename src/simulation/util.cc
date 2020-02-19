@@ -15,10 +15,10 @@ v3fModule(Module* mod)
 }
 
 float
-v3fDsq(v3f dst, v3f src)
+v3fDsq(const v3f& dst, const v3f& src)
 {
   v3f delta = dst - src;
-  return delta.x * delta.x + delta.y * delta.y;
+  return LengthSquared(delta);
 }
 
 uint64_t

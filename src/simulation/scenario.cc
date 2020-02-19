@@ -38,11 +38,7 @@ InitializeScenario(bool reset_features = true)
   switch (sid) {
     case Scenario::kGameScenario: {
       if (reset_features) {
-        kScenario.ai = 1;
-        kScenario.ship = 1;
-        kScenario.asteroid = 1;
-        kScenario.missile = 1;
-        kScenario.pod = 1;
+        memset(&kScenario, 0xff, sizeof(kScenario));
       }
       v3f pos[] = {v3f(300.f, 300.f, 0.f), v3f(100.f, 130.f, 0),
                    v3f(300.f, 400.f, 0), v3f(650.f, 460.f, 0),
@@ -83,6 +79,7 @@ InitializeScenario(bool reset_features = true)
 
       InitializeTilemap();
     } break;
+    default:
     case Scenario::kEmptyScenario: {
       if (reset_features) {
         memset(&kScenario, 0, sizeof(kScenario));
@@ -90,6 +87,7 @@ InitializeScenario(bool reset_features = true)
       ClearTilemap();
     } break;
   }
+  kScenario.type = (Scenario::Type)sid;
 }
 
 void

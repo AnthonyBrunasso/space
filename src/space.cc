@@ -111,7 +111,7 @@ int
 main(int argc, char** argv)
 {
   while (1) {
-    int opt = platform_getopt(argc, argv, "i:p:n:f:");
+    int opt = platform_getopt(argc, argv, "i:p:n:f:s:");
     if (opt == -1) break;
 
     switch (opt) {
@@ -127,6 +127,9 @@ main(int argc, char** argv)
       case 'f':
         kGameState.frame_limit = strtol(platform_optarg, NULL, 10);
         break;
+      case 's':
+        simulation::kScenario.type =
+            (simulation::Scenario::Type)strtol(platform_optarg, NULL, 10);
     }
   }
   printf("Client will connect to game at %s:%s\n", kNetworkState.server_ip,

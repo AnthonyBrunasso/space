@@ -95,14 +95,13 @@ InitializeScenario(bool reset_features = true)
 void
 ResetScenario(bool reset_features = true)
 {
+  // TODO (AN): GAME_QUEUE not in the registry
   kReadCommand = 0;
   kWriteCommand = 0;
-  kUsedAsteroid = 0;
-  kUsedPod = 0;
-  kUsedUnit = 0;
-  kUsedShip = 0;
-  kUsedMissile = 0;
-  kUsedModule = 0;
+
+  for (int i = 0; i < kUsedRegistry; ++i) {
+    *kRegistry[i].memb_count = 0;
+  }
   InitializeScenario(reset_features);
 }
 

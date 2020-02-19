@@ -84,6 +84,7 @@ InitializeScenario(bool reset_features = true)
     } break;
   }
   kScenario.type = (Scenario::Type)sid;
+  InitializeTilemap(kScenario.tilemap);
 }
 
 void

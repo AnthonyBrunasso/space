@@ -135,6 +135,7 @@ DebugPanel(const v3f& my_mouse, const Stats& stats, uint64_t frame_target_usec)
       UI_TOGGLE_FEATURE(asteroid);
       UI_TOGGLE_FEATURE(missile);
       UI_TOGGLE_FEATURE(pod);
+      UI_TOGGLE_FEATURE(tilemap);
       imui::Indent(-2);
     }
     imui::Indent(-2);

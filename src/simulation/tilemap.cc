@@ -33,7 +33,7 @@ struct Tile {
   unsigned blocked : 1;
   unsigned nooxygen : 1;
   unsigned shroud : 1;
-  unsigned fog_of_war : 1;
+  unsigned explored : 1;
 };
 static_assert(sizeof(Tile) == sizeof(uint32_t),
               "Sync TileAND with the new Tile size");
@@ -41,6 +41,13 @@ INLINE Tile
 TileAND(Tile lhs, Tile rhs)
 {
   uint32_t res = *(uint32_t*)&lhs & *(uint32_t*)&rhs;
+  return *(Tile*)&res;
+}
+
+INLINE Tile
+TileOR(Tile lhs, Tile rhs)
+{
+  uint32_t res = *(uint32_t*)&lhs | *(uint32_t*)&rhs;
   return *(Tile*)&res;
 }
 
@@ -106,13 +113,12 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
       tile->cy = i;
       tile->blocked = (kDefaultMap[i][j] == kTileBlock);
       tile->nooxygen = 0;
+      tile->explored = 1;
 
       // No modules for tilemap_id 2
       // Shroud enabled
       // Fog enabled
       if (tilemap_id == 2) {
-        tile->shroud = 1;
-        tile->fog_of_war = ~tile->blocked;
         continue;
       }
       switch (kDefaultMap[i][j]) {

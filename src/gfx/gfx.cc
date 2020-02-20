@@ -184,7 +184,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
       const Tile* tile = TilePtr(v2i(j, i));
 
       v4f color;
-      if (tile->fog_of_war) {
+      if (!tile->explored) {
         color = v4f(0.3f, 0.3f, 0.3f, .7);
         rgg::RenderRectangle(v3f(TileToWorld(*tile)), kTileScale,
                              kDefaultRotation, color);

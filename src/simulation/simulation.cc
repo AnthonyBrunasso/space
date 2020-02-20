@@ -541,13 +541,15 @@ Update()
     }
 
     // Reveal the shroud
-    Tile noshroud;
-    memset(&noshroud, 0xff, sizeof(Tile));
-    noshroud.shroud = 0;
-    noshroud.fog_of_war = 0;
+    Tile keep_bits;
+    memset(&keep_bits, 0xff, sizeof(Tile));
+    keep_bits.shroud = 0;
+    Tile set_bits;
+    memset(&set_bits, 0x00, sizeof(Tile));
+    set_bits.explored = 1;
     float tile_world_distance = kTileWidth * 2.0f;
-    BfsAND(unit->transform.position, noshroud,
-           tile_world_distance * tile_world_distance);
+    BfsMutate(unit->transform.position, keep_bits, set_bits,
+              tile_world_distance * tile_world_distance);
 
     // Crew has been sucked away into the vacuum
     if (tile->nooxygen) {

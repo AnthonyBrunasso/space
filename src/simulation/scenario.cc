@@ -3,6 +3,7 @@
 #include "math/vec.h"
 
 #include "entity.cc"
+#include "search.cc"
 
 namespace simulation
 {
@@ -101,7 +102,21 @@ InitializeScenario(bool reset_features = true)
     } break;
   }
   kScenario.type = (Scenario::Type)sid;
+
   InitializeTilemap(kScenario.tilemap);
+
+  switch (sid) {
+    case Scenario::kSoloMission: {
+      Tile keep_bits;
+      memset(&keep_bits, 0xff, sizeof(Tile));
+      keep_bits.explored = 0;
+      Tile set_bits;
+      memset(&set_bits, 0x00, sizeof(Tile));
+      float tile_world_distance = kMapWidth * kTileWidth;
+      BfsMutate(kUnit[0].transform.position, keep_bits, set_bits,
+                tile_world_distance * tile_world_distance);
+    } break;
+  }
 }
 
 void

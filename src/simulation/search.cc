@@ -149,13 +149,14 @@ BfsRemoveOxygen(v2i start, const uint64_t limit)
 }
 
 void
-BfsAND(v3f origin, Tile keep_bits, float tile_dsq)
+BfsMutate(v3f origin, Tile keep_bits, Tile set_bits, float tile_dsq)
 {
   v2i start = WorldToTilePos(origin);
   {
     Tile* start_tile = TilePtr(start);
     if (!start_tile) return;
     *start_tile = TileAND(*start_tile, keep_bits);
+    *start_tile = TileOR(*start_tile, set_bits);
   }
 
   constexpr int N = kMapHeight * kMapWidth;
@@ -190,9 +191,10 @@ BfsAND(v3f origin, Tile keep_bits, float tile_dsq)
       v3f world = neighbor_world - origin;
       float distance = LengthSquared(world);
       if (distance > tile_dsq) continue;
-      *neighbor_tile = TileAND(*neighbor_tile, keep_bits);
 
       if (!neighbor_tile->blocked) {
+        *neighbor_tile = TileAND(*neighbor_tile, keep_bits);
+        *neighbor_tile = TileOR(*neighbor_tile, set_bits);
         queue[qsz++] = neighbor;
       }
     }

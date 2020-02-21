@@ -13,7 +13,7 @@ struct Gfx {
   RenderTag asteroid_tag;
   RenderTag pod_tag;
   RenderTag missile_tag;
-  RenderTag triangle_tag;
+  RenderTag cryo_tag;
   RenderTag exhaust_tag;
 };
 
@@ -23,8 +23,8 @@ static v4f kRed = v4f(1.f, 0.f, 0.f, 1.f);
 static const math::Quatf kDefaultRotation = math::Quatf(0.f, 0.f, 0.f, 1.f);
 static v3f kDefaultScale = v3f(1.f, 1.f, 1.f);
 static v3f kTileScale = v3f(0.5f, 0.5f, 1.f);
-constexpr int MAX_HOVERTEXT = CREWA_MAX + 1;
-static char hover_text[MAX_HOVERTEXT][64];
+constexpr int MAX_SELECTED_TEXT = CREWA_MAX + 2;
+static char selected_text[MAX_SELECTED_TEXT][64];
 
 bool
 Initialize()
@@ -53,10 +53,11 @@ Initialize()
   GLfloat missile[kPodVert*3] = 
   {0.0f, 0.0f, 0.0f, 2.0f, 0.0f, 0.0f,
    2.0f, 4.0f, 0.0f, 0.0f, 4.0f, 0.0f};
-  constexpr int kTriangleVert = 3;
-  GLfloat triangle[kTriangleVert*3] = 
-  {0.0f, 0.0f, 0.0f, 2.0f, 0.0f, 0.0f,
-   1.0f, 2.0f, 0.0f};
+  constexpr int kCryoVert = 6;
+  GLfloat cryo[kCryoVert*3] = 
+  {-1.0f, 0.0f, 0.0f, 0.0f, -2.0f, 0.0f,
+   1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+   0.0f, 3.0f, 0.f, -1.0f, 1.0f, 0.0f };
   constexpr int kExhaustVert = 12;
   GLfloat exhaust[kExhaustVert*3] = 
   {0.0f, 3.0f, 0.0f, 3.0f, 3.0f, 0.0f,
@@ -66,16 +67,15 @@ Initialize()
    4.2f, 0.9f, 0.0, 3.5f, 0.6f, 0.0f,
    3.0, 0.3f, 0.0, 0.0f, 0.0f, 0.0f};
   // clang-format on
-  for (int i = 0; i < kFloatCount; ++i) asteroid[i] *= 15.f;       // HA
-  for (int i = 0; i < kPodVert * 3; ++i) pod[i] *= 22.f;           // HA
-  for (int i = 0; i < kMissileVert * 3; ++i) missile[i] *= 15.f;   // HA
-  for (int i = 0; i < kTriangleVert * 3; ++i) triangle[i] *= 8.f;  // HA
-  for (int i = 0; i < kExhaustVert * 3; ++i) exhaust[i] *= 15.f;   // HA
+  for (int i = 0; i < kFloatCount; ++i) asteroid[i] *= 15.f;      // HA
+  for (int i = 0; i < kPodVert * 3; ++i) pod[i] *= 22.f;          // HA
+  for (int i = 0; i < kMissileVert * 3; ++i) missile[i] *= 15.f;  // HA
+  for (int i = 0; i < kCryoVert * 3; ++i) cryo[i] *= 12.f;        // HA
+  for (int i = 0; i < kExhaustVert * 3; ++i) exhaust[i] *= 15.f;  // HA
   kGfx.asteroid_tag = rgg::CreateRenderable(kVertCount, asteroid, GL_LINE_LOOP);
   kGfx.pod_tag = rgg::CreateRenderable(kPodVert, pod, GL_LINE_LOOP);
   kGfx.missile_tag = rgg::CreateRenderable(kMissileVert, missile, GL_LINE_LOOP);
-  kGfx.triangle_tag =
-      rgg::CreateRenderable(kTriangleVert, triangle, GL_LINE_LOOP);
+  kGfx.cryo_tag = rgg::CreateRenderable(kCryoVert, cryo, GL_LINE_LOOP);
   kGfx.exhaust_tag = rgg::CreateRenderable(kExhaustVert, exhaust, GL_LINE_LOOP);
   return status;
 }
@@ -105,17 +105,21 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
   AlignToGrid(grid1, &world1);
   rgg::RenderGrid(grid1, world1, v4f(0.050f, 0.215f, 0.050f, 0.45f));
 
-  // Unit hover-over text
+  // selected Unit text
+  bool bSelected = false;
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
-    if (v3fDsq(unit->transform.position, mouse) >= kDsqSelect) continue;
+    if (unit->kind != Unit::kPlayerControlled) continue;
+    bSelected = true;
 
-    for (int j = 0; j < CREWA_MAX; ++j) {
-      snprintf(hover_text[j], 64, "[%u,%u] %s", unit->aknown_min[j],
-               unit->aknown_max[j], crew_aname[j]);
+    int t = 0;
+    for (; t < CREWA_MAX; ++t) {
+      snprintf(selected_text[t], 64, "[%u,%u] %s", unit->aknown_min[t],
+               unit->aknown_max[t], crew_aname[t]);
     }
-    snprintf(hover_text[CREWA_MAX], 64, "(%04.02f,%04.02f)",
+    snprintf(selected_text[t++], 64, "(%04.02f,%04.02f)",
              unit->transform.position.x, unit->transform.position.y);
+    snprintf(selected_text[t++], 64, "uaction: %d", unit->uaction);
 
     break;
   }
@@ -183,8 +187,12 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     if (!tile || !tile->explored) continue;
 
     v4f color = v4f(1.f, 1.f, 1.f, 1.f);
-    rgg::RenderTriangle(TileToWorld(*tile), kTileScale, kDefaultRotation,
-                        color);
+    v3f world = TileToWorld(*tile);
+    if (c->cryo_chamber) {
+      rgg::RenderTag(kGfx.cryo_tag, world, kTileScale, kDefaultRotation, color);
+    } else {
+      rgg::RenderTriangle(world, kTileScale, kDefaultRotation, color);
+    }
   }
 
   float fft = kShip[0].ftl_frame * (1.f / kFtlFrameTime);
@@ -335,12 +343,13 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
                       v4f(0.99f, 0.33f, 0.33f, 1.f));
   }
 
-  // Hover text
-  imui::Begin(v2f(screen.x - 225.f, screen.y - 30.0f));
-  for (int i = 0; i < MAX_HOVERTEXT; ++i) {
-    imui::Text(hover_text[i]);
+  if (bSelected) {
+    imui::Begin(v2f(screen.x - 225.f, screen.y - 30.0f));
+    for (int i = 0; i < MAX_SELECTED_TEXT; ++i) {
+      imui::Text(selected_text[i]);
+    }
+    imui::End();
   }
-  imui::End();
 
   // Ui
   imui::Render();

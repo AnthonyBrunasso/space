@@ -17,6 +17,8 @@ namespace simulation
 constexpr float kDsqSelect = 25.f * 25.f;
 constexpr float kDsqOperate = 50.f * 35.f;
 constexpr float kDsqOperatePod = 75.f * 75.f;
+constexpr float kAvoidanceScaling = 0.15f;
+constexpr float kMovementScaling = 1.0f;
 static uint64_t kSimulationHash = DJB2_CONST;
 
 bool
@@ -556,23 +558,26 @@ Update()
       unit->uaction = kUaVacuum;
     }
 
-    switch (unit->uaction) {
-      case kUaVacuum: {
-        transform->position += TileVacuum(tilepos) * 3.0f;
-      } break;
-      case kUaMove: {
-        v2i end = WorldToTilePos(unit->data.destination);
+    if (unit->uaction == kUaVacuum) {
+      transform->position += TileVacuum(tilepos) * 3.0f;
+    } else if (unit->uaction == kUaMove) {
+      v2i end = WorldToTilePos(unit->data.destination);
 
-        auto* path = PathTo(tilepos, end);
-        if (!path || path->size <= 1) {
-          unit->uaction = kUaNone;
-          break;
-        }
+      auto* path = PathTo(tilepos, end);
+      if (!path) continue;
 
-        v3f dest = TilePosToWorld(path->tile[1]);
-        auto dir = math::Normalize(dest - transform->position.xy());
-        transform->position += (dir * 1.f) + (TileAvoidWalls(tilepos) * .15f);
-      } break;
+      bool near_goal = (path->size == 1);
+      v3f move_dir = TileAvoidWalls(tilepos) * !near_goal;
+      move_dir *= kAvoidanceScaling;
+      if (v3fDsq(unit->transform.position, unit->data.destination) < 1.f) {
+        unit->transform.position = unit->data.destination;
+        continue;
+      }
+
+      move_dir +=
+          math::Normalize(unit->data.destination - transform->position.xy()) *
+          kMovementScaling;
+      transform->position += move_dir;
     }
   }
 

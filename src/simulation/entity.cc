@@ -102,12 +102,10 @@ struct Pod {
 };
 DECLARE_GAME_TYPE(Pod, 8);
 
-
-
 struct Unit {
   UnitData data = {};
   Transform transform;
-  
+
   static constexpr int kPlayerControlled = 0;
   static constexpr int kPowerOperator = 1;
   static constexpr int kMiner = 2;
@@ -179,3 +177,9 @@ struct Notify {
 };
 DECLARE_GAME_TYPE(Notify, 4);
 
+struct Consumable {
+  unsigned cx : 5;
+  unsigned cy : 5;
+  uint32_t minerals : 6;
+};
+DECLARE_GAME_TYPE(Consumable, 8);

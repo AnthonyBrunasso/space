@@ -21,8 +21,10 @@ v3fDsq(const v3f& dst, const v3f& src)
   return LengthSquared(delta);
 }
 
+// Call using GAME_ITER macro in entity.cc
 uint64_t
-v3fNear(v3f pos, uint64_t step, const uint8_t* start, const uint8_t* end)
+v3fNearTransform(v3f pos, uint64_t step, const uint8_t* start,
+                 const uint8_t* end, float* dsq)
 {
   uint64_t index = UINT64_MAX;
   float nearest = FLT_MAX;
@@ -36,6 +38,7 @@ v3fNear(v3f pos, uint64_t step, const uint8_t* start, const uint8_t* end)
     }
   }
 
+  *dsq = nearest;
   return index;
 }
 

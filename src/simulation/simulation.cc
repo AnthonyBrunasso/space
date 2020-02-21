@@ -15,6 +15,7 @@
 namespace simulation
 {
 constexpr float kDsqSelect = 25.f * 25.f;
+constexpr float kDsqGather = 25.f * 25.f;
 constexpr float kDsqOperate = 50.f * 35.f;
 constexpr float kDsqOperatePod = 75.f * 75.f;
 constexpr float kAvoidanceScaling = 0.15f;
@@ -298,15 +299,15 @@ ThinkPod()
       goal = home;
       think_flags |= FLAG(kPodAiReturn);
     } else {
-      uint64_t asteroid_index =
-          v3fNear(pod->transform.position, GAME_ITER(Asteroid, transform));
+      float dsq;
+      uint64_t asteroid_index = v3fNearTransform(
+          pod->transform.position, GAME_ITER(Asteroid, transform), &dsq);
 
       if (asteroid_index < kUsedAsteroid) {
         Asteroid* asteroid = &kAsteroid[asteroid_index];
         think_flags |= FLAG(kPodAiApproach);
         goal = asteroid->transform.position.xy();
-        if (v3fDsq(asteroid->transform.position, pod->transform.position) <
-            900.f) {
+        if (dsq < 900.f) {
           think_flags |= FLAG(kPodAiGather);
           asteroid->deplete = 1;
         }
@@ -578,6 +579,17 @@ Update()
           math::Normalize(unit->data.destination - transform->position.xy()) *
           kMovementScaling;
       transform->position += move_dir;
+    }
+  }
+
+  for (int i = 0; i < kUsedConsumable; ++i) {
+    Consumable* c = &kConsumable[i];
+    v3f cw = TilePosToWorld(v2i(c->cx, c->cy));
+    float dsq;
+    uint64_t near_unit = v3fNearTransform(cw, GAME_ITER(Unit, transform), &dsq);
+    if (dsq < kDsqGather) {
+      kShip[0].mineral += c->minerals;
+      *c = kZeroConsumable;
     }
   }
 

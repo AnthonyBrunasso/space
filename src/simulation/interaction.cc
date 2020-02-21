@@ -215,7 +215,9 @@ ControlEvent(const PlatformEvent* event, const Camera* camera, v3f* translation)
         case 'u': {
           v3f pos = camera::ScreenToWorldSpace(
               camera, v3f(event->position - window::GetWindowSize() * 0.5f));
-          uint64_t unit_index = v3fNear(pos, GAME_ITER(Unit, transform));
+          float dsq;
+          uint64_t unit_index =
+              v3fNearTransform(pos, GAME_ITER(Unit, transform), &dsq);
           if (unit_index < kUsedUnit) {
             Notify* n = UseNotify();
             n->position = kUnit[unit_index].transform.position;

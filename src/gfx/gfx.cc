@@ -177,6 +177,16 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     }
   }
 
+  for (int i = 0; i < kUsedConsumable; ++i) {
+    Consumable* c = &kConsumable[i];
+    const Tile* tile = TilePtr(v2i(c->cx, c->cy));
+    if (!tile || !tile->explored) continue;
+
+    v4f color = v4f(1.f, 1.f, 1.f, 1.f);
+    rgg::RenderTriangle(TileToWorld(*tile), kTileScale, kDefaultRotation,
+                        color);
+  }
+
   float fft = kShip[0].ftl_frame * (1.f / kFtlFrameTime);
   float ship_alpha = 1.f - fft;
   for (int i = 0; i < kMapHeight; ++i) {

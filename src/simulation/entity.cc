@@ -180,6 +180,7 @@ DECLARE_GAME_TYPE(Notify, 4);
 struct Consumable {
   unsigned cx : 5;
   unsigned cy : 5;
+  unsigned cryo_chamber : 1;
   uint32_t minerals : 6;
 };
-DECLARE_GAME_TYPE(Consumable, 8);
+DECLARE_GAME_TYPE(Consumable, 16);

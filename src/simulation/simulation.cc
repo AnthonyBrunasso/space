@@ -107,6 +107,8 @@ ThinkAI()
       }
     }
 
+    if (!c.unit) continue;
+
     PushCommand(c);
   }
 }
@@ -526,11 +528,11 @@ Update()
   // Advance ftl_frame, if active
   kShip[0].ftl_frame += (kShip[0].ftl_frame > 0);
 
+  // Shroud is reset each frame
+  UpdateTilemap(kScenario.tilemap);
+
   Think();
   Decide();
-
-  // TODO (AN): Where does this reset really belong
-  UpdateTilemap(kScenario.tilemap);
 
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
@@ -572,6 +574,7 @@ Update()
       move_dir *= kAvoidanceScaling;
       if (v3fDsq(unit->transform.position, unit->data.destination) < 1.f) {
         unit->transform.position = unit->data.destination;
+        unit->uaction = kUaNone;
         continue;
       }
 
@@ -588,8 +591,21 @@ Update()
     float dsq;
     uint64_t near_unit = v3fNearTransform(cw, GAME_ITER(Unit, transform), &dsq);
     if (dsq < kDsqGather) {
-      kShip[0].mineral += c->minerals;
-      *c = kZeroConsumable;
+      if (c->cryo_chamber) {
+        const v3f scale = v3f(0.25f, 0.25f, 0.f);
+        uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
+        Unit* new_unit = UseUnit();
+        new_unit->transform.position = cw;
+        new_unit->transform.scale = scale;
+        memcpy(new_unit->acurrent, attrib, sizeof(attrib));
+        // Everybody is unique!
+        new_unit->kind = Unit::kEngineer;
+
+        *c = kZeroConsumable;
+      } else {
+        kShip[0].mineral += c->minerals;
+        *c = kZeroConsumable;
+      }
     }
   }
 

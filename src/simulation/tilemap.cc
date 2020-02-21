@@ -128,6 +128,11 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
           if (kDefaultMap[i][j - 1] == kTileBlock) {
             c->cryo_chamber = 1;
           }
+        } else if (kDefaultMap[i][j] == kTilePower) {
+          Module* t = UseModule();
+          t->cx = tile->cx;
+          t->cy = tile->cy;
+          t->mod_power = 1;
         }
 
         continue;

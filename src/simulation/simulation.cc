@@ -534,6 +534,25 @@ Update()
   Think();
   Decide();
 
+  for (int i = 0; i < kUsedModule; ++i) {
+    Module* m = &kModule[i];
+
+    if (m->mod_power) {
+      v2i tilepos(m->cx, m->cy);
+      v3f world = TilePosToWorld(tilepos);
+      // Reveal the shroud
+      Tile keep_bits;
+      memset(&keep_bits, 0xff, sizeof(Tile));
+      keep_bits.shroud = 0;
+      Tile set_bits;
+      memset(&set_bits, 0x00, sizeof(Tile));
+      set_bits.explored = 1;
+      float tile_world_distance = kTileWidth * 8.0f * kShip[0].sys_power;
+      BfsMutate(world, keep_bits, set_bits,
+                tile_world_distance * tile_world_distance);
+    }
+  }
+
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     Transform* transform = &unit->transform;
@@ -599,7 +618,7 @@ Update()
         new_unit->transform.scale = scale;
         memcpy(new_unit->acurrent, attrib, sizeof(attrib));
         // Everybody is unique!
-        new_unit->kind = Unit::kEngineer;
+        new_unit->kind = Unit::kPowerOperator;
 
         *c = kZeroConsumable;
       } else {

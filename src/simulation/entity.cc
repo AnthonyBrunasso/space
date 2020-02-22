@@ -153,7 +153,7 @@ struct Unit {
   unsigned uaction : 3;
 };
 
-constexpr unsigned kUnitBits = 3;
+constexpr unsigned kUnitBits = 5;
 DECLARE_GAME_TYPE_WITH_ID(Unit, 1 << kUnitBits);
 struct Ship {
   uint64_t think_flags = 0;

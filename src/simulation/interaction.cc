@@ -189,10 +189,10 @@ Hud(v2f screen)
     break;
   }
 
-  if (selected > kUsedUnit) return;
+  Unit* unit = FindUnit(selected);
+  if (!unit) return;
   constexpr int MAX_SELECTED_TEXT = CREWA_MAX + 3;
   char selected_text[MAX_SELECTED_TEXT][64];
-  Unit* unit = FindUnit(selected);
   {
     int t = 0;
     for (; t < CREWA_MAX; ++t) {
@@ -263,10 +263,10 @@ ControlEvent(const PlatformEvent* event, Player* player)
         uint64_t target = SelectUnit(pos);
         if (ShouldAttack(unit, target)) {
           LOGFMT("Order attack [%lu, %lu]", unit, target);
-          if (unit < kUsedUnit) PushCommand({kUaAttack, pos, UnitId()});
+          PushCommand({kUaAttack, pos, unit});
         } else {
           LOGFMT("Order move [%lu]", unit);
-          if (unit < kUsedUnit) PushCommand({kUaMove, pos, UnitId()});
+          PushCommand({kUaMove, pos, unit});
         }
       }
     } break;

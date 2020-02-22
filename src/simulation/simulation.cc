@@ -88,7 +88,7 @@ ThinkAI()
 
   for (uint64_t i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
-    Command c = {kUaNone};
+    Command c = {kUaNone, v3f(), (uint64_t)unit->id};
 
     switch (unit->kind) {
       case kPlayerControlled:
@@ -97,25 +97,33 @@ ThinkAI()
       case kPowerOperator:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
-          if (mod->mod_power) c = (Command{kUaMove, v3fModule(mod), i});
+          if (mod->mod_power) {
+            c = (Command{kUaMove, v3fModule(mod), (uint64_t)unit->id});
+          }
         }
         break;
       case kMiner:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
-          if (mod->mod_mine) c = (Command{kUaMove, v3fModule(mod), i});
+          if (mod->mod_mine) {
+            c = (Command{kUaMove, v3fModule(mod), (uint64_t)unit->id});
+          }
         }
         break;
       case kEngineer:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
-          if (mod->mod_engine) c = (Command{kUaMove, v3fModule(mod), i});
+          if (mod->mod_engine) {
+            c = (Command{kUaMove, v3fModule(mod), (uint64_t)unit->id});
+          }
         }
         break;
       case kTurretOperator:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
-          if (mod->mod_turret) c = (Command{kUaMove, v3fModule(mod), i});
+          if (mod->mod_turret) {
+            c = (Command{kUaMove, v3fModule(mod), (uint64_t)unit->id});
+          }
         }
         break;
     };
@@ -123,12 +131,13 @@ ThinkAI()
     for (uint64_t j = 0; j < kUsedModule; ++j) {
       Module* mod = &kModule[j];
       if (v3fDsq(v3fModule(mod), unit->transform.position) < kDsqOperate) {
-        c = (Command{kUaOperate, v3fModule(mod), i});
+        c = (Command{kUaOperate, v3fModule(mod), (uint64_t)unit->id});
         break;
       }
     }
 
     if (unit->kind == kPlayerControlled) continue;
+
 
     PushCommand(c);
   }
@@ -523,6 +532,7 @@ Decide()
   while (CountCommand()) {
     Command c = PopCommand();
     Unit* unit = FindUnit(c.unit);
+    assert(unit != nullptr);
     // Kind 0 accepts newest orders
     if (unit->kind * unit->uaction) continue;
     unit->uaction = c.type;

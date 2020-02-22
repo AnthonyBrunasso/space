@@ -629,7 +629,7 @@ Update()
       if (c->cryo_chamber) {
         const v3f scale = v3f(0.25f, 0.25f, 0.f);
         uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
-        Unit* new_unit = UseUnit();
+        Unit* new_unit = UseIdUnit();
         new_unit->transform.position = cw;
         new_unit->transform.scale = scale;
         memcpy(new_unit->acurrent, attrib, sizeof(attrib));

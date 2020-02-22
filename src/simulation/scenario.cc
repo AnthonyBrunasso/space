@@ -49,7 +49,7 @@ InitializeScenario(bool reset_features = true)
       const v3f scale = v3f(0.25f, 0.25f, 0.f);
       uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
       for (int i = 0; i < ARRAY_LENGTH(pos); ++i) {
-        Unit* unit = UseUnit();
+        Unit* unit = UseIdUnit();
         unit->transform.position = pos[i];
         unit->transform.scale = scale;
         memcpy(unit->acurrent, attrib, sizeof(attrib));
@@ -67,12 +67,12 @@ InitializeScenario(bool reset_features = true)
       if (reset_features) {
         memset(&kScenario, 0, sizeof(kScenario));
       }
-      UseUnit();
+      UseIdUnit();
       kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
       kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
       kUnit[0].kind = kPlayerControlled;
 
-      UseUnit();
+      UseIdUnit();
       kUnit[1].transform.position = v3f(400.f, 300.f, 0.f);
       kUnit[1].transform.scale = v3f(0.25f, 0.25f, 0.f);
       kUnit[1].kind = kEnemy;
@@ -89,7 +89,7 @@ InitializeScenario(bool reset_features = true)
       kShip[0].running = true;
       kShip[0].level = 1;
       // One unit
-      UseUnit();
+      UseIdUnit();
       kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
       kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
       kUnit[0].kind = kPlayerControlled;

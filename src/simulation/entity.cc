@@ -14,6 +14,19 @@
   static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type, \
                                     max_count, sizeof(type));
 
+#define DECLARE_GAME_TYPE_WITH_ID(type, max_count)                       \
+  DECLARE_ARRAY(type, max_count)                                         \
+  static int kAutoIncrementId##type = 0;                                 \
+  type* UseId##type() {                                                  \
+    type* t = Use##type();                                               \
+    if (!t) return nullptr;                                              \
+    t->id = kAutoIncrementId##type;                                      \
+    ++kAutoIncrementId##type;                                            \
+    return t;                                                            \
+  }                                                                      \
+  static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type, \
+                                    max_count, sizeof(type));
+
 #define DECLARE_GAME_QUEUE(type, count) DECLARE_QUEUE(type, count)
 
 #define GAME_ITER(type, member)                                   \
@@ -116,6 +129,7 @@ struct Unit {
   UnitData data = {};
   Transform transform;
 
+  int id;
   int kind = kPlayerControlled;
 
   int ship = 0;
@@ -130,7 +144,7 @@ struct Unit {
 };
 
 constexpr unsigned kUnitBits = 3;
-DECLARE_GAME_TYPE(Unit, 1 << kUnitBits);
+DECLARE_GAME_TYPE_WITH_ID(Unit, 1 << kUnitBits);
 struct Ship {
   uint64_t think_flags = 0;
   uint64_t crew_think_flags = 0;

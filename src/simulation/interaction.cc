@@ -206,7 +206,7 @@ Hud(v2f screen)
     snprintf(selected_text[t++], 64, "(%04.02f,%04.02f)",
              unit->transform.position.x, unit->transform.position.y);
     snprintf(selected_text[t++], 64, "uaction: %d", unit->uaction);
-    snprintf(selected_text[t++], 64, "uid: %ld", unit - kUnit);
+    snprintf(selected_text[t++], 64, "id: %i", unit->id);
   }
 
   imui::Begin(v2f(screen.x - 225.f, screen.y - 30.0f));

@@ -12,6 +12,7 @@
 #include "search.cc"
 #include "util.cc"
 
+#include "platform/macro.h"
 namespace simulation
 {
 constexpr float kDsqSelect = 25.f * 25.f;
@@ -511,7 +512,7 @@ Decide()
     // Kind 0 accepts newest orders
     if (unit->kind * unit->uaction) continue;
     unit->uaction = c.type;
-    unit->data = c.data;
+    BB_SET(unit->bb, kUnitDestination, c.destination);
   }
 
   DecideShip();
@@ -595,26 +596,33 @@ Update()
     if (unit->uaction == kUaVacuum) {
       transform->position += TileVacuum(tilepos) * 3.0f;
     } else if (unit->uaction == kUaMove) {
-      v2i end = WorldToTilePos(unit->data.destination);
+      v3f* dest = nullptr;
+      if (!BB_GET(unit->bb, kUnitDestination, dest)) {
+        // TODO(abrunasso): How should we report this error? For now crash.
+        assert(!"Unit meant to move but destination is not set.");
+      }
+      v2i end = WorldToTilePos(*dest);
 
       auto* path = PathTo(tilepos, end);
       if (!path) {
         unit->uaction = kUaNone;
+        BB_REM(unit->bb, kUnitDestination);
         continue;
       }
 
       bool near_goal = (path->size == 1);
       v3f move_dir = TileAvoidWalls(tilepos) * !near_goal;
       move_dir *= kAvoidanceScaling;
-      if (v3fDsq(unit->transform.position, unit->data.destination) < 1.f) {
-        unit->transform.position = unit->data.destination;
+      if (v3fDsq(unit->transform.position, *dest) < 1.f) {
+        unit->transform.position = *dest;
         unit->uaction = kUaNone;
+        BB_REM(unit->bb, kUnitDestination);
         continue;
       }
 
-      v3f dest = (unit->data.destination * near_goal) +
-                 (TilePosToWorld(path->tile[1]) * !near_goal);
-      move_dir += math::Normalize(dest.xy() - transform->position.xy()) *
+      v3f new_dest = (*dest * near_goal) +
+                     (TilePosToWorld(path->tile[1]) * !near_goal);
+      move_dir += math::Normalize(new_dest.xy() - transform->position.xy()) *
                   kMovementScaling;
       transform->position += move_dir;
     }

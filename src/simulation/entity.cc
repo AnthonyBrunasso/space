@@ -49,9 +49,6 @@ enum UnitKind {
   kTurretOperator,
   kEnemy
 };
-union UnitData {
-  v3f destination;
-};
 enum ShipAiGoals {
   kShipAiSpawnPod,
   kShipAiPowerSurge,
@@ -64,6 +61,11 @@ enum UnitAiGoals {
   kUnitAiTurret,
   kUnitAiSavePower,
   kUnitAiGoals = 64,
+};
+enum UnitBbEntry {
+  kUnitTarget = 0,
+  kUnitDestination = 1,
+  kUnitBbEntryMax = 2,
 };
 // TODO (AN): Document/test priority behaviors
 enum PodAiGoals {
@@ -126,8 +128,8 @@ struct Pod {
 DECLARE_GAME_TYPE(Pod, 8);
 
 struct Unit {
-  UnitData data = {};
   Transform transform;
+  Blackboard bb;
 
   int id;
   int kind = kPlayerControlled;
@@ -183,7 +185,7 @@ DECLARE_GAME_TYPE(Module, 32);
 
 struct Command {
   UnitAction type;
-  UnitData data = {};
+  v3f destination;
   uint64_t unit : kUnitBits;
 };
 DECLARE_GAME_QUEUE(Command, 16);

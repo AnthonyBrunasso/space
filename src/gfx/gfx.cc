@@ -137,7 +137,9 @@ RenderCrew()
 
     // Show the path they are on if they have one.
     v2i start = WorldToTilePos(unit->transform.position);
-    v2i end = WorldToTilePos(unit->data.destination);
+    v3f* dest = nullptr;
+    if (!BB_GET(unit->bb, kUnitDestination, dest)) continue;
+    v2i end = WorldToTilePos(*dest);
 
     auto* path = PathTo(start, end);
     if (!path || path->size <= 1) {

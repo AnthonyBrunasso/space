@@ -213,6 +213,25 @@ Hud(v2f screen)
   for (int i = 0; i < MAX_SELECTED_TEXT; ++i) {
     imui::Text(selected_text[i]);
   }
+  imui::Text("Blackboard");
+  for (int i = 0; i < kUnitBbEntryMax; ++i) {
+    UnitBbEntry bb_entry = (UnitBbEntry)i;
+    switch (bb_entry) {
+      case kUnitDestination: {
+        v3f* d = nullptr;
+        if (!BB_GET(unit->bb, kUnitDestination, d)) continue;
+        snprintf(selected_text[0], 64, "dest: %.0f,%.0f", d->x, d->y);
+        imui::Text(selected_text[0]);
+      } break;
+      case kUnitTarget:
+      default: {
+        snprintf(selected_text[0], 64, "set: %i", i);
+        if (BB_EXI(unit->bb, i)) {
+          imui::Text(selected_text[0]);
+        }
+      }
+    }
+  }
   imui::End();
 }
 

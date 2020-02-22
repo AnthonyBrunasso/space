@@ -23,8 +23,14 @@ constexpr float kMovementScaling = 1.0f;
 static uint64_t kSimulationHash = DJB2_CONST;
 
 bool
-Initialize()
+Initialize(uint64_t player_count)
 {
+  for (int i = 0; i < player_count; ++i) UsePlayer();
+
+  for (int i = 0; i < kUsedPlayer; ++i) {
+    camera::InitialCamera(&kPlayer[i].camera);
+  }
+
   InitializeScenario();
 
   return true;
@@ -523,6 +529,12 @@ SimulationOver()
 void
 Update()
 {
+  // Camera
+  for (int i = 0; i < kUsedPlayer; ++i) {
+    camera::Update(&kPlayer[i].camera);
+    kPlayer[i].camera.motion.z = 0.f;
+  }
+
   if (!kShip[0].running) return;
   kShip[0].frame += 1;
   // Advance ftl_frame, if active

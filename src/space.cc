@@ -5,7 +5,6 @@
 
 #include "gfx/gfx.cc"
 #include "network/network.cc"
-#include "simulation/camera.cc"
 #include "simulation/interaction.cc"
 #include "simulation/simulation.cc"
 
@@ -30,15 +29,13 @@ struct State {
 };
 
 static State kGameState;
-// TODO (AN): Find a home in simulation/
-static Camera player_camera[MAX_PLAYER];
-static Stats stats;
+static Stats kGameStats;
 
 // TODO (AN): Revisit cameras
 const Camera*
-GetMyCamera()
+GetCamera(uint64_t player_id)
 {
-  return &player_camera[kNetworkState.player_id];
+  return &kPlayer[player_id].camera;
 }
 
 void
@@ -92,19 +89,8 @@ SetProjection()
 v3f
 MyScreenToWorld(v2f xy)
 {
-  return camera::ScreenToWorldSpace(GetMyCamera(),
+  return camera::ScreenToWorldSpace(GetCamera(kNetworkState.player_id),
                                     v3f(xy - window::GetWindowSize() * 0.5f));
-}
-
-void
-ProcessSimulation(int player_id, uint64_t event_count,
-                  const PlatformEvent* event)
-{
-  // Shared player control of the ship for now
-  for (int i = 0; i < event_count; ++i) {
-    simulation::ControlEvent(&event[i], &player_camera[player_id],
-                             &player_camera[player_id].motion);
-  }
 }
 
 int
@@ -142,24 +128,22 @@ main(int argc, char** argv)
   }
 #endif
 
-  // Camera init
-  for (int i = 0; i < MAX_PLAYER; ++i) {
-    camera::InitialCamera(&player_camera[i]);
-  }
-  camera::SetView(GetMyCamera(), &rgg::GetObserver()->view);
-
-  // Projection init
-  SetProjection();
-
-  // Game init
-  if (!simulation::Initialize()) {
-    return 1;
-  }
-
   // Network handshake uses a clock
   if (!NetworkSetup()) {
     return 1;
   }
+
+  // Game init
+  if (!simulation::Initialize(kNetworkState.player_count)) {
+    return 1;
+  }
+
+  // Init view for local player's camera
+  camera::SetView(GetCamera(kNetworkState.player_id),
+                  &rgg::GetObserver()->view);
+
+  // Projection init
+  SetProjection();
 
   // main thread affinity set to core 0
   if (platform::thread_affinity_count() > 1) {
@@ -182,7 +166,7 @@ main(int argc, char** argv)
          1 + ((ANDN(PAGE - 1, max_ptr) - ANDN(PAGE - 1, min_ptr)) / PAGE));
 
   // Reset State
-  StatsInit(&stats);
+  StatsInit(&kGameStats);
   kGameState.game_updates = 0;
   kGameState.game_jerk = 0;
   kGameState.frame_target_usec = 1000.f * 1000.f / kGameState.framerate;
@@ -213,19 +197,16 @@ main(int argc, char** argv)
       InputBuffer* game_turn = GetSlot(slot);
       for (int i = 0; i < MAX_PLAYER; ++i) {
         InputBuffer* player_turn = &game_turn[i];
-        ProcessSimulation(i, player_turn->used_input_event,
-                          player_turn->input_event);
+        simulation::ProcessSimulation(i, player_turn->used_input_event,
+                                      player_turn->input_event);
       }
 
       // Game Mutation: continue simulation
       simulation::Update();
 
-      // Camera
-      for (int i = 0; i < MAX_PLAYER; ++i) {
-        camera::Update(&player_camera[i]);
-        player_camera[i].motion.z = 0.f;
-      }
-      camera::SetView(GetMyCamera(), &rgg::GetObserver()->view);
+      // SetView for the local player's camera
+      camera::SetView(GetCamera(kNetworkState.player_id),
+                      &rgg::GetObserver()->view);
 
       // Give the user an update tick. The engine runs with
       // a fixed delta so no need to provide a delta time.
@@ -236,7 +217,7 @@ main(int argc, char** argv)
     // Misc debug/feedback
     v3f mouse = MyScreenToWorld(window::GetCursorPosition());
     const v2f dims = window::GetWindowSize();
-    simulation::DebugPanel(mouse, stats, kGameState.frame_target_usec);
+    simulation::DebugPanel(mouse, kGameStats, kGameState.frame_target_usec);
     simulation::LogPanel();
     simulation::Hud(dims);
 
@@ -251,7 +232,7 @@ main(int argc, char** argv)
     // Capture frame time before the potential stall on vertical sync
     const uint64_t elapsed_usec = platform::delta_usec(&kGameState.game_clock);
     kGameState.frame_time_usec = elapsed_usec;
-    StatsAdd(elapsed_usec, &stats);
+    StatsAdd(elapsed_usec, &kGameStats);
 
 #ifndef HEADLESS
     window::SwapBuffers();

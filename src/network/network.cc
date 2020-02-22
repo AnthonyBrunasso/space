@@ -2,6 +2,7 @@
 
 #include <cstdio>
 
+#include "common/constants.h"
 #include "math/math.cc"
 
 #include "server.cc"
@@ -12,8 +13,6 @@
 #define MAX_NETQUEUE 128ul
 // Convert frame id into a NETQUEUE slot
 #define NETQUEUE_SLOT(sequence) (sequence % MAX_NETQUEUE)
-// Players in one game
-#define MAX_PLAYER 2
 
 struct InputBuffer {
   PlatformEvent input_event[MAX_TICK_EVENTS];

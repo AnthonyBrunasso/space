@@ -5,6 +5,7 @@
 #include "math/math.cc"
 #include "platform/platform.cc"
 
+#include "camera.cc"
 #include "entity_registry.cc"
 
 // Data used by game simulation
@@ -169,6 +170,11 @@ struct Command {
   uint64_t unit : kUnitBits;
 };
 DECLARE_GAME_QUEUE(Command, 16);
+
+struct Player {
+  Camera camera;
+};
+DECLARE_GAME_TYPE(Player, MAX_PLAYER);
 
 constexpr unsigned kNotifyAgeBits = 5;
 struct Notify {

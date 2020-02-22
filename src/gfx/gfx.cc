@@ -201,15 +201,10 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     }
   }
 
+  // Crew rendering
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
-
-    if (unit->inspace) {
-      continue;
-    }
-
-    const v3f* p = &unit->transform.position;
-    v2f grid = TilePosToWorld(WorldToTilePos(p->xy()));
+    if (unit->inspace) continue;
 
     v4f color;
     switch (unit->kind) {
@@ -234,36 +229,33 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
       default:
         continue;
     }
-    // Draw the player.
+
     rgg::RenderRectangle(unit->transform.position, unit->transform.scale,
                          kDefaultRotation, color);
 
-    // Space suit
     if (unit->spacesuit) {
       rgg::RenderCircle(unit->transform.position, 12.f, 14.f,
                         v4f(0.99f, 0.33f, 0.33f, 1.f));
     }
+  }
 
-    v4f hilite;
-    switch (unit->kind) {
-      case 0:
-        hilite = v4f(1.f, 0.f, 0.f, .45f);
-        break;
-      default:
-        hilite = v4f(5.f, 5.f, 5.f, .45f);
-        break;
-    };
+  // Hover selection
+  v2i mouse_grid = WorldToTilePos(mouse);
+  float dsq;
+  v3fNearTransform(mouse, GAME_ITER(Unit, transform), &dsq);
+  if (dsq < kDsqSelect) {
+    // Highlight the unit that would be selected on mouse click
+    rgg::RenderRectangle(TilePosToWorld(mouse_grid),
+                         v3f(1.f / 2.f, 1.f / 2.f, 1.f), kDefaultRotation,
+                         v4f(1.0f, 1.0f, 1.0f, .45f));
+  }
 
-    if (v3fDsq(unit->transform.position, mouse) < kDsqSelect) {
-      // Highlight the unit that would be selected on mouse click
-      rgg::RenderRectangle(v3f(grid), v3f(1.f / 2.f, 1.f / 2.f, 1.f),
-                           kDefaultRotation, hilite);
-    }
-
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* unit = &kUnit[i];
     if (unit->uaction != kUaMove) continue;
 
     // Show the path they are on if they have one.
-    v2i start = WorldToTilePos(p->xy());
+    v2i start = WorldToTilePos(unit->transform.position);
     v2i end = WorldToTilePos(unit->data.destination);
 
     auto* path = PathTo(start, end);
@@ -290,7 +282,7 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     rgg::RenderTag(kGfx.missile_tag, missile->transform.position,
                    missile->transform.scale, kDefaultRotation, kWhite);
 
-    v2i tile = WorldToTilePos(missile->transform.position.xy());
+    v2i tile = WorldToTilePos(missile->transform.position);
     if (!TileOk(tile)) continue;
 
     for (; j < kUsedModule; ++j) {

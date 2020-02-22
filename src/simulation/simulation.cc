@@ -23,7 +23,7 @@ constexpr float kAvoidanceScaling = 0.15f;
 constexpr float kMovementScaling = 1.0f;
 static uint64_t kSimulationHash = DJB2_CONST;
 
-uint64_t
+int
 SelectUnit(v3f world)
 {
   for (int i = 0; i < kUsedUnit; ++i) {
@@ -88,7 +88,7 @@ ThinkAI()
 
   for (uint64_t i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
-    Command c = {kUaNone, v3f(), (uint64_t)unit->id};
+    Command c = {kUaNone, v3f(), unit->id};
 
     switch (unit->kind) {
       case kPlayerControlled:
@@ -98,7 +98,7 @@ ThinkAI()
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_power) {
-            c = (Command{kUaMove, v3fModule(mod), (uint64_t)unit->id});
+            c = (Command{kUaMove, v3fModule(mod), unit->id});
           }
         }
         break;
@@ -106,7 +106,7 @@ ThinkAI()
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_mine) {
-            c = (Command{kUaMove, v3fModule(mod), (uint64_t)unit->id});
+            c = (Command{kUaMove, v3fModule(mod), unit->id});
           }
         }
         break;
@@ -114,7 +114,7 @@ ThinkAI()
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_engine) {
-            c = (Command{kUaMove, v3fModule(mod), (uint64_t)unit->id});
+            c = (Command{kUaMove, v3fModule(mod), unit->id});
           }
         }
         break;
@@ -122,7 +122,7 @@ ThinkAI()
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_turret) {
-            c = (Command{kUaMove, v3fModule(mod), (uint64_t)unit->id});
+            c = (Command{kUaMove, v3fModule(mod), unit->id});
           }
         }
         break;
@@ -131,7 +131,7 @@ ThinkAI()
     for (uint64_t j = 0; j < kUsedModule; ++j) {
       Module* mod = &kModule[j];
       if (v3fDsq(v3fModule(mod), unit->transform.position) < kDsqOperate) {
-        c = (Command{kUaOperate, v3fModule(mod), (uint64_t)unit->id});
+        c = (Command{kUaOperate, v3fModule(mod), unit->id});
         break;
       }
     }
@@ -531,7 +531,7 @@ Decide()
 {
   while (CountCommand()) {
     Command c = PopCommand();
-    Unit* unit = FindUnit(c.unit);
+    Unit* unit = FindUnit(c.unit_id);
     assert(unit != nullptr);
     // Kind 0 accepts newest orders
     if (unit->kind * unit->uaction) continue;

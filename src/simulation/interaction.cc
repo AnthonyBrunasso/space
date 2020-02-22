@@ -256,11 +256,11 @@ ControlEvent(const PlatformEvent* event, Player* player)
           v3f(event->position - window::GetWindowSize() * 0.5f));
 
       if (event->button == BUTTON_LEFT) {
-        uint64_t unit = SelectUnit(pos);
+        int unit = SelectUnit(pos);
         ControlUnit(unit);
       } else if (event->button == BUTTON_RIGHT) {
-        uint64_t unit = UnitId();
-        uint64_t target = SelectUnit(pos);
+        int unit = UnitId();
+        int target = SelectUnit(pos);
         if (ShouldAttack(unit, target)) {
           LOGFMT("Order attack [%lu, %lu]", unit, target);
           PushCommand({kUaAttack, pos, unit});

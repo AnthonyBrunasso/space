@@ -153,7 +153,7 @@ struct Unit {
   unsigned uaction : 3;
 };
 
-constexpr unsigned kUnitBits = 5;
+constexpr unsigned kUnitBits = 4;
 DECLARE_GAME_TYPE_WITH_ID(Unit, 1 << kUnitBits);
 struct Ship {
   uint64_t think_flags = 0;
@@ -194,7 +194,7 @@ DECLARE_GAME_TYPE(Module, 32);
 struct Command {
   UnitAction type;
   v3f destination;
-  uint64_t unit : kUnitBits;
+  int unit_id;
 };
 DECLARE_GAME_QUEUE(Command, 16);
 

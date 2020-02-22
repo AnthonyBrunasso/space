@@ -39,10 +39,11 @@ GetCamera(uint64_t player_id)
 }
 
 void
-ProcessWindowInput(InputBuffer* input_buffer)
+GatherWindowInput(InputBuffer* input_buffer)
 {
   uint64_t event_count = 0;
-  while (event_count < MAX_TICK_EVENTS) {
+
+  while (event_count < (MAX_TICK_EVENTS - 1)) {
     PlatformEvent pevent;
     if (!window::PollEvent(&pevent)) break;
 
@@ -59,15 +60,20 @@ ProcessWindowInput(InputBuffer* input_buffer)
     }
   }
 
+  // Always append an estimate of the the local mouse cursor
+  input_buffer->input_event[event_count].type = MOUSE_POSITION;
+  input_buffer->input_event[event_count].position = window::GetCursorPosition();
+  event_count += 1;
+
   input_buffer->used_input_event = event_count;
 }
 
 void
-ProcessInput()
+GatherInput()
 {
   InputBuffer* buffer = GetNextInputBuffer();
 #ifndef HEADLESS
-  ProcessWindowInput(buffer);
+  GatherWindowInput(buffer);
 #else
   buffer->used_input_event = 0;
 #endif
@@ -183,7 +189,7 @@ main(int argc, char** argv)
   for (uint64_t frame = 0; frame <= frame_limit; ++frame) {
     if (window::ShouldClose()) break;
 
-    ProcessInput();
+    GatherInput();
     NetworkEgress();
     NetworkIngress(kGameState.logic_updates);
 

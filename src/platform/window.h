@@ -16,6 +16,7 @@ enum PlatformEventType {
   MOUSE_WHEEL,
   KEY_DOWN,
   KEY_UP,
+  MOUSE_POSITION,
 };
 
 enum PlatformButton {

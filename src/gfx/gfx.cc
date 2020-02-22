@@ -89,6 +89,82 @@ AlignToGrid(v2f grid, math::Rectf* world)
 }
 
 void
+RenderCrew(v2f mouse)
+{
+  using namespace simulation;
+
+  // Crew rendering
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* unit = &kUnit[i];
+    if (unit->inspace) continue;
+
+    v4f color;
+    switch (unit->kind) {
+      case 0:
+        color = v4f(0.26f, 0.33f, 0.68f, 1.f);
+        break;
+      case 1:
+        color = v4f(0.50f, .33f, .33f, 1.f);
+        break;
+      case 2:
+        color = v4f(0.66f, 0.33f, 0.33f, 1.f);
+        break;
+      case 3:
+        color = v4f(0.74f, 0.33f, 0.33f, 1.f);
+        break;
+      case 4:
+        color = v4f(0.86f, 0.33f, 0.33f, 1.f);
+        break;
+      case 5:
+        color = v4f(0.99f, 0.33f, 0.33f, 1.f);
+        break;
+      default:
+        continue;
+    }
+
+    rgg::RenderRectangle(unit->transform.position, unit->transform.scale,
+                         kDefaultRotation, color);
+
+    if (unit->spacesuit) {
+      rgg::RenderCircle(unit->transform.position, 12.f, 14.f,
+                        v4f(0.99f, 0.33f, 0.33f, 1.f));
+    }
+  }
+
+  // Hover selection
+  v2i mouse_grid = WorldToTilePos(mouse);
+  float dsq;
+  v3fNearTransform(mouse, GAME_ITER(Unit, transform), &dsq);
+  if (dsq < kDsqSelect) {
+    // Highlight the unit that would be selected on mouse click
+    rgg::RenderRectangle(TilePosToWorld(mouse_grid),
+                         v3f(1.f / 2.f, 1.f / 2.f, 1.f), kDefaultRotation,
+                         v4f(1.0f, 1.0f, 1.0f, .45f));
+  }
+
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* unit = &kUnit[i];
+    if (unit->uaction != kUaMove) continue;
+
+    // Show the path they are on if they have one.
+    v2i start = WorldToTilePos(unit->transform.position);
+    v2i end = WorldToTilePos(unit->data.destination);
+
+    auto* path = PathTo(start, end);
+    if (!path || path->size <= 1) {
+      continue;
+    }
+
+    for (int i = 0; i < path->size; ++i) {
+      auto* t = &path->tile[i];
+      rgg::RenderRectangle(v3f(TilePosToWorld(*t)),
+                           v3f(1.f / 3.f, 1.f / 3.f, 1.f), kDefaultRotation,
+                           v4f(0.33f, 0.33f, 0.33f, 0.40f));
+    }
+  }
+}
+
+void
 Render(const math::Rectf visible_world, v2f mouse, v2f screen)
 {
   using namespace simulation;
@@ -201,75 +277,12 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
     }
   }
 
-  // Crew rendering
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
-    if (unit->inspace) continue;
-
-    v4f color;
-    switch (unit->kind) {
-      case 0:
-        color = v4f(0.26f, 0.33f, 0.68f, 1.f);
-        break;
-      case 1:
-        color = v4f(0.50f, .33f, .33f, 1.f);
-        break;
-      case 2:
-        color = v4f(0.66f, 0.33f, 0.33f, 1.f);
-        break;
-      case 3:
-        color = v4f(0.74f, 0.33f, 0.33f, 1.f);
-        break;
-      case 4:
-        color = v4f(0.86f, 0.33f, 0.33f, 1.f);
-        break;
-      case 5:
-        color = v4f(0.99f, 0.33f, 0.33f, 1.f);
-        break;
-      default:
-        continue;
-    }
-
-    rgg::RenderRectangle(unit->transform.position, unit->transform.scale,
-                         kDefaultRotation, color);
-
-    if (unit->spacesuit) {
-      rgg::RenderCircle(unit->transform.position, 12.f, 14.f,
-                        v4f(0.99f, 0.33f, 0.33f, 1.f));
-    }
+  for (int i = 0; i < kUsedPlayer; ++i) {
+    Player* p = &kPlayer[i];
+    if (!p->mod_placement) continue;
   }
 
-  // Hover selection
-  v2i mouse_grid = WorldToTilePos(mouse);
-  float dsq;
-  v3fNearTransform(mouse, GAME_ITER(Unit, transform), &dsq);
-  if (dsq < kDsqSelect) {
-    // Highlight the unit that would be selected on mouse click
-    rgg::RenderRectangle(TilePosToWorld(mouse_grid),
-                         v3f(1.f / 2.f, 1.f / 2.f, 1.f), kDefaultRotation,
-                         v4f(1.0f, 1.0f, 1.0f, .45f));
-  }
-
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
-    if (unit->uaction != kUaMove) continue;
-
-    // Show the path they are on if they have one.
-    v2i start = WorldToTilePos(unit->transform.position);
-    v2i end = WorldToTilePos(unit->data.destination);
-
-    auto* path = PathTo(start, end);
-    if (!path || path->size <= 1) {
-      continue;
-    }
-
-    for (int i = 0; i < path->size; ++i) {
-      auto* t = &path->tile[i];
-      rgg::RenderRectangle(v3f(TilePosToWorld(*t)),
-                           v3f(1.f / 3.f, 1.f / 3.f, 1.f), kDefaultRotation,
-                           v4f(0.33f, 0.33f, 0.33f, 0.40f));
-    }
-  }
+  RenderCrew(mouse);
 
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];

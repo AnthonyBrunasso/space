@@ -177,6 +177,13 @@ LogPanel()
 void
 Hud(v2f screen)
 {
+  v2f dims(40, 40);
+  if (imui::Button(math::Rect(screen.x - 10 - dims.x, 100, dims.x, dims.y),
+                   v4f(1.0f, 0.0f, 1.0f, 0.75f))
+          .clicked) {
+    kPlayer[kNetworkState.player_id].mod_placement = 1;
+  }
+
   // selected Unit text
   uint64_t selected = UINT64_MAX;
   for (int i = 0; i < kUsedUnit; ++i) {
@@ -210,19 +217,23 @@ Hud(v2f screen)
 }
 
 void
-ControlEvent(const PlatformEvent* event, const Camera* camera, v3f* translation)
+ControlEvent(const PlatformEvent* event, Player* player)
 {
   djb2_hash_more((const uint8_t*)event, sizeof(PlatformEvent), &kInputHash);
 
   switch (event->type) {
+    case MOUSE_POSITION: {
+      player->mouse = event->position;
+    } break;
     case MOUSE_WHEEL: {
       // TODO(abrunasso): Why does this need to be negative?
-      translation->z = -0.1f * event->wheel_delta;
+      player->camera.motion.z = -0.1f * event->wheel_delta;
     } break;
     case MOUSE_DOWN: {
       imui::MouseClick(event->position, event->button);
       v3f pos = camera::ScreenToWorldSpace(
-          camera, v3f(event->position - window::GetWindowSize() * 0.5f));
+          &player->camera,
+          v3f(event->position - window::GetWindowSize() * 0.5f));
 
       if (event->button == BUTTON_LEFT) {
         uint64_t unit = SelectUnit(pos);
@@ -236,20 +247,21 @@ ControlEvent(const PlatformEvent* event, const Camera* camera, v3f* translation)
     case KEY_DOWN: {
       switch (event->key) {
         case 'w': {
-          translation->y = 1.f;
+          player->camera.motion.y = 1.f;
         } break;
         case 'a': {
-          translation->x = -1.f;
+          player->camera.motion.x = -1.f;
         } break;
         case 's': {
-          translation->y = -1.f;
+          player->camera.motion.y = -1.f;
         } break;
         case 'd': {
-          translation->x = 1.f;
+          player->camera.motion.x = 1.f;
         } break;
         case 'u': {
           v3f pos = camera::ScreenToWorldSpace(
-              camera, v3f(event->position - window::GetWindowSize() * 0.5f));
+              &player->camera,
+              v3f(event->position - window::GetWindowSize() * 0.5f));
           float dsq;
           uint64_t unit_index =
               v3fNearTransform(pos, GAME_ITER(Unit, transform), &dsq);
@@ -266,16 +278,16 @@ ControlEvent(const PlatformEvent* event, const Camera* camera, v3f* translation)
     case KEY_UP: {
       switch (event->key) {
         case 'w': {
-          translation->y = 0.f;
+          player->camera.motion.y = 0.f;
         } break;
         case 'a': {
-          translation->x = 0.f;
+          player->camera.motion.x = 0.f;
         } break;
         case 's': {
-          translation->y = 0.f;
+          player->camera.motion.y = 0.f;
         } break;
         case 'd': {
-          translation->x = 0.f;
+          player->camera.motion.x = 0.f;
         } break;
         default:
           break;
@@ -292,8 +304,8 @@ ProcessSimulation(int player_id, uint64_t event_count,
 {
   // Shared player control of the ship for now
   for (int i = 0; i < event_count; ++i) {
-    ControlEvent(&event[i], &kPlayer[player_id].camera,
-                 &kPlayer[player_id].camera.motion);
+    Player* p = &kPlayer[player_id];
+    ControlEvent(&event[i], p);
   }
 }
 

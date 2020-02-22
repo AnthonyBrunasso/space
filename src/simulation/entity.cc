@@ -173,6 +173,8 @@ DECLARE_GAME_QUEUE(Command, 16);
 
 struct Player {
   Camera camera;
+  v2f mouse;
+  unsigned mod_placement : 1;
 };
 DECLARE_GAME_TYPE(Player, MAX_PLAYER);
 

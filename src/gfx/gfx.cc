@@ -115,7 +115,7 @@ RenderCrew()
       case kTurretOperator:
         color = v4f(0.86f, 0.33f, 0.33f, 1.f);
         break;
-      case kEnemy:
+      case 5:
         color = v4f(0.99f, 0.33f, 0.33f, 1.f);
         break;
       default:

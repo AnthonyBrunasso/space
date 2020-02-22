@@ -16,27 +16,12 @@
 #include "platform/macro.h"
 namespace simulation
 {
-constexpr float kDsqSelect = 25.f * 25.f;
 constexpr float kDsqGather = 25.f * 25.f;
 constexpr float kDsqOperate = 50.f * 35.f;
 constexpr float kDsqOperatePod = 75.f * 75.f;
 constexpr float kAvoidanceScaling = 0.15f;
 constexpr float kMovementScaling = 1.0f;
 static uint64_t kSimulationHash = DJB2_CONST;
-
-int
-SelectUnit(v3f world)
-{
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
-
-    if (v3fDsq(unit->transform.position, world) < kDsqSelect) {
-      return unit->id;
-    }
-  }
-
-  return kMaxUnit;
-}
 
 void
 Reset(uint64_t seed)
@@ -530,12 +515,41 @@ DecidePod()
 }
 
 void
+MoveTowards(int unit_idx, v2i tilepos, v3f dest, UnitAction set_on_arrival)
+{
+  Unit* unit = &kUnit[unit_idx];
+
+  v2i end = WorldToTilePos(dest);
+  auto* path = PathTo(tilepos, end);
+  if (!path) {
+    unit->uaction = set_on_arrival;
+    BB_REM(unit->bb, kUnitDestination);
+    return;
+  }
+
+  bool near_goal = (path->size == 1);
+  v3f move_dir = TileAvoidWalls(tilepos) * !near_goal;
+  move_dir *= kAvoidanceScaling;
+  if (v3fDsq(unit->transform.position, dest) < 1.f) {
+    unit->transform.position = dest;
+    unit->uaction = set_on_arrival;
+    BB_REM(unit->bb, kUnitDestination);
+    return;
+  }
+
+  v3f new_dest = (dest * near_goal) +
+                 (TilePosToWorld(path->tile[1]) * !near_goal);
+  move_dir += math::Normalize(new_dest.xy() - unit->transform.position.xy()) *
+              kMovementScaling;
+  unit->transform.position += move_dir;
+}
+
+void
 Decide()
 {
   while (CountCommand()) {
     Command c = PopCommand();
     Unit* unit = FindUnit(c.unit_id);
-    assert(unit != nullptr);
     // Kind 0 accepts newest orders
     if (unit->kind * unit->uaction) continue;
     unit->uaction = c.type;
@@ -635,33 +649,34 @@ Update()
     } else if (unit->uaction == kUaMove) {
       v3f* dest = nullptr;
       if (!BB_GET(unit->bb, kUnitDestination, dest)) {
-        // TODO(abrunasso): How should we report this error? For now crash.
-        assert(!"Unit meant to move but destination is not set.");
+        continue;
       }
-      v2i end = WorldToTilePos(*dest);
-
-      auto* path = PathTo(tilepos, end);
-      if (!path) {
-        unit->uaction = kUaNone;
-        BB_REM(unit->bb, kUnitDestination);
+      MoveTowards(i, tilepos, *dest, kUaNone);
+    } else if (unit->uaction == kUaAttack) {
+      int* target = nullptr;
+      if (!BB_GET(unit->bb, kUnitTarget, target)) {
         continue;
       }
 
-      bool near_goal = (path->size == 1);
-      v3f move_dir = TileAvoidWalls(tilepos) * !near_goal;
-      move_dir *= kAvoidanceScaling;
-      if (v3fDsq(unit->transform.position, *dest) < 1.f) {
-        unit->transform.position = *dest;
-        unit->uaction = kUaNone;
-        BB_REM(unit->bb, kUnitDestination);
+      Unit* target_unit = FindUnit(*target);
+      if (!target_unit) {
         continue;
       }
 
+<<<<<<< HEAD
       v3f new_dest =
           (*dest * near_goal) + (TilePosToWorld(path->tile[1]) * !near_goal);
       move_dir += math::Normalize(new_dest.xy() - transform->position.xy()) *
                   kMovementScaling;
       transform->position += move_dir;
+=======
+      if (!InRange(unit->id, *target)) {
+        // Go to your target.
+        BB_SET(unit->bb, kUnitDestination, target_unit->transform.position);
+        MoveTowards(i, tilepos, target_unit->transform.position, kUaAttack);
+        continue;
+      }
+>>>>>>> If unit is set to attack target but it's out of range it will approach
     }
   }
 

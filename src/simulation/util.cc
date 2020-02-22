@@ -8,6 +8,7 @@
 
 namespace simulation
 {
+constexpr float kDsqSelect = 25.f * 25.f;
 v3f
 v3fModule(Module* mod)
 {
@@ -40,6 +41,32 @@ v3fNearTransform(v3f pos, uint64_t step, const uint8_t* start,
 
   *dsq = nearest;
   return index;
+}
+
+int
+SelectUnit(v3f world)
+{
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* unit = &kUnit[i];
+
+    if (v3fDsq(unit->transform.position, world) < kDsqSelect) {
+      return unit->id;
+    }
+  }
+
+  return kMaxUnit;
+}
+
+bool
+InRange(uint64_t unit, uint64_t target)
+{
+  if (unit == kMaxUnit || target == kMaxUnit) return false;
+  Unit* source_unit = FindUnit(unit);
+  Unit* target_unit = FindUnit(target);
+  float dsq = v3fDsq(source_unit->transform.position,
+                     target_unit->transform.position);
+  float rsq = source_unit->attack_radius * source_unit->attack_radius;
+  return dsq < rsq;
 }
 
 }  // namespace simulation

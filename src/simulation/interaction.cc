@@ -22,16 +22,6 @@ ControlShipFtl()
   kShip[0].ftl_frame = 1;
 }
 
-bool
-ShouldAttack(uint64_t unit, uint64_t target)
-{
-  if (unit == kMaxUnit || target == kMaxUnit) return false;
-  Unit* controlled_unit = FindUnit(unit);
-  Unit* target_unit = FindUnit(target);
-  if (target_unit->kind != kEnemy) return false;
-  return true;
-}
-
 void
 ControlUnit(uint64_t unit_id)
 {
@@ -39,6 +29,16 @@ ControlUnit(uint64_t unit_id)
     bool is_unit = kUnit[i].id == unit_id;
     kUnit[i].kind = !is_unit * (kUnit[i].id + 1);
   }
+}
+
+bool
+ShouldAttack(uint64_t unit, uint64_t target)
+{
+  if (unit == kMaxUnit || target == kMaxUnit) return false;
+  Unit* controlled_unit = FindUnit(unit);
+  Unit* target_unit = FindUnit(target);
+  if (target_unit->alliance != kEnemy) return false;
+  return true;
 }
 
 unsigned

@@ -55,6 +55,9 @@ enum UnitKind {
   kMiner,
   kEngineer,
   kTurretOperator,
+};
+enum UnitAlliance {
+  kCrew,
   kEnemy
 };
 enum ShipAiGoals {
@@ -141,6 +144,10 @@ struct Unit {
 
   int id;
   int kind = kPlayerControlled;
+  UnitAlliance alliance = kCrew;
+
+  float attack_radius = 100.0f;
+  float health = 10.0f;
 
   int ship = 0;
   uint8_t acurrent[CREWA_MAX];

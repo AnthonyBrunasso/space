@@ -76,7 +76,8 @@ InitializeScenario(bool reset_features = true)
       UseIdUnit();
       kUnit[1].transform.position = v3f(400.f, 300.f, 0.f);
       kUnit[1].transform.scale = v3f(0.25f, 0.25f, 0.f);
-      kUnit[1].kind = kEnemy;
+      kUnit[1].kind = kPowerOperator;
+      kUnit[1].alliance = kEnemy;
     } break;
     case Scenario::kSoloMission: {
       if (reset_features) {
@@ -126,6 +127,7 @@ ResetScenario(bool reset_features)
   // TODO (AN): GAME_QUEUE not in the registry
   kReadCommand = 0;
   kWriteCommand = 0;
+  kAutoIncrementIdUnit = 0;
 
   for (int i = 0; i < kUsedRegistry; ++i) {
     *kRegistry[i].memb_count = 0;

@@ -42,6 +42,7 @@ flags = [
 '-I',
 os.path.join(DirectoryOfThisScript(),'src'),
 '-O0', # faster builds
+'-Wno-format', # let's try ignoring formatting warnings
 ]
 
 if platform.system() != 'Linux':

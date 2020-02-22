@@ -1,17 +1,20 @@
-#include <unistd.h>
+#include <cassert>
 #include <cstdint>
+#include <ctime>
 
 namespace platform
 {
-void
-sleep_ms(uint64_t ms)
-{
-  usleep(ms * 1000);
-}
-void
+// Return -1 if interrupted
+// Return 0 on completed sleep
+int
 sleep_usec(uint64_t usec)
 {
-  usleep(usec);
+  assert(usec < 2 * (1000 * 1000));
+
+  struct timespec duration;
+  duration.tv_sec = 0;
+  duration.tv_nsec = usec * 1000;
+  return nanosleep(&duration, NULL);
 }
 
 }  // namespace platform

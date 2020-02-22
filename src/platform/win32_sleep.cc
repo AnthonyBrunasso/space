@@ -4,13 +4,13 @@
 namespace platform
 {
 void
-sleep_ms(uint64_t duration)
+_sleep_ms(uint64_t duration)
 {
   Sleep(duration);
 }
 void
 sleep_usec(uint64_t usec)
 {
-  // TODO: Yield
+  _sleep_ms(usec / 1000);
 }
 }  // namespace platform

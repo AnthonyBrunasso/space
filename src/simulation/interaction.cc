@@ -37,7 +37,7 @@ ControlUnit(uint64_t unit_id)
 {
   for (int i = 0; i < kUsedUnit; ++i) {
     bool is_unit = kUnit[i].id == unit_id;
-    kUnit[i].kind = !is_unit * (i + 1);
+    kUnit[i].kind = !is_unit * (kUnit[i].id + 1);
   }
 }
 

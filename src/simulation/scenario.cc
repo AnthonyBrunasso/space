@@ -54,7 +54,7 @@ InitializeScenario(bool reset_features = true)
         unit->transform.scale = scale;
         memcpy(unit->acurrent, attrib, sizeof(attrib));
         // Everybody is unique!
-        unit->kind = i + 1;
+        unit->kind = unit->id + 1;
         printf("Create unit id %i\n", unit->id);
       }
       kUnit[4].spacesuit = 1;

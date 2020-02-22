@@ -663,20 +663,12 @@ Update()
         continue;
       }
 
-<<<<<<< HEAD
-      v3f new_dest =
-          (*dest * near_goal) + (TilePosToWorld(path->tile[1]) * !near_goal);
-      move_dir += math::Normalize(new_dest.xy() - transform->position.xy()) *
-                  kMovementScaling;
-      transform->position += move_dir;
-=======
       if (!InRange(unit->id, *target)) {
         // Go to your target.
         BB_SET(unit->bb, kUnitDestination, target_unit->transform.position);
         MoveTowards(i, tilepos, target_unit->transform.position, kUaAttack);
         continue;
       }
->>>>>>> If unit is set to attack target but it's out of range it will approach
     }
   }
 

@@ -23,8 +23,6 @@ static v4f kRed = v4f(1.f, 0.f, 0.f, 1.f);
 static const math::Quatf kDefaultRotation = math::Quatf(0.f, 0.f, 0.f, 1.f);
 static v3f kDefaultScale = v3f(1.f, 1.f, 1.f);
 static v3f kTileScale = v3f(0.5f, 0.5f, 1.f);
-constexpr int MAX_SELECTED_TEXT = CREWA_MAX + 2;
-static char selected_text[MAX_SELECTED_TEXT][64];
 
 bool
 Initialize()
@@ -104,25 +102,6 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
   math::Rectf world1 = visible_world;
   AlignToGrid(grid1, &world1);
   rgg::RenderGrid(grid1, world1, v4f(0.050f, 0.215f, 0.050f, 0.45f));
-
-  // selected Unit text
-  bool bSelected = false;
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
-    if (unit->kind != Unit::kPlayerControlled) continue;
-    bSelected = true;
-
-    int t = 0;
-    for (; t < CREWA_MAX; ++t) {
-      snprintf(selected_text[t], 64, "[%u,%u] %s", unit->aknown_min[t],
-               unit->aknown_max[t], crew_aname[t]);
-    }
-    snprintf(selected_text[t++], 64, "(%04.02f,%04.02f)",
-             unit->transform.position.x, unit->transform.position.y);
-    snprintf(selected_text[t++], 64, "uaction: %d", unit->uaction);
-
-    break;
-  }
 
   // Base ship
   float sys_power = .0f;
@@ -341,14 +320,6 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
                          v4f(0.99f, 0.33f, 0.33f, 1.f));
     rgg::RenderCircle(pod->transform.position + v2f(15.f, 15.f), 12.f, 14.f,
                       v4f(0.99f, 0.33f, 0.33f, 1.f));
-  }
-
-  if (bSelected) {
-    imui::Begin(v2f(screen.x - 225.f, screen.y - 30.0f));
-    for (int i = 0; i < MAX_SELECTED_TEXT; ++i) {
-      imui::Text(selected_text[i]);
-    }
-    imui::End();
   }
 
   // Ui

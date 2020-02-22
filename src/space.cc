@@ -235,11 +235,12 @@ main(int argc, char** argv)
 #ifndef HEADLESS
     // Misc debug/feedback
     v3f mouse = MyScreenToWorld(window::GetCursorPosition());
+    const v2f dims = window::GetWindowSize();
     simulation::DebugPanel(mouse, stats, kGameState.frame_target_usec);
     simulation::LogPanel();
+    simulation::Hud(dims);
 
     // The bottom left and top right of the screen with regards to the camera.
-    const v2f dims = window::GetWindowSize();
     v3f top_right = MyScreenToWorld(dims);
     v3f bottom_left = MyScreenToWorld({0.f, 0.f});
     gfx::Render(math::Rectf{bottom_left.xy(), top_right.xy()}, mouse.xy(),

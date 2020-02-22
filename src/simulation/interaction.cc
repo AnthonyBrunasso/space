@@ -7,6 +7,8 @@
 
 namespace simulation
 {
+constexpr int MAX_SELECTED_TEXT = CREWA_MAX + 2;
+static char selected_text[MAX_SELECTED_TEXT][64];
 static uint64_t kInputHash = DJB2_CONST;
 
 bool
@@ -172,6 +174,37 @@ LogPanel()
     imui::Text(log_msg, text_options);
   }
   imui::End();
+}
+
+void
+Hud(v2f screen)
+{
+  // selected Unit text
+  bool bSelected = false;
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* unit = &kUnit[i];
+    if (unit->kind != Unit::kPlayerControlled) continue;
+    bSelected = true;
+
+    int t = 0;
+    for (; t < CREWA_MAX; ++t) {
+      snprintf(selected_text[t], 64, "[%u,%u] %s", unit->aknown_min[t],
+               unit->aknown_max[t], crew_aname[t]);
+    }
+    snprintf(selected_text[t++], 64, "(%04.02f,%04.02f)",
+             unit->transform.position.x, unit->transform.position.y);
+    snprintf(selected_text[t++], 64, "uaction: %d", unit->uaction);
+
+    break;
+  }
+
+  if (bSelected) {
+    imui::Begin(v2f(screen.x - 225.f, screen.y - 30.0f));
+    for (int i = 0; i < MAX_SELECTED_TEXT; ++i) {
+      imui::Text(selected_text[i]);
+    }
+    imui::End();
+  }
 }
 
 void

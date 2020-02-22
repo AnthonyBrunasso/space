@@ -310,6 +310,12 @@ Render(const math::Rectf visible_world, v2f screen)
     }
   }
 
+  for (int i = 0; i < kUsedProjectile; ++i) {
+    Projectile* p = &kProjectile[i];
+    float radius = 5.0f;
+    rgg::RenderCircle(p->transform.position, radius, kWhite);
+  }
+
   for (int i = 0; i < kUsedNotify; ++i) {
     Notify* n = &kNotify[i];
     float radius = 50.f - (n->age * 1.f);

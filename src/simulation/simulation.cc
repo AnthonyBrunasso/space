@@ -22,6 +22,7 @@ constexpr float kDsqOperatePod = 75.f * 75.f;
 constexpr float kAvoidanceScaling = 0.15f;
 constexpr float kMovementScaling = 1.0f;
 static uint64_t kSimulationHash = DJB2_CONST;
+static uint64_t kFrame;
 
 void
 Reset(uint64_t seed)
@@ -579,6 +580,8 @@ SimulationOver()
 void
 Update()
 {
+  ++kFrame;
+
   // Camera
   for (int i = 0; i < kUsedPlayer; ++i) {
     camera::Update(&kPlayer[i].camera);
@@ -667,6 +670,20 @@ Update()
         MoveTowards(i, tilepos, target_unit->transform.position, kUaAttack);
         continue;
       }
+
+      // Shoot at the target if weapon is off cooldown.
+      if (kFrame - unit->attack_frame < unit->attack_cooldown) {
+        continue;
+      }
+
+      Projectile* proj = UseProjectile();
+      proj->transform = unit->transform;
+      proj->dir = math::Normalize(
+          target_unit->transform.position - unit->transform.position);
+      proj->speed = 1.f;
+      // TODO(abrunasso): Idk man... How long should this go for...
+      proj->duration = 100;
+      unit->attack_frame = kFrame;
     }
   }
 
@@ -703,7 +720,18 @@ Update()
     }
   }
 
-  RegistryCompact();
+  for (int i = 0; i < kUsedProjectile;) {
+    Projectile* p = &kProjectile[i];
+    p->transform.position = p->transform.position + p->dir * p->speed;
+    --p->duration;
+    if (p->duration <= 0) {
+      CompressProjectile(i);
+      continue;
+    }
+    ++i;
+  }
+
+   RegistryCompact();
 }  // namespace simulation
 
 }  // namespace simulation

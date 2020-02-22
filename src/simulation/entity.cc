@@ -146,7 +146,11 @@ struct Unit {
   int kind = kPlayerControlled;
   UnitAlliance alliance = kCrew;
 
+  // Maybe need a weapon type?
   float attack_radius = 100.0f;
+  int attack_frame;
+  // Can attack every 20 frames.
+  int attack_cooldown = 20;
   float health = 10.0f;
 
   int ship = 0;
@@ -187,6 +191,15 @@ struct Missile {
   unsigned explode_frame : 6;
 };
 DECLARE_GAME_TYPE(Missile, 8);
+
+struct Projectile {
+  Transform transform;
+  v3f dir;
+  float speed;
+  // Duration in frames.
+  int duration;
+};
+DECLARE_GAME_TYPE(Projectile, 16);
 
 struct Module {
   unsigned cx : 5;

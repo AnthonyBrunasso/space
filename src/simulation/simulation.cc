@@ -113,7 +113,7 @@ ThinkAI()
       }
     }
 
-    if (!c.unit) continue;
+    if (unit->kind == Unit::kPlayerControlled) continue;
 
     PushCommand(c);
   }

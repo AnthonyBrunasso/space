@@ -187,7 +187,7 @@ Hud(v2f screen)
   }
 
   if (selected > kUsedUnit) return;
-  constexpr int MAX_SELECTED_TEXT = CREWA_MAX + 2;
+  constexpr int MAX_SELECTED_TEXT = CREWA_MAX + 3;
   char selected_text[MAX_SELECTED_TEXT][64];
   Unit* unit = &kUnit[selected];
   {
@@ -199,6 +199,7 @@ Hud(v2f screen)
     snprintf(selected_text[t++], 64, "(%04.02f,%04.02f)",
              unit->transform.position.x, unit->transform.position.y);
     snprintf(selected_text[t++], 64, "uaction: %d", unit->uaction);
+    snprintf(selected_text[t++], 64, "uid: %ld", unit - kUnit);
   }
 
   imui::Begin(v2f(screen.x - 225.f, screen.y - 30.0f));

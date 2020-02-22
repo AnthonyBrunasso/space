@@ -23,6 +23,20 @@ constexpr float kAvoidanceScaling = 0.15f;
 constexpr float kMovementScaling = 1.0f;
 static uint64_t kSimulationHash = DJB2_CONST;
 
+uint64_t
+SelectUnit(v3f world)
+{
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* unit = &kUnit[i];
+
+    if (v3fDsq(unit->transform.position, world) < kDsqSelect) {
+      return i;
+    }
+  }
+
+  return kMaxUnit;
+}
+
 bool
 Initialize(uint64_t player_count)
 {
@@ -512,7 +526,16 @@ Decide()
     // Kind 0 accepts newest orders
     if (unit->kind * unit->uaction) continue;
     unit->uaction = c.type;
-    BB_SET(unit->bb, kUnitDestination, c.destination);
+    switch (c.type) {
+      case kUaMove: {
+        BB_SET(unit->bb, kUnitDestination, c.destination);
+      } break;
+      case kUaAttack: {
+        int target = SelectUnit(c.destination);
+        BB_SET(unit->bb, kUnitTarget, target);
+      } break;
+      default: break;
+    }
   }
 
   DecideShip();

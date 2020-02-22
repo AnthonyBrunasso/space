@@ -22,18 +22,14 @@ ControlShipFtl()
   kShip[0].ftl_frame = 1;
 }
 
-uint64_t
-SelectUnit(v3f world)
+bool
+ShouldAttack(uint64_t unit, uint64_t target)
 {
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
-
-    if (v3fDsq(unit->transform.position, world) < kDsqSelect) {
-      return i;
-    }
-  }
-
-  return kMaxUnit;
+  if (unit == kMaxUnit || target == kMaxUnit) return false;
+  Unit* controlled_unit = &kUnit[unit];
+  Unit* target_unit = &kUnit[target];
+  if (target_unit->kind != kEnemy) return false;
+  return true;
 }
 
 void
@@ -223,7 +219,12 @@ Hud(v2f screen)
         snprintf(selected_text[0], 64, "dest: %.0f,%.0f", d->x, d->y);
         imui::Text(selected_text[0]);
       } break;
-      case kUnitTarget:
+      case kUnitTarget: {
+        int* t = nullptr;
+        if (!BB_GET(unit->bb, kUnitTarget, t)) continue;
+        snprintf(selected_text[0], 64, "target: %i", *t);
+        imui::Text(selected_text[0]);
+      } break;
       default: {
         snprintf(selected_text[0], 64, "set: %i", i);
         if (BB_EXI(unit->bb, i)) {
@@ -259,8 +260,14 @@ ControlEvent(const PlatformEvent* event, Player* player)
         ControlUnit(unit);
       } else if (event->button == BUTTON_RIGHT) {
         uint64_t unit = UnitIndex();
-        LOGFMT("Order move [%lu]", unit);
-        if (unit < kUsedUnit) PushCommand({kUaMove, pos, UnitIndex()});
+        uint64_t target = SelectUnit(pos);
+        if (ShouldAttack(unit, target)) {
+          LOGFMT("Order attack [%lu, %lu]", unit, target);
+          if (unit < kUsedUnit) PushCommand({kUaAttack, pos, UnitIndex()});
+        } else {
+          LOGFMT("Order move [%lu]", unit);
+          if (unit < kUsedUnit) PushCommand({kUaMove, pos, UnitIndex()});
+        }
       }
     } break;
     case KEY_DOWN: {

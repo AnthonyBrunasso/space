@@ -100,22 +100,22 @@ RenderCrew()
 
     v4f color;
     switch (unit->kind) {
-      case 0:
+      case kPlayerControlled:
         color = v4f(0.26f, 0.33f, 0.68f, 1.f);
         break;
-      case 1:
+      case kPowerOperator:
         color = v4f(0.50f, .33f, .33f, 1.f);
         break;
-      case 2:
+      case kMiner:
         color = v4f(0.66f, 0.33f, 0.33f, 1.f);
         break;
-      case 3:
+      case kEngineer:
         color = v4f(0.74f, 0.33f, 0.33f, 1.f);
         break;
-      case 4:
+      case kTurretOperator:
         color = v4f(0.86f, 0.33f, 0.33f, 1.f);
         break;
-      case 5:
+      case kEnemy:
         color = v4f(0.99f, 0.33f, 0.33f, 1.f);
         break;
       default:

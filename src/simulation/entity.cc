@@ -26,6 +26,15 @@ enum UnitAction {
   kUaMove,
   kUaOperate,
   kUaVacuum,
+  kUaAttack,
+};
+enum UnitKind {
+  kPlayerControlled,
+  kPowerOperator,
+  kMiner,
+  kEngineer,
+  kTurretOperator,
+  kEnemy
 };
 union UnitData {
   v3f destination;
@@ -107,12 +116,6 @@ struct Unit {
   UnitData data = {};
   Transform transform;
 
-  static constexpr int kPlayerControlled = 0;
-  static constexpr int kPowerOperator = 1;
-  static constexpr int kMiner = 2;
-  static constexpr int kEngineer = 3;
-  static constexpr int kTurretOperator = 4;
-  static constexpr int kEnemy = 5;
   int kind = kPlayerControlled;
 
   int ship = 0;

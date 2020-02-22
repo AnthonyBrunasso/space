@@ -76,28 +76,28 @@ ThinkAI()
     Command c = {kUaNone};
 
     switch (unit->kind) {
-      case Unit::kPlayerControlled:
+      case kPlayerControlled:
         // Unit awaits human orders
         continue;
-      case Unit::kPowerOperator:
+      case kPowerOperator:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_power) c = (Command{kUaMove, v3fModule(mod), i});
         }
         break;
-      case Unit::kMiner:
+      case kMiner:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_mine) c = (Command{kUaMove, v3fModule(mod), i});
         }
         break;
-      case Unit::kEngineer:
+      case kEngineer:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_engine) c = (Command{kUaMove, v3fModule(mod), i});
         }
         break;
-      case Unit::kTurretOperator:
+      case kTurretOperator:
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
           if (mod->mod_turret) c = (Command{kUaMove, v3fModule(mod), i});
@@ -113,7 +113,7 @@ ThinkAI()
       }
     }
 
-    if (unit->kind == Unit::kPlayerControlled) continue;
+    if (unit->kind == kPlayerControlled) continue;
 
     PushCommand(c);
   }
@@ -634,7 +634,7 @@ Update()
         new_unit->transform.scale = scale;
         memcpy(new_unit->acurrent, attrib, sizeof(attrib));
         // Everybody is unique!
-        new_unit->kind = Unit::kPowerOperator;
+        new_unit->kind = kPowerOperator;
 
         *c = kZeroConsumable;
       } else {

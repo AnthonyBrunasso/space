@@ -188,7 +188,7 @@ Hud(v2f screen)
   uint64_t selected = UINT64_MAX;
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
-    if (unit->kind != Unit::kPlayerControlled) continue;
+    if (unit->kind != kPlayerControlled) continue;
     selected = i;
     break;
   }

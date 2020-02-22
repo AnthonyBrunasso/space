@@ -121,7 +121,7 @@ InitializeScenario(bool reset_features = true)
 }
 
 void
-ResetScenario(bool reset_features = true)
+ResetScenario(bool reset_features)
 {
   // TODO (AN): GAME_QUEUE not in the registry
   kReadCommand = 0;

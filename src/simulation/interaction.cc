@@ -97,7 +97,7 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
   if (enable_game_menu) {
     imui::Indent(2);
     if (imui::Text("Reset Game", debug_options).clicked) {
-      Reset();
+      Reset(kNetworkState.game_id);
     }
     static bool scenario_menu = false;
     if (imui::Text("Scenario", debug_options).clicked) {
@@ -108,7 +108,7 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
       for (int i = 0; i < Scenario::kMaxScenario; ++i) {
         if (imui::Text(kScenarioNames[i], debug_options).clicked) {
           kScenario.type = (Scenario::Type)i;
-          Reset();
+          Reset(kNetworkState.game_id);
         }
       }
       imui::Indent(-2);

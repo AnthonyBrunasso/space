@@ -31,6 +31,8 @@ struct NetworkState {
   const char* server_port = "9845";
   uint64_t num_players = 1;
   // Unique id for this game
+  uint64_t game_id;
+  // Unique local player id for this game
   uint64_t player_id;
   // Total players in this game
   uint64_t player_count;
@@ -97,6 +99,7 @@ NetworkSetup()
       "] \n",
       (size_t)ns->player_id, (size_t)ns->player_count, (size_t)ns->game_id);
 
+  kNetworkState.game_id = ns->game_id;
   kNetworkState.player_id = ns->player_id;
   kNetworkState.player_count = ns->player_count;
 

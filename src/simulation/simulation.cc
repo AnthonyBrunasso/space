@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdio>
+#include <cstdlib>
 
 #include "platform/macro.h"
 #include "platform/x64_intrin.h"
@@ -52,9 +53,10 @@ Initialize(uint64_t player_count)
 }
 
 void
-Reset()
+Reset(uint64_t seed)
 {
-  ResetScenario();
+  srand(seed);
+  ResetScenario(true);
 }
 
 bool
@@ -137,7 +139,6 @@ ThinkAI()
     }
 
     if (unit->kind == kPlayerControlled) continue;
-
 
     PushCommand(c);
   }
@@ -544,7 +545,8 @@ Decide()
         int target = SelectUnit(c.destination);
         BB_SET(unit->bb, kUnitTarget, target);
       } break;
-      default: break;
+      default:
+        break;
     }
   }
 
@@ -653,8 +655,8 @@ Update()
         continue;
       }
 
-      v3f new_dest = (*dest * near_goal) +
-                     (TilePosToWorld(path->tile[1]) * !near_goal);
+      v3f new_dest =
+          (*dest * near_goal) + (TilePosToWorld(path->tile[1]) * !near_goal);
       move_dir += math::Normalize(new_dest.xy() - transform->position.xy()) *
                   kMovementScaling;
       transform->position += move_dir;

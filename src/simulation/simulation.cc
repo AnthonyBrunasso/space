@@ -598,7 +598,10 @@ Update()
       v2i end = WorldToTilePos(unit->data.destination);
 
       auto* path = PathTo(tilepos, end);
-      if (!path) continue;
+      if (!path) {
+        unit->uaction = kUaNone;
+        continue;
+      }
 
       bool near_goal = (path->size == 1);
       v3f move_dir = TileAvoidWalls(tilepos) * !near_goal;
@@ -609,9 +612,10 @@ Update()
         continue;
       }
 
-      move_dir +=
-          math::Normalize(unit->data.destination - transform->position.xy()) *
-          kMovementScaling;
+      v3f dest = (unit->data.destination * near_goal) +
+                 (TilePosToWorld(path->tile[1]) * !near_goal);
+      move_dir += math::Normalize(dest.xy() - transform->position.xy()) *
+                  kMovementScaling;
       transform->position += move_dir;
     }
   }

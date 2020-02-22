@@ -38,9 +38,18 @@ SelectUnit(v3f world)
   return kMaxUnit;
 }
 
-bool
-Initialize(uint64_t player_count)
+void
+Reset(uint64_t seed)
 {
+  srand(seed);
+  ResetScenario(true);
+}
+
+bool
+Initialize(uint64_t player_count, uint64_t seed)
+{
+  Reset(seed);
+
   for (int i = 0; i < player_count; ++i) UsePlayer();
 
   for (int i = 0; i < kUsedPlayer; ++i) {
@@ -50,13 +59,6 @@ Initialize(uint64_t player_count)
   InitializeScenario();
 
   return true;
-}
-
-void
-Reset(uint64_t seed)
-{
-  srand(seed);
-  ResetScenario(true);
 }
 
 bool

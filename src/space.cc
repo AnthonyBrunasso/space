@@ -141,7 +141,8 @@ main(int argc, char** argv)
   }
 
   // Game init
-  if (!simulation::Initialize(kNetworkState.player_count)) {
+  if (!simulation::Initialize(kNetworkState.player_count,
+                              kNetworkState.game_id)) {
     return 1;
   }
 

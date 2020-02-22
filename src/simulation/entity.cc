@@ -17,12 +17,20 @@
 #define DECLARE_GAME_TYPE_WITH_ID(type, max_count)                       \
   DECLARE_ARRAY(type, max_count)                                         \
   static int kAutoIncrementId##type = 0;                                 \
+                                                                         \
   type* UseId##type() {                                                  \
     type* t = Use##type();                                               \
     if (!t) return nullptr;                                              \
     t->id = kAutoIncrementId##type;                                      \
     ++kAutoIncrementId##type;                                            \
     return t;                                                            \
+  }                                                                      \
+                                                                         \
+  type* Find##type(int id) {                                             \
+    for (int i = 0; i < kUsed##type; ++i) {                              \
+      if (k##type[i].id == id) return &k##type[i];                       \
+    }                                                                    \
+    return nullptr;                                                      \
   }                                                                      \
   static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type, \
                                     max_count, sizeof(type));

@@ -26,8 +26,8 @@ bool
 ShouldAttack(uint64_t unit, uint64_t target)
 {
   if (unit == kMaxUnit || target == kMaxUnit) return false;
-  Unit* controlled_unit = &kUnit[unit];
-  Unit* target_unit = &kUnit[target];
+  Unit* controlled_unit = FindUnit(unit);
+  Unit* target_unit = FindUnit(target);
   if (target_unit->kind != kEnemy) return false;
   return true;
 }
@@ -36,16 +36,16 @@ void
 ControlUnit(uint64_t unit_id)
 {
   for (int i = 0; i < kUsedUnit; ++i) {
-    bool is_unit = i == unit_id;
+    bool is_unit = kUnit[i].id == unit_id;
     kUnit[i].kind = !is_unit * (i + 1);
   }
 }
 
 unsigned
-UnitIndex()
+UnitId()
 {
   for (int i = 0; i < kUsedUnit; ++i) {
-    if (!kUnit[i].kind) return i;
+    if (!kUnit[i].kind) return kUnit[i].id;
   }
   return kMaxUnit;
 }
@@ -185,14 +185,14 @@ Hud(v2f screen)
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     if (unit->kind != kPlayerControlled) continue;
-    selected = i;
+    selected = unit->id;
     break;
   }
 
   if (selected > kUsedUnit) return;
   constexpr int MAX_SELECTED_TEXT = CREWA_MAX + 3;
   char selected_text[MAX_SELECTED_TEXT][64];
-  Unit* unit = &kUnit[selected];
+  Unit* unit = FindUnit(selected);
   {
     int t = 0;
     for (; t < CREWA_MAX; ++t) {
@@ -259,14 +259,14 @@ ControlEvent(const PlatformEvent* event, Player* player)
         uint64_t unit = SelectUnit(pos);
         ControlUnit(unit);
       } else if (event->button == BUTTON_RIGHT) {
-        uint64_t unit = UnitIndex();
+        uint64_t unit = UnitId();
         uint64_t target = SelectUnit(pos);
         if (ShouldAttack(unit, target)) {
           LOGFMT("Order attack [%lu, %lu]", unit, target);
-          if (unit < kUsedUnit) PushCommand({kUaAttack, pos, UnitIndex()});
+          if (unit < kUsedUnit) PushCommand({kUaAttack, pos, UnitId()});
         } else {
           LOGFMT("Order move [%lu]", unit);
-          if (unit < kUsedUnit) PushCommand({kUaMove, pos, UnitIndex()});
+          if (unit < kUsedUnit) PushCommand({kUaMove, pos, UnitId()});
         }
       }
     } break;

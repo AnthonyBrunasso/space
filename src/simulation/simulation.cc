@@ -30,7 +30,7 @@ SelectUnit(v3f world)
     Unit* unit = &kUnit[i];
 
     if (v3fDsq(unit->transform.position, world) < kDsqSelect) {
-      return i;
+      return unit->id;
     }
   }
 
@@ -168,8 +168,8 @@ ThinkShip()
             if (operator_save_power(unit, kShip[i].power_delta)) {
               kShip[0].power_delta = 0.0f;
               LOGFMT(
-                  "Unit %lu prevented the power surge from damaging the ship.",
-                  unit - kUnit);
+                  "Unit %i prevented the power surge from damaging the ship.",
+                  unit->id);
               break;
             }
           }
@@ -522,7 +522,7 @@ Decide()
 {
   while (CountCommand()) {
     Command c = PopCommand();
-    Unit* unit = &kUnit[c.unit];
+    Unit* unit = FindUnit(c.unit);
     // Kind 0 accepts newest orders
     if (unit->kind * unit->uaction) continue;
     unit->uaction = c.type;

@@ -89,7 +89,7 @@ AlignToGrid(v2f grid, math::Rectf* world)
 }
 
 void
-RenderCrew(v2f mouse)
+RenderCrew()
 {
   using namespace simulation;
 
@@ -131,17 +131,6 @@ RenderCrew(v2f mouse)
     }
   }
 
-  // Hover selection
-  v2i mouse_grid = WorldToTilePos(mouse);
-  float dsq;
-  v3fNearTransform(mouse, GAME_ITER(Unit, transform), &dsq);
-  if (dsq < kDsqSelect) {
-    // Highlight the unit that would be selected on mouse click
-    rgg::RenderRectangle(TilePosToWorld(mouse_grid),
-                         v3f(1.f / 2.f, 1.f / 2.f, 1.f), kDefaultRotation,
-                         v4f(1.0f, 1.0f, 1.0f, .45f));
-  }
-
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     if (unit->uaction != kUaMove) continue;
@@ -165,7 +154,7 @@ RenderCrew(v2f mouse)
 }
 
 void
-Render(const math::Rectf visible_world, v2f mouse, v2f screen)
+Render(const math::Rectf visible_world, v2f screen)
 {
   using namespace simulation;
 
@@ -279,10 +268,22 @@ Render(const math::Rectf visible_world, v2f mouse, v2f screen)
 
   for (int i = 0; i < kUsedPlayer; ++i) {
     Player* p = &kPlayer[i];
+    // Hover selection
+    v2i mouse_grid = WorldToTilePos(p->mouse);
+    float dsq;
+    v3fNearTransform(p->mouse, GAME_ITER(Unit, transform), &dsq);
+    if (dsq < kDsqSelect) {
+      // Highlight the unit that would be selected on mouse click
+      rgg::RenderRectangle(TilePosToWorld(mouse_grid),
+                           v3f(1.f / 2.f, 1.f / 2.f, 1.f), kDefaultRotation,
+                           v4f(1.0f, 1.0f, 1.0f, .45f));
+    }
+
     if (!p->mod_placement) continue;
+    // TODO (AN): Module placement
   }
 
-  RenderCrew(mouse);
+  RenderCrew();
 
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];

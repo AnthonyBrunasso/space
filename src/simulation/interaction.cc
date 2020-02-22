@@ -55,7 +55,7 @@ UnitIndex()
 }
 
 void
-DebugPanel(const v3f& my_mouse, const Stats& stats, uint64_t frame_target_usec)
+DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
 {
   auto sz = window::GetWindowSize();
 #define BUFFER_SIZE 64
@@ -81,8 +81,8 @@ DebugPanel(const v3f& my_mouse, const Stats& stats, uint64_t frame_target_usec)
     imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE, "Window Size: %ix%i", (int)sz.x, (int)sz.y);
     imui::Text(buffer);
-    snprintf(buffer, BUFFER_SIZE, "Mouse Pos In World: (%.1f,%.1f)", my_mouse.x,
-             my_mouse.y);
+    snprintf(buffer, BUFFER_SIZE, "Mouse Pos In World: (%.1f,%.1f)",
+             player.mouse.x, player.mouse.y);
     imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE, "Input hash: 0x%lx", kInputHash);
     imui::Text(buffer);

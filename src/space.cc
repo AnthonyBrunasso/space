@@ -38,6 +38,13 @@ GetCamera(uint64_t player_id)
   return &kPlayer[player_id].camera;
 }
 
+v3f
+MyScreenToWorld(v2f xy)
+{
+  return camera::ScreenToWorldSpace(GetCamera(kNetworkState.player_id),
+                                    v3f(xy - window::GetWindowSize() * 0.5f));
+}
+
 void
 GatherWindowInput(InputBuffer* input_buffer)
 {
@@ -62,7 +69,8 @@ GatherWindowInput(InputBuffer* input_buffer)
 
   // Always append an estimate of the the local mouse cursor
   input_buffer->input_event[event_count].type = MOUSE_POSITION;
-  input_buffer->input_event[event_count].position = window::GetCursorPosition();
+  input_buffer->input_event[event_count].position =
+      MyScreenToWorld(window::GetCursorPosition()).xy();
   event_count += 1;
 
   input_buffer->used_input_event = event_count;
@@ -90,13 +98,6 @@ SetProjection()
 #endif
   rgg::GetObserver()->projection =
       math::Ortho(size.x, 0.f, size.y, 0.f, -100.f, 0.f);
-}
-
-v3f
-MyScreenToWorld(v2f xy)
-{
-  return camera::ScreenToWorldSpace(GetCamera(kNetworkState.player_id),
-                                    v3f(xy - window::GetWindowSize() * 0.5f));
 }
 
 int
@@ -221,17 +222,16 @@ main(int argc, char** argv)
 
 #ifndef HEADLESS
     // Misc debug/feedback
-    v3f mouse = MyScreenToWorld(window::GetCursorPosition());
     const v2f dims = window::GetWindowSize();
-    simulation::DebugPanel(mouse, kGameStats, kGameState.frame_target_usec);
+    simulation::DebugPanel(kPlayer[kNetworkState.player_id], kGameStats,
+                           kGameState.frame_target_usec);
     simulation::LogPanel();
     simulation::Hud(dims);
 
     // The bottom left and top right of the screen with regards to the camera.
     v3f top_right = MyScreenToWorld(dims);
     v3f bottom_left = MyScreenToWorld({0.f, 0.f});
-    gfx::Render(math::Rectf{bottom_left.xy(), top_right.xy()}, mouse.xy(),
-                dims);
+    gfx::Render(math::Rectf{bottom_left.xy(), top_right.xy()}, dims);
 #endif
     imui::Reset();
 

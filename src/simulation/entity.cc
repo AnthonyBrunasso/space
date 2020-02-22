@@ -172,8 +172,8 @@ struct Command {
 DECLARE_GAME_QUEUE(Command, 16);
 
 struct Player {
-  Camera camera;
-  v2f mouse;
+  Camera camera;  // This assumes fixed dimension window
+  v2f mouse;      // Cursor position in world
   unsigned mod_placement : 1;
 };
 DECLARE_GAME_TYPE(Player, MAX_PLAYER);

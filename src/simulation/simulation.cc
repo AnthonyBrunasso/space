@@ -33,15 +33,13 @@ Reset(uint64_t seed)
 bool
 Initialize(uint64_t player_count, uint64_t seed)
 {
-  Reset(seed);
-
   for (int i = 0; i < player_count; ++i) UsePlayer();
 
   for (int i = 0; i < kUsedPlayer; ++i) {
     camera::InitialCamera(&kPlayer[i].camera);
   }
 
-  InitializeScenario();
+  Reset(seed);
 
   return true;
 }
@@ -537,8 +535,8 @@ MoveTowards(int unit_idx, v2i tilepos, v3f dest, UnitAction set_on_arrival)
     return;
   }
 
-  v3f new_dest = (dest * near_goal) +
-                 (TilePosToWorld(path->tile[1]) * !near_goal);
+  v3f new_dest =
+      (dest * near_goal) + (TilePosToWorld(path->tile[1]) * !near_goal);
   move_dir += math::Normalize(new_dest.xy() - unit->transform.position.xy()) *
               kMovementScaling;
   unit->transform.position += move_dir;

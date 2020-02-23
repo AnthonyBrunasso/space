@@ -9,9 +9,36 @@ namespace simulation
 {
 static uint64_t kInputHash = DJB2_CONST;
 
+struct SelectionBox {
+  v2f start;
+  math::Rect rect;
+};
+
+// Store both to avoid needing to calculate scale between screen and world.
+static SelectionBox kSelectionBoxScreen;
+static SelectionBox kSelectionBoxWorld;
 static bool kRenderSelectionBox = false;
-static v2f kSelectionBoxLocation;
-static math::Rect kSelectionBox;
+
+void
+UpdateBoxSelectionOnPosition(v2f screen, v3f world)
+{
+  v2f sd = screen - kSelectionBoxScreen.start;
+  kSelectionBoxScreen.rect = math::Rect(
+      kSelectionBoxScreen.start.x, kSelectionBoxScreen.start.y, sd.x, sd.y);
+  v2f wd = world.xy() - kSelectionBoxWorld.start;
+  kSelectionBoxWorld.rect = math::Rect(
+      kSelectionBoxWorld.start.x, kSelectionBoxWorld.start.y, wd.x, wd.y);
+}
+
+void
+UpdateBoxSelectionOnClick(v2f screen, v3f world)
+{
+  kSelectionBoxScreen.start = screen;
+  kSelectionBoxWorld.start = world.xy();
+  kSelectionBoxScreen.rect = math::Rect(screen.x, screen.y, 0.0f, 0.0f);
+  kSelectionBoxWorld.rect = math::Rect(world.x, world.y, 0.0f, 0.0f);
+  kRenderSelectionBox = true;
+}
 
 bool
 ShipFtlReady()
@@ -248,9 +275,7 @@ ControlEvent(const PlatformEvent* event, Player* player)
   switch (event->type) {
     case MOUSE_POSITION: {
       player->mouse = event->world_position;
-      v2f d = event->position - kSelectionBoxLocation;
-      kSelectionBox = math::Rect(
-          kSelectionBoxLocation.x, kSelectionBoxLocation.y, d.x, d.y);
+      UpdateBoxSelectionOnPosition(event->position, player->mouse);
     } break;
     case MOUSE_WHEEL: {
       // TODO(abrunasso): Why does this need to be negative?
@@ -258,13 +283,13 @@ ControlEvent(const PlatformEvent* event, Player* player)
     } break;
     case MOUSE_DOWN: {
       imui::MouseClick(event->position, event->button);
-      kSelectionBoxLocation = event->position;
-      kSelectionBox = math::Rect(
-          kSelectionBoxLocation.x, kSelectionBoxLocation.y, 0.0f, 0.0f);
-      kRenderSelectionBox = true;
       v3f pos = camera::ScreenToWorldSpace(
           &player->camera,
           v3f(event->position - window::GetWindowSize() * 0.5f));
+
+      if (event->button == BUTTON_LEFT) {
+        UpdateBoxSelectionOnClick(event->position, pos);
+      }
 
       if (kPlayer[kNetworkState.player_id].mod_placement) {
         unsigned mkind = kPlayer[kNetworkState.player_id].mod_placement;
@@ -295,6 +320,11 @@ ControlEvent(const PlatformEvent* event, Player* player)
       }
     } break;
     case MOUSE_UP: {
+      if (kRenderSelectionBox) {
+        uint32_t unit =
+            SelectUnit(math::OrientToAabb(kSelectionBoxWorld.rect));
+        ControlUnit(unit);
+      }
       kRenderSelectionBox = false;
     } break;
     case KEY_DOWN: {
@@ -362,7 +392,7 @@ ProcessSimulation(int player_id, uint64_t event_count,
   }
 
   if (kRenderSelectionBox) {
-    imui::Box(kSelectionBox, v4f(0.19f, 0.803f, 0.19f, 0.40f),
+    imui::Box(kSelectionBoxScreen.rect, v4f(0.19f, 0.803f, 0.19f, 0.40f),
               v4f(0.19f, 0.803f, 0.19f, 1.f));
   }
 }

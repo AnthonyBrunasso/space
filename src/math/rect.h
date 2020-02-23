@@ -24,4 +24,20 @@ struct Rect {
   float height;
 };
 
+// Orients a rect so that it has positive widths and heights.
+Rect
+OrientToAabb(const math::Rect& rect)
+{
+  Rect r = rect;
+  if (rect.height < 0.f) {
+    r.y += rect.height;
+    r.height *= -1.f;
+  }
+  if (rect.width < 0.f) {
+    r.x += rect.width;
+    r.width *= -1.f;
+  }
+  return r;
+}
+
 }

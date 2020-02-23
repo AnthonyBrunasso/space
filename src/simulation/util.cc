@@ -57,6 +57,18 @@ SelectUnit(v3f world)
   return kInvalidUnit;
 }
 
+uint32_t
+SelectUnit(const math::Rect& rect)
+{
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* unit = &kUnit[i];
+    // TODO(abrunasso): Change for multi select.
+    if (PointInRect(unit->transform.position.xy(), rect)) return unit->id;
+  }
+
+  return kInvalidUnit;
+}
+
 bool
 InRange(uint64_t unit, uint64_t target)
 {

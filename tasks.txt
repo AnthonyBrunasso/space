@@ -13,14 +13,24 @@ Delete items when they are done.
 ---------- TASKS ---------- 
 
 gameplay -
-  crew spawning
   damage repair, hull repair
   ship invaders
-  support N modules
-  build modules (show radius of effects)
   hover select can show module radius (turret)
   crew exhaustion: restoration via beds and cafeteria
   prototype building ship extensions while in space
+  multiselect (boxing)
+  attackmove Command
+  hostility on shroud reveal
+  Combat with derelict ship inhabitants
+  New Scenario for multiship (instanced tilemaps)
+  Pod transfer to derelict ship
+  Unit inventory for grabbing minerals
+  Ftl should leave pod behind
+  Start ship engine and leave derelict ship behind
+  Module customization with preconceived location
+  Asteroid field on level 2
+  Missile pursuit on level 3
+  Ships are like base expansions in rts
 
 ai -
   c file with branching?
@@ -68,3 +78,10 @@ network -
   rewrite udp_ack flow (severe packet loss cases for 2p+)
   shrink netqueue depth under good conditions
   pause frames (eventually)
+
+Tutorial story -
+  Looting a derelict ship (no pressure, have to get ship working)
+  Gather things
+  fight some crew combats
+  Return home and build batteries, engines
+  

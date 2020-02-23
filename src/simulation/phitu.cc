@@ -4,8 +4,9 @@ namespace simulation
 {
 
 void
-ProjectileShootLaserAt(v3f at, float proximity, Unit* unit, Projectile* proj)
+ProjectileShootLaserAt(v3f at, float proximity, Unit* unit)
 {
+  Projectile* proj = UseProjectile();
   proj->dir = math::Normalize(at - unit->transform.position);
   proj->start = unit->transform.position + proj->dir * 10.f;
   proj->end = at;

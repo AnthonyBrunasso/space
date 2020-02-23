@@ -677,8 +677,7 @@ Update()
         continue;
       }
 
-      ProjectileShootLaserAt(
-          target_unit->transform.position, 7.5f, unit, UseProjectile());
+      ProjectileShootLaserAt(target_unit->transform.position, 7.5f, unit);
     }
   }
 

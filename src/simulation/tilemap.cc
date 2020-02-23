@@ -20,11 +20,12 @@ constexpr int MAX_POD = 3;
 enum TileType {
   kTileOpen = 0,
   kTileBlock = 1,
-  kTileEngine = 2,
-  kTilePower = 3,
-  kTileMine = 4,
-  kTileVacuum = 5,
-  kTileTurret = 6,
+  kTileModule = 2,
+  kTilePower = kTileModule + kModPower,
+  kTileEngine = kTileModule + kModEngine,
+  kTileMine = kTileModule + kModMine,
+  kTileTurret = kTileModule + kModTurret,
+  kTileVacuum = 6,
   kTileConsumable = 7,
 };
 
@@ -80,16 +81,16 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
   {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 1, 7, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 1, 7, 0, 0, 0, 0, 0, 6, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0},
+  {0, 1, 7, 0, 0, 0, 0, 0, 5, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0},
   {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0},
   {0, 1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0},
   {0, 1, 1, 1, 1, 1, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0},
   {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0},
   {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0},
-  {0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0},
-  {0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 1, 0},
-  {0, 0, 0, 0, 0, 1, 2, 0, 0, 7, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0},
+  {0, 0, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0},
+  {0, 0, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 1, 0},
+  {0, 0, 0, 0, 0, 1, 3, 0, 0, 7, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0},
   {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0},
   {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0},
   {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0},
@@ -134,35 +135,20 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
           Module* t = UseModule();
           t->cx = tile->cx;
           t->cy = tile->cy;
-          t->mod_power = 1;
+          t->mkind = kModPower;
         }
 
         continue;
       }
       switch (kDefaultMap[i][j]) {
-        case kTileEngine: {
-          Module* t = UseModule();
-          t->cx = tile->cx;
-          t->cy = tile->cy;
-          t->mod_engine = 1;
-        } break;
-        case kTilePower: {
-          Module* t = UseModule();
-          t->cx = tile->cx;
-          t->cy = tile->cy;
-          t->mod_power = 1;
-        } break;
-        case kTileMine: {
-          Module* t = UseModule();
-          t->cx = tile->cx;
-          t->cy = tile->cy;
-          t->mod_mine = 1;
-        } break;
+        case kTilePower:
+        case kTileEngine:
+        case kTileMine:
         case kTileTurret: {
           Module* t = UseModule();
           t->cx = tile->cx;
           t->cy = tile->cy;
-          t->mod_turret = 1;
+          t->mkind = kDefaultMap[i][j] - kTileModule;
         } break;
       };
     }

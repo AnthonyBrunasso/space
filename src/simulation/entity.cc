@@ -55,24 +55,22 @@ enum UnitAction {
 };
 enum UnitKind {
   kPlayerControlled,
-  kPowerOperator,
-  kMiner,
-  kEngineer,
-  kTurretOperator,
+  kOperator,
+  kMilitary,
 };
+enum ModuleKind {
+  kModPower = 0,
+  kModEngine,
+  kModMine,
+  kModTurret,
+  kModCount,
+};
+constexpr unsigned kModBits = 2;
 enum UnitAlliance { kCrew, kEnemy };
 enum ShipAiGoals {
   kShipAiSpawnPod,
   kShipAiPowerSurge,
   kShipAiGoals = 64,
-};
-enum UnitAiGoals {
-  kUnitAiPower = 0,
-  kUnitAiMine,
-  kUnitAiThrust,
-  kUnitAiTurret,
-  kUnitAiSavePower,
-  kUnitAiGoals = 64,
 };
 enum UnitBbEntry {
   kUnitTarget = 0,
@@ -81,7 +79,7 @@ enum UnitBbEntry {
 };
 // TODO (AN): Document/test priority behaviors
 enum PodAiGoals {
-  kPodAiLostPower,
+  kPodAiLostControl,
   kPodAiUnmanned,
   kPodAiGather,
   kPodAiUnload,
@@ -163,18 +161,16 @@ struct Unit {
   unsigned spacesuit : 1;
   unsigned inspace : 1;
   unsigned uaction : 3;
+  unsigned mskill : kModBits;
 };
 
 constexpr unsigned kUnitBits = 4;
 DECLARE_GAME_TYPE_WITH_ID(Unit, 1 << kUnitBits);
 struct Ship {
   uint64_t think_flags = 0;
-  uint64_t crew_think_flags = 0;
+  uint64_t operate_flags = 0;
   uint64_t danger = 0;
-  float sys_power;
-  float sys_engine;
-  float sys_mine;
-  float sys_turret;
+  float sys[kModCount];
   float used_power;
   float power_delta;
   uint64_t running;
@@ -209,10 +205,7 @@ DECLARE_GAME_TYPE(Projectile, 16);
 struct Module {
   unsigned cx : 5;
   unsigned cy : 5;
-  unsigned mod_power : 1;
-  unsigned mod_engine : 1;
-  unsigned mod_mine : 1;
-  unsigned mod_turret : 1;
+  unsigned mkind : kModBits;
 };
 DECLARE_GAME_TYPE(Module, 32);
 
@@ -226,7 +219,7 @@ DECLARE_GAME_QUEUE(Command, 16);
 struct Player {
   Camera camera;  // This assumes fixed dimension window
   v2f mouse;      // Cursor position in world
-  unsigned mod_placement : 1;
+  unsigned mod_placement : kModBits;
 };
 DECLARE_GAME_TYPE(Player, MAX_PLAYER);
 

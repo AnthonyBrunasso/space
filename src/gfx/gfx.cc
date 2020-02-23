@@ -103,20 +103,11 @@ RenderCrew()
       case kPlayerControlled:
         color = v4f(0.26f, 0.33f, 0.68f, 1.f);
         break;
-      case kPowerOperator:
+      case kOperator:
         color = v4f(0.50f, .33f, .33f, 1.f);
         break;
-      case kMiner:
-        color = v4f(0.66f, 0.33f, 0.33f, 1.f);
-        break;
-      case kEngineer:
-        color = v4f(0.74f, 0.33f, 0.33f, 1.f);
-        break;
-      case kTurretOperator:
-        color = v4f(0.86f, 0.33f, 0.33f, 1.f);
-        break;
-      case 5:
-        color = v4f(0.99f, 0.33f, 0.33f, 1.f);
+      case kMilitary:
+        color = v4f(0.80, 0.10f, 0.10f, 1.f);
         break;
       default:
         continue;
@@ -155,6 +146,23 @@ RenderCrew()
   }
 }
 
+v3f
+ModuleColor(unsigned mkind)
+{
+  switch (mkind) {
+    case kModPower:
+      return v3f(0.0f, 0.0f, 0.75f);
+    case kModEngine:
+      return v3f(1.0f, 0.0f, 1.f);
+    case kModMine:
+      return v3f(0.0, 0.75f, 0.0f);
+    case kModTurret:
+      return v3f(1.f, 0.f, 0.f);
+  }
+
+  return v3f();
+}
+
 void
 Render(const math::Rectf visible_world, v2f screen)
 {
@@ -170,19 +178,18 @@ Render(const math::Rectf visible_world, v2f screen)
   AlignToGrid(grid1, &world1);
   rgg::RenderGrid(grid1, world1, v4f(0.050f, 0.215f, 0.050f, 0.45f));
 
-  // Base ship
-  float sys_power = .0f;
-  float sys_engine = .0f;
-  float sys_mine = .0f;
-  float sys_turret = 0.f;
+  // Unpower modules are visible
   constexpr float min_visibility = .2f;
-  if (kUsedShip) {
-    sys_power = kShip[0].sys_power;
 
-    sys_power = CLAMPF(sys_power, min_visibility, 1.0f);
-    sys_engine = CLAMPF(kShip[0].sys_engine, min_visibility, sys_power);
-    sys_mine = CLAMPF(kShip[0].sys_mine, min_visibility, sys_power);
-    sys_turret = CLAMPF(kShip[0].sys_turret, min_visibility, sys_power);
+  for (int i = 0; i < kUsedModule; ++i) {
+    Module* module = &kModule[i];
+    v3f mcolor = ModuleColor(module->mkind);
+    mcolor *= CLAMPF(min_visibility, kShip[0].sys[module->mkind], 1.0f);
+    v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
+    ;
+    rgg::RenderRectangle(
+        v3f(simulation::TilePosToWorld(v2i{(int)module->cx, (int)module->cy})),
+        v3f(1.f / 2.f, 1.f / 2.f, 1.f), kDefaultRotation, color);
   }
 
   static float escale = .1f;
@@ -190,38 +197,24 @@ Render(const math::Rectf visible_world, v2f screen)
     escale = .1f;
   }
 
-  for (int i = 0; i < kUsedModule; ++i) {
-    Module* module = &kModule[i];
-    v4f color;
-    if (module->mod_mine) {
-      color = v4f(0.0, 0.75f * sys_mine, 0.0f, 1.0f);
-    } else if (module->mod_power) {
-      color = v4f(0.0f, 0.0f, 0.75f * sys_power, 1.0f);
-    } else if (module->mod_engine) {
-      color = v4f(1.0f * sys_engine, 0.0f, 1.f * sys_engine, 1.0f);
-    } else if (module->mod_turret) {
-      color = v4f(1.f * sys_turret, 0.f, 0.f, 1.f);
-    } else {
-      continue;
-    }
-    rgg::RenderRectangle(
-        v3f(simulation::TilePosToWorld(v2i{(int)module->cx, (int)module->cy})),
-        v3f(1.f / 2.f, 1.f / 2.f, 1.f), kDefaultRotation, color);
-  }
-
   {
     v3f world;
     for (int i = 0; i < kUsedModule; ++i) {
       Module* mod = &kModule[i];
-      if (!mod->mod_engine) continue;
+      if (mod->mkind != kModEngine) continue;
+      float engine_power =
+          fminf(kShip[0].sys[kModEngine], kShip[0].sys[kModPower]);
+      float visibility = fmaxf(min_visibility, engine_power);
+      v3f mcolor = ModuleColor(mod->mkind);
+      mcolor *= visibility;
       v2i hack = {-1, 2};
       world = TilePosToWorld(v2i(mod->cx, mod->cy) + hack);
-      v4f engine_color = v4f(1.f * sys_engine, 0.f, 1.f * sys_engine, 1.f);
+      v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
       rgg::RenderTag(kGfx.exhaust_tag, world, v3f(escale, 1.f, 1.f),
-                     kDefaultRotation, engine_color);
+                     kDefaultRotation, color);
       rgg::RenderTag(kGfx.exhaust_tag, world,
                      v3f(fmodf(escale + 1.f, 2.f), 1.f, 1.f), kDefaultRotation,
-                     engine_color);
+                     color);
       escale += .1f;
       break;
     }
@@ -305,7 +298,7 @@ Render(const math::Rectf visible_world, v2f screen)
 
     for (; j < kUsedModule; ++j) {
       Module* mod = &kModule[j];
-      if (!mod->mod_turret) continue;
+      if (mod->mkind != kModTurret) continue;
       v2f pos = TilePosToWorld(v2i(mod->cx, mod->cy));
       rgg::RenderLine(missile->transform.position, pos,
                       v4f(1.0f, 0.0, 0.0, 1.f));

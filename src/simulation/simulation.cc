@@ -77,55 +77,25 @@ ThinkAI()
 
   for (uint64_t i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
+    if (unit->kind == kPlayerControlled) continue;
+    // shrug, i just like having this guy idle
+    if (unit->spacesuit) continue;
+
     Command c = {kUaNone, v3f(), unit->id};
 
-    switch (unit->kind) {
-      case kPlayerControlled:
-        // Unit awaits human orders
-        continue;
-      case kPowerOperator:
-        for (int k = 0; k < kUsedModule; ++k) {
-          Module* mod = &kModule[k];
-          if (mod->mod_power) {
-            c = (Command{kUaMove, v3fModule(mod), unit->id});
-          }
-        }
-        break;
-      case kMiner:
-        for (int k = 0; k < kUsedModule; ++k) {
-          Module* mod = &kModule[k];
-          if (mod->mod_mine) {
-            c = (Command{kUaMove, v3fModule(mod), unit->id});
-          }
-        }
-        break;
-      case kEngineer:
-        for (int k = 0; k < kUsedModule; ++k) {
-          Module* mod = &kModule[k];
-          if (mod->mod_engine) {
-            c = (Command{kUaMove, v3fModule(mod), unit->id});
-          }
-        }
-        break;
-      case kTurretOperator:
-        for (int k = 0; k < kUsedModule; ++k) {
-          Module* mod = &kModule[k];
-          if (mod->mod_turret) {
-            c = (Command{kUaMove, v3fModule(mod), unit->id});
-          }
-        }
-        break;
-    };
-
-    for (uint64_t j = 0; j < kUsedModule; ++j) {
-      Module* mod = &kModule[j];
+    for (int k = 0; k < kUsedModule; ++k) {
+      Module* mod = &kModule[k];
+      // Already near a module, operate it
       if (v3fDsq(v3fModule(mod), unit->transform.position) < kDsqOperate) {
         c = (Command{kUaOperate, v3fModule(mod), unit->id});
         break;
       }
+      // Unit seeks a module to apply unique skills
+      if (mod->mkind == unit->mskill) {
+        c = (Command{kUaMove, v3fModule(mod), unit->id});
+        break;
+      }
     }
-
-    if (unit->kind == kPlayerControlled) continue;
 
     PushCommand(c);
   }
@@ -142,7 +112,7 @@ ThinkShip()
 
     if (!kUsedPod) {
       // Ship mining is powererd
-      if (kShip[i].sys_mine >= 1.0f) {
+      if (kShip[i].sys[kModMine] >= 1.0f) {
         think_flags |= FLAG(kShipAiSpawnPod);
       }
     }
@@ -154,7 +124,7 @@ ThinkShip()
         Unit* unit = &kUnit[j];
         for (int k = 0; k < kUsedModule; ++k) {
           Module* mod = &kModule[k];
-          if (!mod->mod_power) continue;
+          if (mod->mkind != kModPower) continue;
           if (v3fDsq(unit->transform.position, v3fModule(mod)) <
               kDsqOperatePod) {
             // Visual
@@ -184,45 +154,14 @@ ThinkShip()
       Unit* unit = &kUnit[j];
       for (int k = 0; k < kUsedModule; ++k) {
         Module* mod = &kModule[k];
-        if (mod->mod_power &&
-            v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperate)
-          satisfied |= FLAG(kUnitAiPower);
+        if (mod->mkind != kModPower && kShip[i].sys[kModPower] < 1.0f) continue;
+
+        if (v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperate)
+          satisfied |= FLAG(mod->mkind);
       }
     }
 
-    if (kShip[i].sys_power >= 1.0f) {
-      for (int j = 0; j < kUsedUnit; ++j) {
-        Unit* unit = &kUnit[j];
-        for (int k = 0; k < kUsedModule; ++k) {
-          Module* mod = &kModule[k];
-          if (mod->mod_engine &&
-              v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperate)
-            satisfied |= FLAG(kUnitAiThrust);
-        }
-      }
-
-      for (int j = 0; j < kUsedUnit; ++j) {
-        Unit* unit = &kUnit[j];
-        for (int k = 0; k < kUsedModule; ++k) {
-          Module* mod = &kModule[k];
-          if (mod->mod_mine &&
-              v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperatePod)
-            satisfied |= FLAG(kUnitAiMine);
-        }
-      }
-
-      for (int j = 0; j < kUsedUnit; ++j) {
-        Unit* unit = &kUnit[j];
-        for (int k = 0; k < kUsedModule; ++k) {
-          Module* mod = &kModule[k];
-          if (mod->mod_turret &&
-              v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperate)
-            satisfied |= FLAG(kUnitAiTurret);
-        }
-      }
-    }
-
-    kShip[i].crew_think_flags = satisfied;
+    kShip[i].operate_flags = satisfied;
   }
 }
 
@@ -276,13 +215,13 @@ ThinkPod()
     // Goal is to return home, unless overidden
     for (int k = 0; k < kUsedModule; ++k) {
       Module* mod = &kModule[k];
-      if (!mod->mod_mine) continue;
+      if (mod->mkind != kModMine) continue;
       goal = TilePosToWorld(v2i(mod->cx, mod->cy));
       break;
     }
 
-    if (kShip[0].sys_mine < .5f) {
-      think_flags |= FLAG(kPodAiLostPower);
+    if (kShip[0].sys[kModMine] < .5f) {
+      think_flags |= FLAG(kPodAiLostControl);
     }
 
     // Stateful return home
@@ -376,32 +315,19 @@ DecideShip()
       pod->think_flags = FLAG(kPodAiUnmanned);
     }
 
-    if (ship->crew_think_flags & FLAG(kUnitAiPower))
-      ship->sys_power += 0.01f;
-    else
-      ship->sys_power += -0.01f;
-    if (ship->crew_think_flags & FLAG(kUnitAiMine))
-      ship->sys_mine += 0.01f;
-    else
-      ship->sys_mine += -0.01f;
-    if (ship->crew_think_flags & FLAG(kUnitAiThrust))
-      ship->sys_engine += 0.01f;
-    else
-      ship->sys_engine += -0.01f;
-    if (ship->crew_think_flags & FLAG(kUnitAiTurret))
-      ship->sys_turret += 0.01f;
-    else
-      ship->sys_turret += -0.01f;
-
-    ship->sys_power = CLAMPF(ship->sys_power, 0.0f, 1.0f);
-    ship->sys_mine = CLAMPF(ship->sys_mine, 0.0f, 1.0f);
-    ship->sys_engine = CLAMPF(ship->sys_engine, 0.0f, 1.0f);
-    ship->sys_turret = CLAMPF(ship->sys_turret, 0.0f, 1.0f);
+    for (int i = 0; i < kModCount; ++i) {
+      if (ship->operate_flags & FLAG(i)) {
+        ship->sys[i] += 0.01f;
+      } else {
+        ship->sys[i] -= 0.01f;
+      }
+      ship->sys[i] = CLAMPF(ship->sys[i], 0.0f, 1.0f);
+    }
 
     float used_power = 0.f;
-    used_power += 20.f * (ship->sys_mine >= 0.3f);
-    used_power += 40.f * (ship->sys_engine >= .3f);
-    used_power += 20.f * (ship->sys_turret >= 0.3f);
+    used_power += 20.f * (ship->sys[kModMine] >= 0.3f);
+    used_power += 40.f * (ship->sys[kModEngine] >= .3f);
+    used_power += 20.f * (ship->sys[kModTurret] >= 0.3f);
     ship->power_delta = fmaxf(used_power - ship->used_power, ship->power_delta);
     ship->used_power = used_power;
 
@@ -463,8 +389,7 @@ DecideMissle()
     Missile* missile = &kMissile[i];
 
     if (missile->explode_frame) {
-      const bool laser_defense =
-          kShip[0].crew_think_flags & FLAG(kUnitAiTurret);
+      const bool laser_defense = kShip[0].operate_flags & FLAG(kModTurret);
 
       if (laser_defense || !MissileHitSimulation(missile)) {
         *missile = kZeroMissile;
@@ -487,7 +412,7 @@ DecidePod()
     uint64_t mineral = 0;
     v3f dir = v3f();
     switch (action) {
-      case kPodAiLostPower:
+      case kPodAiLostControl:
         dir = pod->last_heading;
         break;
       case kPodAiApproach:
@@ -604,7 +529,7 @@ Update()
   for (int i = 0; i < kUsedModule; ++i) {
     Module* m = &kModule[i];
 
-    if (m->mod_power) {
+    if (m->mkind == kModPower) {
       v2i tilepos(m->cx, m->cy);
       v3f world = TilePosToWorld(tilepos);
       // Reveal the shroud
@@ -614,7 +539,7 @@ Update()
       Tile set_bits;
       memset(&set_bits, 0x00, sizeof(Tile));
       set_bits.explored = 1;
-      float tile_world_distance = kTileWidth * 8.0f * kShip[0].sys_power;
+      float tile_world_distance = kTileWidth * 8.0f * kShip[0].sys[kModPower];
       BfsMutate(world, keep_bits, set_bits,
                 tile_world_distance * tile_world_distance);
     }
@@ -695,8 +620,9 @@ Update()
         new_unit->transform.position = cw;
         new_unit->transform.scale = scale;
         memcpy(new_unit->acurrent, attrib, sizeof(attrib));
+        new_unit->kind = kOperator;
         // Everybody is unique!
-        new_unit->kind = kPowerOperator;
+        new_unit->mskill = rand() % kModCount;
 
         *c = kZeroConsumable;
       } else {

@@ -53,8 +53,9 @@ InitializeScenario(bool reset_features = true)
         unit->transform.position = pos[i];
         unit->transform.scale = scale;
         memcpy(unit->acurrent, attrib, sizeof(attrib));
+        unit->kind = kOperator;
         // Everybody is unique!
-        unit->kind = unit->id + 1;
+        unit->mskill = i;
         printf("Create unit id %i\n", unit->id);
       }
       kUnit[4].spacesuit = 1;
@@ -75,7 +76,7 @@ InitializeScenario(bool reset_features = true)
       UseIdUnit();
       kUnit[1].transform.position = v3f(400.f, 300.f, 0.f);
       kUnit[1].transform.scale = v3f(0.25f, 0.25f, 0.f);
-      kUnit[1].kind = kPowerOperator;
+      kUnit[1].kind = kMilitary;
       kUnit[1].alliance = kEnemy;
     } break;
     case Scenario::kSoloMission: {

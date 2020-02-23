@@ -12,7 +12,7 @@ static uint64_t kInputHash = DJB2_CONST;
 bool
 ShipFtlReady()
 {
-  return kShip[0].sys_engine > .5f && kResource[0].mineral >= kFtlCost;
+  return kShip[0].sys[kModEngine] > .5f && kResource[0].mineral >= kFtlCost;
 }
 
 void
@@ -27,7 +27,7 @@ ControlUnit(uint64_t unit_id)
 {
   for (int i = 0; i < kUsedUnit; ++i) {
     bool is_unit = kUnit[i].id == unit_id;
-    kUnit[i].kind = !is_unit * (kUnit[i].id + 1);
+    kUnit[i].kind = !is_unit * (kOperator);
   }
 }
 
@@ -257,13 +257,14 @@ ControlEvent(const PlatformEvent* event, Player* player)
           v3f(event->position - window::GetWindowSize() * 0.5f));
 
       if (kPlayer[kNetworkState.player_id].mod_placement) {
+        unsigned mkind = kPlayer[kNetworkState.player_id].mod_placement;
         kPlayer[kNetworkState.player_id].mod_placement = 0;
         if (event->button == BUTTON_LEFT) {
           v2i tilepos = WorldToTilePos(pos);
           Module* m = UseModule();
           m->cx = tilepos.x;
           m->cy = tilepos.y;
-          m->mod_engine = 1;
+          m->mkind = mkind;
         }
         break;
       }

@@ -41,7 +41,7 @@ ShouldAttack(uint64_t unit, uint64_t target)
   if (unit == kInvalidUnit || target == kInvalidUnit) return false;
   Unit* controlled_unit = FindUnit(unit);
   Unit* target_unit = FindUnit(target);
-  if (target_unit->alliance != kEnemy) return false;
+  if (target_unit->alliance == controlled_unit->alliance) return false;
   return true;
 }
 

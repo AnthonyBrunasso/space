@@ -135,4 +135,16 @@ ResetScenario(bool reset_features)
   InitializeScenario(reset_features);
 }
 
+bool
+ScenarioOver()
+{
+  int sid = kScenario.type;
+  switch (sid) {
+    case Scenario::kGameScenario:
+      return !(kShip[0].running);
+  }
+
+  return false;
+}
+
 }  // namespace simulation

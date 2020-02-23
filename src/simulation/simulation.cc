@@ -574,7 +574,7 @@ Decide()
 bool
 SimulationOver()
 {
-  return !(kShip[0].running);
+  return ScenarioOver();
 }
 
 void

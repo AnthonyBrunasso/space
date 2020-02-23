@@ -247,16 +247,13 @@ ControlEvent(const PlatformEvent* event, Player* player)
   djb2_hash_more((const uint8_t*)event, sizeof(PlatformEvent), &kInputHash);
   switch (event->type) {
     case MOUSE_POSITION: {
-      player->mouse = event->position;
+      player->mouse = event->world_position;
+      v2f d = event->position - start_box;
+      box = math::Rect(start_box.x, start_box.y, d.x, d.y);
     } break;
     case MOUSE_WHEEL: {
       // TODO(abrunasso): Why does this need to be negative?
       player->camera.motion.z = -0.1f * event->wheel_delta;
-    } break;
-    case MOUSE_MOVE: {
-      v2f d = event->position - start_box;
-      box = math::Rect(start_box.x, start_box.y, d.x, d.y);
-      render_box = true;
     } break;
     case MOUSE_DOWN: {
       imui::MouseClick(event->position, event->button);

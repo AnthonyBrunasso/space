@@ -236,23 +236,6 @@ WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
       r_mouse_down = false;
       HandleMouseEvent(false, platform_event, BUTTON_RIGHT);
     } break;
-    case WM_MOUSEMOVE: {
-      DWORD message_pos = GetMessagePos();
-      POINTS ps = MAKEPOINTS(message_pos);
-      POINT p;
-      p.x = ps.x; p.y = ps.y;
-      ScreenToClient(kWindow.hwnd, &p);
-      v2f dims = GetWindowSize();
-      platform_event->position = v2f(p.x, dims.y - p.y);
-      platform_event->type = MOUSE_MOVE;
-      if (l_mouse_down) {
-        platform_event->button = BUTTON_LEFT;
-      } else if (r_mouse_down) {
-        platform_event->button = BUTTON_RIGHT;
-      } else {
-        platform_event->button = BUTTON_UNKNOWN;
-      }
-    } break;
     case WM_MOUSEWHEEL: {
       platform_event->wheel_delta =
         (float)GET_WHEEL_DELTA_WPARAM(wparam) / (float)WHEEL_DELTA;

@@ -12,7 +12,7 @@ static uint64_t kInputHash = DJB2_CONST;
 bool
 ShipFtlReady()
 {
-  return kShip[0].sys_engine > .5f && kShip[0].mineral >= kFtlCost;
+  return kShip[0].sys_engine > .5f && kResource[0].mineral >= kFtlCost;
 }
 
 void
@@ -137,9 +137,9 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
     imui::Indent(-2);
   }
 
-  snprintf(buffer, BUFFER_SIZE, "Minerals: %lu", kShip[0].mineral);
+  snprintf(buffer, BUFFER_SIZE, "Minerals: %lu", kResource[0].mineral);
   imui::Text(buffer);
-  snprintf(buffer, BUFFER_SIZE, "Level: %lu", kShip[0].level);
+  snprintf(buffer, BUFFER_SIZE, "Level: %lu", kResource[0].level);
   imui::Text(buffer);
 
   if (simulation::SimulationOver()) {

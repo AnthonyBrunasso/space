@@ -18,7 +18,8 @@
   DECLARE_ARRAY(type, max_count)                                         \
   static int kAutoIncrementId##type = 0;                                 \
                                                                          \
-  type* UseId##type() {                                                  \
+  type* UseId##type()                                                    \
+  {                                                                      \
     type* t = Use##type();                                               \
     if (!t) return nullptr;                                              \
     t->id = kAutoIncrementId##type;                                      \
@@ -26,7 +27,8 @@
     return t;                                                            \
   }                                                                      \
                                                                          \
-  type* Find##type(int id) {                                             \
+  type* Find##type(int id)                                               \
+  {                                                                      \
     for (int i = 0; i < kUsed##type; ++i) {                              \
       if (k##type[i].id == id) return &k##type[i];                       \
     }                                                                    \
@@ -56,10 +58,7 @@ enum UnitKind {
   kEngineer,
   kTurretOperator,
 };
-enum UnitAlliance {
-  kCrew,
-  kEnemy
-};
+enum UnitAlliance { kCrew, kEnemy };
 enum ShipAiGoals {
   kShipAiSpawnPod,
   kShipAiPowerSurge,
@@ -169,7 +168,6 @@ DECLARE_GAME_TYPE_WITH_ID(Unit, 1 << kUnitBits);
 struct Ship {
   uint64_t think_flags = 0;
   uint64_t crew_think_flags = 0;
-  uint64_t mineral = 0;
   uint64_t danger = 0;
   float sys_power;
   float sys_engine;
@@ -177,12 +175,16 @@ struct Ship {
   float sys_turret;
   float used_power;
   float power_delta;
-  uint64_t level;
-  uint64_t frame;
   uint64_t running;
   unsigned ftl_frame : 6;
 };
 DECLARE_GAME_TYPE(Ship, 1);
+struct Resource {
+  uint64_t mineral = 0;
+  uint64_t frame = 0;
+  uint64_t level;
+};
+DECLARE_GAME_TYPE(Resource, 1);
 
 struct Missile {
   Transform transform;

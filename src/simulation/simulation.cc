@@ -22,7 +22,6 @@ constexpr float kDsqOperatePod = 75.f * 75.f;
 constexpr float kAvoidanceScaling = 0.15f;
 constexpr float kMovementScaling = 1.0f;
 static uint64_t kSimulationHash = DJB2_CONST;
-static uint64_t kFrame;
 
 void
 Reset(uint64_t seed)
@@ -357,6 +356,9 @@ DecideShip()
 {
   if (!kScenario.ship) return;
 
+  // Advance ftl_frame, if active
+  kShip[0].ftl_frame += (kShip[0].ftl_frame > 0);
+
   for (int i = 0; i < kUsedShip; ++i) {
     Ship* ship = &kShip[i];
     if (ship->danger > 20) {
@@ -403,8 +405,8 @@ DecideShip()
 
     const bool jumped = (FtlSimulation(ship) == 0);
     // Jump side effects
-    ship->mineral -= jumped * kFtlCost;
-    ship->level += jumped;
+    kResource[0].mineral -= jumped * kFtlCost;
+    kResource[0].level += jumped;
   }
 }
 
@@ -445,9 +447,9 @@ DecideMissle()
 {
   if (!kScenario.missile) return;
 
-  const float missile_xrange = 50.f * kShip[0].level;
+  const float missile_xrange = 50.f * kResource[0].level;
   static float next_missile = 0.f;
-  while (kUsedMissile < kShip[0].level) {
+  while (kUsedMissile < kResource[0].level) {
     Missile* missile = UseMissile();
     missile->transform =
         Transform{.position = v3f(300.f + next_missile, -1000.f, 0.f)};
@@ -497,7 +499,7 @@ DecidePod()
         dir = Normalize(pod->goal - pod->transform.position.xy());
         break;
       case kPodAiUnload:
-        kShip[0].mineral += MIN(5, pod->mineral);
+        kResource[0].mineral += MIN(5, pod->mineral);
         pod->mineral -= MIN(5, pod->mineral);
         break;
       case kPodAiUnmanned:
@@ -580,7 +582,7 @@ SimulationOver()
 void
 Update()
 {
-  ++kFrame;
+  ++kResource[0].frame;
 
   // Camera
   for (int i = 0; i < kUsedPlayer; ++i) {
@@ -589,9 +591,6 @@ Update()
   }
 
   if (SimulationOver()) return;
-  kShip[0].frame += 1;
-  // Advance ftl_frame, if active
-  kShip[0].ftl_frame += (kShip[0].ftl_frame > 0);
 
   // Shroud is reset each frame
   UpdateTilemap(kScenario.tilemap);
@@ -672,13 +671,13 @@ Update()
       }
 
       // Shoot at the target if weapon is off cooldown.
-      if (kFrame - unit->attack_frame < unit->attack_cooldown) {
+      if (kResource[0].frame - unit->attack_frame < unit->attack_cooldown) {
         continue;
       }
 
       Projectile* proj = UseProjectile();
-      proj->dir = math::Normalize(
-          target_unit->transform.position - unit->transform.position);
+      proj->dir = math::Normalize(target_unit->transform.position -
+                                  unit->transform.position);
       proj->start = unit->transform.position + proj->dir * 10.f;
       proj->end = target_unit->transform.position;
       int angle = rand() % 360;
@@ -688,7 +687,7 @@ Update()
       proj->speed = 1.f;
       // TODO(abrunasso): Idk man... How long should this go for...
       proj->duration = 100;
-      unit->attack_frame = kFrame;
+      unit->attack_frame = kResource[0].frame;
     }
   }
 
@@ -710,7 +709,7 @@ Update()
 
         *c = kZeroConsumable;
       } else {
-        kShip[0].mineral += c->minerals;
+        kResource[0].mineral += c->minerals;
         *c = kZeroConsumable;
       }
     }
@@ -727,7 +726,7 @@ Update()
 
   for (int i = 0; i < kUsedProjectile;) {
     Projectile* p = &kProjectile[i];
-    //p->transform.position = p->transform.position + p->dir * p->speed;
+    // p->transform.position = p->transform.position + p->dir * p->speed;
     --p->duration;
     if (p->duration <= 0) {
       CompressProjectile(i);
@@ -736,7 +735,7 @@ Update()
     ++i;
   }
 
-   RegistryCompact();
+  RegistryCompact();
 }  // namespace simulation
 
 }  // namespace simulation

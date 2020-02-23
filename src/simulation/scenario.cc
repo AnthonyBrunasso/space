@@ -62,7 +62,6 @@ InitializeScenario(bool reset_features = true)
       // One ship
       UseShip();
       kShip[0].running = true;
-      kShip[0].level = 1;
     } break;
     case Scenario::kCombatScenario: {
       if (reset_features) {
@@ -89,7 +88,6 @@ InitializeScenario(bool reset_features = true)
       // One ship
       UseShip();
       kShip[0].running = true;
-      kShip[0].level = 1;
       // One unit
       UseIdUnit();
       kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
@@ -106,6 +104,9 @@ InitializeScenario(bool reset_features = true)
   kScenario.type = (Scenario::Type)sid;
 
   InitializeTilemap(kScenario.tilemap);
+  // Global resource pool until deeper into multiplayer
+  UseResource();
+  kResource[0].level = 1;
 
   switch (sid) {
     case Scenario::kSoloMission: {

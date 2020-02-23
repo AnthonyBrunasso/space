@@ -1,5 +1,9 @@
 #pragma once
 
+#include <cassert>
+#include <cstdint>
+#include <cstring>
+
 static constexpr int kMaxBlackboardItems = 16;
 static constexpr int kMaxBlackboardValueSize = 64;
 

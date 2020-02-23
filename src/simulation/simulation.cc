@@ -34,13 +34,14 @@ Reset(uint64_t seed)
 bool
 Initialize(uint64_t player_count, uint64_t seed)
 {
+  Reset(seed);
+
   for (int i = 0; i < player_count; ++i) UsePlayer();
+  LOGFMT("Player count: %lu", kUsedPlayer);
 
   for (int i = 0; i < kUsedPlayer; ++i) {
     camera::InitialCamera(&kPlayer[i].camera);
   }
-
-  Reset(seed);
 
   return true;
 }

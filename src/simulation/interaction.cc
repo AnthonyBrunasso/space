@@ -178,6 +178,7 @@ Hud(v2f screen)
                    v4f(1.0f, 0.0f, 1.0f, 0.75f))
           .clicked) {
     kPlayer[kNetworkState.player_id].mod_placement = 1;
+    LOG("Module placement.");
   }
 
   // selected Unit text
@@ -254,6 +255,18 @@ ControlEvent(const PlatformEvent* event, Player* player)
       v3f pos = camera::ScreenToWorldSpace(
           &player->camera,
           v3f(event->position - window::GetWindowSize() * 0.5f));
+
+      if (kPlayer[kNetworkState.player_id].mod_placement) {
+        kPlayer[kNetworkState.player_id].mod_placement = 0;
+        if (event->button == BUTTON_LEFT) {
+          v2i tilepos = WorldToTilePos(pos);
+          Module* m = UseModule();
+          m->cx = tilepos.x;
+          m->cy = tilepos.y;
+          m->mod_engine = 1;
+        }
+        break;
+      }
 
       if (event->button == BUTTON_LEFT) {
         uint32_t unit = SelectUnit(pos);

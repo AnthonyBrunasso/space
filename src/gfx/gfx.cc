@@ -276,13 +276,15 @@ Render(const math::Rectf visible_world, v2f screen)
     v3fNearTransform(p->mouse, GAME_ITER(Unit, transform), &dsq);
     if (dsq < kDsqSelect) {
       // Highlight the unit that would be selected on mouse click
-      rgg::RenderRectangle(TilePosToWorld(mouse_grid),
-                           v3f(1.f / 2.f, 1.f / 2.f, 1.f), kDefaultRotation,
-                           v4f(1.0f, 1.0f, 1.0f, .45f));
+      rgg::RenderRectangle(TilePosToWorld(mouse_grid), kTileScale,
+                           kDefaultRotation, v4f(1.0f, 1.0f, 1.0f, .45f));
     }
 
     if (!p->mod_placement) continue;
-    // TODO (AN): Module placement
+    v4f color;
+    color = v4f(1.0f, 0.0f, 1.f, 1.0f);
+    rgg::RenderRectangle(TilePosToWorld(mouse_grid), kTileScale,
+                         kDefaultRotation, color);
   }
 
   RenderCrew();
@@ -313,7 +315,8 @@ Render(const math::Rectf visible_world, v2f screen)
   for (int i = 0; i < kUsedProjectile; ++i) {
     Projectile* p = &kProjectile[i];
     float radius = 2.0f;
-    rgg::RenderLine(p->start, p->end, v4f(1.0f, 0.45f, 0.23f, p->duration / 100.0f));
+    rgg::RenderLine(p->start, p->end,
+                    v4f(1.0f, 0.45f, 0.23f, p->duration / 100.0f));
   }
 
   for (int i = 0; i < kUsedNotify; ++i) {

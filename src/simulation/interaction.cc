@@ -9,9 +9,9 @@ namespace simulation
 {
 static uint64_t kInputHash = DJB2_CONST;
 
-static bool render_box = false;
-static v2f start_box;
-static math::Rect box;
+static bool kRenderSelectionBox = false;
+static v2f kSelectionBoxLocation;
+static math::Rect kSelectionBox;
 
 bool
 ShipFtlReady()
@@ -248,8 +248,9 @@ ControlEvent(const PlatformEvent* event, Player* player)
   switch (event->type) {
     case MOUSE_POSITION: {
       player->mouse = event->world_position;
-      v2f d = event->position - start_box;
-      box = math::Rect(start_box.x, start_box.y, d.x, d.y);
+      v2f d = event->position - kSelectionBoxLocation;
+      kSelectionBox = math::Rect(
+          kSelectionBoxLocation.x, kSelectionBoxLocation.y, d.x, d.y);
     } break;
     case MOUSE_WHEEL: {
       // TODO(abrunasso): Why does this need to be negative?
@@ -257,9 +258,10 @@ ControlEvent(const PlatformEvent* event, Player* player)
     } break;
     case MOUSE_DOWN: {
       imui::MouseClick(event->position, event->button);
-      start_box = event->position;
-      box = math::Rect(start_box.x, start_box.y, 0.0f, 0.0f);
-      render_box = true;
+      kSelectionBoxLocation = event->position;
+      kSelectionBox = math::Rect(
+          kSelectionBoxLocation.x, kSelectionBoxLocation.y, 0.0f, 0.0f);
+      kRenderSelectionBox = true;
       v3f pos = camera::ScreenToWorldSpace(
           &player->camera,
           v3f(event->position - window::GetWindowSize() * 0.5f));
@@ -293,7 +295,7 @@ ControlEvent(const PlatformEvent* event, Player* player)
       }
     } break;
     case MOUSE_UP: {
-      render_box = false;
+      kRenderSelectionBox = false;
     } break;
     case KEY_DOWN: {
       switch (event->key) {
@@ -359,8 +361,8 @@ ProcessSimulation(int player_id, uint64_t event_count,
     ControlEvent(&event[i], p);
   }
 
-  if (render_box) {
-    imui::Box(box, v4f(0.19f, 0.803f, 0.19f, 0.40f),
+  if (kRenderSelectionBox) {
+    imui::Box(kSelectionBox, v4f(0.19f, 0.803f, 0.19f, 0.40f),
               v4f(0.19f, 0.803f, 0.19f, 1.f));
   }
 }

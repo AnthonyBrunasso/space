@@ -354,7 +354,7 @@ MouseClick(v2f pos, PlatformButton b)
   }
   click->pos = pos;
   click->button = b;
-  PushUIClickRender({pos, kClickForFrames});
+  // PushUIClickRender({pos, kClickForFrames});
 }
 
 void

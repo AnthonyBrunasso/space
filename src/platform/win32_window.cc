@@ -186,7 +186,8 @@ HandleKeyEvent(WPARAM wparam, bool is_down, PlatformEvent* event)
 }
 
 void
-HandleMouseEvent(bool is_down, PlatformEvent* event, PlatformButton button) {
+HandleMouseEvent(bool is_down, PlatformEvent* event, PlatformButton button)
+{
   DWORD message_pos = GetMessagePos();
   POINTS ps = MAKEPOINTS(message_pos);
   POINT p;
@@ -194,7 +195,7 @@ HandleMouseEvent(bool is_down, PlatformEvent* event, PlatformButton button) {
   ScreenToClient(kWindow.hwnd, &p);
   v2f dims = GetWindowSize();
   event->position = v2f(p.x, dims.y - p.y);
-  event->type = is_down? MOUSE_DOWN : MOUSE_UP;
+  event->type = is_down ? MOUSE_DOWN : MOUSE_UP;
   event->button = button;
 }
 
@@ -203,6 +204,8 @@ WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
 {
   PlatformEvent* platform_event = kWindow.platform_event;
   LRESULT result = 0;
+  static bool l_mouse_down = false;
+  static bool r_mouse_down = false;
 
   switch (msg) {
     case WM_CLOSE: {
@@ -218,16 +221,37 @@ WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
       HandleKeyEvent(wparam, true, platform_event);
     } break;
     case WM_LBUTTONDOWN: {
-      HandleMouseEvent(true, platform_event, BUTTON_LEFT);
+      l_mouse_down = true;
+      HandleMouseEvent(l_mouse_down, platform_event, BUTTON_LEFT);
     } break;
     case WM_LBUTTONUP: {
+      l_mouse_down = false;
       HandleMouseEvent(false, platform_event, BUTTON_LEFT);
     } break;
     case WM_RBUTTONDOWN: {
+      r_mouse_down = true;
       HandleMouseEvent(true, platform_event, BUTTON_RIGHT);
     } break;
     case WM_RBUTTONUP: {
+      r_mouse_down = false;
       HandleMouseEvent(false, platform_event, BUTTON_RIGHT);
+    } break;
+    case WM_MOUSEMOVE: {
+      DWORD message_pos = GetMessagePos();
+      POINTS ps = MAKEPOINTS(message_pos);
+      POINT p;
+      p.x = ps.x; p.y = ps.y;
+      ScreenToClient(kWindow.hwnd, &p);
+      v2f dims = GetWindowSize();
+      platform_event->position = v2f(p.x, dims.y - p.y);
+      platform_event->type = MOUSE_MOVE;
+      if (l_mouse_down) {
+        platform_event->button = BUTTON_LEFT;
+      } else if (r_mouse_down) {
+        platform_event->button = BUTTON_RIGHT;
+      } else {
+        platform_event->button = BUTTON_UNKNOWN;
+      }
     } break;
     case WM_MOUSEWHEEL: {
       platform_event->wheel_delta =

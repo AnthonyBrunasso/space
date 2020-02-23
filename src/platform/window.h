@@ -13,6 +13,7 @@ enum PlatformEventType {
   NOT_IMPLEMENTED,  // Event does not have translation implemented yet.
   MOUSE_DOWN,
   MOUSE_UP,
+  MOUSE_MOVE,
   MOUSE_WHEEL,
   KEY_DOWN,
   KEY_UP,

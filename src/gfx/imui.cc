@@ -82,12 +82,19 @@ struct IMUI {
   BeginMode begin_mode;
 };
 
+struct Box {
+  math::Rect rect;
+  v4f color;
+  v4f outline_color;
+};
+
 static IMUI kIMUI;
 
 DECLARE_ARRAY(Text, 64);
 DECLARE_ARRAY(Button, 16);
 DECLARE_ARRAY(UIClick, 8);
 DECLARE_ARRAY(Pane, 8);
+DECLARE_ARRAY(Box, 1);
 DECLARE_QUEUE(UIClickRender, 8);
 
 bool
@@ -106,6 +113,7 @@ Reset()
   kUsedButton = 0;
   kUsedUIClick = 0;
   kUsedPane = 0;
+  kUsedBox = 0;
 }
 
 void
@@ -139,6 +147,12 @@ Render()
     if (!render->render_frames) {
       PopUIClickRender();
     }
+  }
+
+  for (int i = 0; i < kUsedBox; ++i) {
+    Box* box = &kBox[i];
+    rgg::RenderRectangle(box->rect, box->color);
+    rgg::RenderLineRectangle(box->rect, box->outline_color);
   }
 }
 
@@ -341,6 +355,16 @@ MouseClick(v2f pos, PlatformButton b)
   click->pos = pos;
   click->button = b;
   PushUIClickRender({pos, kClickForFrames});
+}
+
+void
+Box(const math::Rect& rect, const v4f& color, const v4f& outline_color)
+{
+  struct Box* box = UseBox();
+  if (!box) return;
+  box->rect = rect;
+  box->color = color;
+  box->outline_color = outline_color;
 }
 
 const char*

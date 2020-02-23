@@ -56,7 +56,11 @@ GatherWindowInput(InputBuffer* input_buffer)
 
     uint64_t type = pevent.type;
     switch (type) {
-      case MOUSE_DOWN:
+      case MOUSE_MOVE: {
+        // Only care about mouse move events when a button is held.
+        if (pevent.button == BUTTON_UNKNOWN) break;
+      }
+      case MOUSE_DOWN: 
       case MOUSE_UP:
       case MOUSE_WHEEL:
       case KEY_DOWN:

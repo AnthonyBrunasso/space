@@ -17,8 +17,8 @@
 // id == -1 is reserved for invalid references
 #define DECLARE_GAME_TYPE_WITH_ID(type, max_count)                            \
   DECLARE_ARRAY(type, max_count)                                              \
-  static uint32_t kInvalid##type = UINT32_MAX;                                \
-  static uint32_t kAutoIncrementId##type = 0;                                 \
+  static uint32_t kInvalid##type = 0;                                         \
+  static uint32_t kAutoIncrementId##type = 1;                                 \
                                                                               \
   type* UseId##type()                                                         \
   {                                                                           \

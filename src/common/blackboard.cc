@@ -27,7 +27,7 @@ struct Blackboard {
   bool Exists(int idx) {
     assert(idx < kMaxBlackboardItems);
     return memcmp(&value[idx], &kEmptyValue, kMaxBlackboardValueSize) != 0;
-  }
+  } 
 
   void Remove(int idx) {
     assert(idx < kMaxBlackboardItems);

@@ -677,9 +677,14 @@ Update()
       }
 
       Projectile* proj = UseProjectile();
-      proj->transform = unit->transform;
       proj->dir = math::Normalize(
           target_unit->transform.position - unit->transform.position);
+      proj->start = unit->transform.position + proj->dir * 10.f;
+      proj->end = target_unit->transform.position;
+      int angle = rand() % 360;
+      float radian = (float)angle * PI / 180.0f;
+      float r = 7.5f;
+      proj->end += v3f(r * cos(radian), r * sin(radian), 0.0f);
       proj->speed = 1.f;
       // TODO(abrunasso): Idk man... How long should this go for...
       proj->duration = 100;
@@ -722,7 +727,7 @@ Update()
 
   for (int i = 0; i < kUsedProjectile;) {
     Projectile* p = &kProjectile[i];
-    p->transform.position = p->transform.position + p->dir * p->speed;
+    //p->transform.position = p->transform.position + p->dir * p->speed;
     --p->duration;
     if (p->duration <= 0) {
       CompressProjectile(i);

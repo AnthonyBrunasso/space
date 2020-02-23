@@ -312,8 +312,8 @@ Render(const math::Rectf visible_world, v2f screen)
 
   for (int i = 0; i < kUsedProjectile; ++i) {
     Projectile* p = &kProjectile[i];
-    float radius = 5.0f;
-    rgg::RenderCircle(p->transform.position, radius, kWhite);
+    float radius = 2.0f;
+    rgg::RenderLine(p->start, p->end, v4f(1.0f, 0.45f, 0.23f, p->duration / 100.0f));
   }
 
   for (int i = 0; i < kUsedNotify; ++i) {

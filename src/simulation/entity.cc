@@ -150,7 +150,7 @@ struct Unit {
   float attack_radius = 100.0f;
   int attack_frame;
   // Can attack every 20 frames.
-  int attack_cooldown = 20;
+  int attack_cooldown = 60;
   float health = 10.0f;
 
   int ship = 0;
@@ -193,7 +193,8 @@ struct Missile {
 DECLARE_GAME_TYPE(Missile, 8);
 
 struct Projectile {
-  Transform transform;
+  v3f start;
+  v3f end;
   v3f dir;
   float speed;
   // Duration in frames.

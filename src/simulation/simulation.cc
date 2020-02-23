@@ -588,7 +588,7 @@ Update()
     kPlayer[i].camera.motion.z = 0.f;
   }
 
-  if (!kShip[0].running) return;
+  if (SimulationOver()) return;
   kShip[0].frame += 1;
   // Advance ftl_frame, if active
   kShip[0].ftl_frame += (kShip[0].ftl_frame > 0);

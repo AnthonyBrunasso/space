@@ -8,6 +8,7 @@ struct Tile {
   unsigned nooxygen : 1;
   unsigned shroud : 1;
   unsigned explored : 1;
+  unsigned exterior : 1;
 };
 
 Tile

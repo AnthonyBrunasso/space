@@ -35,6 +35,7 @@ struct Tile {
   unsigned nooxygen : 1;
   unsigned shroud : 1;
   unsigned explored : 1;
+  unsigned exterior : 1;
 };
 static_assert(sizeof(Tile) == sizeof(uint32_t),
               "Sync TileAND with the new Tile size");
@@ -115,6 +116,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
       tile->blocked = (kDefaultMap[i][j] == kTileBlock);
       tile->nooxygen = 0;
       tile->explored = 1;
+      tile->exterior = 1;
 
       // No modules for tilemap_id 2
       // Shroud enabled
@@ -172,7 +174,8 @@ UpdateTilemap(int tilemap_id)
 {
   if (tilemap_id != 2) return;
   for (int i = 0; i < kMapHeight; ++i)
-    for (int j = 0; j < kMapWidth; ++j) kTilemap[i][j].shroud = 1;
+    for (int j = 0; j < kMapWidth; ++j)
+      kTilemap[i][j].shroud = !kTilemap[i][j].exterior;
 }
 
 // Returns the center position of the tile.

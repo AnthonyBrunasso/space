@@ -113,6 +113,7 @@ InitializeScenario(bool reset_features = true)
       Tile keep_bits;
       memset(&keep_bits, 0xff, sizeof(Tile));
       keep_bits.explored = 0;
+      keep_bits.exterior = 0;
       Tile set_bits;
       memset(&set_bits, 0x00, sizeof(Tile));
       float tile_world_distance = kMapWidth * kTileWidth;

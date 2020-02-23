@@ -321,9 +321,13 @@ ControlEvent(const PlatformEvent* event, Player* player)
     } break;
     case MOUSE_UP: {
       if (kRenderSelectionBox) {
-        uint32_t unit =
-            SelectUnit(math::OrientToAabb(kSelectionBoxWorld.rect));
-        ControlUnit(unit);
+        auto r = math::OrientToAabb(kSelectionBoxWorld.rect);
+        uint32_t id;
+        for (int i = 0; i < kUsedUnit; ++i) {
+          if (!SelectUnit(r, i, &id)) continue;
+          LOGFMT("Select unit: %i", id);
+          ControlUnit(id);
+        }
       }
       kRenderSelectionBox = false;
     } break;

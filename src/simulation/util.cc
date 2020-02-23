@@ -57,16 +57,15 @@ SelectUnit(v3f world)
   return kInvalidUnit;
 }
 
-uint32_t
-SelectUnit(const math::Rect& rect)
+bool
+SelectUnit(const math::Rect& rect, int idx, uint32_t* id)
 {
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
-    // TODO(abrunasso): Change for multi select.
-    if (PointInRect(unit->transform.position.xy(), rect)) return unit->id;
+  Unit* unit = &kUnit[idx];
+  if (PointInRect(unit->transform.position.xy(), rect)) {
+    *id = unit->id;
+    return true;
   }
-
-  return kInvalidUnit;
+  return false;
 }
 
 bool

@@ -43,7 +43,7 @@ v3fNearTransform(v3f pos, uint64_t step, const uint8_t* start,
   return index;
 }
 
-int
+uint32_t
 SelectUnit(v3f world)
 {
   for (int i = 0; i < kUsedUnit; ++i) {
@@ -54,17 +54,17 @@ SelectUnit(v3f world)
     }
   }
 
-  return kMaxUnit;
+  return kInvalidUnit;
 }
 
 bool
 InRange(uint64_t unit, uint64_t target)
 {
-  if (unit == kMaxUnit || target == kMaxUnit) return false;
+  if (unit == kInvalidUnit || target == kInvalidUnit) return false;
   Unit* source_unit = FindUnit(unit);
   Unit* target_unit = FindUnit(target);
-  float dsq = v3fDsq(source_unit->transform.position,
-                     target_unit->transform.position);
+  float dsq =
+      v3fDsq(source_unit->transform.position, target_unit->transform.position);
   float rsq = source_unit->attack_radius * source_unit->attack_radius;
   return dsq < rsq;
 }

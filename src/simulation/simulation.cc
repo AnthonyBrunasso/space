@@ -551,6 +551,7 @@ Decide()
   while (CountCommand()) {
     Command c = PopCommand();
     Unit* unit = FindUnit(c.unit_id);
+    if (!unit) continue;
     // Kind 0 accepts newest orders
     if (unit->kind * unit->uaction) continue;
     unit->uaction = c.type;
@@ -653,7 +654,7 @@ Update()
       }
       MoveTowards(i, tilepos, *dest, kUaNone);
     } else if (unit->uaction == kUaAttack) {
-      int* target = nullptr;
+      uint32_t* target = nullptr;
       if (!BB_GET(unit->bb, kUnitTarget, target)) {
         continue;
       }

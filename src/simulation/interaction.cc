@@ -34,20 +34,20 @@ ControlUnit(uint64_t unit_id)
 bool
 ShouldAttack(uint64_t unit, uint64_t target)
 {
-  if (unit == kMaxUnit || target == kMaxUnit) return false;
+  if (unit == kInvalidUnit || target == kInvalidUnit) return false;
   Unit* controlled_unit = FindUnit(unit);
   Unit* target_unit = FindUnit(target);
   if (target_unit->alliance != kEnemy) return false;
   return true;
 }
 
-unsigned
+uint32_t
 UnitId()
 {
   for (int i = 0; i < kUsedUnit; ++i) {
     if (!kUnit[i].kind) return kUnit[i].id;
   }
-  return kMaxUnit;
+  return kInvalidUnit;
 }
 
 void
@@ -256,11 +256,11 @@ ControlEvent(const PlatformEvent* event, Player* player)
           v3f(event->position - window::GetWindowSize() * 0.5f));
 
       if (event->button == BUTTON_LEFT) {
-        int unit = SelectUnit(pos);
+        uint32_t unit = SelectUnit(pos);
         ControlUnit(unit);
       } else if (event->button == BUTTON_RIGHT) {
-        int unit = UnitId();
-        int target = SelectUnit(pos);
+        uint32_t unit = UnitId();
+        uint32_t target = SelectUnit(pos);
         if (ShouldAttack(unit, target)) {
           LOGFMT("Order attack [%lu, %lu]", unit, target);
           PushCommand({kUaAttack, pos, unit});

@@ -14,27 +14,29 @@
   static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type, \
                                     max_count, sizeof(type));
 
-#define DECLARE_GAME_TYPE_WITH_ID(type, max_count)                       \
-  DECLARE_ARRAY(type, max_count)                                         \
-  static int kAutoIncrementId##type = 0;                                 \
-                                                                         \
-  type* UseId##type()                                                    \
-  {                                                                      \
-    type* t = Use##type();                                               \
-    if (!t) return nullptr;                                              \
-    t->id = kAutoIncrementId##type;                                      \
-    ++kAutoIncrementId##type;                                            \
-    return t;                                                            \
-  }                                                                      \
-                                                                         \
-  type* Find##type(int id)                                               \
-  {                                                                      \
-    for (int i = 0; i < kUsed##type; ++i) {                              \
-      if (k##type[i].id == id) return &k##type[i];                       \
-    }                                                                    \
-    return nullptr;                                                      \
-  }                                                                      \
-  static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type, \
+// id == -1 is reserved for invalid references
+#define DECLARE_GAME_TYPE_WITH_ID(type, max_count)                            \
+  DECLARE_ARRAY(type, max_count)                                              \
+  static uint32_t kInvalid##type = UINT32_MAX;                                \
+  static uint32_t kAutoIncrementId##type = 0;                                 \
+                                                                              \
+  type* UseId##type()                                                         \
+  {                                                                           \
+    type* t = Use##type();                                                    \
+    if (!t) return nullptr;                                                   \
+    t->id = kAutoIncrementId##type;                                           \
+    kAutoIncrementId##type += (kAutoIncrementId##type == kInvalid##type) + 1; \
+    return t;                                                                 \
+  }                                                                           \
+                                                                              \
+  type* Find##type(uint32_t id)                                               \
+  {                                                                           \
+    for (int i = 0; i < kUsed##type; ++i) {                                   \
+      if (k##type[i].id == id) return &k##type[i];                            \
+    }                                                                         \
+    return nullptr;                                                           \
+  }                                                                           \
+  static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type,      \
                                     max_count, sizeof(type));
 
 #define DECLARE_GAME_QUEUE(type, count) DECLARE_QUEUE(type, count)
@@ -141,7 +143,7 @@ struct Unit {
   Transform transform;
   Blackboard bb;
 
-  int id;
+  uint32_t id;
   int kind = kPlayerControlled;
   UnitAlliance alliance = kCrew;
 
@@ -217,7 +219,7 @@ DECLARE_GAME_TYPE(Module, 32);
 struct Command {
   UnitAction type;
   v3f destination;
-  int unit_id;
+  uint32_t unit_id;
 };
 DECLARE_GAME_QUEUE(Command, 16);
 

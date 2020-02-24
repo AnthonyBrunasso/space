@@ -10,6 +10,7 @@
 #include "ftl.cc"
 #include "mhitu.cc"
 #include "phitu.cc"
+#include "selection.cc"
 #include "scenario.cc"
 #include "search.cc"
 #include "util.cc"
@@ -77,7 +78,7 @@ ThinkAI()
 
   for (uint64_t i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
-    if (unit->kind == kPlayerControlled) continue;
+    if (IsUnitSelected(unit->id)) continue;
     // shrug, i just like having this guy idle
     if (unit->spacesuit) continue;
 
@@ -473,25 +474,41 @@ MoveTowards(int unit_idx, v2i tilepos, v3f dest, UnitAction set_on_arrival)
 }
 
 void
+ApplyCommand(const Command& c, Unit* unit)
+{
+  unit->uaction = c.type;
+  switch (c.type) {
+    case kUaMove: {
+      BB_SET(unit->bb, kUnitDestination, c.destination);
+    } break;
+    case kUaAttack: {
+      int target = GetUnitId(c.destination);
+      BB_SET(unit->bb, kUnitTarget, target);
+    } break;
+    default: break;
+  }
+}
+
+void
 Decide()
 {
   while (CountCommand()) {
     Command c = PopCommand();
-    Unit* unit = FindUnit(c.unit_id);
-    if (!unit) continue;
-    // Kind 0 accepts newest orders
-    if (unit->kind * unit->uaction) continue;
-    unit->uaction = c.type;
-    switch (c.type) {
-      case kUaMove: {
-        BB_SET(unit->bb, kUnitDestination, c.destination);
-      } break;
-      case kUaAttack: {
-        int target = SelectUnit(c.destination);
-        BB_SET(unit->bb, kUnitTarget, target);
-      } break;
-      default:
-        break;
+    // Dispatch command to all selected units if command was made with not
+    // specific unit targeted.
+    if (c.unit_id == kInvalidUnit) {
+      for (int i = 0; i < kUsedSelection; ++i) {
+        Selection* selection = &kSelection[i];
+        Unit* unit = FindUnit(selection->unit_id);
+        if (!unit) continue;
+        ApplyCommand(c, unit);
+      }
+    } else {
+      Unit* unit = FindUnit(c.unit_id);
+      if (!unit) continue;
+      // Unit is busy.
+      if (unit->uaction != kUaNone) continue;
+      ApplyCommand(c, unit);
     }
   }
 

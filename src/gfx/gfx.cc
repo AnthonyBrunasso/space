@@ -100,9 +100,6 @@ RenderCrew()
 
     v4f color;
     switch (unit->kind) {
-      case kPlayerControlled:
-        color = v4f(0.26f, 0.33f, 0.68f, 1.f);
-        break;
       case kOperator:
         color = v4f(0.50f, .33f, .33f, 1.f);
         break;
@@ -111,6 +108,10 @@ RenderCrew()
         break;
       default:
         continue;
+    }
+
+    if (IsUnitSelected(unit->id)) {
+      color = v4f(0.26f, 0.33f, 0.68f, 1.f);
     }
 
     rgg::RenderRectangle(unit->transform.position, unit->transform.scale,

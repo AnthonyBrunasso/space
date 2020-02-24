@@ -9,37 +9,6 @@ namespace simulation
 {
 static uint64_t kInputHash = DJB2_CONST;
 
-struct SelectionBox {
-  v2f start;
-  math::Rect rect;
-};
-
-// Store both to avoid needing to calculate scale between screen and world.
-static SelectionBox kSelectionBoxScreen;
-static SelectionBox kSelectionBoxWorld;
-static bool kRenderSelectionBox = false;
-
-void
-UpdateBoxSelectionOnPosition(v2f screen, v3f world)
-{
-  v2f sd = screen - kSelectionBoxScreen.start;
-  kSelectionBoxScreen.rect = math::Rect(
-      kSelectionBoxScreen.start.x, kSelectionBoxScreen.start.y, sd.x, sd.y);
-  v2f wd = world.xy() - kSelectionBoxWorld.start;
-  kSelectionBoxWorld.rect = math::Rect(
-      kSelectionBoxWorld.start.x, kSelectionBoxWorld.start.y, wd.x, wd.y);
-}
-
-void
-UpdateBoxSelectionOnClick(v2f screen, v3f world)
-{
-  kSelectionBoxScreen.start = screen;
-  kSelectionBoxWorld.start = world.xy();
-  kSelectionBoxScreen.rect = math::Rect(screen.x, screen.y, 0.0f, 0.0f);
-  kSelectionBoxWorld.rect = math::Rect(world.x, world.y, 0.0f, 0.0f);
-  kRenderSelectionBox = true;
-}
-
 bool
 ShipFtlReady()
 {
@@ -51,15 +20,6 @@ ControlShipFtl()
 {
   LOG("Faster Than Light engine activated!");
   kShip[0].ftl_frame = 1;
-}
-
-void
-ControlUnit(uint64_t unit_id)
-{
-  for (int i = 0; i < kUsedUnit; ++i) {
-    bool is_unit = kUnit[i].id == unit_id;
-    kUnit[i].kind = !is_unit * (kOperator);
-  }
 }
 
 bool
@@ -216,7 +176,7 @@ Hud(v2f screen)
   uint64_t selected = UINT64_MAX;
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
-    if (unit->kind != kPlayerControlled) continue;
+    if (IsUnitSelected(unit->id)) continue;
     selected = unit->id;
     break;
   }
@@ -288,6 +248,7 @@ ControlEvent(const PlatformEvent* event, Player* player)
           v3f(event->position - window::GetWindowSize() * 0.5f));
 
       if (event->button == BUTTON_LEFT) {
+        UnselectAll();
         UpdateBoxSelectionOnClick(event->position, pos);
       }
 
@@ -305,17 +266,17 @@ ControlEvent(const PlatformEvent* event, Player* player)
       }
 
       if (event->button == BUTTON_LEFT) {
-        uint32_t unit = SelectUnit(pos);
-        ControlUnit(unit);
+        uint32_t unit = GetUnitId(pos);
+        SelectUnit(unit);
       } else if (event->button == BUTTON_RIGHT) {
         uint32_t unit = UnitId();
-        uint32_t target = SelectUnit(pos);
+        uint32_t target = GetUnitId(pos);
         if (ShouldAttack(unit, target)) {
           LOGFMT("Order attack [%lu, %lu]", unit, target);
-          PushCommand({kUaAttack, pos, unit});
+          PushCommand({kUaAttack, pos, kInvalidUnit});
         } else {
           LOGFMT("Order move [%lu]", unit);
-          PushCommand({kUaMove, pos, unit});
+          PushCommand({kUaMove, pos, kInvalidUnit});
         }
       }
     } break;
@@ -324,9 +285,9 @@ ControlEvent(const PlatformEvent* event, Player* player)
         auto r = math::OrientToAabb(kSelectionBoxWorld.rect);
         uint32_t id;
         for (int i = 0; i < kUsedUnit; ++i) {
-          if (!SelectUnit(r, i, &id)) continue;
+          if (!GetUnitId(r, i, &id)) continue;
           LOGFMT("Select unit: %i", id);
-          ControlUnit(id);
+          SelectUnit(id);
         }
       }
       kRenderSelectionBox = false;

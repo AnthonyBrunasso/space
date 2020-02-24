@@ -71,7 +71,6 @@ InitializeScenario(bool reset_features = true)
       UseIdUnit();
       kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
       kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
-      kUnit[0].kind = kPlayerControlled;
 
       UseIdUnit();
       kUnit[1].transform.position = v3f(400.f, 300.f, 0.f);
@@ -93,7 +92,6 @@ InitializeScenario(bool reset_features = true)
       UseIdUnit();
       kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
       kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
-      kUnit[0].kind = kPlayerControlled;
     } break;
     default:
     case Scenario::kEmptyScenario: {

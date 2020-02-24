@@ -44,7 +44,7 @@ v3fNearTransform(v3f pos, uint64_t step, const uint8_t* start,
 }
 
 uint32_t
-SelectUnit(v3f world)
+GetUnitId(v3f world)
 {
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
@@ -58,7 +58,7 @@ SelectUnit(v3f world)
 }
 
 bool
-SelectUnit(const math::Rect& rect, int idx, uint32_t* id)
+GetUnitId(const math::Rect& rect, int idx, uint32_t* id)
 {
   Unit* unit = &kUnit[idx];
   if (PointInRect(unit->transform.position.xy(), rect)) {

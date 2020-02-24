@@ -54,7 +54,6 @@ enum UnitAction {
   kUaAttack,
 };
 enum UnitKind {
-  kPlayerControlled,
   kOperator,
   kMilitary,
 };
@@ -142,13 +141,13 @@ struct Unit {
   Blackboard bb;
 
   uint32_t id;
-  int kind = kPlayerControlled;
+  int kind;
   UnitAlliance alliance = kCrew;
 
   // Maybe need a weapon type?
   float attack_radius = 100.0f;
   int attack_frame;
-  // Can attack every 20 frames.
+  // Can attack every N frames.
   int attack_cooldown = 60;
   float health = 10.0f;
 
@@ -237,3 +236,8 @@ struct Consumable {
   uint32_t minerals : 6;
 };
 DECLARE_GAME_TYPE(Consumable, 16);
+
+struct Selection {
+  uint32_t unit_id;
+};
+DECLARE_GAME_TYPE(Selection, 16);

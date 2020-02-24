@@ -176,8 +176,10 @@ Render(v2f screen)
         v4f(0.050f, 0.215f, 0.050f, 0.45f),
     };
     math::Rectf bounds = kGrid[i].bounds;
-    bounds.min += kGrid[i].transform.position.xy();
-    bounds.max += kGrid[i].transform.position.xy();
+    bounds.min += kGrid[i].transform.position.xy() -
+                   v2f(kTileWidth / 2.f, kTileHeight / 2.f);
+    bounds.max += kGrid[i].transform.position.xy()  -
+                   v2f(kTileWidth / 2.f, kTileHeight / 2.f);
     rgg::RenderGrid(grid_dims, bounds, ARRAY_LENGTH(colors), colors);
   }
 

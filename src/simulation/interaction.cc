@@ -231,6 +231,15 @@ Hud(v2f screen)
 }
 
 void
+SelectionBox()
+{
+  if (!kRenderSelectionBox) return;
+
+  imui::Box(kSelectionBoxScreen.rect, v4f(0.19f, 0.803f, 0.19f, 0.40f),
+            v4f(0.19f, 0.803f, 0.19f, 1.f));
+}
+
+void
 ControlEvent(const PlatformEvent* event, Player* player)
 {
   v3f world_pos = camera::ScreenToWorldSpace(

@@ -335,11 +335,6 @@ Render(v2f screen)
                       v4f(0.99f, 0.33f, 0.33f, 1.f));
   }
 
-  if (kRenderSelectionBox) {
-    imui::Box(kSelectionBoxScreen.rect, v4f(0.19f, 0.803f, 0.19f, 0.40f),
-              v4f(0.19f, 0.803f, 0.19f, 1.f));
-  }
-
   // Ui
   imui::Render();
 }

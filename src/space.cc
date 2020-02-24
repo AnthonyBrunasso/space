@@ -222,7 +222,7 @@ main(int argc, char** argv)
     simulation::Hud(dims);
     simulation::SelectionBox();
 
-    gfx::Render(dims);
+    gfx::Render();
 #endif
     imui::Reset();
 

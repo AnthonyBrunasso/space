@@ -139,10 +139,10 @@ RenderCrew()
     }
 
     for (int i = 0; i < path->size; ++i) {
-      auto* t = &path->tile[i];
-      rgg::RenderRectangle(v3f(TilePosToWorld(*t)),
-                           v3f(1.f / 3.f, 1.f / 3.f, 1.f), kDefaultRotation,
-                           v4f(0.33f, 0.33f, 0.33f, 0.40f));
+      v2i pos = path->tile[i];
+      v2f world_pos = TilePosToWorld(pos);
+      rgg::RenderRectangle(world_pos, v3f(1.f / 3.f, 1.f / 3.f, 1.f),
+                           kDefaultRotation, v4f(0.33f, 0.33f, 0.33f, 0.40f));
     }
   }
 }
@@ -165,23 +165,17 @@ ModuleColor(unsigned mkind)
 }
 
 void
-Render(v2f screen)
+RenderShip()
 {
   using namespace simulation;
 
-  for (int i = 0; i < kUsedGrid; ++i) {
-    const v2f grid_dims(kTileWidth, kTileHeight);
-    v4f colors[] = {
-        v4f(0.207f, 0.317f, 0.360f, 0.60f),
-        v4f(0.050f, 0.215f, 0.050f, 0.45f),
-    };
-    math::Rectf bounds = kGrid[i].bounds;
-    bounds.min += kGrid[i].transform.position.xy() -
-                   v2f(kTileWidth / 2.f, kTileHeight / 2.f);
-    bounds.max += kGrid[i].transform.position.xy()  -
-                   v2f(kTileWidth / 2.f, kTileHeight / 2.f);
-    rgg::RenderGrid(grid_dims, bounds, ARRAY_LENGTH(colors), colors);
-  }
+  const v2f grid_dims(kTileWidth, kTileHeight);
+  v4f colors[] = {
+      v4f(0.207f, 0.317f, 0.360f, 0.60f),
+      v4f(0.050f, 0.215f, 0.050f, 0.45f),
+  };
+  rgg::RenderGrid(grid_dims, TilemapWorldBounds(), ARRAY_LENGTH(colors),
+                  colors);
 
   // Modules are always visible
   constexpr float min_visibility = .2f;
@@ -244,24 +238,21 @@ Render(v2f screen)
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
       const Tile* tile = TilePtr(v2i(j, i));
+      v3f world_pos = TileToWorld(*tile);
 
       v4f color;
       if (!tile->explored) {
         color = v4f(0.3f, 0.3f, 0.3f, .7);
-        rgg::RenderRectangle(v3f(TileToWorld(*tile)), kTileScale,
-                             kDefaultRotation, color);
+        rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
       } else if (tile->blocked) {
         color = v4f(1.f, 1.f, 1.f, ship_alpha);
-        rgg::RenderRectangle(v3f(TileToWorld(*tile)), kTileScale,
-                             kDefaultRotation, color);
+        rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
       } else if (tile->nooxygen) {
         color = v4f(1.f, 0.f, .2f, .4);
-        rgg::RenderRectangle(v3f(TileToWorld(*tile)), kTileScale,
-                             kDefaultRotation, color);
+        rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
       } else if (tile->shroud) {
         color = v4f(0.3f, 0.3f, 0.3f, .4);
-        rgg::RenderRectangle(v3f(TileToWorld(*tile)), kTileScale,
-                             kDefaultRotation, color);
+        rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
       }
     }
   }
@@ -286,7 +277,14 @@ Render(v2f screen)
   }
 
   RenderCrew();
+}
 
+void
+RenderSpaceObjects()
+{
+  using namespace simulation;
+
+  // Stuff
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
     rgg::RenderTag(kGfx.asteroid_tag, asteroid->transform.position,
@@ -336,6 +334,22 @@ Render(v2f screen)
     rgg::RenderCircle(pod->transform.position + v2f(15.f, 15.f), 12.f, 14.f,
                       v4f(0.99f, 0.33f, 0.33f, 1.f));
   }
+}
+
+void
+Render()
+{
+  /*for (int i = 0; i < kUsedPlayer; ++i) {
+    rgg::RenderRectangle(kPlayer[i].world_mouse, kTileScale, kDefaultRotation,
+                         kWhite);
+  }*/
+
+  for (int i = 0; i < kUsedGrid; ++i) {
+    simulation::TilemapSet(i);
+    RenderShip();
+  }
+
+  RenderSpaceObjects();
 
   // Ui
   imui::Render();

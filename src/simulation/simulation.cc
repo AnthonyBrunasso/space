@@ -10,9 +10,9 @@
 #include "ftl.cc"
 #include "mhitu.cc"
 #include "phitu.cc"
-#include "selection.cc"
 #include "scenario.cc"
 #include "search.cc"
+#include "selection.cc"
 #include "util.cc"
 
 #include "platform/macro.h"
@@ -478,7 +478,8 @@ ApplyCommand(const Command& c, Unit* unit)
       int target = GetUnitId(c.destination);
       BB_SET(unit->bb, kUnitTarget, target);
     } break;
-    default: break;
+    default:
+      break;
   }
 }
 
@@ -530,6 +531,8 @@ Update()
 
   if (SimulationOver()) return;
 
+  // Force grid 0
+  TilemapSet(kShip[0].grid_index);
   // Shroud is reset each frame
   TilemapUpdate(kScenario.tilemap);
 

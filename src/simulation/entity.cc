@@ -168,6 +168,7 @@ struct Ship {
   uint64_t think_flags = 0;
   uint64_t operate_flags = 0;
   uint64_t danger = 0;
+  uint64_t grid_index = UINT64_MAX;
   float sys[kModCount];
   float used_power;
   float power_delta;
@@ -240,9 +241,20 @@ struct Selection {
 };
 DECLARE_GAME_TYPE(Selection, 16);
 
+constexpr int kMapWidth = 32;
+constexpr int kMapHeight = 32;
+struct Tile {
+  unsigned cx : 8;
+  unsigned cy : 8;
+  unsigned blocked : 1;
+  unsigned nooxygen : 1;
+  unsigned shroud : 1;
+  unsigned explored : 1;
+  unsigned exterior : 1;
+};
 struct Grid {
   Transform transform;
-  math::Rectf bounds;
+  Tile tilemap[kMapHeight][kMapWidth];
 };
 DECLARE_GAME_TYPE(Grid, 2);
 

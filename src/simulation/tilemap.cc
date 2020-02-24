@@ -10,12 +10,13 @@
 
 namespace simulation
 {
-constexpr int kMapWidth = 32;
-constexpr int kMapHeight = 32;
-
 constexpr float kTileWidth = 25.0f;
+constexpr float kInverseTileWidth = 1.0f / kTileWidth;
 constexpr float kTileHeight = 25.0f;
-constexpr int MAX_POD = 3;
+constexpr float kInverseTileHeight = 1.0f / kTileHeight;
+
+Tile* kTilemap;
+v2f kTilemapWorldOffset;
 
 enum TileType {
   kTileOpen = 0,
@@ -29,15 +30,6 @@ enum TileType {
   kTileConsumable = 7,
 };
 
-struct Tile {
-  unsigned cx : 8;
-  unsigned cy : 8;
-  unsigned blocked : 1;
-  unsigned nooxygen : 1;
-  unsigned shroud : 1;
-  unsigned explored : 1;
-  unsigned exterior : 1;
-};
 static_assert(sizeof(Tile) == sizeof(uint32_t),
               "Sync TileAND with the new Tile size");
 INLINE Tile
@@ -54,7 +46,6 @@ TileOR(Tile lhs, Tile rhs)
   return *(Tile*)&res;
 }
 
-Tile kTilemap[kMapHeight][kMapWidth] ALIGNAS(16);
 #define INVALID_TILE v2i{0, 0};
 
 constexpr int kMaxNeighbor = 8;
@@ -63,27 +54,29 @@ static const v2i kNeighbor[kMaxNeighbor] = {
     v2i(1, 1),  v2i(-1, 1), v2i(1, -1), v2i(-1, -1),
 };
 
-// Returns the center position of the tile.
-v2f
-TileToWorld(const Tile& tile)
-{
-  return {(tile.cx * kTileWidth) + kTileWidth * 0.5f,
-          (tile.cy * kTileHeight) + kTileHeight * 0.5f};
-}
-
-// Returns the center position of the tile.
+// Returns the minimum position of the tile.
 v2f
 TilePosToWorld(const v2i& pos)
 {
-  return {((float)pos.x * kTileWidth) + kTileWidth * 0.5f,
-          ((float)pos.y * kTileHeight) + kTileHeight * 0.5f};
+  return {
+      kTilemapWorldOffset.x + ((float)pos.x * kTileWidth) + kTileWidth * .5f,
+      kTilemapWorldOffset.y + ((float)pos.y * kTileHeight) + kTileHeight * .5f};
+}
+
+// Returns the minimum position of the tile.
+v2f
+TileToWorld(const Tile& tile)
+{
+  return TilePosToWorld(v2i(tile.cx, tile.cy));
 }
 
 v2i
 WorldToTilePos(const v3f& pos)
 {
-  int x = (int)pos.x / kTileWidth;
-  int y = (int)pos.y / kTileHeight;
+  v2f relpos =
+      pos.xy() - kTilemapWorldOffset;
+  int x = (int)(relpos.x * kInverseTileWidth);
+  int y = (int)(relpos.y * kInverseTileHeight);
   return {x, y};
 }
 
@@ -102,29 +95,31 @@ Tile*
 TilePtr(const v2i& pos)
 {
   if (!TileOk(pos)) return nullptr;
-  return &kTilemap[pos.y][pos.x];
+  return &kTilemap[pos.y * kMapWidth + pos.x];
 }
 
 // Returns kTileBlock for non-existent tiles, and TileType otherwise.
 bool
 TileBlockedSafe(const v2i& pos)
 {
-  if (!TileOk(pos)) return kTileBlock;
-  return kTilemap[pos.y][pos.x].blocked;
+  Tile* tile = TilePtr(pos);
+  return !tile || tile->blocked;
 }
 
 // Returns any neighbor of type kTileOpen
 v2i
 TileOpenAdjacent(const v2i pos)
 {
-  assert(TileOk(pos));
-  if (!kTilemap[pos.y][pos.x].blocked) return pos;
+  Tile* tile = TilePtr(pos);
+  assert(tile);
+  if (!tile->blocked) return pos;
 
   for (int i = 0; i < kMaxNeighbor; ++i) {
     v2i neighbor = pos + kNeighbor[i];
-    if (!TileOk(neighbor)) continue;
+    tile = TilePtr(neighbor);
+    if (!tile) continue;
 
-    if (!kTilemap[neighbor.y][neighbor.x].blocked) return neighbor;
+    if (!tile->blocked) return neighbor;
   }
 
   return INVALID_TILE;
@@ -136,8 +131,9 @@ TileAvoidWalls(const v2i pos)
   v2i avoidance = {};
   for (int i = 0; i < kMaxNeighbor; ++i) {
     v2i neighbor = pos + kNeighbor[i];
-    if (!TileOk(neighbor)) continue;
-    if (kTilemap[neighbor.y][neighbor.x].blocked) {
+    Tile* tile = TilePtr(neighbor);
+    if (!tile) continue;
+    if (tile->blocked) {
       v2i away = (pos - neighbor);
       avoidance += away;
     }
@@ -160,22 +156,36 @@ TilemapWorldBounds()
   v2i min = {0, 0};
   v2i max = {kMapWidth, kMapHeight};
   math::Rectf ret;
-  ret.min = TilePosToWorld(min);
-  ret.max = TilePosToWorld(max);
+  v2f center(kTileWidth * .5f, kTileHeight * .5f);
+  ret.min = TilePosToWorld(min) - center;
+  ret.max = TilePosToWorld(max) - center;
+
   return ret;
 }
 
 void
+TilemapSet(uint64_t grid_idx)
+{
+  if (grid_idx > kUsedGrid) {
+    kTilemap = nullptr;
+    return;
+  }
+
+  kTilemap = (Tile*)kGrid[grid_idx].tilemap;
+  kTilemapWorldOffset = kGrid[grid_idx].transform.position.xy();
+}
+
+uint64_t
 TilemapInitialize(int tilemap_style)
 {
   memset(&kTilemap, 0, sizeof(kTilemap));
 
   Grid* grid = UseGrid();
   grid->transform.position = v3f();
-  grid->bounds = TilemapWorldBounds();
+  TilemapSet(grid - kGrid);
 
   if (!tilemap_style) {
-    return;
+    return grid - kGrid;
   }
 
   // clang-format off
@@ -217,7 +227,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
   // clang-format on
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
-      Tile* tile = &kTilemap[i][j];
+      Tile* tile = TilePtr(v2i(j, i));
       tile->cx = j;
       tile->cy = i;
       tile->blocked = (kDefaultMap[i][j] == kTileBlock);
@@ -259,15 +269,20 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
       };
     }
   }
+
+  return grid - kGrid;
 }
 
 void
 TilemapUpdate(int tilemap_style)
 {
   if (tilemap_style != 2) return;
-  for (int i = 0; i < kMapHeight; ++i)
-    for (int j = 0; j < kMapWidth; ++j)
-      kTilemap[i][j].shroud = !kTilemap[i][j].exterior;
+  for (int i = 0; i < kMapHeight; ++i) {
+    for (int j = 0; j < kMapWidth; ++j) {
+      Tile* tile = TilePtr(v2i(j, i));
+      tile->shroud = !tile->exterior;
+    }
+  }
 }
 
 }  // namespace simulation

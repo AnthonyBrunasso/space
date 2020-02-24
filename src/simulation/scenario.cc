@@ -57,8 +57,6 @@ InitializeScenario(bool reset_features = true)
       }
       kUnit[4].spacesuit = 1;
 
-      // One ship
-      UseShip();
     } break;
     case Scenario::kCombatScenario: {
       if (reset_features) {
@@ -77,12 +75,9 @@ InitializeScenario(bool reset_features = true)
     case Scenario::kSoloMission: {
       if (reset_features) {
         memset(&kScenario, 0, sizeof(kScenario));
-        kScenario.ship = 1;
         kScenario.ai = 1;
         kScenario.tilemap = 2;
       }
-      // One ship
-      UseShip();
       // One unit
       UseIdUnit();
       kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
@@ -91,13 +86,8 @@ InitializeScenario(bool reset_features = true)
     case Scenario::kTwoShip: {
       if (reset_features) {
         memset(&kScenario, 0, sizeof(kScenario));
-        kScenario.ship = 1;
+        kScenario.tilemap = 1;
       }
-      Ship* s1 = UseShip();
-      Ship* s2 = UseShip();
-      // Called once here, and once below to create two grids
-      TilemapInitialize(kScenario.tilemap);
-      kGrid[0].transform.position = v2f(600.f, 600.f);
     } break;
     default:
     case Scenario::kEmptyScenario: {
@@ -108,7 +98,11 @@ InitializeScenario(bool reset_features = true)
   }
   kScenario.type = (Scenario::Type)sid;
 
-  TilemapInitialize(kScenario.tilemap);
+  uint64_t grid_index = TilemapInitialize(kScenario.tilemap);
+  // At least one ship
+  kScenario.ship = 1;
+  Ship* ship = UseShip();
+  ship->grid_index = grid_index;
   // Global resource pool until deeper into multiplayer
   UseResource();
   kResource[0].level = 1;
@@ -124,6 +118,13 @@ InitializeScenario(bool reset_features = true)
       float tile_world_distance = kMapWidth * kTileWidth;
       BfsMutate(kUnit[0].transform.position, keep_bits, set_bits,
                 tile_world_distance * tile_world_distance);
+    } break;
+    case Scenario::kTwoShip: {
+      // Create a second ship and tilemap
+      Ship* s2 = UseShip();
+      grid_index = TilemapInitialize(kScenario.tilemap);
+      s2->grid_index = grid_index;
+      kGrid[grid_index].transform.position = v2f(600.f, 600.f);
     } break;
   }
 }
@@ -149,7 +150,7 @@ ScenarioOver()
   switch (sid) {
     case Scenario::kGameScenario:
       if (kUsedShip == 0) {
-        LOG("Ship does not exist.");
+        LOG("No ships remain.");
         return true;
       }
       Ship* ship = &kShip[0];

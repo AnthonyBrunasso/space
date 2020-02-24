@@ -265,9 +265,9 @@ Render(const math::Rectf visible_world, v2f screen)
   for (int i = 0; i < kUsedPlayer; ++i) {
     Player* p = &kPlayer[i];
     // Hover selection
-    v2i mouse_grid = WorldToTilePos(p->mouse);
+    v2i mouse_grid = WorldToTilePos(p->world_mouse);
     float dsq;
-    v3fNearTransform(p->mouse, GAME_ITER(Unit, transform), &dsq);
+    v3fNearTransform(p->world_mouse, GAME_ITER(Unit, transform), &dsq);
     if (dsq < kDsqSelect) {
       // Highlight the unit that would be selected on mouse click
       rgg::RenderRectangle(TilePosToWorld(mouse_grid), kTileScale,

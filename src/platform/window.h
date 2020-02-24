@@ -31,8 +31,6 @@ struct PlatformEvent {
   PlatformEventType type;
   // Screen space the event took place in.
   v2f position;
-  // World space the event took place in.
-  v2f world_position;
   // Event Detail
   union {
     float wheel_delta;

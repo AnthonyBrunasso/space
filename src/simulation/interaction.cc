@@ -69,7 +69,7 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
     snprintf(buffer, BUFFER_SIZE, "Window Size: %ix%i", (int)sz.x, (int)sz.y);
     imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE, "Mouse Pos In World: (%.1f,%.1f)",
-             player.mouse.x, player.mouse.y);
+             player.world_mouse.x, player.world_mouse.y);
     imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE, "Input hash: 0x%lx", kInputHash);
     imui::Text(buffer);
@@ -231,11 +231,14 @@ Hud(v2f screen)
 void
 ControlEvent(const PlatformEvent* event, Player* player)
 {
+  v3f world_pos = camera::ScreenToWorldSpace(
+      &player->camera, v3f(event->position - window::GetWindowSize() * 0.5f));
+
   djb2_hash_more((const uint8_t*)event, sizeof(PlatformEvent), &kInputHash);
   switch (event->type) {
     case MOUSE_POSITION: {
-      player->mouse = event->world_position;
-      UpdateBoxSelectionOnPosition(event->position, player->mouse);
+      player->world_mouse = world_pos.xy();
+      UpdateBoxSelectionOnPosition(event->position, world_pos);
     } break;
     case MOUSE_WHEEL: {
       // TODO(abrunasso): Why does this need to be negative?
@@ -243,20 +246,17 @@ ControlEvent(const PlatformEvent* event, Player* player)
     } break;
     case MOUSE_DOWN: {
       imui::MouseClick(event->position, event->button);
-      v3f pos = camera::ScreenToWorldSpace(
-          &player->camera,
-          v3f(event->position - window::GetWindowSize() * 0.5f));
 
       if (event->button == BUTTON_LEFT) {
         UnselectAll();
-        UpdateBoxSelectionOnClick(event->position, pos);
+        UpdateBoxSelectionOnClick(event->position, world_pos);
       }
 
       if (kPlayer[kNetworkState.player_id].mod_placement) {
         unsigned mkind = kPlayer[kNetworkState.player_id].mod_placement;
         kPlayer[kNetworkState.player_id].mod_placement = 0;
         if (event->button == BUTTON_LEFT) {
-          v2i tilepos = WorldToTilePos(pos);
+          v2i tilepos = WorldToTilePos(world_pos);
           Module* m = UseModule();
           m->cx = tilepos.x;
           m->cy = tilepos.y;
@@ -266,17 +266,17 @@ ControlEvent(const PlatformEvent* event, Player* player)
       }
 
       if (event->button == BUTTON_LEFT) {
-        uint32_t unit = GetUnitId(pos);
+        uint32_t unit = GetUnitId(world_pos);
         SelectUnit(unit);
       } else if (event->button == BUTTON_RIGHT) {
         uint32_t unit = UnitId();
-        uint32_t target = GetUnitId(pos);
+        uint32_t target = GetUnitId(world_pos);
         if (ShouldAttack(unit, target)) {
           LOGFMT("Order attack [%lu, %lu]", unit, target);
-          PushCommand({kUaAttack, pos, kInvalidUnit});
+          PushCommand({kUaAttack, world_pos, kInvalidUnit});
         } else {
           LOGFMT("Order move [%lu]", unit);
-          PushCommand({kUaMove, pos, kInvalidUnit});
+          PushCommand({kUaMove, world_pos, kInvalidUnit});
         }
       }
     } break;

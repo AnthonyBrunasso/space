@@ -56,7 +56,7 @@ GatherWindowInput(InputBuffer* input_buffer)
 
     uint64_t type = pevent.type;
     switch (type) {
-      case MOUSE_DOWN: 
+      case MOUSE_DOWN:
       case MOUSE_UP:
       case MOUSE_WHEEL:
       case KEY_DOWN:
@@ -69,10 +69,7 @@ GatherWindowInput(InputBuffer* input_buffer)
 
   // Always append an estimate of the the local mouse cursor
   input_buffer->input_event[event_count].type = MOUSE_POSITION;
-  input_buffer->input_event[event_count].position =
-      window::GetCursorPosition();
-  input_buffer->input_event[event_count].world_position =
-      MyScreenToWorld(window::GetCursorPosition()).xy();
+  input_buffer->input_event[event_count].position = window::GetCursorPosition();
   event_count += 1;
 
   input_buffer->used_input_event = event_count;

@@ -165,21 +165,18 @@ ModuleColor(unsigned mkind)
 }
 
 void
-Render(const math::Rectf visible_world, v2f screen)
+Render(const math::Rectf ship_bounds, v2f screen)
 {
   using namespace simulation;
 
-  const v2f grid2(50.f, 50.f);
-  math::Rectf world2 = visible_world;
-  AlignToGrid(grid2, &world2);
-  rgg::RenderGrid(grid2, world2, v4f(0.207f, 0.317f, 0.360f, 0.60f));
+  const v2f grid_dims(kTileWidth, kTileHeight);
+  v4f colors[] = {
+      v4f(0.207f, 0.317f, 0.360f, 0.60f),
+      v4f(0.050f, 0.215f, 0.050f, 0.45f),
+  };
+  rgg::RenderGrid(grid_dims, ship_bounds, ARRAY_LENGTH(colors), colors);
 
-  const v2f grid1(25.f, 25.f);
-  math::Rectf world1 = visible_world;
-  AlignToGrid(grid1, &world1);
-  rgg::RenderGrid(grid1, world1, v4f(0.050f, 0.215f, 0.050f, 0.45f));
-
-  // Unpower modules are visible
+  // Modules are always visible
   constexpr float min_visibility = .2f;
 
   for (int i = 0; i < kUsedModule; ++i) {

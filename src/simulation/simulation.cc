@@ -538,7 +538,7 @@ Update()
   if (SimulationOver()) return;
 
   // Shroud is reset each frame
-  UpdateTilemap(kScenario.tilemap);
+  TilemapUpdate(kScenario.tilemap);
 
   Think();
   Decide();

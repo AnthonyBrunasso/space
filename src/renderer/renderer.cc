@@ -63,8 +63,9 @@ static RGG kRGG;
 #include "texture.cc"
 #include "ui.cc"
 
-class ModifyObserver {
-public:
+class ModifyObserver
+{
+ public:
   ModifyObserver(const math::Mat4f& proj, const math::Mat4f& view)
   {
     projection_ = kObserver.projection;
@@ -78,7 +79,8 @@ public:
     kObserver.projection = projection_;
     kObserver.view = view_;
   }
-private:
+
+ private:
   math::Mat4f projection_;
   math::Mat4f view_;
 };
@@ -137,18 +139,17 @@ SetupGeometryProgram()
   kRGG.smooth_rectangle_program.model_uniform =
       glGetUniformLocation(kRGG.smooth_rectangle_program.reference, "model");
   assert(kRGG.smooth_rectangle_program.model_uniform != uint32_t(-1));
-  kRGG.smooth_rectangle_program.view_projection_uniform =
-      glGetUniformLocation(kRGG.smooth_rectangle_program.reference,
-      "view_projection");
+  kRGG.smooth_rectangle_program.view_projection_uniform = glGetUniformLocation(
+      kRGG.smooth_rectangle_program.reference, "view_projection");
   assert(kRGG.smooth_rectangle_program.view_projection_uniform != uint32_t(-1));
 
   kRGG.smooth_rectangle_program.color_uniform =
       glGetUniformLocation(kRGG.smooth_rectangle_program.reference, "color");
   assert(kRGG.smooth_rectangle_program.color_uniform != uint32_t(-1));
-  kRGG.smooth_rectangle_program.smoothing_radius_uniform =
-      glGetUniformLocation(kRGG.smooth_rectangle_program.reference,
-                           "smoothing_radius");
-  assert(kRGG.smooth_rectangle_program.smoothing_radius_uniform != uint32_t(-1));
+  kRGG.smooth_rectangle_program.smoothing_radius_uniform = glGetUniformLocation(
+      kRGG.smooth_rectangle_program.reference, "smoothing_radius");
+  assert(kRGG.smooth_rectangle_program.smoothing_radius_uniform !=
+         uint32_t(-1));
 
   return true;
 }
@@ -262,9 +263,8 @@ CreateRenderable(int vert_count, GLfloat* verts, GLenum mode)
 }
 
 void
-RenderTag(const RenderTag& tag, const v3f& position,
-          const v3f& scale, const math::Quatf& orientation,
-          const v4f& color)
+RenderTag(const RenderTag& tag, const v3f& position, const v3f& scale,
+          const math::Quatf& orientation, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(tag.vao_reference);
@@ -346,7 +346,6 @@ RenderLineRectangle(const math::Rect& rect, const v4f& color)
   glDrawArrays(GL_LINE_LOOP, 0, 4);
 }
 
-
 void
 RenderSmoothRectangle(const math::Rect& rect, float smoothing_radius,
                       const v4f& color)
@@ -375,8 +374,8 @@ RenderCircle(const v3f& position, float inner_radius, float outer_radius,
   glUseProgram(kRGG.circle_program.reference);
   glBindVertexArray(kTextureState.vao_reference);
   // Translate and rotate the circle appropriately.
-  math::Mat4f model = math::Model(
-      position, v3f(outer_radius * 2.f, outer_radius * 2.f, 0.0f));
+  math::Mat4f model =
+      math::Model(position, v3f(outer_radius * 2.f, outer_radius * 2.f, 0.0f));
   math::Mat4f view_pojection = kObserver.projection * kObserver.view;
   glUniform1f(kRGG.circle_program.inner_radius_uniform, inner_radius);
   glUniform1f(kRGG.circle_program.outer_radius_uniform, outer_radius);
@@ -409,9 +408,8 @@ CreateLineTransform(const v3f& start, const v3f& end)
   v3f diff = end - start;
   float angle = atan2(diff.y, diff.x) * (180.f / PI);
   float distance = math::Length(diff);
-  return math::Model(
-      translation, v3f(distance / 2.f, distance / 2.f, 1.f),
-      math::Quatf(angle, v3f(0.f, 0.f, -1.f)));
+  return math::Model(translation, v3f(distance / 2.f, distance / 2.f, 1.f),
+                     math::Quatf(angle, v3f(0.f, 0.f, -1.f)));
 }
 
 void
@@ -429,37 +427,49 @@ RenderLine(const v3f& start, const v3f& end, const v4f& color)
 }
 
 void
-RenderGrid(v2f grid, math::Rectf bounds, const v4f& color)
+RenderGrid(v2f grid, math::Rectf bounds, uint64_t color_count,
+           v4f color[color_count])
 {
   // Prepare Geometry and color
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.line_vao_reference);
-  glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
-              color.w);
 
   v2f& bottom_left = bounds.min;
   v2f& top_right = bounds.max;
 
   // Draw horizontal lines.
-  for (float y = bottom_left.y; y < top_right.y; y += grid.y) {
+  int i = 0;
+  for (float y = bottom_left.y; y <= top_right.y; y += grid.y) {
     auto start = v3f(bottom_left.x, y, 0.f);
     auto end = v3f(top_right.x, y, 0.f);
     math::Mat4f matrix =
         kObserver.projection * kObserver.view * CreateLineTransform(start, end);
     glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
                        &matrix.data_[0]);
+
+    glUniform4f(kRGG.geometry_program.color_uniform, color[i].x, color[i].y,
+                color[i].z, color[i].w);
     glDrawArrays(GL_LINES, 0, 2);
+
+    i += 1;
+    i = (i != color_count) * i;
   }
 
   // Draw vertical lines.
-  for (float x = bottom_left.x; x < top_right.x; x += grid.x) {
+  i = 0;
+  for (float x = bottom_left.x; x <= top_right.x; x += grid.x) {
     auto start = v3f(x, bottom_left.y, 0.f);
     auto end = v3f(x, top_right.y, 0.f);
     math::Mat4f matrix =
         kObserver.projection * kObserver.view * CreateLineTransform(start, end);
     glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
                        &matrix.data_[0]);
+    glUniform4f(kRGG.geometry_program.color_uniform, color[i].x, color[i].y,
+                color[i].z, color[i].w);
     glDrawArrays(GL_LINES, 0, 2);
+
+    i += 1;
+    i = (i != color_count) * i;
   }
 }
 

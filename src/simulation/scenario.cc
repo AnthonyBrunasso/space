@@ -102,7 +102,7 @@ InitializeScenario(bool reset_features = true)
   }
   kScenario.type = (Scenario::Type)sid;
 
-  InitializeTilemap(kScenario.tilemap);
+  TilemapInitialize(kScenario.tilemap);
   // Global resource pool until deeper into multiplayer
   UseResource();
   kResource[0].level = 1;

@@ -38,13 +38,6 @@ GetCamera(uint64_t player_id)
   return &kPlayer[player_id].camera;
 }
 
-v3f
-MyScreenToWorld(v2f xy)
-{
-  return camera::ScreenToWorldSpace(GetCamera(kNetworkState.player_id),
-                                    v3f(xy - window::GetWindowSize() * 0.5f));
-}
-
 void
 GatherWindowInput(InputBuffer* input_buffer)
 {
@@ -228,10 +221,7 @@ main(int argc, char** argv)
     simulation::LogPanel();
     simulation::Hud(dims);
 
-    // The bottom left and top right of the screen with regards to the camera.
-    v3f top_right = MyScreenToWorld(dims);
-    v3f bottom_left = MyScreenToWorld({0.f, 0.f});
-    gfx::Render(math::Rectf{bottom_left.xy(), top_right.xy()}, dims);
+    gfx::Render(simulation::TilemapWorldBounds(), dims);
 #endif
     imui::Reset();
 

@@ -12,6 +12,7 @@ struct Scenario {
     kGameScenario = 0,
     kCombatScenario,
     kSoloMission,
+    kTwoShip,
     kEmptyScenario,
     kMaxScenario,
   };
@@ -28,10 +29,7 @@ struct Scenario {
 
 static Scenario kScenario;
 constexpr const char* kScenarioNames[Scenario::kMaxScenario] = {
-    "Game",
-    "Combat",
-    "Solo",
-    "Empty",
+    "Game", "Combat", "Solo", "TwoShip", "Empty",
 };
 
 void
@@ -62,7 +60,6 @@ InitializeScenario(bool reset_features = true)
 
       // One ship
       UseShip();
-      kShip[0].running = true;
     } break;
     case Scenario::kCombatScenario: {
       if (reset_features) {
@@ -87,11 +84,19 @@ InitializeScenario(bool reset_features = true)
       }
       // One ship
       UseShip();
-      kShip[0].running = true;
       // One unit
       UseIdUnit();
       kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
       kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
+    } break;
+    case Scenario::kTwoShip: {
+      if (reset_features) {
+        memset(&kScenario, 0, sizeof(kScenario));
+        kScenario.ship = 1;
+        kScenario.tilemap = 1;
+      }
+      Ship* s1 = UseShip();
+      Ship* s2 = UseShip();
     } break;
     default:
     case Scenario::kEmptyScenario: {
@@ -142,7 +147,15 @@ ScenarioOver()
   int sid = kScenario.type;
   switch (sid) {
     case Scenario::kGameScenario:
-      return !(kShip[0].running);
+      if (kUsedShip == 0) return true;
+      Ship* ship = &kShip[0];
+      if (ship->danger > 20) {
+        LOG("The ship's reactor is melting down.");
+        return true;
+      } else if (kUsedUnit < 1) {
+        LOG("The crew is dead.");
+        return true;
+      }
   }
 
   return false;

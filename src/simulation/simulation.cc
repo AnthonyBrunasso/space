@@ -303,13 +303,6 @@ DecideShip()
 
   for (int i = 0; i < kUsedShip; ++i) {
     Ship* ship = &kShip[i];
-    if (ship->danger > 20) {
-      LOG("The ship's reactor is melting down.");
-      ship->running = false;
-    } else if (kUsedUnit < 1) {
-      LOG("The crew is dead.");
-      ship->running = false;
-    }
     if (ship->think_flags & FLAG(kShipAiSpawnPod)) {
       Pod* pod = UsePod();
       pod->transform = Transform{.position = v3f(520.f, 600.f, 0.f)};

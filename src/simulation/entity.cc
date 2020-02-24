@@ -163,8 +163,7 @@ struct Unit {
   unsigned mskill : kModBits;
 };
 
-constexpr unsigned kUnitBits = 4;
-DECLARE_GAME_TYPE_WITH_ID(Unit, 1 << kUnitBits);
+DECLARE_GAME_TYPE_WITH_ID(Unit, 16);
 struct Ship {
   uint64_t think_flags = 0;
   uint64_t operate_flags = 0;
@@ -172,10 +171,9 @@ struct Ship {
   float sys[kModCount];
   float used_power;
   float power_delta;
-  uint64_t running;
   unsigned ftl_frame : 6;
 };
-DECLARE_GAME_TYPE(Ship, 1);
+DECLARE_GAME_TYPE(Ship, 2);
 struct Resource {
   uint64_t mineral = 0;
   uint64_t frame = 0;
@@ -245,5 +243,5 @@ DECLARE_GAME_TYPE(Selection, 16);
 struct Grid {
   math::Rectf bounds;
 };
-DECLARE_GAME_TYPE(Grid, 1);
+DECLARE_GAME_TYPE(Grid, 2);
 

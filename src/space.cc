@@ -221,7 +221,7 @@ main(int argc, char** argv)
     simulation::LogPanel();
     simulation::Hud(dims);
 
-    gfx::Render(simulation::TilemapWorldBounds(), dims);
+    gfx::Render(dims);
 #endif
     imui::Reset();
 

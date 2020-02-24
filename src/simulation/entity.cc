@@ -241,3 +241,9 @@ struct Selection {
   uint32_t unit_id;
 };
 DECLARE_GAME_TYPE(Selection, 16);
+
+struct Grid {
+  math::Rectf bounds;
+};
+DECLARE_GAME_TYPE(Grid, 1);
+

@@ -154,10 +154,24 @@ TileVacuum(const v2i pos)
   return Normalize(posf - center);
 }
 
+math::Rectf
+TilemapWorldBounds()
+{
+  v2i min = {0, 0};
+  v2i max = {kMapWidth, kMapHeight};
+  math::Rectf ret;
+  ret.min = TilePosToWorld(min);
+  ret.max = TilePosToWorld(max);
+  return ret;
+}
+
 void
 TilemapInitialize(int tilemap_id)
 {
   memset(&kTilemap, 0, sizeof(kTilemap));
+
+  Grid* grid = UseGrid();
+  grid->bounds = TilemapWorldBounds();
 
   if (!tilemap_id) {
     return;
@@ -253,17 +267,6 @@ TilemapUpdate(int tilemap_id)
   for (int i = 0; i < kMapHeight; ++i)
     for (int j = 0; j < kMapWidth; ++j)
       kTilemap[i][j].shroud = !kTilemap[i][j].exterior;
-}
-
-math::Rectf
-TilemapWorldBounds()
-{
-  v2i min = {0, 0};
-  v2i max = {kMapWidth, kMapHeight};
-  math::Rectf ret;
-  ret.min = TilePosToWorld(min);
-  ret.max = TilePosToWorld(max);
-  return ret;
 }
 
 }  // namespace simulation

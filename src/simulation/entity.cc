@@ -241,6 +241,7 @@ struct Selection {
 DECLARE_GAME_TYPE(Selection, 16);
 
 struct Grid {
+  Transform transform;
   math::Rectf bounds;
 };
 DECLARE_GAME_TYPE(Grid, 2);

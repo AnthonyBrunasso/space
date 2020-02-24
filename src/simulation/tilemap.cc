@@ -166,14 +166,15 @@ TilemapWorldBounds()
 }
 
 void
-TilemapInitialize(int tilemap_id)
+TilemapInitialize(int tilemap_style)
 {
   memset(&kTilemap, 0, sizeof(kTilemap));
 
   Grid* grid = UseGrid();
+  grid->transform.position = v3f();
   grid->bounds = TilemapWorldBounds();
 
-  if (!tilemap_id) {
+  if (!tilemap_style) {
     return;
   }
 
@@ -224,10 +225,10 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
       tile->explored = 1;
       tile->exterior = 1;
 
-      // No modules for tilemap_id 2
+      // No modules for tilemap_style 2
       // Shroud enabled
       // Fog enabled
-      if (tilemap_id == 2) {
+      if (tilemap_style == 2) {
         if (kDefaultMap[i][j] == kTileConsumable) {
           Consumable* c = UseConsumable();
           c->cx = tile->cx;
@@ -261,9 +262,9 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
 }
 
 void
-TilemapUpdate(int tilemap_id)
+TilemapUpdate(int tilemap_style)
 {
-  if (tilemap_id != 2) return;
+  if (tilemap_style != 2) return;
   for (int i = 0; i < kMapHeight; ++i)
     for (int j = 0; j < kMapWidth; ++j)
       kTilemap[i][j].shroud = !kTilemap[i][j].exterior;

@@ -175,7 +175,10 @@ Render(v2f screen)
         v4f(0.207f, 0.317f, 0.360f, 0.60f),
         v4f(0.050f, 0.215f, 0.050f, 0.45f),
     };
-    rgg::RenderGrid(grid_dims, kGrid[i].bounds, ARRAY_LENGTH(colors), colors);
+    math::Rectf bounds = kGrid[i].bounds;
+    bounds.min += kGrid[i].transform.position.xy();
+    bounds.max += kGrid[i].transform.position.xy();
+    rgg::RenderGrid(grid_dims, bounds, ARRAY_LENGTH(colors), colors);
   }
 
   // Modules are always visible

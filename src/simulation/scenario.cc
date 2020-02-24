@@ -93,10 +93,12 @@ InitializeScenario(bool reset_features = true)
       if (reset_features) {
         memset(&kScenario, 0, sizeof(kScenario));
         kScenario.ship = 1;
-        kScenario.tilemap = 1;
       }
       Ship* s1 = UseShip();
       Ship* s2 = UseShip();
+      // Called once here, and once below to create two grids
+      TilemapInitialize(kScenario.tilemap);
+      kGrid[0].transform.position = v2f(600.f, 600.f);
     } break;
     default:
     case Scenario::kEmptyScenario: {

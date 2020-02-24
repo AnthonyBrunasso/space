@@ -54,7 +54,6 @@ InitializeScenario(bool reset_features = true)
         unit->kind = kOperator;
         // Everybody is unique!
         unit->mskill = i;
-        printf("Create unit id %i\n", unit->id);
       }
       kUnit[4].spacesuit = 1;
 

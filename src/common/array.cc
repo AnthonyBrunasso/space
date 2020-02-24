@@ -20,6 +20,7 @@
                                                    \
   type* Use##type()                                \
   {                                                \
+    assert(kUsed##type < kMax##type);              \
     if (kUsed##type >= kMax##type) return nullptr; \
     type* t = &k##type[kUsed##type];               \
     kUsed##type += 1;                              \

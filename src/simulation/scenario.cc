@@ -149,7 +149,10 @@ ScenarioOver()
   int sid = kScenario.type;
   switch (sid) {
     case Scenario::kGameScenario:
-      if (kUsedShip == 0) return true;
+      if (kUsedShip == 0) {
+        LOG("Ship does not exist.");
+        return true;
+      }
       Ship* ship = &kShip[0];
       if (ship->danger > 20) {
         LOG("The ship's reactor is melting down.");

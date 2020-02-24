@@ -356,11 +356,6 @@ ProcessSimulation(int player_id, uint64_t event_count,
     Player* p = &kPlayer[player_id];
     ControlEvent(&event[i], p);
   }
-
-  if (kRenderSelectionBox) {
-    imui::Box(kSelectionBoxScreen.rect, v4f(0.19f, 0.803f, 0.19f, 0.40f),
-              v4f(0.19f, 0.803f, 0.19f, 1.f));
-  }
 }
 
 }  // namespace simulation

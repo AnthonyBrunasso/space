@@ -25,10 +25,12 @@ ControlShipFtl()
 bool
 ShouldAttack(uint64_t unit, uint64_t target)
 {
+  printf("Should %u attack %u\n", unit, target);
   if (unit == kInvalidUnit || target == kInvalidUnit) return false;
   Unit* controlled_unit = FindUnit(unit);
   Unit* target_unit = FindUnit(target);
   if (target_unit->alliance == controlled_unit->alliance) return false;
+  printf("Should %u attack %u YES\n", unit, target);
   return true;
 }
 
@@ -269,13 +271,12 @@ ControlEvent(const PlatformEvent* event, Player* player)
         uint32_t unit = GetUnitId(world_pos);
         SelectUnit(unit);
       } else if (event->button == BUTTON_RIGHT) {
-        uint32_t unit = UnitId();
         uint32_t target = GetUnitId(world_pos);
-        if (ShouldAttack(unit, target)) {
-          LOGFMT("Order attack [%lu, %lu]", unit, target);
+        if (target != kInvalidUnit) {
+          LOGFMT("Order attack [%lu]", target);
           PushCommand({kUaAttack, world_pos, kInvalidUnit});
         } else {
-          LOGFMT("Order move [%lu]", unit);
+          LOGFMT("Order move [%.0f,%.0f]", world_pos.x, world_pos.y);
           PushCommand({kUaMove, world_pos, kInvalidUnit});
         }
       }

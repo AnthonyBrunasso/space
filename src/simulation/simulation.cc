@@ -37,15 +37,10 @@ Reset(uint64_t seed)
 bool
 Initialize(uint64_t player_count, uint64_t seed)
 {
+  printf("Setting player_count:%lu\n", player_count);
+  // Set player count here so scenario can setup players.
+  kPlayerCount = player_count;
   Reset(seed);
-
-  for (int i = 0; i < player_count; ++i) UsePlayer();
-  LOGFMT("Player count: %lu", kUsedPlayer);
-
-  for (int i = 0; i < kUsedPlayer; ++i) {
-    camera::InitialCamera(&kPlayer[i].camera);
-  }
-
   return true;
 }
 

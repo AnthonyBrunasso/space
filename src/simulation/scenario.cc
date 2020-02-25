@@ -7,6 +7,8 @@
 
 namespace simulation
 {
+// Do not add new fields to this struct you are not alright with being memset
+// to 0xff or 0x0.
 struct Scenario {
   enum Type {
     kGameScenario = 0,
@@ -28,6 +30,10 @@ struct Scenario {
 };
 
 static Scenario kScenario;
+// This is here instead of in kScenario because we memset kScenario which
+// would cause this to go to max player count in the case of kGameScenario.
+static uint64_t kPlayerCount;
+
 constexpr const char* kScenarioNames[Scenario::kMaxScenario] = {
     "Game", "Combat", "Solo", "TwoShip", "Empty",
 };
@@ -144,6 +150,13 @@ InitializeScenario(bool reset_features = true)
       s2->grid_index = grid_index;
       kGrid[grid_index].transform.position = v2f(600.f, 600.f);
     } break;
+  }
+
+  for (int i = 0; i < kPlayerCount; ++i) UsePlayer();
+  LOGFMT("Player count: %lu", kUsedPlayer);
+
+  for (int i = 0; i < kUsedPlayer; ++i) {
+    camera::InitialCamera(&kPlayer[i].camera);
   }
 }
 

@@ -81,8 +81,6 @@ ThinkAI(uint64_t ship_index)
   for (uint64_t i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     if (IsUnitSelected(unit->id)) continue;
-    // shrug, i just like having this guy idle
-    if (unit->spacesuit) continue;
 
     Command c = {kUaNone, v3f(), unit->id};
 

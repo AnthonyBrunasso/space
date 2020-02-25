@@ -33,6 +33,27 @@ constexpr const char* kScenarioNames[Scenario::kMaxScenario] = {
 };
 
 void
+SpawnCrew(int count)
+{
+  v3f pos[] = {v3f(300.f, 300.f, 0.f), v3f(100.f, 130.f, 0),
+               v3f(300.f, 400.f, 0), v3f(650.f, 460.f, 0),
+               v3f(100.f, 577.f, 0.f)};
+  const v3f scale = v3f(0.25f, 0.25f, 0.f);
+  uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
+  for (int i = 0; i < ARRAY_LENGTH(pos) && i < count; ++i) {
+    Unit* unit = UseIdUnit();
+    unit->ship_index = 0;
+    unit->transform.position = pos[i];
+    unit->transform.scale = scale;
+    memcpy(unit->acurrent, attrib, sizeof(attrib));
+    unit->kind = kOperator;
+    // Everybody is unique!
+    unit->mskill = i;
+    printf("Unit created %04.02fx %04.02fy\n", pos[i].x, pos[i].y);
+  }
+}
+
+void
 InitializeScenario(bool reset_features = true)
 {
   int sid = kScenario.type;
@@ -41,20 +62,7 @@ InitializeScenario(bool reset_features = true)
       if (reset_features) {
         memset(&kScenario, 0xff, sizeof(kScenario));
       }
-      v3f pos[] = {v3f(300.f, 300.f, 0.f), v3f(100.f, 130.f, 0),
-                   v3f(300.f, 400.f, 0), v3f(650.f, 460.f, 0),
-                   v3f(100.f, 577.f, 0.f)};
-      const v3f scale = v3f(0.25f, 0.25f, 0.f);
-      uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
-      for (int i = 0; i < ARRAY_LENGTH(pos); ++i) {
-        Unit* unit = UseIdUnit();
-        unit->transform.position = pos[i];
-        unit->transform.scale = scale;
-        memcpy(unit->acurrent, attrib, sizeof(attrib));
-        unit->kind = kOperator;
-        // Everybody is unique!
-        unit->mskill = i;
-      }
+      SpawnCrew(5);
       kUnit[4].spacesuit = 1;
 
     } break;
@@ -88,6 +96,7 @@ InitializeScenario(bool reset_features = true)
         memset(&kScenario, 0, sizeof(kScenario));
         kScenario.tilemap = 1;
       }
+      SpawnCrew(5);
     } break;
     default:
     case Scenario::kEmptyScenario: {
@@ -103,6 +112,8 @@ InitializeScenario(bool reset_features = true)
   kScenario.ship = 1;
   Ship* ship = UseShip();
   ship->grid_index = grid_index;
+  // TODO (AN): works for now
+  assert((ship-kShip) == grid_index);
   // Global resource pool until deeper into multiplayer
   UseResource();
   kResource[0].level = 1;
@@ -153,11 +164,7 @@ ScenarioOver()
         LOG("No ships remain.");
         return true;
       }
-      Ship* ship = &kShip[0];
-      if (ship->danger > 20) {
-        LOG("The ship's reactor is melting down.");
-        return true;
-      } else if (kUsedUnit < 1) {
+      if (kUsedUnit == 0) {
         LOG("The crew is dead.");
         return true;
       }

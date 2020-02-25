@@ -72,7 +72,7 @@ operator_save_power(Unit* unit, float power_delta)
 }
 
 void
-ThinkAI()
+ThinkAI(uint64_t ship_index)
 {
   if (!kScenario.ai) return;
 
@@ -103,67 +103,64 @@ ThinkAI()
 }
 
 void
-ThinkShip()
+ThinkShip(uint64_t ship_index)
 {
   if (!kScenario.ship) return;
 
-  for (int i = 0; i < kUsedShip; ++i) {
-    // Ship already has a pod, no-op
-    uint64_t think_flags = 0;
+  // Ship already has a pod, no-op
+  uint64_t think_flags = 0;
 
-    if (!kUsedPod) {
-      // Ship mining is powererd
-      if (kShip[i].sys[kModMine] >= 1.0f) {
-        think_flags |= FLAG(kShipAiSpawnPod);
-      }
+  if (!kUsedPod) {
+    // Ship mining is powererd
+    if (kShip[ship_index].sys[kModMine] >= 1.0f) {
+      think_flags |= FLAG(kShipAiSpawnPod);
     }
+  }
 
-    if (kShip[i].power_delta > 0.0f) {
-      think_flags |= FLAG(kShipAiPowerSurge);
-      kShip[i].danger += 1;
-      for (int j = 0; j < kUsedUnit; ++j) {
-        Unit* unit = &kUnit[j];
-        for (int k = 0; k < kUsedModule; ++k) {
-          Module* mod = &kModule[k];
-          if (mod->mkind != kModPower) continue;
-          if (v3fDsq(unit->transform.position, v3fModule(mod)) <
-              kDsqOperatePod) {
+  if (kShip[ship_index].power_delta > 0.0f) {
+    think_flags |= FLAG(kShipAiPowerSurge);
+    kShip[ship_index].danger += 1;
+    for (int j = 0; j < kUsedUnit; ++j) {
+      Unit* unit = &kUnit[j];
+      for (int k = 0; k < kUsedModule; ++k) {
+        Module* mod = &kModule[k];
+        if (mod->mkind != kModPower) continue;
+        if (v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperatePod) {
+          if (operator_save_power(unit, kShip[ship_index].power_delta)) {
             // Visual
             Notify* n = UseNotify();
             n->age = 1;
             n->position = v3fModule(mod);
 
-            if (operator_save_power(unit, kShip[i].power_delta)) {
-              kShip[0].power_delta = 0.0f;
-              LOGFMT(
-                  "Unit %i prevented the power surge from damaging the ship.",
-                  unit->id);
-              break;
-            }
+            kShip[ship_index].power_delta = 0.0f;
+            LOGFMT("Unit %u prevented the power surge from damaging ship %i.",
+                   unit->id, ship_index);
+            break;
           }
         }
       }
-    } else {
-      kShip[i].danger = 0;
     }
-    kShip[i].think_flags = think_flags;
-
-    // Crew objectives
-    uint64_t satisfied = 0;
-    v2i module_position;
-    for (int j = 0; j < kUsedUnit; ++j) {
-      Unit* unit = &kUnit[j];
-      for (int k = 0; k < kUsedModule; ++k) {
-        Module* mod = &kModule[k];
-        if (mod->mkind != kModPower && kShip[i].sys[kModPower] < 1.0f) continue;
-
-        if (v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperate)
-          satisfied |= FLAG(mod->mkind);
-      }
-    }
-
-    kShip[i].operate_flags = satisfied;
+  } else {
+    kShip[ship_index].danger = 0;
   }
+  kShip[ship_index].think_flags = think_flags;
+
+  // Crew objectives
+  uint64_t satisfied = 0;
+  v2i module_position;
+  for (int j = 0; j < kUsedUnit; ++j) {
+    Unit* unit = &kUnit[j];
+    for (int k = 0; k < kUsedModule; ++k) {
+      Module* mod = &kModule[k];
+      if (mod->mkind != kModPower && kShip[ship_index].sys[kModPower] < 1.0f)
+        continue;
+
+      if (v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperate)
+        satisfied |= FLAG(mod->mkind);
+    }
+  }
+
+  kShip[ship_index].operate_flags = satisfied;
 }
 
 void
@@ -178,7 +175,7 @@ ThinkAsteroid()
 }
 
 void
-ThinkMissle()
+ThinkMissle(uint64_t ship_index)
 {
   if (!kScenario.missile) return;
 
@@ -189,7 +186,7 @@ ThinkMissle()
     if (!tile) continue;
 
     // ship entering ftl, cannot strike
-    if (kShip[0].ftl_frame) continue;
+    if (kShip[ship_index].ftl_frame) continue;
 
     if (tile->blocked) {
       v2i hack(0, 1);
@@ -201,12 +198,13 @@ ThinkMissle()
 }
 
 void
-ThinkPod()
+ThinkPod(uint64_t ship_index)
 {
   if (!kScenario.pod) return;
 
   for (int i = 0; i < kUsedPod; ++i) {
     Pod* pod = &kPod[i];
+    if (pod->ship_index != ship_index) continue;
     // Keep-state on AiReturn
     constexpr uint64_t keep = (FLAG(kPodAiReturn) | FLAG(kPodAiUnmanned));
     const uint64_t keep_state = pod->think_flags & keep;
@@ -221,7 +219,7 @@ ThinkPod()
       break;
     }
 
-    if (kShip[0].sys[kModMine] < .5f) {
+    if (kShip[ship_index].sys[kModMine] < .5f) {
       think_flags |= FLAG(kPodAiLostControl);
     }
 
@@ -286,50 +284,56 @@ ThinkPod()
 void
 Think()
 {
-  ThinkAI();
-  ThinkShip();
   ThinkAsteroid();
-  ThinkMissle();
-  ThinkPod();
+
+  for (uint64_t i = 0; i < kUsedShip; ++i) {
+    TilemapSet(kShip[i].grid_index);
+    // Shroud is reset each frame
+    TilemapUpdate(kScenario.tilemap);
+
+    ThinkAI(i);
+    ThinkShip(i);
+    ThinkMissle(i);
+    ThinkPod(i);
+  }
 }
 
 void
-DecideShip()
+DecideShip(uint64_t ship_index)
 {
   if (!kScenario.ship) return;
 
   // Advance ftl_frame, if active
-  kShip[0].ftl_frame += (kShip[0].ftl_frame > 0);
+  kShip[ship_index].ftl_frame += (kShip[ship_index].ftl_frame > 0);
 
-  for (int i = 0; i < kUsedShip; ++i) {
-    Ship* ship = &kShip[i];
-    if (ship->think_flags & FLAG(kShipAiSpawnPod)) {
-      Pod* pod = UsePod();
-      pod->transform = Transform{.position = v3f(520.f, 600.f, 0.f)};
-      pod->think_flags = FLAG(kPodAiUnmanned);
-    }
-
-    for (int i = 0; i < kModCount; ++i) {
-      if (ship->operate_flags & FLAG(i)) {
-        ship->sys[i] += 0.01f;
-      } else {
-        ship->sys[i] -= 0.01f;
-      }
-      ship->sys[i] = CLAMPF(ship->sys[i], 0.0f, 1.0f);
-    }
-
-    float used_power = 0.f;
-    used_power += 20.f * (ship->sys[kModMine] >= 0.3f);
-    used_power += 40.f * (ship->sys[kModEngine] >= .3f);
-    used_power += 20.f * (ship->sys[kModTurret] >= 0.3f);
-    ship->power_delta = fmaxf(used_power - ship->used_power, ship->power_delta);
-    ship->used_power = used_power;
-
-    const bool jumped = (FtlSimulation(ship) == 0);
-    // Jump side effects
-    kResource[0].mineral -= jumped * kFtlCost;
-    kResource[0].level += jumped;
+  Ship* ship = &kShip[ship_index];
+  if (ship->think_flags & FLAG(kShipAiSpawnPod)) {
+    Pod* pod = UsePod();
+    pod->ship_index = ship_index;
+    pod->transform = Transform{.position = v3f(520.f, 600.f, 0.f)};
+    pod->think_flags = FLAG(kPodAiUnmanned);
   }
+
+  for (int i = 0; i < kModCount; ++i) {
+    if (ship->operate_flags & FLAG(i)) {
+      ship->sys[i] += 0.01f;
+    } else {
+      ship->sys[i] -= 0.01f;
+    }
+    ship->sys[i] = CLAMPF(ship->sys[i], 0.0f, 1.0f);
+  }
+
+  float used_power = 0.f;
+  used_power += 20.f * (ship->sys[kModMine] >= 0.3f);
+  used_power += 40.f * (ship->sys[kModEngine] >= .3f);
+  used_power += 20.f * (ship->sys[kModTurret] >= 0.3f);
+  ship->power_delta = fmaxf(used_power - ship->used_power, ship->power_delta);
+  ship->used_power = used_power;
+
+  const bool jumped = (FtlSimulation(ship) == 0);
+  // Jump side effects
+  kResource[0].mineral -= jumped * kFtlCost;
+  kResource[0].level += jumped;
 }
 
 void
@@ -365,7 +369,7 @@ DecideAsteroid()
 }
 
 void
-DecideMissle()
+DecideMissle(uint64_t ship_index)
 {
   if (!kScenario.missile) return;
 
@@ -383,7 +387,8 @@ DecideMissle()
     Missile* missile = &kMissile[i];
 
     if (missile->explode_frame) {
-      const bool laser_defense = kShip[0].operate_flags & FLAG(kModTurret);
+      const bool laser_defense =
+          kShip[ship_index].operate_flags & FLAG(kModTurret);
 
       if (laser_defense || !MissileHitSimulation(missile)) {
         *missile = kZeroMissile;
@@ -395,7 +400,7 @@ DecideMissle()
 }
 
 void
-DecidePod()
+DecidePod(uint64_t ship_index)
 {
   if (!kScenario.pod) return;
 
@@ -484,63 +489,11 @@ ApplyCommand(const Command& c, Unit* unit)
 }
 
 void
-Decide()
+UpdateModule(uint64_t ship_index)
 {
-  while (CountCommand()) {
-    Command c = PopCommand();
-    // Dispatch command to all selected units if command was made with not
-    // specific unit targeted.
-    if (c.unit_id == kInvalidUnit) {
-      for (int i = 0; i < kUsedSelection; ++i) {
-        Selection* selection = &kSelection[i];
-        Unit* unit = FindUnit(selection->unit_id);
-        if (!unit) continue;
-        ApplyCommand(c, unit);
-      }
-    } else {
-      Unit* unit = FindUnit(c.unit_id);
-      if (!unit) continue;
-      // Unit is busy.
-      if (unit->uaction != kUaNone) continue;
-      ApplyCommand(c, unit);
-    }
-  }
-
-  DecideShip();
-  DecideAsteroid();
-  DecideMissle();
-  DecidePod();
-}
-
-bool
-SimulationOver()
-{
-  return ScenarioOver();
-}
-
-void
-Update()
-{
-  ++kResource[0].frame;
-
-  // Camera
-  for (int i = 0; i < kUsedPlayer; ++i) {
-    camera::Update(&kPlayer[i].camera);
-    kPlayer[i].camera.motion.z = 0.f;
-  }
-
-  if (SimulationOver()) return;
-
-  // Force grid 0
-  TilemapSet(kShip[0].grid_index);
-  // Shroud is reset each frame
-  TilemapUpdate(kScenario.tilemap);
-
-  Think();
-  Decide();
-
   for (int i = 0; i < kUsedModule; ++i) {
     Module* m = &kModule[i];
+    if (m->ship_index != ship_index) continue;
 
     if (m->mkind == kModPower) {
       v2i tilepos(m->cx, m->cy);
@@ -552,14 +505,20 @@ Update()
       Tile set_bits;
       memset(&set_bits, 0x00, sizeof(Tile));
       set_bits.explored = 1;
-      float tile_world_distance = kTileWidth * 8.0f * kShip[0].sys[kModPower];
+      float tile_world_distance =
+          kTileWidth * 8.0f * kShip[m->ship_index].sys[kModPower];
       BfsMutate(world, keep_bits, set_bits,
                 tile_world_distance * tile_world_distance);
     }
   }
+}
 
+void
+UpdateUnit(uint64_t ship_index)
+{
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
+    if (unit->ship_index != ship_index) continue;
     Transform* transform = &unit->transform;
     v2i tilepos = WorldToTilePos(transform->position.xy());
     Tile* tile = TilePtr(tilepos);
@@ -619,7 +578,11 @@ Update()
       ProjectileShootLaserAt(target_unit->transform.position, 7.5f, unit);
     }
   }
+}
 
+void
+UpdateConsumable(uint64_t ship_index)
+{
   for (int i = 0; i < kUsedConsumable; ++i) {
     Consumable* c = &kConsumable[i];
     v3f cw = TilePosToWorld(v2i(c->cx, c->cy));
@@ -630,6 +593,7 @@ Update()
         const v3f scale = v3f(0.25f, 0.25f, 0.f);
         uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
         Unit* new_unit = UseIdUnit();
+        new_unit->ship_index = ship_index;
         new_unit->transform.position = cw;
         new_unit->transform.scale = scale;
         memcpy(new_unit->acurrent, attrib, sizeof(attrib));
@@ -644,6 +608,70 @@ Update()
       }
     }
   }
+}
+
+void
+Decide()
+{
+  while (CountCommand()) {
+    Command c = PopCommand();
+    // Dispatch command to all selected units if command was made with not
+    // specific unit targeted.
+    if (c.unit_id == kInvalidUnit) {
+      for (int i = 0; i < kUsedSelection; ++i) {
+        Selection* selection = &kSelection[i];
+        Unit* unit = FindUnit(selection->unit_id);
+        if (!unit) continue;
+        ApplyCommand(c, unit);
+      }
+    } else {
+      Unit* unit = FindUnit(c.unit_id);
+      if (!unit) continue;
+      // Unit is busy.
+      if (unit->uaction != kUaNone) continue;
+      ApplyCommand(c, unit);
+    }
+  }
+
+  DecideAsteroid();
+
+  for (uint64_t i = 0; i < kUsedShip; ++i) {
+    TilemapSet(kShip[i].grid_index);
+    DecideShip(i);
+    DecideMissle(i);
+    DecidePod(i);
+    UpdateModule(i);
+    UpdateUnit(i);
+    UpdateConsumable(i);
+  }
+}
+
+bool
+SimulationOver()
+{
+  return ScenarioOver();
+}
+
+void
+Update()
+{
+  ++kResource[0].frame;
+
+  // Camera
+  for (int i = 0; i < kUsedPlayer; ++i) {
+    camera::Update(&kPlayer[i].camera);
+    kPlayer[i].camera.motion.z = 0.f;
+  }
+
+  if (SimulationOver()) return;
+
+  for (int i = 0; i < kUsedShip; ++i) {
+    TilemapSet(kShip[i].grid_index);
+  }
+
+  Think();
+  Decide();
+  TilemapSet(-1);
 
   for (int i = 0; i < kUsedNotify; ++i) {
     Notify* n = &kNotify[i];

@@ -10,16 +10,16 @@ namespace simulation
 static uint64_t kInputHash = DJB2_CONST;
 
 bool
-ShipFtlReady()
+ShipFtlReady(uint64_t ship_index)
 {
-  return kShip[0].sys[kModEngine] > .5f && kResource[0].mineral >= kFtlCost;
+  return kShip[ship_index].sys[kModEngine] > .5f && kResource[0].mineral >= kFtlCost;
 }
 
 void
-ControlShipFtl()
+ControlShipFtl(uint64_t ship_index)
 {
   LOG("Faster Than Light engine activated!");
-  kShip[0].ftl_frame = 1;
+  kShip[ship_index].ftl_frame = 1;
 }
 
 bool
@@ -138,12 +138,14 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
   if (simulation::SimulationOver()) {
     snprintf(buffer, BUFFER_SIZE, "Game Over");
     imui::Text(buffer);
-  } else if (simulation::ShipFtlReady()) {
+  } 
+  // TODO (AN): Multiship considerations
+  /*else if (simulation::ShipFtlReady()) {
     if (imui::Button(math::Rect(10, 100, 40, 40), v4f(1.0f, 0.0f, 1.0f, 0.75f))
             .clicked) {
       simulation::ControlShipFtl();
     }
-  }
+  }*/
 
   imui::End();
 }

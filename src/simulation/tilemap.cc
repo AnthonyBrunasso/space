@@ -181,11 +181,12 @@ TilemapInitialize(int tilemap_style)
   memset(&kTilemap, 0, sizeof(kTilemap));
 
   Grid* grid = UseGrid();
+  uint64_t grid_index = grid-kGrid;
   grid->transform.position = v3f();
-  TilemapSet(grid - kGrid);
+  TilemapSet(grid_index);
 
   if (!tilemap_style) {
-    return grid - kGrid;
+    return grid_index;
   }
 
   // clang-format off
@@ -249,6 +250,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
           }
         } else if (kDefaultMap[i][j] == kTilePower) {
           Module* t = UseModule();
+          t->ship_index = grid_index;
           t->cx = tile->cx;
           t->cy = tile->cy;
           t->mkind = kModPower;
@@ -262,6 +264,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
         case kTileMine:
         case kTileTurret: {
           Module* t = UseModule();
+          t->ship_index = grid_index;
           t->cx = tile->cx;
           t->cy = tile->cy;
           t->mkind = kDefaultMap[i][j] - kTileModule;
@@ -270,7 +273,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
     }
   }
 
-  return grid - kGrid;
+  return grid_index;
 }
 
 void

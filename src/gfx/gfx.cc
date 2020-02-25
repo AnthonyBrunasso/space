@@ -165,7 +165,7 @@ ModuleColor(unsigned mkind)
 }
 
 void
-RenderShip()
+RenderShip(uint64_t ship_index)
 {
   using namespace simulation;
 
@@ -183,7 +183,8 @@ RenderShip()
   for (int i = 0; i < kUsedModule; ++i) {
     Module* module = &kModule[i];
     v3f mcolor = ModuleColor(module->mkind);
-    mcolor *= CLAMPF(min_visibility, kShip[0].sys[module->mkind], 1.0f);
+    mcolor *=
+        CLAMPF(min_visibility, kShip[ship_index].sys[module->mkind], 1.0f);
     v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
     ;
     rgg::RenderRectangle(
@@ -201,8 +202,8 @@ RenderShip()
     for (int i = 0; i < kUsedModule; ++i) {
       Module* mod = &kModule[i];
       if (mod->mkind != kModEngine) continue;
-      float engine_power =
-          fminf(kShip[0].sys[kModEngine], kShip[0].sys[kModPower]);
+      float engine_power = fminf(kShip[ship_index].sys[kModEngine],
+                                 kShip[ship_index].sys[kModPower]);
       float visibility = fmaxf(min_visibility, engine_power);
       v3f mcolor = ModuleColor(mod->mkind);
       mcolor *= visibility;
@@ -233,7 +234,7 @@ RenderShip()
     }
   }
 
-  float fft = kShip[0].ftl_frame * (1.f / kFtlFrameTime);
+  float fft = kShip[ship_index].ftl_frame * (1.f / kFtlFrameTime);
   float ship_alpha = 1.f - fft;
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
@@ -275,8 +276,6 @@ RenderShip()
     rgg::RenderRectangle(TilePosToWorld(mouse_grid), kTileScale,
                          kDefaultRotation, color);
   }
-
-  RenderCrew();
 }
 
 void
@@ -346,8 +345,11 @@ Render()
 
   for (int i = 0; i < kUsedGrid; ++i) {
     simulation::TilemapSet(i);
-    RenderShip();
+    // TODO (AN): This assumes grid_index == ship_index
+    RenderShip(i);
   }
+
+  RenderCrew();
 
   RenderSpaceObjects();
 

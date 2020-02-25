@@ -130,6 +130,7 @@ constexpr uint64_t kPodMaxMineral = 100;
 struct Pod {
   Transform transform;
   uint64_t think_flags = 0;
+  uint64_t ship_index = UINT64_MAX;
   v2f goal;
   v2f last_heading;
   uint64_t mineral;
@@ -143,6 +144,7 @@ struct Unit {
   uint32_t id;
   int kind;
   UnitAlliance alliance = kCrew;
+  uint64_t ship_index = UINT64_MAX;
 
   // Maybe need a weapon type?
   float attack_radius = 100.0f;
@@ -151,7 +153,6 @@ struct Unit {
   int attack_cooldown = 60;
   float health = 10.0f;
 
-  int ship = 0;
   uint8_t acurrent[CREWA_MAX];
   uint8_t aknown_min[CREWA_MAX] = CREW_AWORST;
   uint8_t aknown_max[CREWA_MAX] = CREW_ABEST;
@@ -201,6 +202,7 @@ struct Projectile {
 DECLARE_GAME_TYPE(Projectile, 16);
 
 struct Module {
+  uint64_t ship_index = UINT64_MAX;
   unsigned cx : 5;
   unsigned cy : 5;
   unsigned mkind : kModBits;

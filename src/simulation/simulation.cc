@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cfloat>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 
@@ -107,32 +109,35 @@ ThinkShip(uint64_t ship_index)
 {
   if (!kScenario.ship) return;
 
-  // Ship already has a pod, no-op
+  Ship* ship = &kShip[ship_index];
   uint64_t think_flags = 0;
 
   if (!kUsedPod) {
     // Ship mining is powererd
-    if (kShip[ship_index].sys[kModMine] >= 1.0f) {
-      think_flags |= FLAG(kShipAiSpawnPod);
+    if (ship->sys[kModMine] >= 1.0f) {
+      if (ship->pod_capacity) {
+        think_flags |= FLAG(kShipAiSpawnPod);
+        ship->pod_capacity -= 1;
+      }
     }
   }
 
-  if (kShip[ship_index].power_delta > 0.0f) {
+  if (ship->power_delta > 0.0f) {
     think_flags |= FLAG(kShipAiPowerSurge);
-    kShip[ship_index].danger += 1;
+    ship->danger += 1;
     for (int j = 0; j < kUsedUnit; ++j) {
       Unit* unit = &kUnit[j];
       for (int k = 0; k < kUsedModule; ++k) {
         Module* mod = &kModule[k];
         if (mod->mkind != kModPower) continue;
         if (v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperatePod) {
-          if (operator_save_power(unit, kShip[ship_index].power_delta)) {
+          if (operator_save_power(unit, ship->power_delta)) {
             // Visual
             Notify* n = UseNotify();
             n->age = 1;
             n->position = v3fModule(mod);
 
-            kShip[ship_index].power_delta = 0.0f;
+            ship->power_delta = 0.0f;
             LOGFMT("Unit %u prevented the power surge from damaging ship %i.",
                    unit->id, ship_index);
             break;
@@ -141,9 +146,9 @@ ThinkShip(uint64_t ship_index)
       }
     }
   } else {
-    kShip[ship_index].danger = 0;
+    ship->danger = 0;
   }
-  kShip[ship_index].think_flags = think_flags;
+  ship->think_flags = think_flags;
 
   // Crew objectives
   uint64_t satisfied = 0;
@@ -152,15 +157,14 @@ ThinkShip(uint64_t ship_index)
     Unit* unit = &kUnit[j];
     for (int k = 0; k < kUsedModule; ++k) {
       Module* mod = &kModule[k];
-      if (mod->mkind != kModPower && kShip[ship_index].sys[kModPower] < 1.0f)
-        continue;
+      if (mod->mkind != kModPower && ship->sys[kModPower] < 1.0f) continue;
 
       if (v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperate)
         satisfied |= FLAG(mod->mkind);
     }
   }
 
-  kShip[ship_index].operate_flags = satisfied;
+  ship->operate_flags = satisfied;
 }
 
 void
@@ -269,6 +273,21 @@ ThinkPod(uint64_t ship_index)
           think_flags |= FLAG(kPodAiGather);
           asteroid->deplete = 1;
         }
+      } else {
+        for (int i = 0; i < kUsedShip; ++i) {
+          if (i == ship_index) continue;
+          uint64_t grid_index = kShip[i].grid_index;
+          v3f midship =
+              kGrid[i].transform.position +
+              v2f(kTileWidth * kMapWidth * .5f, kTileHeight * kMapHeight * .5f);
+          dsq = v3fDsq(midship, pod->transform.position);
+          if (dsq > kDsqOperate) {
+            goal = midship.xy();
+            think_flags |= FLAG(kPodAiApproach);
+          } else {
+            think_flags |= FLAG(kPodAiDisembark);
+          }
+        }
       }
     }
 
@@ -310,6 +329,7 @@ DecideShip(uint64_t ship_index)
   if (ship->think_flags & FLAG(kShipAiSpawnPod)) {
     Pod* pod = UsePod();
     pod->ship_index = ship_index;
+    LOGFMT("Ship %u constructed a new pod %u", ship_index, pod - kPod);
     pod->transform = Transform{.position = v3f(520.f, 600.f, 0.f)};
     pod->think_flags = FLAG(kPodAiUnmanned);
   }
@@ -333,7 +353,7 @@ DecideShip(uint64_t ship_index)
   const bool jumped = (FtlSimulation(ship) == 0);
   // Jump side effects
   kResource[0].mineral -= jumped * kFtlCost;
-  kResource[0].level += jumped;
+  kShip[ship_index].level += jumped;
 }
 
 void
@@ -373,9 +393,9 @@ DecideMissle(uint64_t ship_index)
 {
   if (!kScenario.missile) return;
 
-  const float missile_xrange = 50.f * kResource[0].level;
+  const float missile_xrange = 50.f * kShip[ship_index].level;
   static float next_missile = 0.f;
-  while (kUsedMissile < kResource[0].level) {
+  while (kUsedMissile < kShip[ship_index].level) {
     Missile* missile = UseMissile();
     missile->transform =
         Transform{.position = v3f(300.f + next_missile, -1000.f, 0.f)};
@@ -406,6 +426,7 @@ DecidePod(uint64_t ship_index)
 
   for (int i = 0; i < kUsedPod; ++i) {
     Pod* pod = &kPod[i];
+    if (pod->ship_index != ship_index) continue;
 
     uint64_t action = TZCNT(pod->think_flags);
     uint64_t mineral = 0;
@@ -430,12 +451,31 @@ DecidePod(uint64_t ship_index)
         break;
       case kPodAiUnmanned:
         break;
+      case kPodAiDisembark:
+        for (int i = 0; i < kUsedUnit; ++i) {
+          if (kUnit[i].inspace) {
+            LOGFMT("%d disembarked onto ship %d", i, 1);
+            kUnit[i].transform.position = pod->transform.position;
+            kUnit[i].inspace = 0;
+            kUnit[i].ship_index = 1;
+            pod->think_flags = FLAG(kPodAiUnmanned);
+            break;
+          }
+        }
+        *kPod = kZeroPod;
+        continue;
     };
 
 #ifdef DEBUG_AI
+    printf(" [ position %04.02fx %04.02fy ] ", pod->transform.position.x,
+           pod->transform.position.y);
+    printf(" [ goal %04.02fx %04.02fy ] ", pod->goal.x, pod->goal.y);
     printf("pod ai [ action %lu ] [ think %lu ] [dir %f %f]\n", action,
            pod->think_flags, dir.x, dir.y);
 #endif
+
+    if (!std::isnormal(dir.x)) dir.x = FP_ZERO;
+    if (!std::isnormal(dir.y)) dir.y = FP_ZERO;
     pod->transform.position += dir * 2.0;
     pod->last_heading = dir.xy();
   }

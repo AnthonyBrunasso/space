@@ -84,6 +84,7 @@ enum PodAiGoals {
   kPodAiUnload,
   kPodAiReturn,
   kPodAiApproach,
+  kPodAiDisembark,
   kPodAiGoals = 64,
 };
 
@@ -173,13 +174,14 @@ struct Ship {
   float sys[kModCount];
   float used_power;
   float power_delta;
+  uint64_t level;
+  uint64_t pod_capacity;
   unsigned ftl_frame : 6;
 };
 DECLARE_GAME_TYPE(Ship, 2);
 struct Resource {
   uint64_t mineral = 0;
   uint64_t frame = 0;
-  uint64_t level;
 };
 DECLARE_GAME_TYPE(Resource, 1);
 

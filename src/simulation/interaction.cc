@@ -132,8 +132,9 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
 
   snprintf(buffer, BUFFER_SIZE, "Minerals: %lu", kResource[0].mineral);
   imui::Text(buffer);
-  snprintf(buffer, BUFFER_SIZE, "Level: %lu", kResource[0].level);
-  imui::Text(buffer);
+  // TODO (AN): If ships can be on different levels, which ship do we follow?
+  // snprintf(buffer, BUFFER_SIZE, "Level: %lu", kResource[0].level);
+  // imui::Text(buffer);
 
   if (simulation::SimulationOver()) {
     snprintf(buffer, BUFFER_SIZE, "Game Over");

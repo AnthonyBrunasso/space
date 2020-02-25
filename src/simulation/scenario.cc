@@ -47,6 +47,7 @@ SpawnCrew(int count)
     unit->transform.scale = scale;
     memcpy(unit->acurrent, attrib, sizeof(attrib));
     unit->kind = kOperator;
+    unit->spacesuit = 1;
     // Everybody is unique!
     unit->mskill = i;
     printf("Unit created %04.02fx %04.02fy\n", pos[i].x, pos[i].y);
@@ -93,8 +94,10 @@ InitializeScenario(bool reset_features = true)
     } break;
     case Scenario::kTwoShip: {
       if (reset_features) {
-        memset(&kScenario, 0, sizeof(kScenario));
-        kScenario.tilemap = 1;
+        memset(&kScenario, 0xff, sizeof(kScenario));
+        kScenario.ai = 0;
+        kScenario.missile = 0;
+        kScenario.asteroid = 0;
       }
       SpawnCrew(5);
     } break;
@@ -112,11 +115,12 @@ InitializeScenario(bool reset_features = true)
   kScenario.ship = 1;
   Ship* ship = UseShip();
   ship->grid_index = grid_index;
+  ship->pod_capacity = 1;
+  kShip[0].level = 1;
   // TODO (AN): works for now
-  assert((ship-kShip) == grid_index);
+  assert((ship - kShip) == grid_index);
   // Global resource pool until deeper into multiplayer
   UseResource();
-  kResource[0].level = 1;
 
   switch (sid) {
     case Scenario::kSoloMission: {

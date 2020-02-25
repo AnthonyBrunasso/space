@@ -343,9 +343,8 @@ Render()
                          kWhite);
   }*/
 
-  for (int i = 0; i < kUsedGrid; ++i) {
-    simulation::TilemapSet(i);
-    // TODO (AN): This assumes grid_index == ship_index
+  for (int i = 0; i < kUsedShip; ++i) {
+    simulation::TilemapSet(kShip[i].grid_index);
     RenderShip(i);
   }
 

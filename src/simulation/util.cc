@@ -78,11 +78,11 @@ InRange(Unit* source_unit, Unit* target_unit)
 }
 
 bool
-InRange(uint64_t unit, uint64_t target)
+InRange(uint64_t unit_id, uint64_t target_id)
 {
-  if (unit == kInvalidUnit || target == kInvalidUnit) return false;
-  Unit* source_unit = FindUnit(unit);
-  Unit* target_unit = FindUnit(target);
+  if (unit_id == kInvalidUnit || target_id == kInvalidUnit) return false;
+  Unit* source_unit = FindUnit(unit_id);
+  Unit* target_unit = FindUnit(target_id);
   return InRange(source_unit, target_unit);
 }
 

@@ -476,10 +476,8 @@ DecidePod(uint64_t ship_index)
 }
 
 void
-MoveTowards(int unit_idx, v2i tilepos, v3f dest, UnitAction set_on_arrival)
+MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
 {
-  Unit* unit = &kUnit[unit_idx];
-
   v2i end = WorldToTilePos(dest);
   auto* path = PathTo(tilepos, end);
   if (!path) {
@@ -506,19 +504,18 @@ MoveTowards(int unit_idx, v2i tilepos, v3f dest, UnitAction set_on_arrival)
 }
 
 Unit*
-FindUnitInRangeToAttack(int unit_idx)
+FindUnitInRangeToAttack(Unit* unit)
 {
-  Unit* unit = &kUnit[unit_idx];
   for (int i = 0; i < kUsedUnit; ++i) {
-    if (i == unit_idx) continue;
     Unit* target = &kUnit[i];
+    if (unit == target) continue;
     if (InRange(unit, target)) return target;
   }
   return nullptr;
 }
 
 void
-ApplyCommand(const Command& c, Unit* unit)
+ApplyCommand(Unit* unit, const Command& c)
 {
   unit->uaction = c.type;
   switch (c.type) {
@@ -600,7 +597,7 @@ UpdateUnit(uint64_t ship_index)
       if (!BB_GET(unit->bb, kUnitDestination, dest)) {
         continue;
       }
-      MoveTowards(i, tilepos, *dest, kUaNone);
+      MoveTowards(unit, tilepos, *dest, kUaNone);
     } else if (unit->uaction == kUaAttack) {
       uint32_t* target = nullptr;
       if (!BB_GET(unit->bb, kUnitTarget, target)) {
@@ -615,7 +612,7 @@ UpdateUnit(uint64_t ship_index)
       if (!InRange(unit->id, *target)) {
         // Go to your target.
         BB_SET(unit->bb, kUnitDestination, target_unit->transform.position);
-        MoveTowards(i, tilepos, target_unit->transform.position, kUaAttack);
+        MoveTowards(unit, tilepos, target_unit->transform.position, kUaAttack);
         continue;
       }
 
@@ -631,9 +628,9 @@ UpdateUnit(uint64_t ship_index)
         continue;
       }
 
-      Unit* target_unit = FindUnitInRangeToAttack(i);
+      Unit* target_unit = FindUnitInRangeToAttack(unit);
       if (!target_unit) {
-        MoveTowards(i, tilepos, *dest, kUaNone);
+        MoveTowards(unit, tilepos, *dest, kUaNone);
         continue;
       }
 
@@ -685,14 +682,14 @@ Decide()
         Selection* selection = &kSelection[i];
         Unit* unit = FindUnit(selection->unit_id);
         if (!unit) continue;
-        ApplyCommand(c, unit);
+        ApplyCommand(unit, c);
       }
     } else {
       Unit* unit = FindUnit(c.unit_id);
       if (!unit) continue;
       // Unit is busy.
       if (unit->uaction != kUaNone) continue;
-      ApplyCommand(c, unit);
+      ApplyCommand(unit, c);
     }
   }
 

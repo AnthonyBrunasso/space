@@ -1,7 +1,11 @@
 #pragma once
 
-namespace simulation {
+#include "math/math.cc"
 
+#include "entity.cc"
+
+namespace simulation
+{
 struct SelectionBox {
   v2f start;
   math::Rect rect;
@@ -19,8 +23,8 @@ UpdateBoxSelectionOnPosition(v2f screen, v3f world)
   kSelectionBoxScreen.rect = math::Rect(
       kSelectionBoxScreen.start.x, kSelectionBoxScreen.start.y, sd.x, sd.y);
   v2f wd = world.xy() - kSelectionBoxWorld.start;
-  kSelectionBoxWorld.rect = math::Rect(
-      kSelectionBoxWorld.start.x, kSelectionBoxWorld.start.y, wd.x, wd.y);
+  kSelectionBoxWorld.rect = math::Rect(kSelectionBoxWorld.start.x,
+                                       kSelectionBoxWorld.start.y, wd.x, wd.y);
 }
 
 void
@@ -57,4 +61,4 @@ UnselectAll()
   kUsedSelection = 0;
 }
 
-}
+}  // namespace simulation

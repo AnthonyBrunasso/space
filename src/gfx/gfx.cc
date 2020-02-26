@@ -79,16 +79,6 @@ Initialize()
 }
 
 void
-AlignToGrid(v2f grid, math::Rectf* world)
-{
-  float x_align = fmodf(world->min.x, grid.x);
-  float y_align = fmodf(world->min.y, grid.y);
-
-  world->min.x -= x_align + grid.x;
-  world->min.y -= y_align + grid.y;
-}
-
-void
 RenderCrew()
 {
   using namespace simulation;

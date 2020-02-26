@@ -9,11 +9,6 @@ struct AxisAlignedRect {
   v3f max; 
 };
 
-struct Rectf {
-  v2f min; 
-  v2f max; 
-};
-
 struct Rect {
   Rect() = default;
   Rect(float x, float y, float width, float height) :

@@ -56,11 +56,17 @@ static const v2i kNeighbor[kMaxNeighbor] = {
 
 // Returns the minimum position of the tile.
 v2f
+TilePosToWorldMin(const v2i& pos)
+{
+  return {kTilemapWorldOffset.x + ((float)pos.x * kTileWidth),
+          kTilemapWorldOffset.y + ((float)pos.y * kTileHeight)};
+}
+
+// Returns the centered position of the tile.
+v2f
 TilePosToWorld(const v2i& pos)
 {
-  return {
-      kTilemapWorldOffset.x + ((float)pos.x * kTileWidth) + kTileWidth * .5f,
-      kTilemapWorldOffset.y + ((float)pos.y * kTileHeight) + kTileHeight * .5f};
+  return TilePosToWorldMin(pos) + v2f(kTileWidth * .5f, kTileHeight * .5f);
 }
 
 // Returns the minimum position of the tile.
@@ -149,15 +155,17 @@ TileVacuum(const v2i pos)
   return Normalize(posf - center);
 }
 
-math::Rectf
+math::Rect
 TilemapWorldBounds()
 {
-  v2i min = {0, 0};
-  v2i max = {kMapWidth, kMapHeight};
-  math::Rectf ret;
-  v2f center(kTileWidth * .5f, kTileHeight * .5f);
-  ret.min = TilePosToWorld(min) - center;
-  ret.max = TilePosToWorld(max) - center;
+  math::Rect ret;
+  v2f minf = TilePosToWorldMin({0, 0});
+  v2f maxf = TilePosToWorldMin({kMapWidth, kMapHeight});
+
+  ret.x = minf.x;
+  ret.y = minf.y;
+  ret.width = maxf.x - minf.x;
+  ret.height = maxf.y - minf.y;
 
   return ret;
 }
@@ -165,11 +173,8 @@ TilemapWorldBounds()
 v3f
 TilemapWorldCenter()
 {
-  v2i min = {0, 0};
-  v3f world_min = TilePosToWorld(min);
-  world_min +=
-      v2f(kMapWidth * kTileWidth * .5f, kMapHeight * kTileHeight * .5f);
-  return world_min;
+  return TilePosToWorld({0, 0}) +
+         v2f(kMapWidth * kTileWidth * .5f, kMapHeight * kTileHeight * .5f);
 }
 
 void

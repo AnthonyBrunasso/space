@@ -427,20 +427,17 @@ RenderLine(const v3f& start, const v3f& end, const v4f& color)
 }
 
 void
-RenderGrid(v2f grid, math::Rectf bounds, uint64_t color_count,
-           v4f* color)
+RenderGrid(v2f grid, math::Rect bounds, uint64_t color_count, v4f* color)
 {
   // Prepare Geometry and color
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.line_vao_reference);
 
-  v2f& bottom_left = bounds.min;
-  v2f& top_right = bounds.max;
-
   // Draw horizontal lines.
+  const v2f top_right(bounds.x + bounds.width, bounds.y + bounds.height);
   int i = 0;
-  for (float y = bottom_left.y; y <= top_right.y; y += grid.y) {
-    auto start = v3f(bottom_left.x, y, 0.f);
+  for (float y = bounds.y; y <= top_right.y; y += grid.y) {
+    auto start = v3f(bounds.x, y, 0.f);
     auto end = v3f(top_right.x, y, 0.f);
     math::Mat4f matrix =
         kObserver.projection * kObserver.view * CreateLineTransform(start, end);
@@ -457,8 +454,8 @@ RenderGrid(v2f grid, math::Rectf bounds, uint64_t color_count,
 
   // Draw vertical lines.
   i = 0;
-  for (float x = bottom_left.x; x <= top_right.x; x += grid.x) {
-    auto start = v3f(x, bottom_left.y, 0.f);
+  for (float x = bounds.x; x <= top_right.x; x += grid.x) {
+    auto start = v3f(x, bounds.y, 0.f);
     auto end = v3f(x, top_right.y, 0.f);
     math::Mat4f matrix =
         kObserver.projection * kObserver.view * CreateLineTransform(start, end);

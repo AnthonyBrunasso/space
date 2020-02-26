@@ -220,7 +220,6 @@ main(int argc, char** argv)
                            kGameState.frame_target_usec);
     simulation::LogPanel();
     simulation::Hud(dims);
-    simulation::SelectionBox();
 
     gfx::Render();
 #endif

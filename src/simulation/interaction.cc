@@ -235,15 +235,6 @@ Hud(v2f screen)
 }
 
 void
-SelectionBox()
-{
-  if (!kRenderSelectionBox) return;
-
-  imui::Box(kSelectionBoxScreen.rect, v4f(0.19f, 0.803f, 0.19f, 0.40f),
-            v4f(0.19f, 0.803f, 0.19f, 1.f));
-}
-
-void
 ControlEvent(const PlatformEvent* event, Player* player)
 {
   v3f world_pos = camera::ScreenToWorldSpace(
@@ -253,7 +244,8 @@ ControlEvent(const PlatformEvent* event, Player* player)
   switch (event->type) {
     case MOUSE_POSITION: {
       player->world_mouse = world_pos.xy();
-      UpdateBoxSelectionOnPosition(event->position, world_pos);
+      player->world_selection.width = world_pos.x - player->world_selection.x;
+      player->world_selection.height = world_pos.y - player->world_selection.y;
     } break;
     case MOUSE_WHEEL: {
       // TODO(abrunasso): Why does this need to be negative?
@@ -261,11 +253,6 @@ ControlEvent(const PlatformEvent* event, Player* player)
     } break;
     case MOUSE_DOWN: {
       imui::MouseClick(event->position, event->button);
-
-      if (event->button == BUTTON_LEFT) {
-        UnselectAll();
-        UpdateBoxSelectionOnClick(event->position, world_pos);
-      }
 
       if (kPlayer[kNetworkState.player_id].mod_placement) {
         unsigned mkind = kPlayer[kNetworkState.player_id].mod_placement;
@@ -285,8 +272,10 @@ ControlEvent(const PlatformEvent* event, Player* player)
       }
 
       if (event->button == BUTTON_LEFT) {
-        uint32_t unit = GetUnitId(world_pos);
-        SelectUnit(unit);
+        UnselectAll();
+        player->world_selection.x = world_pos.x;
+        player->world_selection.y = world_pos.y;
+        break;
       } else if (event->button == BUTTON_RIGHT) {
         uint32_t target = GetUnitId(world_pos);
         if (target != kInvalidUnit) {
@@ -299,16 +288,23 @@ ControlEvent(const PlatformEvent* event, Player* player)
       }
     } break;
     case MOUSE_UP: {
-      if (kRenderSelectionBox) {
-        auto r = math::OrientToAabb(kSelectionBoxWorld.rect);
-        uint32_t id;
+      if (event->button == BUTTON_LEFT) {
+        math::Rectf aabbSelection = math::OrientToAabb(player->world_selection);
+        uint32_t id = kInvalidUnit;
         for (int i = 0; i < kUsedUnit; ++i) {
-          if (!GetUnitId(r, i, &id)) continue;
+          if (!GetUnitId(aabbSelection, i, &id)) continue;
           LOGFMT("Select unit: %i", id);
           SelectUnit(id);
         }
+        player->world_selection.x = 0.f;
+        player->world_selection.y = 0.f;
+
+        // Box selection missed, fallback to single unit selection
+        if (id == kInvalidUnit) {
+          id = GetUnitId(world_pos);
+          SelectUnit(id);
+        }
       }
-      kRenderSelectionBox = false;
     } break;
     case KEY_DOWN: {
       switch (event->key) {

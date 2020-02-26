@@ -19,6 +19,8 @@ struct Gfx {
 
 static Gfx kGfx;
 static v4f kWhite = v4f(1.f, 1.f, 1.f, 1.f);
+static v4f kSelectionColor = v4f(0.19f, 0.803f, 0.19f, 0.40f);
+static v4f kSelectionOutlineColor = v4f(0.19f, 0.803f, 0.19f, 1.f);
 static v4f kRed = v4f(1.f, 0.f, 0.f, 1.f);
 static const math::Quatf kDefaultRotation = math::Quatf(0.f, 0.f, 0.f, 1.f);
 static v3f kDefaultScale = v3f(1.f, 1.f, 1.f);
@@ -248,6 +250,12 @@ RenderShip(uint64_t ship_index)
 
   for (int i = 0; i < kUsedPlayer; ++i) {
     Player* p = &kPlayer[i];
+
+    if (p->world_selection.x != 0.f || p->world_selection.y != 0.f) {
+      rgg::RenderRectangle(p->world_selection, kSelectionColor);
+      rgg::RenderLineRectangle(p->world_selection, kSelectionOutlineColor);
+    }
+
     // Hover selection
     v2i mouse_grid = WorldToTilePos(p->world_mouse);
     if (!TileOk(mouse_grid)) continue;

@@ -69,15 +69,21 @@ GetUnitId(const math::Rectf& rect, int idx, uint32_t* id)
 }
 
 bool
+InRange(Unit* source_unit, Unit* target_unit)
+{
+  float dsq =
+      v3fDsq(source_unit->transform.position, target_unit->transform.position);
+  float rsq = source_unit->attack_radius * source_unit->attack_radius;
+  return dsq < rsq;
+}
+
+bool
 InRange(uint64_t unit, uint64_t target)
 {
   if (unit == kInvalidUnit || target == kInvalidUnit) return false;
   Unit* source_unit = FindUnit(unit);
   Unit* target_unit = FindUnit(target);
-  float dsq =
-      v3fDsq(source_unit->transform.position, target_unit->transform.position);
-  float rsq = source_unit->attack_radius * source_unit->attack_radius;
-  return dsq < rsq;
+  return InRange(source_unit, target_unit);
 }
 
 }  // namespace simulation

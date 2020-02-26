@@ -250,7 +250,7 @@ Hud(v2f screen)
       case kUnitAttackDestination: {
         v3f* d = nullptr;
         if (!BB_GET(unit->bb, kUnitAttackDestination, d)) continue;
-        snprintf(selected_text[0], 64, "attack dest: %.0f,%.0f", d->x, d->y);
+        snprintf(selected_text[0], 64, "adest: %.0f,%.0f", d->x, d->y);
         imui::Text(selected_text[0]);
       } break;
       case kUnitTarget: {

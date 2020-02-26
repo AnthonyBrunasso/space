@@ -505,6 +505,18 @@ MoveTowards(int unit_idx, v2i tilepos, v3f dest, UnitAction set_on_arrival)
   unit->transform.position += move_dir;
 }
 
+Unit*
+FindUnitInRangeToAttack(int unit_idx)
+{
+  Unit* unit = &kUnit[unit_idx];
+  for (int i = 0; i < kUsedUnit; ++i) {
+    if (i == unit_idx) continue;
+    Unit* target = &kUnit[i];
+    if (InRange(unit, target)) return target;
+  }
+  return nullptr;
+}
+
 void
 ApplyCommand(const Command& c, Unit* unit)
 {
@@ -613,6 +625,20 @@ UpdateUnit(uint64_t ship_index)
       }
 
       ProjectileShootLaserAt(target_unit->transform.position, 7.5f, unit);
+    } else if (unit->uaction == kUaAttackMove) {
+      v3f* dest = nullptr;
+      if (!BB_GET(unit->bb, kUnitAttackDestination, dest)) {
+        continue;
+      }
+
+      Unit* target_unit = FindUnitInRangeToAttack(i);
+      if (!target_unit) {
+        MoveTowards(i, tilepos, *dest, kUaNone);
+        continue;
+      }
+
+      unit->uaction = kUaAttack;
+      BB_SET(unit->bb, kUnitTarget, target_unit->id);
     }
   }
 }

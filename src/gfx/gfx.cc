@@ -193,11 +193,6 @@ RenderShip(uint64_t ship_index)
         v3f(1.f / 2.f, 1.f / 2.f, 1.f), kDefaultRotation, color);
   }
 
-  static float escale = .1f;
-  if (escale > 2.f) {
-    escale = .1f;
-  }
-
   {
     v3f world;
     for (int i = 0; i < kUsedModule; ++i) {
@@ -212,12 +207,12 @@ RenderShip(uint64_t ship_index)
       v2i hack = {-1, 2};
       world = TilePosToWorld(v2i(mod->cx, mod->cy) + hack);
       v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
-      rgg::RenderTag(kGfx.exhaust_tag, world, v3f(escale, 1.f, 1.f),
+      float engine_scale = kShip[ship_index].engine_animation * .1f;
+      rgg::RenderTag(kGfx.exhaust_tag, world, v3f(engine_scale, 1.f, 1.f),
                      kDefaultRotation, color);
       rgg::RenderTag(kGfx.exhaust_tag, world,
-                     v3f(fmodf(escale + 1.f, 2.f), 1.f, 1.f), kDefaultRotation,
-                     color);
-      escale += .1f;
+                     v3f(fmodf(engine_scale + 0.8f, 1.6f), 1.f, 1.f),
+                     kDefaultRotation, color);
       break;
     }
   }

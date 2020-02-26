@@ -315,6 +315,8 @@ DecideShip(uint64_t ship_index)
 {
   if (!kScenario.ship) return;
 
+  // Advance engine animation
+  kShip[ship_index].engine_animation += 1;
   // Advance ftl_frame, if active
   kShip[ship_index].ftl_frame += (kShip[ship_index].ftl_frame > 0);
 

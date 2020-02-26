@@ -177,7 +177,9 @@ struct Ship {
   uint64_t level;
   uint64_t pod_capacity;
   unsigned ftl_frame : 6;
+  unsigned engine_animation : 4;
 };
+
 DECLARE_GAME_TYPE(Ship, 2);
 struct Resource {
   uint64_t mineral = 0;

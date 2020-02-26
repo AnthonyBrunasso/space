@@ -12,7 +12,8 @@ static uint64_t kInputHash = DJB2_CONST;
 bool
 ShipFtlReady(uint64_t ship_index)
 {
-  return kShip[ship_index].sys[kModEngine] > .5f && kResource[0].mineral >= kFtlCost;
+  return kShip[ship_index].sys[kModEngine] > .5f &&
+         kResource[0].mineral >= kFtlCost;
 }
 
 void
@@ -139,7 +140,7 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
   if (simulation::SimulationOver()) {
     snprintf(buffer, BUFFER_SIZE, "Game Over");
     imui::Text(buffer);
-  } 
+  }
   // TODO (AN): Multiship considerations
   /*else if (simulation::ShipFtlReady()) {
     if (imui::Button(math::Rect(10, 100, 40, 40), v4f(1.0f, 0.0f, 1.0f, 0.75f))
@@ -270,11 +271,15 @@ ControlEvent(const PlatformEvent* event, Player* player)
         unsigned mkind = kPlayer[kNetworkState.player_id].mod_placement;
         kPlayer[kNetworkState.player_id].mod_placement = 0;
         if (event->button == BUTTON_LEFT) {
-          v2i tilepos = WorldToTilePos(world_pos);
-          Module* m = UseModule();
-          m->cx = tilepos.x;
-          m->cy = tilepos.y;
-          m->mkind = mkind;
+          for (int i = 0; i < kUsedShip; ++i) {
+            v2i tilepos = WorldToTilePos(world_pos);
+            if (!TileOk(tilepos)) continue;
+            Module* m = UseModule();
+            m->ship_index = i;
+            m->cx = tilepos.x;
+            m->cy = tilepos.y;
+            m->mkind = mkind;
+          }
         }
         break;
       }

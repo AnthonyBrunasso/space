@@ -73,8 +73,7 @@ TileToWorld(const Tile& tile)
 v2i
 WorldToTilePos(const v3f& pos)
 {
-  v2f relpos =
-      pos.xy() - kTilemapWorldOffset;
+  v2f relpos = pos.xy() - kTilemapWorldOffset;
   int x = (int)(relpos.x * kInverseTileWidth);
   int y = (int)(relpos.y * kInverseTileHeight);
   return {x, y};
@@ -163,6 +162,16 @@ TilemapWorldBounds()
   return ret;
 }
 
+v3f
+TilemapWorldCenter()
+{
+  v2i min = {0, 0};
+  v3f world_min = TilePosToWorld(min);
+  world_min +=
+      v2f(kMapWidth * kTileWidth * .5f, kMapHeight * kTileHeight * .5f);
+  return world_min;
+}
+
 void
 TilemapSet(uint64_t grid_idx)
 {
@@ -181,7 +190,7 @@ TilemapInitialize(int tilemap_style)
   memset(&kTilemap, 0, sizeof(kTilemap));
 
   Grid* grid = UseGrid();
-  uint64_t grid_index = grid-kGrid;
+  uint64_t grid_index = grid - kGrid;
   grid->transform.position = v3f();
   TilemapSet(grid_index);
 
@@ -242,6 +251,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
       if (tilemap_style == 2) {
         if (kDefaultMap[i][j] == kTileConsumable) {
           Consumable* c = UseConsumable();
+          c->ship_index = grid_index;
           c->cx = tile->cx;
           c->cy = tile->cy;
           c->minerals = i * j % 89;
@@ -279,7 +289,6 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
 void
 TilemapUpdate(int tilemap_style)
 {
-  if (tilemap_style != 2) return;
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
       Tile* tile = TilePtr(v2i(j, i));

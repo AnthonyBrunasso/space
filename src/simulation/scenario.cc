@@ -27,6 +27,7 @@ struct Scenario {
   unsigned missile : 1;
   unsigned pod : 1;
   unsigned tilemap : 2;
+  unsigned shroud : 1;
 };
 
 static Scenario kScenario;
@@ -58,6 +59,20 @@ SpawnCrew(int count)
     unit->mskill = i;
     printf("Unit created %04.02fx %04.02fy\n", pos[i].x, pos[i].y);
   }
+}
+
+void
+TilemapUnexplored(v3f world_position)
+{
+  Tile keep_bits;
+  memset(&keep_bits, 0xff, sizeof(Tile));
+  keep_bits.explored = 0;
+  keep_bits.exterior = 0;
+  Tile set_bits;
+  memset(&set_bits, 0x00, sizeof(Tile));
+  float tile_world_distance = kMapWidth * kTileWidth;
+  BfsMutate(world_position, keep_bits, set_bits,
+            tile_world_distance * tile_world_distance);
 }
 
 void
@@ -130,25 +145,17 @@ InitializeScenario(bool reset_features = true)
   assert((ship - kShip) == grid_index);
   // Global resource pool until deeper into multiplayer
   UseResource();
+  // Always set unexplored/interior of ship
+  TilemapUnexplored(TilemapWorldCenter());
 
   switch (sid) {
-    case Scenario::kSoloMission: {
-      Tile keep_bits;
-      memset(&keep_bits, 0xff, sizeof(Tile));
-      keep_bits.explored = 0;
-      keep_bits.exterior = 0;
-      Tile set_bits;
-      memset(&set_bits, 0x00, sizeof(Tile));
-      float tile_world_distance = kMapWidth * kTileWidth;
-      BfsMutate(kUnit[0].transform.position, keep_bits, set_bits,
-                tile_world_distance * tile_world_distance);
-    } break;
     case Scenario::kTwoShip: {
       // Create a second ship and tilemap
       Ship* s2 = UseShip();
-      grid_index = TilemapInitialize(kScenario.tilemap);
+      grid_index = TilemapInitialize(2);
       s2->grid_index = grid_index;
       kGrid[grid_index].transform.position = v2f(600.f, 600.f);
+      TilemapUnexplored(TilemapWorldCenter());
     } break;
   }
 

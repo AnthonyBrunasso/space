@@ -182,11 +182,12 @@ RenderShip(uint64_t ship_index)
 
   for (int i = 0; i < kUsedModule; ++i) {
     Module* module = &kModule[i];
+    if (module->ship_index != ship_index) continue;
     v3f mcolor = ModuleColor(module->mkind);
     mcolor *=
         CLAMPF(min_visibility, kShip[ship_index].sys[module->mkind], 1.0f);
     v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
-    ;
+
     rgg::RenderRectangle(
         v3f(simulation::TilePosToWorld(v2i{(int)module->cx, (int)module->cy})),
         v3f(1.f / 2.f, 1.f / 2.f, 1.f), kDefaultRotation, color);
@@ -201,6 +202,7 @@ RenderShip(uint64_t ship_index)
     v3f world;
     for (int i = 0; i < kUsedModule; ++i) {
       Module* mod = &kModule[i];
+      if (mod->ship_index != ship_index) continue;
       if (mod->mkind != kModEngine) continue;
       float engine_power = fminf(kShip[ship_index].sys[kModEngine],
                                  kShip[ship_index].sys[kModPower]);
@@ -222,6 +224,7 @@ RenderShip(uint64_t ship_index)
 
   for (int i = 0; i < kUsedConsumable; ++i) {
     Consumable* c = &kConsumable[i];
+    if (c->ship_index != ship_index) continue;
     const Tile* tile = TilePtr(v2i(c->cx, c->cy));
     if (!tile || !tile->explored) continue;
 
@@ -262,6 +265,8 @@ RenderShip(uint64_t ship_index)
     Player* p = &kPlayer[i];
     // Hover selection
     v2i mouse_grid = WorldToTilePos(p->world_mouse);
+    if (!TileOk(mouse_grid)) continue;
+
     float dsq;
     v3fNearTransform(p->world_mouse, GAME_ITER(Unit, transform), &dsq);
     if (dsq < kDsqSelect) {

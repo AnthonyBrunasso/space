@@ -233,6 +233,7 @@ struct Notify {
 DECLARE_GAME_TYPE(Notify, 4);
 
 struct Consumable {
+  uint64_t ship_index = UINT64_MAX;
   unsigned cx : 5;
   unsigned cy : 5;
   unsigned cryo_chamber : 1;

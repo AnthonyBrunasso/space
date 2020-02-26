@@ -12,15 +12,12 @@ static uint64_t kInputHash = DJB2_CONST;
 bool
 ShipFtlReady(uint64_t ship_index)
 {
-  return kShip[ship_index].sys[kModEngine] > .5f &&
-         kResource[0].mineral >= kFtlCost;
+  return kShip[ship_index].sys[kModEngine] > .5f;
 }
 
 void
 ControlShipFtl(uint64_t ship_index)
 {
-  LOG("Faster Than Light engine activated!");
-  kShip[ship_index].ftl_frame = 1;
 }
 
 bool
@@ -133,21 +130,47 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
 
   snprintf(buffer, BUFFER_SIZE, "Minerals: %lu", kResource[0].mineral);
   imui::Text(buffer);
-  // TODO (AN): If ships can be on different levels, which ship do we follow?
-  // snprintf(buffer, BUFFER_SIZE, "Level: %lu", kResource[0].level);
-  // imui::Text(buffer);
+  snprintf(buffer, BUFFER_SIZE, "Level: %lu", player.level);
+  imui::Text(buffer);
 
   if (simulation::SimulationOver()) {
     snprintf(buffer, BUFFER_SIZE, "Game Over");
     imui::Text(buffer);
   }
-  // TODO (AN): Multiship considerations
-  /*else if (simulation::ShipFtlReady()) {
-    if (imui::Button(math::Rectf(10, 100, 40, 40), v4f(1.0f, 0.0f, 1.0f, 0.75f))
+  v4f ready_color = v4f(1.0f, 0.0f, 1.0f, 0.75f);
+  v4f unready_color = v4f(0.3f, 0.3f, 0.3f, 0.5f);
+  for (int i = 0; i < kUsedShip; ++i) {
+    bool ftl_ready = simulation::ShipFtlReady(i);
+    if (imui::Button(math::Rectf(50, 100 + (i * 50), 40, 40),
+                     ftl_ready ? ready_color : unready_color)
             .clicked) {
-      simulation::ControlShipFtl();
+      if (!ftl_ready) {
+        LOG("Faster Than Light engine is offline!");
+      } else if (kResource[0].mineral >= kFtlCost) {
+        LOG("Faster Than Light engine activated!");
+        kShip[i].ftl_frame = 1;
+        kResource[0].mineral -= kFtlCost;
+      } else {
+        LOGFMT("Ftl requires minerals [%d]!", kFtlCost);
+      }
     }
-  }*/
+  }
+
+  {
+    v4f orange(1.0f, .3f, .3f, .75f);
+    int level_change = 0;
+    if (imui::Button(math::Rectf(10, 125, 30, 30), orange).clicked) {
+      level_change = -1;
+    }
+    if (imui::Button(math::Rectf(100, 125, 30, 30), orange).clicked) {
+      level_change = 1;
+    }
+
+    {
+      Player* p = &kPlayer[&player - kPlayer];
+      p->level = CLAMP(p->level + level_change, 1, 10);
+    }
+  }
 
   imui::End();
 }

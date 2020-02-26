@@ -347,7 +347,6 @@ DecideShip(uint64_t ship_index)
 
   const bool jumped = (FtlSimulation(ship) == 0);
   // Jump side effects
-  kResource[0].mineral -= jumped * kFtlCost;
   kShip[ship_index].level += jumped;
 }
 

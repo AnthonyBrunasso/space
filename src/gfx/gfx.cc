@@ -81,13 +81,14 @@ Initialize()
 }
 
 void
-RenderCrew()
+RenderCrew(uint64_t ship_index)
 {
   using namespace simulation;
 
   // Crew rendering
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
+    if (unit->ship_index != ship_index) continue;
     if (unit->inspace) continue;
 
     v4f color;
@@ -334,7 +335,7 @@ RenderSpaceObjects()
 }
 
 void
-Render()
+Render(uint64_t player_id)
 {
   /*for (int i = 0; i < kUsedPlayer; ++i) {
     rgg::RenderRectangle(kPlayer[i].world_mouse, kTileScale, kDefaultRotation,
@@ -342,11 +343,12 @@ Render()
   }*/
 
   for (int i = 0; i < kUsedShip; ++i) {
+    if (kShip[i].level != kPlayer[player_id].level) continue;
+
     simulation::TilemapSet(kShip[i].grid_index);
     RenderShip(i);
+    RenderCrew(i);
   }
-
-  RenderCrew();
 
   RenderSpaceObjects();
 

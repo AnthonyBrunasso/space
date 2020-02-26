@@ -140,7 +140,7 @@ InitializeScenario(bool reset_features = true)
   Ship* ship = UseShip();
   ship->grid_index = grid_index;
   ship->pod_capacity = 1;
-  kShip[0].level = 1;
+  ship->level = 1;
   // TODO (AN): works for now
   assert((ship - kShip) == grid_index);
   // Global resource pool until deeper into multiplayer
@@ -154,6 +154,7 @@ InitializeScenario(bool reset_features = true)
       Ship* s2 = UseShip();
       grid_index = TilemapInitialize(2);
       s2->grid_index = grid_index;
+      s2->level = 1;
       kGrid[grid_index].transform.position = v2f(600.f, 600.f);
       TilemapUnexplored(TilemapWorldCenter());
     } break;

@@ -224,6 +224,7 @@ struct Player {
   Camera camera;  // Assumes fixed dimension window
   v2f world_mouse;
   math::Rectf world_selection;
+  uint64_t level = 1;
   unsigned mod_placement : kModBits;
 };
 DECLARE_GAME_TYPE(Player, MAX_PLAYER);

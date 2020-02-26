@@ -221,7 +221,7 @@ main(int argc, char** argv)
     simulation::LogPanel();
     simulation::Hud(dims);
 
-    gfx::Render();
+    gfx::Render(kNetworkState.player_id);
 #endif
     imui::Reset();
 

@@ -180,6 +180,12 @@ HandleKeyEvent(WPARAM wparam, bool is_down, PlatformEvent* event)
     case 'D':
       event->key = 'd';
       break;
+    case 'R':
+      event->key = 'r';
+      break;
+    case 'U':
+      event->key = 'u';
+      break;
     default:
       break;
   }

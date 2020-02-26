@@ -517,6 +517,9 @@ ApplyCommand(const Command& c, Unit* unit)
       int target = GetUnitId(c.destination);
       BB_SET(unit->bb, kUnitTarget, target);
     } break;
+    case kUaAttackMove: {
+      BB_SET(unit->bb, kUnitAttackDestination, c.destination);
+    } break;
     default:
       break;
   }

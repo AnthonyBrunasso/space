@@ -7,6 +7,13 @@
 
 namespace simulation
 {
+enum LeftClickMode {
+  kSelect,
+  kAttackMove,
+};
+
+LeftClickMode kLeftClickMode = kSelect;
+
 static uint64_t kInputHash = DJB2_CONST;
 
 bool
@@ -240,6 +247,12 @@ Hud(v2f screen)
         snprintf(selected_text[0], 64, "dest: %.0f,%.0f", d->x, d->y);
         imui::Text(selected_text[0]);
       } break;
+      case kUnitAttackDestination: {
+        v3f* d = nullptr;
+        if (!BB_GET(unit->bb, kUnitAttackDestination, d)) continue;
+        snprintf(selected_text[0], 64, "attack dest: %.0f,%.0f", d->x, d->y);
+        imui::Text(selected_text[0]);
+      } break;
       case kUnitTarget: {
         int* t = nullptr;
         if (!BB_GET(unit->bb, kUnitTarget, t)) continue;
@@ -295,9 +308,18 @@ ControlEvent(const PlatformEvent* event, Player* player)
       }
 
       if (event->button == BUTTON_LEFT) {
-        UnselectAll();
-        player->world_selection.x = world_pos.x;
-        player->world_selection.y = world_pos.y;
+        switch (kLeftClickMode) {
+          case kSelect: {
+            player->world_selection.x = world_pos.x;
+            player->world_selection.y = world_pos.y;
+            UnselectAll();
+          } break;
+          case kAttackMove: {
+            LOGFMT("Order attack move [%.0f,%.0f]", world_pos.x, world_pos.y);
+            PushCommand({kUaAttackMove, world_pos, kInvalidUnit});
+          } break;
+        }
+        kLeftClickMode = kSelect;
         break;
       } else if (event->button == BUTTON_RIGHT) {
         uint32_t target = GetUnitId(world_pos);
@@ -312,12 +334,17 @@ ControlEvent(const PlatformEvent* event, Player* player)
     } break;
     case MOUSE_UP: {
       if (event->button == BUTTON_LEFT) {
-        math::Rectf aabbSelection = math::OrientToAabb(player->world_selection);
+        // TODO(abrunasso): Unconvinced this is the best way to check if a
+        // selection occurred. Also unconvined that it's not....
         uint32_t id = kInvalidUnit;
-        for (int i = 0; i < kUsedUnit; ++i) {
-          if (!GetUnitId(aabbSelection, i, &id)) continue;
-          LOGFMT("Select unit: %i", id);
-          SelectUnit(id);
+        if (player->world_selection.x != 0.f || 
+            player->world_selection.y != 0.f) {
+          math::Rectf aabb_selection = math::OrientToAabb(player->world_selection);
+          for (int i = 0; i < kUsedUnit; ++i) {
+            if (!GetUnitId(aabb_selection, i, &id)) continue;
+            LOGFMT("Select unit: %i", id);
+            SelectUnit(id);
+          }
         }
         player->world_selection.x = 0.f;
         player->world_selection.y = 0.f;
@@ -342,6 +369,11 @@ ControlEvent(const PlatformEvent* event, Player* player)
         } break;
         case 'd': {
           player->camera.motion.x = 1.f;
+        } break;
+        case 'r': {
+          if (kUsedSelection > 0) {
+            kLeftClickMode = kAttackMove;
+          }
         } break;
         case 'u': {
           v3f pos = camera::ScreenToWorldSpace(

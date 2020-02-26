@@ -9,6 +9,7 @@ namespace simulation
 void
 SelectUnit(uint32_t unit_id)
 {
+  if (unit_id == kInvalidUnit) return;
   Selection* selection = UseSelection();
   selection->unit_id = unit_id;
 }

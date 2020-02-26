@@ -52,6 +52,7 @@ enum UnitAction {
   kUaOperate,
   kUaVacuum,
   kUaAttack,
+  kUaAttackMove,
 };
 enum UnitKind {
   kOperator,
@@ -74,7 +75,8 @@ enum ShipAiGoals {
 enum UnitBbEntry {
   kUnitTarget = 0,
   kUnitDestination = 1,
-  kUnitBbEntryMax = 2,
+  kUnitAttackDestination = 2,
+  kUnitBbEntryMax = 3,
 };
 // TODO (AN): Document/test priority behaviors
 enum PodAiGoals {

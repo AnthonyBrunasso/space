@@ -143,7 +143,7 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
   }
   // TODO (AN): Multiship considerations
   /*else if (simulation::ShipFtlReady()) {
-    if (imui::Button(math::Rect(10, 100, 40, 40), v4f(1.0f, 0.0f, 1.0f, 0.75f))
+    if (imui::Button(math::Rectf(10, 100, 40, 40), v4f(1.0f, 0.0f, 1.0f, 0.75f))
             .clicked) {
       simulation::ControlShipFtl();
     }
@@ -171,7 +171,7 @@ void
 Hud(v2f screen)
 {
   v2f dims(40, 40);
-  if (imui::Button(math::Rect(screen.x - 10 - dims.x, 100, dims.x, dims.y),
+  if (imui::Button(math::Rectf(screen.x - 10 - dims.x, 100, dims.x, dims.y),
                    v4f(1.0f, 0.0f, 1.0f, 0.75f))
           .clicked) {
     kPlayer[kNetworkState.player_id].mod_placement = 1;

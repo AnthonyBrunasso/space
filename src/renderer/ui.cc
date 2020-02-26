@@ -96,16 +96,16 @@ GetTextInfo(const char* msg, int msg_len, float* width, float* height,
   }
 }
 
-math::Rect
+math::Rectf
 GetTextRect(const char* msg, int msg_len, v2f pos, float scale)
 {
   float width, height, min_y_offset;
   GetTextInfo(msg, msg_len, &width, &height, &min_y_offset);
-  return math::Rect(
+  return math::Rectf(
       pos.x, pos.y, width * scale, height * scale - min_y_offset * scale);
 }
 
-math::Rect
+math::Rectf
 GetTextRect(const char* msg, int msg_len, v2f pos)
 {
   return GetTextRect(msg, msg_len, pos, 1.0f);
@@ -208,7 +208,7 @@ RenderText(const char* msg, v2f pos, const v4f& color)
 }
 
 void
-RenderButton(const char* text, const math::Rect& rect,
+RenderButton(const char* text, const math::Rectf& rect,
              const v4f& color) {
   glUseProgram(kRGG.smooth_rectangle_program.reference);
   glBindVertexArray(kTextureState.vao_reference);

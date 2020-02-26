@@ -9,9 +9,9 @@ struct AxisAlignedRect {
   v3f max; 
 };
 
-struct Rect {
-  Rect() = default;
-  Rect(float x, float y, float width, float height) :
+struct Rectf {
+  Rectf() = default;
+  Rectf(float x, float y, float width, float height) :
     x(x), y(y), width(width), height(height) {}
   float x;
   float y;
@@ -20,10 +20,10 @@ struct Rect {
 };
 
 // Orients a rect so that it has positive widths and heights.
-Rect
-OrientToAabb(const math::Rect& rect)
+Rectf
+OrientToAabb(const math::Rectf& rect)
 {
-  Rect r = rect;
+  Rectf r = rect;
   if (rect.height < 0.f) {
     r.y += rect.height;
     r.height *= -1.f;

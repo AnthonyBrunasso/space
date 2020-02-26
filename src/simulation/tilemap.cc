@@ -155,10 +155,10 @@ TileVacuum(const v2i pos)
   return Normalize(posf - center);
 }
 
-math::Rect
+math::Rectf
 TilemapWorldBounds()
 {
-  math::Rect ret;
+  math::Rectf ret;
   v2f minf = TilePosToWorldMin({0, 0});
   v2f maxf = TilePosToWorldMin({kMapWidth, kMapHeight});
 

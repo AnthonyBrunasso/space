@@ -58,7 +58,7 @@ GetUnitId(v3f world)
 }
 
 bool
-GetUnitId(const math::Rect& rect, int idx, uint32_t* id)
+GetUnitId(const math::Rectf& rect, int idx, uint32_t* id)
 {
   Unit* unit = &kUnit[idx];
   if (PointInRect(unit->transform.position.xy(), rect)) {

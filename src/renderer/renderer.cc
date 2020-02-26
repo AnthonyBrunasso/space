@@ -311,7 +311,7 @@ RenderRectangle(const v3f& position, const v3f& scale,
 }
 
 void
-RenderRectangle(const math::Rect& rect, const v4f& color)
+RenderRectangle(const math::Rectf& rect, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   // Texture state has quad with length 1 geometry. This makes scaling simpler
@@ -329,7 +329,7 @@ RenderRectangle(const math::Rect& rect, const v4f& color)
 }
 
 void
-RenderLineRectangle(const math::Rect& rect, const v4f& color)
+RenderLineRectangle(const math::Rectf& rect, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   // Texture state has quad with length 1 geometry. This makes scaling simpler
@@ -347,7 +347,7 @@ RenderLineRectangle(const math::Rect& rect, const v4f& color)
 }
 
 void
-RenderSmoothRectangle(const math::Rect& rect, float smoothing_radius,
+RenderSmoothRectangle(const math::Rectf& rect, float smoothing_radius,
                       const v4f& color)
 {
   glUseProgram(kRGG.smooth_rectangle_program.reference);
@@ -427,7 +427,7 @@ RenderLine(const v3f& start, const v3f& end, const v4f& color)
 }
 
 void
-RenderGrid(v2f grid, math::Rect bounds, uint64_t color_count, v4f* color)
+RenderGrid(v2f grid, math::Rectf bounds, uint64_t color_count, v4f* color)
 {
   // Prepare Geometry and color
   glUseProgram(kRGG.geometry_program.reference);

@@ -176,6 +176,7 @@ struct Unit {
   unsigned spacesuit : 1;
   unsigned inspace : 1;
   unsigned uaction : 3;
+  unsigned persistent_uaction : 3;
   unsigned mskill : kModBits;
 };
 DECLARE_GAME_TYPE_WITH_ID(Unit, 16);

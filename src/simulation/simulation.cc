@@ -508,6 +508,7 @@ FindUnitInRangeToAttack(Unit* unit)
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* target = &kUnit[i];
     if (unit == target) continue;
+    if (!ShouldAttack(unit, target)) continue;
     if (InRange(unit, target)) return target;
   }
   return nullptr;
@@ -516,8 +517,11 @@ FindUnitInRangeToAttack(Unit* unit)
 void
 ApplyCommand(Unit* unit, const Command& c)
 {
+  unsigned persistent_action = kUaNone;
+
   unit->uaction = c.type;
-  switch (c.type) {
+  int ctype = c.type;
+  switch (ctype) {
     case kUaMove: {
       BB_SET(unit->bb, kUnitDestination, c.destination);
     } break;
@@ -528,10 +532,11 @@ ApplyCommand(Unit* unit, const Command& c)
     } break;
     case kUaAttackMove: {
       BB_SET(unit->bb, kUnitAttackDestination, c.destination);
+      persistent_action = c.type;
     } break;
-    default:
-      break;
   }
+
+  unit->persistent_uaction = c.type;
 }
 
 void
@@ -616,7 +621,9 @@ UpdateUnit(uint64_t ship_index)
       unit->uaction = kUaVacuum;
     }
 
-    if (unit->uaction == kUaVacuum) {
+    if (unit->uaction == kUaNone) {
+      unit->uaction = unit->persistent_uaction;
+    } else if (unit->uaction == kUaVacuum) {
       transform->position += TileVacuum(tilepos) * 3.0f;
     } else if (unit->uaction == kUaMove) {
       v3f* dest = nullptr;
@@ -632,6 +639,8 @@ UpdateUnit(uint64_t ship_index)
 
       Unit* target_unit = FindUnit(*target);
       if (!target_unit) {
+        BB_REM(unit->bb, kUnitTarget);
+        unit->uaction = kUaNone;
         continue;
       }
 
@@ -675,7 +684,8 @@ UpdateUnit(uint64_t ship_index)
   // Unit death logic happens here
   for (int i = 0; i < kUsedUnit; ++i) {
     if (kUnit[i].dead) {
-      LOGFMT("Unit died [id %d]", kUnit[i].id);
+      uint32_t death_id = kUnit[i].id;
+      LOGFMT("Unit died [id %d]", death_id);
       kUnit[i] = kZeroUnit;
     }
   }

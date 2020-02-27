@@ -123,7 +123,6 @@ RenderCrew(uint64_t ship_index)
 
     for (int i = 1; i < 6; ++i) {
       float bar = (float)i;
-      float alpha = 1.0f;
       float scaled_max =
         math::ScaleRange(unit->max_health, 5.f, unit->max_health);
       float scaled_health =
@@ -131,9 +130,8 @@ RenderCrew(uint64_t ship_index)
       if (bar > scaled_health) {
         float bar_range = unit->max_health / 5.f;
         float hdiff = bar_range * bar - unit->health;
-        alpha = math::ScaleRange(hdiff, 0.f, bar_range, 1.f, 0.f);
+        hcolor.w = math::ScaleRange(hdiff, 0.f, bar_range, 1.f, 0.f);
       }
-      hcolor.w = alpha;
       rgg::RenderRectangle(
           math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz),
           hcolor);

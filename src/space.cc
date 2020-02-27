@@ -156,12 +156,11 @@ main(int argc, char** argv)
   uint64_t min_ptr = UINT64_MAX;
   uint64_t max_ptr = 0;
   for (int i = 0; i < kUsedRegistry; ++i) {
-    printf("Registry ptr %p\n", kRegistry[i].ptr);
     bytes += kRegistry[i].memb_max * kRegistry[i].memb_size;
     max_ptr = MAX((uint64_t)kRegistry[i].ptr, max_ptr);
     min_ptr = MIN((uint64_t)kRegistry[i].ptr, min_ptr);
   }
-  printf("[min page 0x%lx] [max page 0x%lx] [page_count %lu]\n",
+  printf("EntityRegistry [min page 0x%lx] [max page 0x%lx] [page_count %lu]\n",
          ANDN(PAGE - 1, min_ptr), ANDN(PAGE - 1, max_ptr),
          1 + ((ANDN(PAGE - 1, max_ptr) - ANDN(PAGE - 1, min_ptr)) / PAGE));
 

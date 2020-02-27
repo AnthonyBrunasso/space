@@ -73,10 +73,10 @@ NetworkSetup()
   const uint64_t usec = 5 * 1000;
   platform::clock_init(usec, &handshake_clock);
   Handshake h = {.num_players = kNetworkState.num_players};
+  printf("Client: send '%s' for %lu players\n", h.greeting,
+         kNetworkState.num_players);
   for (int send_count = 0; bytes_received <= 0 && send_count < 5000000;
        ++send_count) {
-    printf("Client: send %s for %lu players\n", h.greeting,
-           kNetworkState.num_players);
     if (!udp::Send(kNetworkState.socket, &h, sizeof(h))) exit(1);
 
     for (int per_send = 0; per_send < 10; ++per_send) {
@@ -90,12 +90,12 @@ NetworkSetup()
     }
   }
 
-  printf("Client: handshake completed %d\n", bytes_received);
+  printf("Client Handshake [bytes_received %d]\n", bytes_received);
   if (bytes_received != sizeof(NotifyStart)) exit(3);
 
   NotifyStart* ns = (NotifyStart*)kNetworkState.netbuffer;
   printf(
-      "Handshake result: [ player_id %zu ] [ player_count %zu ] [ game_id %zu "
+      "Handshake success [ player_id %zu ] [ player_count %zu ] [ game_id %zu "
       "] \n",
       (size_t)ns->player_id, (size_t)ns->player_count, (size_t)ns->game_id);
 

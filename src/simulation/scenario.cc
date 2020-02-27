@@ -57,7 +57,6 @@ SpawnCrew(int count)
     unit->spacesuit = 1;
     // Everybody is unique!
     unit->mskill = i;
-    printf("Unit created %04.02fx %04.02fy\n", pos[i].x, pos[i].y);
   }
 }
 

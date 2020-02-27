@@ -58,7 +58,7 @@ drop_inactive_players(uint64_t rt_usec)
     if (memcmp(&zero_player, &player[i], sizeof(PlayerState)) == 0) continue;
     if (rt_usec - player[i].last_active > TIMEOUT_USEC) {
       player[i] = PlayerState{};
-      printf("dropped player %d\n", i);
+      printf("Server dropped packet flow. [index %d]\n", i);
     }
   }
 }
@@ -109,7 +109,7 @@ server_main(void* void_arg)
     if (!udp::ReceiveAny(location, MAX_BUFFER, in_buffer, &received_bytes,
                          &peer)) {
       if (udp_errno) running = false;
-      if (udp_errno) printf("udp_errno %d\n", udp_errno);
+      if (udp_errno) printf("Server udp_errno %d\n", udp_errno);
       drop_inactive_players(realtime_usec);
       platform::sleep_usec(sleep_usec);
       continue;
@@ -128,7 +128,7 @@ server_main(void* void_arg)
 
       Handshake* header = (Handshake*)(in_buffer);
       uint64_t num_players = header->num_players;
-      printf("Accepted %d\n", player_index);
+      printf("Server Accepted Handshake [index %d]\n", player_index);
       player[player_index].peer = peer;
       player[player_index].num_players = num_players;
       player[player_index].game_id = 0;
@@ -150,13 +150,14 @@ server_main(void* void_arg)
           if (player[i].game_id) continue;
           if (player[i].num_players != num_players) continue;
 
-          printf("greet player index %d\n", i);
+          printf(
+              "Server Greeting [index %d] [player_id %d] [player_count %d] "
+              "[game_id %d]\n",
+              i, player_id, num_players, next_game_id);
           response->player_id = player_id;
           response->player_count = num_players;
           response->game_id = next_game_id;
-          if (!udp::SendTo(location, player[i].peer, in_buffer,
-                           sizeof(NotifyStart)))
-            puts("greet failed");
+          udp::SendTo(location, player[i].peer, in_buffer, sizeof(NotifyStart));
           player[i].game_id = next_game_id;
           player[i].player_id = player_id;
           ++player_id;

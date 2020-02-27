@@ -37,7 +37,6 @@ Reset(uint64_t seed)
 bool
 Initialize(uint64_t player_count, uint64_t seed)
 {
-  printf("Setting player_count:%lu\n", player_count);
   // Set player count here so scenario can setup players.
   kPlayerCount = player_count;
   Reset(seed);

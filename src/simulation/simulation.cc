@@ -557,6 +557,32 @@ UpdateModule(uint64_t ship_index)
                 tile_world_distance * tile_world_distance);
     }
   }
+
+  // Two at a time (one crew, one enemy)
+  int team_count[kAllianceCount] = {};
+  for (int i = 0; i < kUsedUnit; ++i) {
+    team_count[kUnit[i].alliance]++;
+  }
+  Alliance reinforce_team =
+      team_count[kCrew] < team_count[kEnemy] ? kCrew : kEnemy;
+  if (kUsedUnit < kMaxUnit) {
+    for (int i = 0; i < kUsedModule; ++i) {
+      Module* m = &kModule[i];
+      if (m->ship_index != ship_index) continue;
+      if (m->mkind != kModBarrack) continue;
+      // Hack: Module 0 spawns kCrew, others spawn kEnemy
+      if (i != reinforce_team) continue;
+
+      Unit* unit = UseIdUnit();
+      unit->transform.position = TilePosToWorld({m->cx, m->cy});
+      unit->transform.scale = v3f(0.25f, 0.25f, 0.f);
+      uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
+      memcpy(unit->acurrent, attrib, sizeof(attrib));
+      unit->ship_index = ship_index;
+      unit->kind = kMilitary;
+      unit->alliance = reinforce_team;
+    }
+  }
 }
 
 void
@@ -627,10 +653,7 @@ UpdateUnit(uint64_t ship_index)
 
       ProjectileShootLaserAt(target_unit, 7.5f, unit);
       if (target_unit->health < 0.f) {
-        // Units could be deleted here but generally that's unsafe. Better to
-        // put it off till after Unit list is done iterating.
-        DeleteUnit* delete_unit = UseDeleteUnit();
-        delete_unit->unit_id = target_unit->id;
+        target_unit->dead = 1;
       }
     } else if (unit->uaction == kUaAttackMove) {
       v3f* dest = nullptr;
@@ -649,15 +672,11 @@ UpdateUnit(uint64_t ship_index)
     }
   }
 
-  // O(mxn): Nice. But is it slow?
-  for (int i = 0; i < kUsedDeleteUnit; ++i) {
-    DeleteUnit* delete_unit = &kDeleteUnit[i];
-    for (int j = 0; j < kUsedUnit;) {
-      if (kUnit[j].id == delete_unit->unit_id) {
-        CompressUnit(j);
-        continue;
-      }
-      ++j;
+  // Unit death logic happens here
+  for (int i = 0; i < kUsedUnit; ++i) {
+    if (kUnit[i].dead) {
+      LOGFMT("Unit died [id %d]", kUnit[i].id);
+      kUnit[i] = kZeroUnit;
     }
   }
 }

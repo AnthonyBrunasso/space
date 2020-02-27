@@ -186,6 +186,8 @@ ModuleColor(unsigned mkind)
       return v3f(0.0, 0.75f, 0.0f);
     case kModTurret:
       return v3f(1.f, 0.f, 0.f);
+    case kModBarrack:
+      return v3f(1.0, 3.0, 3.0);
   }
 
   return v3f();

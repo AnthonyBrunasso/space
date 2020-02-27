@@ -64,10 +64,11 @@ enum ModuleKind {
   kModEngine,
   kModMine,
   kModTurret,
+  kModBarrack,
   kModCount,
 };
-constexpr unsigned kModBits = 2;
-enum UnitAlliance { kCrew, kEnemy };
+constexpr unsigned kModBits = 3;
+enum Alliance { kCrew = 0, kEnemy, kAllianceCount };
 enum ShipAiGoals {
   kShipAiSpawnPod,
   kShipAiPowerSurge,
@@ -147,7 +148,7 @@ struct Unit {
 
   uint32_t id;
   UnitKind kind;
-  UnitAlliance alliance = kCrew;
+  Alliance alliance = kCrew;
   uint64_t ship_index = UINT64_MAX;
 
   // Maybe need a weapon type?
@@ -164,17 +165,13 @@ struct Unit {
   uint8_t aknown_max[CREWA_MAX] = CREW_ABEST;
 
   // Bit Fields
+  unsigned dead : 1;
   unsigned spacesuit : 1;
   unsigned inspace : 1;
   unsigned uaction : 3;
   unsigned mskill : kModBits;
 };
 DECLARE_GAME_TYPE_WITH_ID(Unit, 16);
-
-struct DeleteUnit {
-  int unit_id;
-};
-DECLARE_GAME_TYPE(DeleteUnit, 16);
 
 struct Ship {
   uint64_t think_flags = 0;
@@ -213,7 +210,7 @@ struct Projectile {
   // Duration in frames.
   int duration;
 };
-DECLARE_GAME_TYPE(Projectile, 16);
+DECLARE_GAME_TYPE(Projectile, 16*2);
 
 struct Module {
   uint64_t ship_index = UINT64_MAX;

@@ -110,6 +110,38 @@ RenderCrew(uint64_t ship_index)
     rgg::RenderRectangle(unit->transform.position, unit->transform.scale,
                          kDefaultRotation, color);
 
+    // Render unit health bars.
+    static const float kHealthSz = 5.f;
+    v3f hstart = unit->transform.position + v3f(-13.0f, 15.5f, 0.0f);
+    float hratio = unit->health / unit->max_health;
+    v4f hcolor = v4f(0.0f, 1.0f, 0.0f, 1.0f);
+    if (hratio > 0.35f && hratio < 0.75f) {
+      hcolor = v4f(0.898f, 0.325f, 0.0f, 1.0f);
+    } else if (hratio <= 0.35f) {
+      hcolor = v4f(1.0f, 0.1f, 0.0f, 1.0f);
+    }
+
+    for (int i = 1; i < 6; ++i) {
+      float bar = (float)i;
+      float alpha = 1.0f;
+      float scaled_max =
+        math::ScaleRange(unit->max_health, 5.f, unit->max_health);
+      float scaled_health =
+        math::ScaleRange(unit->health, 5.f, unit->max_health);
+      if (bar > scaled_health) {
+        float bar_range = unit->max_health / 5.f;
+        float hdiff = unit->max_health - unit->health;
+        alpha = math::ScaleRange(hdiff, 0.f, bar_range, 1.f, 0.f);
+      }
+      rgg::RenderRectangle(
+          math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz),
+          v4f(0.0f, 1.0f, 0.0f, alpha));
+      rgg::RenderLineRectangle(
+          math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz),
+          v4f(0.3f, 0.3f, 0.3f, 1.0f));
+      hstart.x += kHealthSz;
+    }
+
     if (unit->spacesuit) {
       rgg::RenderCircle(unit->transform.position, 12.f, 14.f,
                         v4f(0.99f, 0.33f, 0.33f, 1.f));

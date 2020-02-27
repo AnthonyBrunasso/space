@@ -133,9 +133,10 @@ RenderCrew(uint64_t ship_index)
         float hdiff = bar_range * bar - unit->health;
         alpha = math::ScaleRange(hdiff, 0.f, bar_range, 1.f, 0.f);
       }
+      hcolor.w = alpha;
       rgg::RenderRectangle(
           math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz),
-          v4f(0.0f, 1.0f, 0.0f, alpha));
+          hcolor);
       rgg::RenderLineRectangle(
           math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz),
           v4f(0.3f, 0.3f, 0.3f, 1.0f));

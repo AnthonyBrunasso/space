@@ -154,7 +154,7 @@ struct Unit {
   int attack_frame;
   // Can attack every N frames.
   int attack_cooldown = 60;
-  float health = 5.0f;
+  float health = 3.5f;
   float max_health = 5.0f;
 
   uint8_t acurrent[CREWA_MAX];

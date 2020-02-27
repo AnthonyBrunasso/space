@@ -130,7 +130,7 @@ RenderCrew(uint64_t ship_index)
         math::ScaleRange(unit->health, 5.f, unit->max_health);
       if (bar > scaled_health) {
         float bar_range = unit->max_health / 5.f;
-        float hdiff = unit->max_health - unit->health;
+        float hdiff = bar_range * bar - unit->health;
         alpha = math::ScaleRange(hdiff, 0.f, bar_range, 1.f, 0.f);
       }
       rgg::RenderRectangle(

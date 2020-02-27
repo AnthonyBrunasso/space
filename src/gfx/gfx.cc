@@ -116,7 +116,7 @@ RenderCrew(uint64_t ship_index)
     float hratio = unit->health / unit->max_health;
     v4f hcolor = v4f(0.0f, 1.0f, 0.0f, 1.0f);
     if (hratio > 0.35f && hratio < 0.75f) {
-      hcolor = v4f(0.898f, 0.325f, 0.0f, 1.0f);
+      hcolor = v4f(0.898f, 0.425f, 0.0f, 1.0f);
     } else if (hratio <= 0.35f) {
       hcolor = v4f(1.0f, 0.1f, 0.0f, 1.0f);
     }

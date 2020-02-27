@@ -73,6 +73,11 @@ enum HudMode {
   kHudAttackMove,
   kHudDefault = kHudSelection,
 };
+enum WeaponKind {
+  kWeaponLaser = 0,
+  kWeaponBullet,
+  kWeaponCount,
+};
 constexpr unsigned kHudModeBits = 2;
 constexpr unsigned kModBits = 3;
 enum Alliance { kCrew = 0, kEnemy, kAllianceCount };
@@ -160,7 +165,6 @@ struct Unit {
 
   // Maybe need a weapon type?
   float attack_radius = 100.0f;
-  float attack_damage = 0.25f;
   int attack_frame;
   // Can attack every N frames.
   int attack_cooldown = 60;
@@ -213,9 +217,10 @@ DECLARE_GAME_TYPE(Missile, 8);
 struct Projectile {
   v3f start;
   v3f end;
-  v3f dir;
-  float speed;
-  // Duration in frames.
+  WeaponKind wkind;
+  // Frame count since creation
+  int frame;
+  // Frame duration
   int duration;
 };
 DECLARE_GAME_TYPE(Projectile, 16 * 2);

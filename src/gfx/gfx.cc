@@ -364,8 +364,13 @@ RenderSpaceObjects()
   for (int i = 0; i < kUsedProjectile; ++i) {
     Projectile* p = &kProjectile[i];
     float radius = 2.0f;
+    float progress = (float)p->frame / p->duration;
+    float inverse_progress = 1.0 - progress;
     rgg::RenderLine(p->start, p->end,
-                    v4f(1.0f, 0.45f, 0.23f, p->duration / 100.0f));
+                    v4f(1.0f, 0.45f, 0.23f, inverse_progress));
+    v3f delta = p->end - p->start;
+    v3f location = p->start + (delta * progress);
+    rgg::RenderCircle(location, 5.0f, kWhite);
   }
 
   for (int i = 0; i < kUsedNotify; ++i) {

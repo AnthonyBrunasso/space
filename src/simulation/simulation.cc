@@ -664,7 +664,8 @@ UpdateUnit(uint64_t ship_index)
         continue;
       }
 
-      ProjectileShootLaserAt(target_unit, 7.5f, unit);
+      ProjectileShootAt(target_unit, 7.5f, unit,
+                        (WeaponKind)(rand() % kWeaponCount));
       if (target_unit->health < 0.f) {
         target_unit->dead = 1;
       }

@@ -622,6 +622,12 @@ UpdateUnit(uint64_t ship_index)
       }
 
       ProjectileShootLaserAt(target_unit, 7.5f, unit);
+      if (target_unit->health < 0.f) {
+        // Units could be deleted here but generally that's unsafe. Better to
+        // put it off till after Unit list is done iterating.
+        DeleteUnit* delete_unit = UseDeleteUnit();
+        delete_unit->unit_id = target_unit->id;
+      }
     } else if (unit->uaction == kUaAttackMove) {
       v3f* dest = nullptr;
       if (!BB_GET(unit->bb, kUnitAttackDestination, dest)) {
@@ -636,6 +642,18 @@ UpdateUnit(uint64_t ship_index)
 
       unit->uaction = kUaAttack;
       BB_SET(unit->bb, kUnitTarget, target_unit->id);
+    }
+  }
+
+  // O(mxn): Nice. But is it slow?
+  for (int i = 0; i < kUsedDeleteUnit; ++i) {
+    DeleteUnit* delete_unit = &kDeleteUnit[i];
+    for (int j = 0; j < kUsedUnit;) {
+      if (kUnit[j].id == delete_unit->unit_id) {
+        CompressUnit(j);
+        continue;
+      }
+      ++j;
     }
   }
 }

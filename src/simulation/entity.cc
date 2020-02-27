@@ -168,8 +168,13 @@ struct Unit {
   unsigned uaction : 3;
   unsigned mskill : kModBits;
 };
-
 DECLARE_GAME_TYPE_WITH_ID(Unit, 16);
+
+struct DeleteUnit {
+  int unit_id;
+};
+DECLARE_GAME_TYPE(DeleteUnit, 16);
+
 struct Ship {
   uint64_t think_flags = 0;
   uint64_t operate_flags = 0;

@@ -616,6 +616,10 @@ UpdateUnit(uint64_t ship_index)
         continue;
       }
 
+      if (!ShouldAttack(unit, target_unit)) {
+        continue;
+      }
+
       // Shoot at the target if weapon is off cooldown.
       if (kResource[0].frame - unit->attack_frame < unit->attack_cooldown) {
         continue;

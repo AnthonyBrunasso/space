@@ -27,18 +27,6 @@ ControlShipFtl(uint64_t ship_index)
 {
 }
 
-bool
-ShouldAttack(uint64_t unit, uint64_t target)
-{
-  printf("Should %u attack %u\n", unit, target);
-  if (unit == kInvalidUnit || target == kInvalidUnit) return false;
-  Unit* controlled_unit = FindUnit(unit);
-  Unit* target_unit = FindUnit(target);
-  if (target_unit->alliance == controlled_unit->alliance) return false;
-  printf("Should %u attack %u YES\n", unit, target);
-  return true;
-}
-
 uint32_t
 UnitId()
 {

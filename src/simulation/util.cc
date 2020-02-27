@@ -86,4 +86,19 @@ InRange(uint64_t unit_id, uint64_t target_id)
   return InRange(source_unit, target_unit);
 }
 
+bool
+ShouldAttack(Unit* unit, Unit* target)
+{
+  if (!unit || !target) return false;
+  if (unit->alliance == target->alliance) return false;
+  return true;
+}
+
+bool
+ShouldAttack(uint64_t unit, uint64_t target)
+{
+  if (unit == kInvalidUnit || target == kInvalidUnit) return false;
+  return ShouldAttack(FindUnit(unit), FindUnit(target));
+}
+
 }  // namespace simulation

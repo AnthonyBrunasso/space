@@ -578,8 +578,12 @@ UpdateModule(uint64_t ship_index)
       // Hack: Module 0 spawns kCrew, others spawn kEnemy
       if (i != reinforce_team) continue;
 
+      v2i random_tile(rand() % kMapWidth, rand() % kMapHeight);
+      v2f random_world = TilePosToWorld(random_tile);
+      v2f random_dir = Normalize(random_world - TilePosToWorld({m->cx, m->cy}));
       Unit* unit = UseIdUnit();
-      unit->transform.position = TilePosToWorld({m->cx, m->cy});
+      unit->transform.position =
+          TilePosToWorld({m->cx, m->cy}) + (random_dir * kTileWidth);
       unit->transform.scale = v3f(0.25f, 0.25f, 0.f);
       uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
       memcpy(unit->acurrent, attrib, sizeof(attrib));

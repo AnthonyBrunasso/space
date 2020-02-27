@@ -15,6 +15,7 @@ struct Gfx {
   RenderTag missile_tag;
   RenderTag cryo_tag;
   RenderTag exhaust_tag;
+  RenderTag plus_tag;
 };
 
 static Gfx kGfx;
@@ -66,17 +67,26 @@ Initialize()
    4.2f, 1.5f, 0.0f, 3.5f, 1.2f, 0.0f,
    4.2f, 0.9f, 0.0, 3.5f, 0.6f, 0.0f,
    3.0, 0.3f, 0.0, 0.0f, 0.0f, 0.0f};
+  constexpr int kPlusVert = 8;
+#define ORIGIN 0.0f, 0.0f, 0.0f
+  GLfloat plus[kExhaustVert*3] = 
+  {-1.0f, 0.f, 0.f, ORIGIN,
+    0.0f, -1.0f, 0.0f, ORIGIN,
+    1.0f, 0.0f, 0.0f, ORIGIN, 
+    0.0f, 1.0f, 0.0f, ORIGIN};
   // clang-format on
   for (int i = 0; i < kFloatCount; ++i) asteroid[i] *= 15.f;      // HA
   for (int i = 0; i < kPodVert * 3; ++i) pod[i] *= 22.f;          // HA
   for (int i = 0; i < kMissileVert * 3; ++i) missile[i] *= 15.f;  // HA
   for (int i = 0; i < kCryoVert * 3; ++i) cryo[i] *= 12.f;        // HA
   for (int i = 0; i < kExhaustVert * 3; ++i) exhaust[i] *= 15.f;  // HA
+  for (int i = 0; i < kPlusVert * 3; ++i) plus[i] *= 15.f;        // HA
   kGfx.asteroid_tag = rgg::CreateRenderable(kVertCount, asteroid, GL_LINE_LOOP);
   kGfx.pod_tag = rgg::CreateRenderable(kPodVert, pod, GL_LINE_LOOP);
   kGfx.missile_tag = rgg::CreateRenderable(kMissileVert, missile, GL_LINE_LOOP);
   kGfx.cryo_tag = rgg::CreateRenderable(kCryoVert, cryo, GL_LINE_LOOP);
   kGfx.exhaust_tag = rgg::CreateRenderable(kExhaustVert, exhaust, GL_LINE_LOOP);
+  kGfx.plus_tag = rgg::CreateRenderable(kPlusVert, plus, GL_LINE_LOOP);
   return status;
 }
 
@@ -286,29 +296,39 @@ RenderShip(uint64_t ship_index)
 
   for (int i = 0; i < kUsedPlayer; ++i) {
     Player* p = &kPlayer[i];
-
-    if (p->world_selection.x != 0.f || p->world_selection.y != 0.f) {
-      rgg::RenderRectangle(p->world_selection, kSelectionColor);
-      rgg::RenderLineRectangle(p->world_selection, kSelectionOutlineColor);
-    }
-
-    // Hover selection
     v2i mouse_grid = WorldToTilePos(p->world_mouse);
-    if (!TileOk(mouse_grid)) continue;
 
-    float dsq;
-    v3fNearTransform(p->world_mouse, GAME_ITER(Unit, transform), &dsq);
-    if (dsq < kDsqSelect) {
-      // Highlight the unit that would be selected on mouse click
-      rgg::RenderRectangle(TilePosToWorld(mouse_grid), kTileScale,
-                           kDefaultRotation, v4f(1.0f, 1.0f, 1.0f, .45f));
-    }
+    switch (p->hud_mode) {
+      case kHudSelection: {
+        if (p->world_selection.x != 0.f || p->world_selection.y != 0.f) {
+          rgg::RenderRectangle(p->world_selection, kSelectionColor);
+          rgg::RenderLineRectangle(p->world_selection, kSelectionOutlineColor);
+        }
 
-    if (p->hud_mode != kHudModule) continue;
-    v4f color;
-    color = v4f(1.0f, 0.0f, 1.f, 1.0f);
-    rgg::RenderRectangle(TilePosToWorld(mouse_grid), kTileScale,
-                         kDefaultRotation, color);
+        if (!TileOk(mouse_grid)) continue;
+
+        float dsq;
+        v3fNearTransform(p->world_mouse, GAME_ITER(Unit, transform), &dsq);
+        if (dsq < kDsqSelect) {
+          // Highlight the unit that would be selected on mouse click
+          rgg::RenderRectangle(TilePosToWorld(mouse_grid), kTileScale,
+                               kDefaultRotation, v4f(1.0f, 1.0f, 1.0f, .45f));
+        }
+      } break;
+      case kHudModule: {
+        if (!TileOk(mouse_grid)) continue;
+
+        v4f color;
+        color = v4f(1.0f, 0.0f, 1.f, 1.0f);
+        rgg::RenderRectangle(TilePosToWorld(mouse_grid), kTileScale,
+                             kDefaultRotation, color);
+      } break;
+      case kHudAttackMove: {
+        rgg::RenderTag(kGfx.plus_tag, p->world_mouse, kDefaultScale,
+                       kDefaultRotation, v4f(1.f, 0.f, 0.f, 1.f));
+
+      } break;
+    };
   }
 }
 

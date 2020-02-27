@@ -299,9 +299,6 @@ ControlEvent(const PlatformEvent* event, Player* player)
             }
           } break;
         }
-
-        player->hud_mode = kHudDefault;
-        break;
       } else if (event->button == BUTTON_RIGHT) {
         Unit* target = GetUnit(world_pos);
         if (target) {
@@ -312,6 +309,8 @@ ControlEvent(const PlatformEvent* event, Player* player)
           PushCommand({kUaMove, world_pos, kInvalidUnit});
         }
       }
+
+      player->hud_mode = kHudDefault;
     } break;
     case MOUSE_UP: {
       if (event->button == BUTTON_LEFT) {

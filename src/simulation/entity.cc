@@ -57,6 +57,7 @@ enum UnitAction {
 enum UnitKind {
   kOperator,
   kMilitary,
+  kAlien, // Maybe temporary
 };
 enum ModuleKind {
   kModPower = 0,
@@ -145,7 +146,7 @@ struct Unit {
   Blackboard bb;
 
   uint32_t id;
-  int kind;
+  UnitKind kind;
   UnitAlliance alliance = kCrew;
   uint64_t ship_index = UINT64_MAX;
 

@@ -523,8 +523,9 @@ ApplyCommand(Unit* unit, const Command& c)
       BB_SET(unit->bb, kUnitDestination, c.destination);
     } break;
     case kUaAttack: {
-      int target = GetUnitId(c.destination);
-      BB_SET(unit->bb, kUnitTarget, target);
+      Unit* target = GetUnit(c.destination);
+      if (!target) return;
+      BB_SET(unit->bb, kUnitTarget, target->id);
     } break;
     case kUaAttackMove: {
       BB_SET(unit->bb, kUnitAttackDestination, c.destination);

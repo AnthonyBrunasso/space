@@ -310,9 +310,9 @@ ControlEvent(const PlatformEvent* event, Player* player)
         kLeftClickMode = kSelect;
         break;
       } else if (event->button == BUTTON_RIGHT) {
-        uint32_t target = GetUnitId(world_pos);
-        if (target != kInvalidUnit) {
-          LOGFMT("Order attack [%lu]", target);
+        Unit* target = GetUnit(world_pos);
+        if (target) {
+          LOGFMT("Order attack [%lu]", target->id);
           PushCommand({kUaAttack, world_pos, kInvalidUnit});
         } else {
           LOGFMT("Order move [%.0f,%.0f]", world_pos.x, world_pos.y);
@@ -324,23 +324,24 @@ ControlEvent(const PlatformEvent* event, Player* player)
       if (event->button == BUTTON_LEFT) {
         // TODO(abrunasso): Unconvinced this is the best way to check if a
         // selection occurred. Also unconvined that it's not....
-        uint32_t id = kInvalidUnit;
+        Unit* unit = nullptr;
         if (player->world_selection.x != 0.f || 
             player->world_selection.y != 0.f) {
           math::Rectf aabb_selection = math::OrientToAabb(player->world_selection);
           for (int i = 0; i < kUsedUnit; ++i) {
-            if (!GetUnitId(aabb_selection, i, &id)) continue;
-            LOGFMT("Select unit: %i", id);
-            SelectUnit(id);
+            unit = GetUnit(aabb_selection, i);
+            if (!unit) continue;
+            LOGFMT("Select unit: %i", unit->id);
+            SelectUnit(unit);
           }
         }
         player->world_selection.x = 0.f;
         player->world_selection.y = 0.f;
 
         // Box selection missed, fallback to single unit selection
-        if (id == kInvalidUnit) {
-          id = GetUnitId(world_pos);
-          SelectUnit(id);
+        if (!unit) {
+          unit = GetUnit(world_pos);
+          SelectUnit(unit);
         }
       }
     } break;

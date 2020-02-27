@@ -7,11 +7,13 @@
 namespace simulation
 {
 void
-SelectUnit(uint32_t unit_id)
+SelectUnit(Unit* unit)
 {
-  if (unit_id == kInvalidUnit) return;
+  if (!unit) return;
+  if (unit->alliance == kEnemy) return;
+  if (unit->kind == kAlien) return;
   Selection* selection = UseSelection();
-  selection->unit_id = unit_id;
+  selection->unit_id = unit->id;
 }
 
 bool

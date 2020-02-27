@@ -99,6 +99,9 @@ RenderCrew(uint64_t ship_index)
       case kMilitary:
         color = v4f(0.80, 0.10f, 0.10f, 1.f);
         break;
+      case kAlien:
+        color = v4f(0.30, 0.70f, 0.10f, 1.f);
+        break;
       default:
         continue;
     }

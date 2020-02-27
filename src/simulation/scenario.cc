@@ -101,7 +101,7 @@ InitializeScenario(bool reset_features = true)
       kUnit[1].ship_index = 0;
       kUnit[1].transform.position = v3f(400.f, 300.f, 0.f);
       kUnit[1].transform.scale = v3f(0.25f, 0.25f, 0.f);
-      kUnit[1].kind = kMilitary;
+      kUnit[1].kind = kAlien;
       kUnit[1].alliance = kEnemy;
     } break;
     case Scenario::kSoloMission: {

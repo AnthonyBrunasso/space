@@ -43,29 +43,27 @@ v3fNearTransform(v3f pos, uint64_t step, const uint8_t* start,
   return index;
 }
 
-uint32_t
-GetUnitId(v3f world)
+Unit*
+GetUnit(v3f world)
 {
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
-
     if (v3fDsq(unit->transform.position, world) < kDsqSelect) {
-      return unit->id;
+      return unit;
     }
   }
 
-  return kInvalidUnit;
+  return nullptr;
 }
 
-bool
-GetUnitId(const math::Rectf& rect, int idx, uint32_t* id)
+Unit*
+GetUnit(const math::Rectf& rect, int idx)
 {
   Unit* unit = &kUnit[idx];
   if (PointInRect(unit->transform.position.xy(), rect)) {
-    *id = unit->id;
-    return true;
+    return unit;
   }
-  return false;
+  return nullptr;
 }
 
 bool

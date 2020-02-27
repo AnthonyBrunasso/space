@@ -353,7 +353,12 @@ ControlEvent(const PlatformEvent* event, Player* player)
           player->camera.motion.x = 1.f;
         } break;
         case 'r': {
-          player->hud_mode = kHudAttackMove;
+          // This check has to happen, otherwise the cursor will go into attack
+          // move with no units selected and you won't be able to select
+          // units or attack without left clicking again.
+          if (kUsedSelection > 0) {
+            player->hud_mode = kHudAttackMove;
+          }
         } break;
         case 'u': {
           v3f pos = camera::ScreenToWorldSpace(

@@ -127,17 +127,16 @@ RenderCrew(uint64_t ship_index)
     for (int i = 1; i < 6; ++i) {
       float bar = (float)i;
       float scaled_max =
-        math::ScaleRange(unit->max_health, 5.f, unit->max_health);
+          math::ScaleRange(unit->max_health, 5.f, unit->max_health);
       float scaled_health =
-        math::ScaleRange(unit->health, 5.f, unit->max_health);
+          math::ScaleRange(unit->health, 5.f, unit->max_health);
       if (bar > scaled_health) {
         float bar_range = unit->max_health / 5.f;
         float hdiff = bar_range * bar - unit->health;
         hcolor.w = math::ScaleRange(hdiff, 0.f, bar_range, 1.f, 0.f);
       }
       rgg::RenderRectangle(
-          math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz),
-          hcolor);
+          math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz), hcolor);
       rgg::RenderLineRectangle(
           math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz),
           v4f(0.3f, 0.3f, 0.3f, 1.0f));
@@ -305,7 +304,7 @@ RenderShip(uint64_t ship_index)
                            kDefaultRotation, v4f(1.0f, 1.0f, 1.0f, .45f));
     }
 
-    if (!p->mod_placement) continue;
+    if (p->hud_mode != kHudModule) continue;
     v4f color;
     color = v4f(1.0f, 0.0f, 1.f, 1.0f);
     rgg::RenderRectangle(TilePosToWorld(mouse_grid), kTileScale,

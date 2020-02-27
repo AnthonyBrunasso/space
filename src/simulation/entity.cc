@@ -57,7 +57,7 @@ enum UnitAction {
 enum UnitKind {
   kOperator,
   kMilitary,
-  kAlien, // Maybe temporary
+  kAlien,  // Maybe temporary
 };
 enum ModuleKind {
   kModPower = 0,
@@ -67,6 +67,13 @@ enum ModuleKind {
   kModBarrack,
   kModCount,
 };
+enum HudMode {
+  kHudSelection = 0,
+  kHudModule,
+  kHudAttackMove,
+  kHudDefault = kHudSelection,
+};
+constexpr unsigned kHudModeBits = 2;
 constexpr unsigned kModBits = 3;
 enum Alliance { kCrew = 0, kEnemy, kAllianceCount };
 enum ShipAiGoals {
@@ -210,7 +217,7 @@ struct Projectile {
   // Duration in frames.
   int duration;
 };
-DECLARE_GAME_TYPE(Projectile, 16*2);
+DECLARE_GAME_TYPE(Projectile, 16 * 2);
 
 struct Module {
   uint64_t ship_index = UINT64_MAX;
@@ -232,6 +239,7 @@ struct Player {
   v2f world_mouse;
   math::Rectf world_selection;
   uint64_t level = 1;
+  unsigned hud_mode : kHudModeBits;
   unsigned mod_placement : kModBits;
 };
 DECLARE_GAME_TYPE(Player, MAX_PLAYER);

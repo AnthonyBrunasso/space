@@ -7,13 +7,6 @@
 
 namespace simulation
 {
-enum LeftClickMode {
-  kSelect,
-  kAttackMove,
-};
-
-LeftClickMode kLeftClickMode = kSelect;
-
 static uint64_t kInputHash = DJB2_CONST;
 
 bool
@@ -192,8 +185,10 @@ Hud(v2f screen)
   if (imui::Button(math::Rectf(screen.x - 10 - dims.x, 100, dims.x, dims.y),
                    v4f(1.0f, 0.0f, 1.0f, 0.75f))
           .clicked) {
-    kPlayer[kNetworkState.player_id].mod_placement = 1;
-    LOG("Module placement.");
+    kPlayer[kNetworkState.player_id].hud_mode = kHudModule;
+    kPlayer[kNetworkState.player_id].mod_placement += 1;
+    LOGFMT("Hud Module placement. [type %d]",
+           kPlayer[kNetworkState.player_id].mod_placement);
   }
 
   // selected Unit text
@@ -278,36 +273,34 @@ ControlEvent(const PlatformEvent* event, Player* player)
     case MOUSE_DOWN: {
       imui::MouseClick(event->position, event->button);
 
-      if (kPlayer[kNetworkState.player_id].mod_placement) {
-        unsigned mkind = kPlayer[kNetworkState.player_id].mod_placement;
-        kPlayer[kNetworkState.player_id].mod_placement = 0;
-        if (event->button == BUTTON_LEFT) {
-          for (int i = 0; i < kUsedShip; ++i) {
-            v2i tilepos = WorldToTilePos(world_pos);
-            if (!TileOk(tilepos)) continue;
-            Module* m = UseModule();
-            m->ship_index = i;
-            m->cx = tilepos.x;
-            m->cy = tilepos.y;
-            m->mkind = mkind;
-          }
-        }
-        break;
-      }
-
       if (event->button == BUTTON_LEFT) {
-        switch (kLeftClickMode) {
-          case kSelect: {
+        switch (player->hud_mode) {
+          case kHudSelection: {
             player->world_selection.x = world_pos.x;
             player->world_selection.y = world_pos.y;
             UnselectAll();
           } break;
-          case kAttackMove: {
+          case kHudAttackMove: {
             LOGFMT("Order attack move [%.0f,%.0f]", world_pos.x, world_pos.y);
             PushCommand({kUaAttackMove, world_pos, kInvalidUnit});
           } break;
+          case kHudModule: {
+            unsigned mkind = kPlayer[kNetworkState.player_id].mod_placement;
+            if (event->button == BUTTON_LEFT) {
+              for (int i = 0; i < kUsedShip; ++i) {
+                v2i tilepos = WorldToTilePos(world_pos);
+                if (!TileOk(tilepos)) continue;
+                Module* m = UseModule();
+                m->ship_index = i;
+                m->cx = tilepos.x;
+                m->cy = tilepos.y;
+                m->mkind = mkind;
+              }
+            }
+          } break;
         }
-        kLeftClickMode = kSelect;
+
+        player->hud_mode = kHudDefault;
         break;
       } else if (event->button == BUTTON_RIGHT) {
         Unit* target = GetUnit(world_pos);
@@ -325,9 +318,10 @@ ControlEvent(const PlatformEvent* event, Player* player)
         // TODO(abrunasso): Unconvinced this is the best way to check if a
         // selection occurred. Also unconvined that it's not....
         Unit* unit = nullptr;
-        if (player->world_selection.x != 0.f || 
+        if (player->world_selection.x != 0.f ||
             player->world_selection.y != 0.f) {
-          math::Rectf aabb_selection = math::OrientToAabb(player->world_selection);
+          math::Rectf aabb_selection =
+              math::OrientToAabb(player->world_selection);
           for (int i = 0; i < kUsedUnit; ++i) {
             unit = GetUnit(aabb_selection, i);
             if (!unit) continue;
@@ -360,9 +354,7 @@ ControlEvent(const PlatformEvent* event, Player* player)
           player->camera.motion.x = 1.f;
         } break;
         case 'r': {
-          if (kUsedSelection > 0) {
-            kLeftClickMode = kAttackMove;
-          }
+          player->hud_mode = kHudAttackMove;
         } break;
         case 'u': {
           v3f pos = camera::ScreenToWorldSpace(

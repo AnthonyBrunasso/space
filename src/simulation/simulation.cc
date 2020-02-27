@@ -621,7 +621,7 @@ UpdateUnit(uint64_t ship_index)
         continue;
       }
 
-      ProjectileShootLaserAt(target_unit->transform.position, 7.5f, unit);
+      ProjectileShootLaserAt(target_unit, 7.5f, unit);
     } else if (unit->uaction == kUaAttackMove) {
       v3f* dest = nullptr;
       if (!BB_GET(unit->bb, kUnitAttackDestination, dest)) {

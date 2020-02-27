@@ -18,6 +18,13 @@ ProjectileShootLaserAt(v3f at, float proximity, Unit* unit)
 }
 
 void
+ProjectileShootLaserAt(Unit* target, float proximity, Unit* unit)
+{
+  ProjectileShootLaserAt(target->transform.position, proximity, unit);
+  target->health -= unit->attack_damage;
+}
+
+void
 ProjectileSimulation()
 {
   for (int i = 0; i < kUsedProjectile;) {

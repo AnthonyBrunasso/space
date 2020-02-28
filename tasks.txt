@@ -20,15 +20,10 @@ gameplay -
   hover select can show module radius (turret)
   crew exhaustion: restoration via beds and cafeteria
   prototype building ship extensions while in space
-  multiselect (boxing)
-  attackmove Command
   hostility on shroud reveal
   Combat with derelict ship inhabitants
-  New Scenario for multiship (instanced tilemaps)
-  Pod transfer to derelict ship
+  Motion on ships
   Unit inventory for grabbing minerals
-  Ftl should leave pod behind
-  Start ship engine and leave derelict ship behind
   Module customization with preconceived location
   Asteroid field on level 2
   Missile pursuit on level 3

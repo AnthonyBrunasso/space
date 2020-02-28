@@ -56,7 +56,7 @@ static const v2i kNeighbor[kMaxNeighbor] = {
 
 // Returns the minimum position of the tile.
 v2f
-TilePosToWorldMin(const v2i& pos)
+TilePosToWorldMin(const v2i pos)
 {
   return {kTilemapWorldOffset.x + ((float)pos.x * kTileWidth),
           kTilemapWorldOffset.y + ((float)pos.y * kTileHeight)};
@@ -64,20 +64,20 @@ TilePosToWorldMin(const v2i& pos)
 
 // Returns the centered position of the tile.
 v2f
-TilePosToWorld(const v2i& pos)
+TilePosToWorld(const v2i pos)
 {
   return TilePosToWorldMin(pos) + v2f(kTileWidth * .5f, kTileHeight * .5f);
 }
 
 // Returns the minimum position of the tile.
 v2f
-TileToWorld(const Tile& tile)
+TileToWorld(const Tile tile)
 {
   return TilePosToWorld(v2i(tile.cx, tile.cy));
 }
 
 v2i
-WorldToTilePos(const v3f& pos)
+WorldToTilePos(const v3f pos)
 {
   v2f relpos = pos.xy() - kTilemapWorldOffset;
   int x = (int)(relpos.x * kInverseTileWidth);

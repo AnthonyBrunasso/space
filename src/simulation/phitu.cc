@@ -5,32 +5,35 @@
 
 namespace simulation
 {
-constexpr float kHitDsq = 25.f * 25.f;
-constexpr float kLaserDamage = 0.25f;
+constexpr uint32_t kLaserDuration = 60;
+constexpr float kHitDsq = 13.f * 13.f;
+constexpr float kLaserDamage = 0.01f;
 constexpr float kBulletDamage = 0.50f;
 
 void
-ProjectileCreate(v3f at, float proximity, Unit* unit, WeaponKind kind)
+ProjectileCreate(const Unit* target, const Unit* source, float proximity,
+                 WeaponKind kind)
 {
-  Projectile* proj = UseProjectile();
-  proj->start = unit->transform.position;
-  proj->end = at;
   float radian = (float)(rand() % 360) * PI / 180.0f;
-  proj->end += v3f(proximity * cos(radian), proximity * sin(radian), 0.0f);
-  // TODO(abrunasso): Idk man... How long should this go for...
-  proj->wkind = kind;
-  proj->duration = 100;
-  proj->frame = 1;
-}
+  Projectile* p = UseProjectile();
+  p->start = source->transform.position;
+  p->end = target->transform.position;
+  p->target_id = target->id;
+  p->end += v3f(proximity * cos(radian), proximity * sin(radian), 0.0f);
+  p->wkind = kind;
+  p->frame = 1;
 
-void
-ProjectileShootAt(Unit* target, float proximity, Unit* unit, WeaponKind kind)
-{
-  ProjectileCreate(target->transform.position, proximity, unit, kind);
-  if (kind == kWeaponLaser) {
-    target->health -= kLaserDamage;
+  switch (kind) {
+    case kWeaponBullet: {
+      v3f distance = p->end - p->start;
+      v3f dir = Normalize(distance);
+      p->duration = distance.x / dir.x;
+    } break;
+    case kWeaponCount:
+    case kWeaponLaser: {
+      p->duration = kLaserDuration;
+    } break;
   }
-  unit->attack_frame = kResource[0].frame;
 }
 
 void
@@ -38,14 +41,35 @@ ProjectileSimulation()
 {
   for (int i = 0; i < kUsedProjectile; ++i) {
     Projectile* p = &kProjectile[i];
-    p->frame += (p->frame > 0);
-    if (p->frame >= p->duration) {
-      float dsq;
-      uint64_t idx = v3fNearTransform(p->end, GAME_ITER(Unit, transform), &dsq);
-      if (idx < kUsedUnit && dsq < kHitDsq) {
-        kUnit[idx].health -= kBulletDamage;
-      }
+    if (p->wkind != kWeaponLaser) continue;
+    Unit* target = FindUnit(p->target_id);
+    if (!target) continue;
+    if (p->frame > kLaserDuration / 2) continue;
+    target->health -= kLaserDamage;
+  }
+
+  for (int i = 0; i < kUsedProjectile; ++i) {
+    Projectile* p = &kProjectile[i];
+    if (p->wkind != kWeaponBullet) continue;
+    Unit* target = FindUnit(p->target_id);
+    if (!target) continue;
+
+    v3f dir = Normalize(p->end - p->start);
+    v3f position = p->start + dir * p->frame;
+    float dsq = v3fDsq(position, target->transform.position);
+    if (dsq < kHitDsq) {
+      target->health -= kBulletDamage;
       *p = kZeroProjectile;
+    }
+  }
+
+  for (int i = 0; i < kUsedProjectile; ++i) {
+    Projectile* p = &kProjectile[i];
+    unsigned frame = p->frame + (p->frame > 0);
+    if (frame > p->duration) {
+      *p = kZeroProjectile;
+    } else {
+      p->frame = frame;
     }
   }
 }

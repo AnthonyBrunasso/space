@@ -224,9 +224,10 @@ struct Projectile {
   v3f end;
   WeaponKind wkind;
   // Frame count since creation
-  int frame;
+  unsigned frame;
   // Frame duration
   int duration;
+  uint32_t target_id;
 };
 DECLARE_GAME_TYPE(Projectile, 16 * 2);
 

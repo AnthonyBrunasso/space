@@ -603,6 +603,11 @@ UpdateUnit(uint64_t ship_index)
     v2i tilepos = WorldToTilePos(transform->position.xy());
     Tile* tile = TilePtr(tilepos);
 
+    if (unit->health < 0.f) {
+      unit->dead = 1;
+      continue;
+    }
+
     if (!tile) {
       *unit = kZeroUnit;
       continue;
@@ -663,11 +668,9 @@ UpdateUnit(uint64_t ship_index)
         continue;
       }
 
-      ProjectileShootAt(target_unit, 7.5f, unit,
-                        (WeaponKind)(rand() % kWeaponCount));
-      if (target_unit->health < 0.f) {
-        target_unit->dead = 1;
-      }
+      ProjectileCreate(target_unit, unit, 7.5f,
+                       (WeaponKind)(rand() % kWeaponCount));
+      unit->attack_frame = kResource[0].frame;
     } else if (unit->uaction == kUaAttackMove) {
       v3f* dest = nullptr;
       if (!BB_GET(unit->bb, kUnitAttackDestination, dest)) {

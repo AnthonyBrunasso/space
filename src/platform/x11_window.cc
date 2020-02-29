@@ -223,14 +223,14 @@ PollEvent(PlatformEvent* event)
             event->type = MOUSE_DOWN;
             event->button = (PlatformButton)xev.xbutton.button;
             break;
-          case 4:
+          /*case 4:
             event->type = MOUSE_WHEEL;
             event->wheel_delta = 1.0f;
             break;
           case 5:
             event->type = MOUSE_WHEEL;
             event->wheel_delta = -1.0f;
-            break;
+            break;*/
         }
         event->position = {xev.xbutton.x, xev.xbutton.y};
         break;

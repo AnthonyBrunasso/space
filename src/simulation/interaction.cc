@@ -193,12 +193,14 @@ Hud(v2f screen)
 
   // selected Unit text
   uint64_t player_control = (1 << kPlayerIndex);
-  Unit* unit;
+  Unit* unit = nullptr;
   for (int i = 0; i < kUsedUnit; ++i) {
     if (0 == (kUnit[i].control & player_control)) continue;
     unit = &kUnit[i];
     break;
   }
+
+  if (!unit) return;
 
   constexpr int MAX_SELECTED_TEXT = CREWA_MAX + 3;
   char selected_text[MAX_SELECTED_TEXT][64];

@@ -16,6 +16,7 @@ struct Scenario {
     kSoloMission,
     kTwoShip,
     kCombatGroup,
+    kAI,
     kEmptyScenario,
     kMaxScenario,
   };
@@ -34,7 +35,7 @@ struct Scenario {
 static Scenario kScenario;
 
 constexpr const char* kScenarioNames[Scenario::kMaxScenario] = {
-    "Game", "Combat", "Solo", "TwoShip", "CombatGroup", "Empty",
+    "Game", "Combat", "Solo", "TwoShip", "CombatGroup", "AI", "Empty",
 };
 
 void
@@ -155,6 +156,23 @@ InitializeScenario(bool reset_features = true)
       mod->mkind = kModBarrack;
       mod->ship_index = 0;
 
+    } break;
+    case Scenario::kAI: {
+      if (reset_features) {
+        memset(&kScenario, 0, sizeof(kScenario));
+      }
+      UseIdUnit();
+      kUnit[0].ship_index = 0;
+      kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
+      kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
+
+      UseIdUnit();
+      kUnit[1].ship_index = 0;
+      kUnit[1].transform.position = v3f(400.f, 300.f, 0.f);
+      kUnit[1].transform.scale = v3f(0.25f, 0.25f, 0.f);
+      kUnit[1].alliance = kEnemy;
+      kUnit[1].kind = kAlien;
+      BB_SET(kUnit[1].bb, kUnitBehavior, kUnitBehaviorSimple);
     } break;
     default:
     case Scenario::kEmptyScenario: {

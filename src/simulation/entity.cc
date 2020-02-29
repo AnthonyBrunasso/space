@@ -61,7 +61,7 @@ enum UnitAction {
 enum UnitKind {
   kOperator,
   kMilitary,
-  kAlien,  // Maybe temporary
+  kAlien,
 };
 enum ModuleKind {
   kModPower = 0,
@@ -90,11 +90,13 @@ enum ShipAiGoals {
   kShipAiPowerSurge,
   kShipAiGoals = 64,
 };
+constexpr int kUnitBehaviorSimple = 1;
 enum UnitBbEntry {
   kUnitTarget = 0,
   kUnitDestination = 1,
   kUnitAttackDestination = 2,
   kUnitBbEntryMax = 3,
+  kUnitBehavior = 4,
 };
 // TODO (AN): Document/test priority behaviors
 enum PodAiGoals {

@@ -242,6 +242,8 @@ Hud(v2f screen)
         snprintf(selected_text[0], 64, "target: %i", *t);
         imui::Text(selected_text[0]);
       } break;
+      case kUnitBehavior: {
+      } break;
       default: {
         snprintf(selected_text[0], 64, "set: %i", i);
         if (BB_EXI(unit->bb, i)) {

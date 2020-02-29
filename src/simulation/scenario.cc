@@ -15,6 +15,7 @@ struct Scenario {
     kCombatScenario,
     kSoloMission,
     kTwoShip,
+    kCombatGroup,
     kEmptyScenario,
     kMaxScenario,
   };
@@ -33,7 +34,7 @@ struct Scenario {
 static Scenario kScenario;
 
 constexpr const char* kScenarioNames[Scenario::kMaxScenario] = {
-    "Game", "Combat", "Solo", "TwoShip", "Empty",
+    "Game", "Combat", "Solo", "TwoShip", "CombatGroup", "Empty",
 };
 
 void
@@ -93,13 +94,53 @@ InitializeScenario(bool reset_features = true)
       kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
       kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
 
+      UseIdUnit();
+      kUnit[1].ship_index = 0;
+      kUnit[1].transform.position = v3f(400.f, 300.f, 0.f);
+      kUnit[1].transform.scale = v3f(0.25f, 0.25f, 0.f);
+      kUnit[1].kind = kAlien;
+      kUnit[1].alliance = kEnemy;
+
+    } break;
+    case Scenario::kSoloMission: {
+      if (reset_features) {
+        memset(&kScenario, 0, sizeof(kScenario));
+        kScenario.ai = 1;
+        kScenario.tilemap = 2;
+      }
+      // One unit
+      UseIdUnit();
+      kUnit[0].ship_index = 0;
+      kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
+      kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
+
+    } break;
+    case Scenario::kTwoShip: {
+      if (reset_features) {
+        memset(&kScenario, 0xff, sizeof(kScenario));
+        kScenario.ai = 0;
+        kScenario.missile = 0;
+        kScenario.asteroid = 0;
+      }
+      SpawnCrew(5);
+
+    } break;
+    case Scenario::kCombatGroup: {
+      if (reset_features) {
+        memset(&kScenario, 0, sizeof(kScenario));
+      }
+      UseIdUnit();
+      kUnit[0].ship_index = 0;
+      kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
+      kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
+
       Module* mod = UseModule();
       v2i tpos = WorldToTilePos(kUnit[0].transform.position);
       mod->cx = tpos.x;
       mod->cy = tpos.y;
       mod->mkind = kModBarrack;
       mod->ship_index = 0;
-      
+
       UseIdUnit();
       kUnit[1].ship_index = 0;
       kUnit[1].transform.position = v3f(400.f, 300.f, 0.f);
@@ -113,33 +154,14 @@ InitializeScenario(bool reset_features = true)
       mod->cy = tpos.y;
       mod->mkind = kModBarrack;
       mod->ship_index = 0;
-    } break;
-    case Scenario::kSoloMission: {
-      if (reset_features) {
-        memset(&kScenario, 0, sizeof(kScenario));
-        kScenario.ai = 1;
-        kScenario.tilemap = 2;
-      }
-      // One unit
-      UseIdUnit();
-      kUnit[0].ship_index = 0;
-      kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
-      kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
-    } break;
-    case Scenario::kTwoShip: {
-      if (reset_features) {
-        memset(&kScenario, 0xff, sizeof(kScenario));
-        kScenario.ai = 0;
-        kScenario.missile = 0;
-        kScenario.asteroid = 0;
-      }
-      SpawnCrew(5);
+
     } break;
     default:
     case Scenario::kEmptyScenario: {
       if (reset_features) {
         memset(&kScenario, 0, sizeof(kScenario));
       }
+
     } break;
   }
   kScenario.type = (Scenario::Type)sid;
@@ -176,7 +198,7 @@ InitializeScenario(bool reset_features = true)
   for (int i = 0; i < kUsedPlayer; ++i) {
     camera::InitialCamera(&kPlayer[i].camera);
   }
-}
+}  // namespace simulation
 
 void
 ResetScenario(bool reset_features)

@@ -16,9 +16,12 @@ struct PlayerState {
   Udp4 peer;
   uint64_t num_players;
   uint64_t game_id;
+  uint64_t pending_game_id;
   uint64_t last_active;
   uint64_t sequence;
   uint64_t player_id;
+  uint64_t cookie;
+  uint64_t cookie_mismatch;
 };
 static PlayerState zero_player;
 
@@ -52,13 +55,17 @@ GetNextPlayerIndex()
 }
 
 void
-drop_inactive_players(uint64_t rt_usec)
+prune_players(uint64_t rt_usec)
 {
   for (int i = 0; i < MAX_PLAYER; ++i) {
     if (memcmp(&zero_player, &player[i], sizeof(PlayerState)) == 0) continue;
     if (rt_usec - player[i].last_active > TIMEOUT_USEC) {
       player[i] = PlayerState{};
       printf("Server dropped packet flow. [index %d]\n", i);
+    }
+    if (player[i].cookie_mismatch > 3) {
+      player[i] = PlayerState{};
+      printf("Server closed packet flow: cookie_mismatch. [index %d]\n", i);
     }
   }
 }
@@ -105,12 +112,12 @@ server_main(void* void_arg)
     uint64_t sleep_usec;
     if (platform::clock_sync(&server_clock, &sleep_usec)) {
       realtime_usec += time_step;
+      prune_players(realtime_usec);
     }
     if (!udp::ReceiveAny(location, MAX_BUFFER, in_buffer, &received_bytes,
                          &peer)) {
       if (udp_errno) running = false;
       if (udp_errno) printf("Server udp_errno %d\n", udp_errno);
-      drop_inactive_players(realtime_usec);
       platform::sleep_usec(sleep_usec);
       continue;
     }
@@ -132,34 +139,42 @@ server_main(void* void_arg)
       player[player_index].peer = peer;
       player[player_index].num_players = num_players;
       player[player_index].game_id = 0;
+      player[player_index].pending_game_id = 0;
       player[player_index].last_active = realtime_usec;
       player[player_index].sequence = 0;
 
       int ready_players = 0;
       for (int i = 0; i < MAX_PLAYER; ++i) {
-        if (player[i].game_id) continue;
+        if (player[i].pending_game_id) continue;
         if (player[i].num_players != num_players) continue;
         ++ready_players;
       }
 
       if (ready_players >= num_players) {
-        NotifyStart* response = (NotifyStart*)(in_buffer);
+        NotifyGame* response = (NotifyGame*)(in_buffer);
 
         uint64_t player_id = 0;
         for (int i = 0; i < MAX_PLAYER; ++i) {
-          if (player[i].game_id) continue;
+          if (player[i].pending_game_id) continue;
           if (player[i].num_players != num_players) continue;
+          unsigned long long player_cookie;
+          if (!RDRND(&player_cookie)) {
+            puts("Server crypto rng failure");
+            return 4;
+          }
 
           printf(
               "Server Greeting [index %d] [player_id %d] [player_count %d] "
-              "[game_id %d]\n",
-              i, player_id, num_players, next_game_id);
+              "[next_game_id %d] [cookie 0x%llx]\n",
+              i, player_id, num_players, next_game_id, player_cookie);
           response->player_id = player_id;
           response->player_count = num_players;
           response->game_id = next_game_id;
-          udp::SendTo(location, player[i].peer, in_buffer, sizeof(NotifyStart));
-          player[i].game_id = next_game_id;
+          response->cookie = player_cookie;
+          udp::SendTo(location, player[i].peer, in_buffer, sizeof(NotifyGame));
+          player[i].pending_game_id = next_game_id;
           player[i].player_id = player_id;
+          player[i].cookie = player_cookie;
           ++player_id;
         }
         ++next_game_id;
@@ -173,7 +188,19 @@ server_main(void* void_arg)
     player[pidx].last_active = realtime_usec;
 
     // Filter for game-ready clients
-    if (!player[pidx].game_id) continue;
+    if (!player[pidx].game_id) {
+      if (received_bytes == sizeof(BeginGame)) {
+        BeginGame* bgPacket = (BeginGame*)(in_buffer);
+        if (player[pidx].cookie != bgPacket->cookie) {
+          player[pidx].cookie_mismatch += 1;
+          continue;
+        }
+        // two-way interest is agreed, copy pending_game_id to game_id
+        player[pidx].game_id = player[pidx].pending_game_id;
+      }
+
+      continue;
+    }
 
     Turn* packet = (Turn*)in_buffer;
     uint64_t game_id = player[pidx].game_id;

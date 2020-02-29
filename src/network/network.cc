@@ -32,6 +32,8 @@ struct NetworkState {
   uint64_t num_players = 1;
   // Unique id for this game
   uint64_t game_id;
+  // Unique cookie for this player
+  uint64_t player_cookie;
   // Unique local player id for this game
   uint64_t player_index;
   // Total players in this game
@@ -91,17 +93,23 @@ NetworkSetup()
   }
 
   printf("Client Handshake [bytes_received %d]\n", bytes_received);
-  if (bytes_received != sizeof(NotifyStart)) exit(3);
+  if (bytes_received != sizeof(NotifyGame)) exit(3);
 
-  NotifyStart* ns = (NotifyStart*)kNetworkState.netbuffer;
-  printf(
-      "Handshake success [ player_id %zu ] [ player_count %zu ] [ game_id %zu "
-      "] \n",
-      (size_t)ns->player_id, (size_t)ns->player_count, (size_t)ns->game_id);
+  NotifyGame* ns = (NotifyGame*)kNetworkState.netbuffer;
+  printf("Handshake success [ player_id %zu ] [ player_count %zu ] \n",
+         (size_t)ns->player_id, (size_t)ns->player_count);
 
   kNetworkState.game_id = ns->game_id;
   kNetworkState.player_index = ns->player_id;
   kNetworkState.player_count = ns->player_count;
+  kNetworkState.player_cookie = ns->cookie;
+
+  BeginGame bg;
+  bg.cookie = ns->cookie;
+  bg.game_id = ns->game_id;
+  if (!udp::Send(kNetworkState.socket, &bg, sizeof(bg))) exit(1);
+  printf("Network request BeginGame [ game_id %zu ] [ cookie 0x%llx ]\n",
+         bg.game_id, bg.cookie);
 
   return true;
 }
@@ -187,7 +195,8 @@ NetworkSend(uint64_t seq)
 uint64_t
 NetworkEgress()
 {
-  uint64_t begin_seq = kNetworkState.outgoing_ack[kNetworkState.player_index] + 1;
+  uint64_t begin_seq =
+      kNetworkState.outgoing_ack[kNetworkState.player_index] + 1;
   uint64_t end_seq = kNetworkState.outgoing_sequence;
 
   // Re-send input history

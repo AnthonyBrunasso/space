@@ -71,8 +71,8 @@ network -
   server packet buffer
   server authoritative packet reordering
   rewrite udp_ack flow (severe packet loss cases for 2p+)
-  shrink netqueue depth under good conditions
-  pause frames (eventually)
+  netqueue depth handling under network variance
+  pause frames
 
 Tutorial story -
   Looting a derelict ship (no pressure, have to get ship working)

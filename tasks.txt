@@ -14,7 +14,6 @@ Delete items when they are done.
 
 gameplay -
   priority - player specific selection
-  priority - local multiplayer
   damage repair, hull repair
   ship invaders
   hover select can show module radius (turret)

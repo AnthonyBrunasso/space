@@ -186,30 +186,37 @@ main(int argc, char** argv)
     NetworkEgress();
     NetworkIngress(kGameState.logic_updates);
 
-    uint64_t slot = NETQUEUE_SLOT(kGameState.logic_updates);
-    if (SlotReady(slot)) {
-      // Hash the simulation state every 0th slot
-      if (!slot)
-        if (!simulation::VerifyIntegrity()) exit(4);
+    const int advance = 1 + (NetworkReadyCount() > kNetworkState.last_egress);
+    for (int frame = 0; frame < advance; ++frame) {
+      uint64_t slot = NETQUEUE_SLOT(kGameState.logic_updates);
+#if DEBUG_NETWORK
+      printf("[last_egress %d] [ready %d] [advance %d]\n",
+             kNetworkState.last_egress, NetworkReadyCount(), advance);
+#endif
+      if (SlotReady(slot)) {
+        // Hash the simulation state every 0th slot
+        if (!slot)
+          if (!simulation::VerifyIntegrity()) exit(4);
 
-      // Game Mutation: Apply player commands for turn N
-      InputBuffer* game_turn = GetSlot(slot);
-      for (int i = 0; i < MAX_PLAYER; ++i) {
-        InputBuffer* player_turn = &game_turn[i];
-        simulation::ProcessSimulation(i, player_turn->used_input_event,
-                                      player_turn->input_event);
+        // Game Mutation: Apply player commands for turn N
+        InputBuffer* game_turn = GetSlot(slot);
+        for (int i = 0; i < MAX_PLAYER; ++i) {
+          InputBuffer* player_turn = &game_turn[i];
+          simulation::ProcessSimulation(i, player_turn->used_input_event,
+                                        player_turn->input_event);
+        }
+
+        // Game Mutation: continue simulation
+        simulation::Update();
+
+        // SetView for the local player's camera
+        camera::SetView(GetCamera(kNetworkState.player_id),
+                        &rgg::GetObserver()->view);
+
+        // Give the user an update tick. The engine runs with
+        // a fixed delta so no need to provide a delta time.
+        ++kGameState.logic_updates;
       }
-
-      // Game Mutation: continue simulation
-      simulation::Update();
-
-      // SetView for the local player's camera
-      camera::SetView(GetCamera(kNetworkState.player_id),
-                      &rgg::GetObserver()->view);
-
-      // Give the user an update tick. The engine runs with
-      // a fixed delta so no need to provide a delta time.
-      ++kGameState.logic_updates;
     }
 
 #ifndef HEADLESS
@@ -234,7 +241,7 @@ main(int argc, char** argv)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #endif
 
-#if 0
+#if DEBUG_NETWORK
     printf("[frame %lu]\n", kGameState.game_updates);
 #endif
     ++kGameState.game_updates;

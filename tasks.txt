@@ -68,7 +68,6 @@ graphics -
   anthony: Moving background, so it actually looks like we're flying.
 
 network -
-  priority: Game Queue needs to converge on net latency
   AWS space_server in us-west-2 (oregon)
   server packet buffer
   server authoritative packet reordering

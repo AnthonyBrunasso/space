@@ -179,6 +179,43 @@ LogPanel()
 }
 
 void
+RenderBlackboard(Unit* unit)
+{
+  char txt[64];
+  for (int i = 0; i < kUnitBbEntryMax; ++i) {
+    UnitBbEntry bb_entry = (UnitBbEntry)i;
+    switch (bb_entry) {
+      case kUnitDestination: {
+        v3f* d = nullptr;
+        if (!BB_GET(unit->bb, kUnitDestination, d)) continue;
+        snprintf(txt, 64, "dest: %.0f,%.0f", d->x, d->y);
+        imui::Text(txt);
+      } break;
+      case kUnitAttackDestination: {
+        v3f* d = nullptr;
+        if (!BB_GET(unit->bb, kUnitAttackDestination, d)) continue;
+        snprintf(txt, 64, "adest: %.0f,%.0f", d->x, d->y);
+        imui::Text(txt);
+      } break;
+      case kUnitTarget: {
+        int* t = nullptr;
+        if (!BB_GET(unit->bb, kUnitTarget, t)) continue;
+        snprintf(txt, 64, "target: %i", *t);
+        imui::Text(txt);
+      } break;
+      case kUnitBehavior: {
+      } break;
+      default: {
+        snprintf(txt, 64, "set: %i", i);
+        if (BB_EXI(unit->bb, i)) {
+          imui::Text(txt);
+        }
+      }
+    }
+  }
+}
+
+void
 Hud(v2f screen)
 {
   v2f dims(40, 40);
@@ -221,37 +258,7 @@ Hud(v2f screen)
     imui::Text(selected_text[i]);
   }
   imui::Text("Blackboard");
-  for (int i = 0; i < kUnitBbEntryMax; ++i) {
-    UnitBbEntry bb_entry = (UnitBbEntry)i;
-    switch (bb_entry) {
-      case kUnitDestination: {
-        v3f* d = nullptr;
-        if (!BB_GET(unit->bb, kUnitDestination, d)) continue;
-        snprintf(selected_text[0], 64, "dest: %.0f,%.0f", d->x, d->y);
-        imui::Text(selected_text[0]);
-      } break;
-      case kUnitAttackDestination: {
-        v3f* d = nullptr;
-        if (!BB_GET(unit->bb, kUnitAttackDestination, d)) continue;
-        snprintf(selected_text[0], 64, "adest: %.0f,%.0f", d->x, d->y);
-        imui::Text(selected_text[0]);
-      } break;
-      case kUnitTarget: {
-        int* t = nullptr;
-        if (!BB_GET(unit->bb, kUnitTarget, t)) continue;
-        snprintf(selected_text[0], 64, "target: %i", *t);
-        imui::Text(selected_text[0]);
-      } break;
-      case kUnitBehavior: {
-      } break;
-      default: {
-        snprintf(selected_text[0], 64, "set: %i", i);
-        if (BB_EXI(unit->bb, i)) {
-          imui::Text(selected_text[0]);
-        }
-      }
-    }
-  }
+  RenderBlackboard(unit);
   imui::End();
 }
 

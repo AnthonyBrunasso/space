@@ -12,8 +12,8 @@
 // The recommended include is heavy: compile time
 // <x86intrin.h>
 #define __X86INTRIN_H
-#define __IMMINTRIN_H
 #include <bmiintrin.h>
+#include <immintrin.h>
 #include <lzcntintrin.h>
 #include <popcntintrin.h>
 #endif
@@ -25,6 +25,8 @@
 // target cpu requirement
 #define TARGET(x) __attribute__((target(x)))
 #endif
+
+#define RDRND_RETRY_LIMIT 3
 
 // Reset lowest set bit to 0
 inline uint64_t TARGET("bmi") BLSR(uint64_t f)
@@ -55,4 +57,11 @@ inline uint64_t TARGET("popcnt") POPCNT(uint64_t f)
 inline uint64_t TARGET("bmi") ANDN(uint64_t a, uint64_t f)
 {
   return _andn_u64(a, f);
+}
+
+inline int TARGET("rdrnd") RDRND(unsigned long long *p)
+{
+  for (int i = 0; i < RDRND_RETRY_LIMIT; ++i)
+    if (_rdrand64_step(p)) return 1;
+  return 0;
 }

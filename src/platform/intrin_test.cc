@@ -20,6 +20,13 @@ flag(uint64_t id)
 int
 main()
 {
+  int a = 0x1;
+  int f = 0x3;
+  printf("%da %df\n", a, f);
+  ANDN(a, f);
+  printf("ANDN %da %df\n", a, f);
+  f = ANDN(a, f);
+  printf("f = ANDN %da %df\n", a, f);
   printf("%lu satisfied needs, %lu highest satisfied\n", POPCNT(ai_flags),
          kAiGoals - LZCNT(ai_flags));
 

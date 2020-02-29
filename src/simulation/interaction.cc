@@ -185,23 +185,21 @@ Hud(v2f screen)
   if (imui::Button(math::Rectf(screen.x - 10 - dims.x, 100, dims.x, dims.y),
                    v4f(1.0f, 0.0f, 1.0f, 0.75f))
           .clicked) {
-    kPlayer[kNetworkState.player_id].hud_mode = kHudModule;
-    kPlayer[kNetworkState.player_id].mod_placement += 1;
+    kPlayer[kNetworkState.player_index].hud_mode = kHudModule;
+    kPlayer[kNetworkState.player_index].mod_placement += 1;
     LOGFMT("Hud Module placement. [type %d]",
-           kPlayer[kNetworkState.player_id].mod_placement);
+           kPlayer[kNetworkState.player_index].mod_placement);
   }
 
   // selected Unit text
-  uint64_t selected = UINT64_MAX;
+  uint64_t player_control = (1 << kPlayerIndex);
+  Unit* unit;
   for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
-    if (IsUnitSelected(unit->id)) continue;
-    selected = unit->id;
+    if (0 == (kUnit[i].control & player_control)) continue;
+    unit = &kUnit[i];
     break;
   }
 
-  Unit* unit = FindUnit(selected);
-  if (!unit) return;
   constexpr int MAX_SELECTED_TEXT = CREWA_MAX + 3;
   char selected_text[MAX_SELECTED_TEXT][64];
   {
@@ -258,6 +256,7 @@ ControlEvent(const PlatformEvent* event, Player* player)
 {
   v3f world_pos = camera::ScreenToWorldSpace(
       &player->camera, v3f(event->position - window::GetWindowSize() * 0.5f));
+  uint64_t player_index = player - kPlayer;
 
   djb2_hash_more((const uint8_t*)event, sizeof(PlatformEvent), &kInputHash);
   switch (event->type) {
@@ -278,14 +277,15 @@ ControlEvent(const PlatformEvent* event, Player* player)
           case kHudSelection: {
             player->world_selection.x = world_pos.x;
             player->world_selection.y = world_pos.y;
-            UnselectAll();
+            UnselectPlayerUnits(player_index);
           } break;
           case kHudAttackMove: {
             LOGFMT("Order attack move [%.0f,%.0f]", world_pos.x, world_pos.y);
-            PushCommand({kUaAttackMove, world_pos, kInvalidUnit});
+            PushCommand({kUaAttackMove, world_pos, kInvalidUnit,
+                         (unsigned)(1 << player_index)});
           } break;
           case kHudModule: {
-            unsigned mkind = kPlayer[kNetworkState.player_id].mod_placement;
+            unsigned mkind = player->mod_placement;
             if (event->button == BUTTON_LEFT) {
               for (int i = 0; i < kUsedShip; ++i) {
                 v2i tilepos = WorldToTilePos(world_pos);
@@ -303,10 +303,12 @@ ControlEvent(const PlatformEvent* event, Player* player)
         Unit* target = GetUnit(world_pos);
         if (target) {
           LOGFMT("Order attack [%lu]", target->id);
-          PushCommand({kUaAttack, world_pos, kInvalidUnit});
+          PushCommand({kUaAttack, world_pos, kInvalidUnit,
+                       (unsigned)(1 << player_index)});
         } else {
           LOGFMT("Order move [%.0f,%.0f]", world_pos.x, world_pos.y);
-          PushCommand({kUaMove, world_pos, kInvalidUnit});
+          PushCommand({kUaMove, world_pos, kInvalidUnit,
+                       (unsigned)(1 << player_index)});
         }
       }
 
@@ -325,7 +327,7 @@ ControlEvent(const PlatformEvent* event, Player* player)
             unit = GetUnit(aabb_selection, i);
             if (!unit) continue;
             LOGFMT("Select unit: %i", unit->id);
-            SelectUnit(unit);
+            SelectPlayerUnit(player_index, unit);
           }
         }
         player->world_selection.x = 0.f;
@@ -334,7 +336,7 @@ ControlEvent(const PlatformEvent* event, Player* player)
         // Box selection missed, fallback to single unit selection
         if (!unit) {
           unit = GetUnit(world_pos);
-          SelectUnit(unit);
+          SelectPlayerUnit(player_index, unit);
         }
       }
     } break;
@@ -356,7 +358,7 @@ ControlEvent(const PlatformEvent* event, Player* player)
           // This check has to happen, otherwise the cursor will go into attack
           // move with no units selected and you won't be able to select
           // units or attack without left clicking again.
-          if (kUsedSelection > 0) {
+          if (CountUnitSelection(kPlayerIndex) > 0) {
             player->hud_mode = kHudAttackMove;
           }
         } break;
@@ -401,12 +403,12 @@ ControlEvent(const PlatformEvent* event, Player* player)
 }
 
 void
-ProcessSimulation(int player_id, uint64_t event_count,
+ProcessSimulation(int player_index, uint64_t event_count,
                   const PlatformEvent* event)
 {
   // Shared player control of the ship for now
   for (int i = 0; i < event_count; ++i) {
-    Player* p = &kPlayer[player_id];
+    Player* p = &kPlayer[player_index];
     ControlEvent(&event[i], p);
   }
 }

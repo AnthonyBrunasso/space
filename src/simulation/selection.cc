@@ -7,30 +7,34 @@
 namespace simulation
 {
 void
-SelectUnit(Unit* unit)
+SelectPlayerUnit(uint64_t player_index, Unit* unit)
 {
   if (!unit) return;
   if (unit->alliance == kEnemy) return;
   if (unit->kind == kAlien) return;
-  Selection* selection = UseSelection();
-  selection->unit_id = unit->id;
+  unit->control |= (1 << player_index);
 }
 
-bool
-IsUnitSelected(uint32_t unit_id)
+uint64_t
+CountUnitSelection(uint64_t player_index)
 {
-  for (int i = 0; i < kUsedSelection; ++i) {
-    if (kSelection[i].unit_id == unit_id) {
-      return true;
-    }
+  unsigned player_control = (1 << player_index);
+  uint64_t selection_count = 0;
+  for (int i = 0; i < kUsedUnit; ++i) {
+    if (0 == (kUnit[i].control & player_control)) continue;
+    ++selection_count;
   }
-  return false;
+
+  return selection_count;
 }
 
 void
-UnselectAll()
+UnselectPlayerUnits(uint64_t player_index)
 {
-  kUsedSelection = 0;
+  unsigned player_control = (1 << player_index);
+  for (int i = 0; i < kUsedUnit; ++i) {
+    kUnit[i].control = ANDN(player_control, kUnit[i].control);
+  }
 }
 
 }  // namespace simulation

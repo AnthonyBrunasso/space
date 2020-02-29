@@ -31,9 +31,6 @@ struct Scenario {
 };
 
 static Scenario kScenario;
-// This is here instead of in kScenario because we memset kScenario which
-// would cause this to go to max player count in the case of kGameScenario.
-static uint64_t kPlayerCount;
 
 constexpr const char* kScenarioNames[Scenario::kMaxScenario] = {
     "Game", "Combat", "Solo", "TwoShip", "Empty",

@@ -116,7 +116,8 @@ RenderCrew(uint64_t ship_index)
         continue;
     }
 
-    if (IsUnitSelected(unit->id)) {
+    // TODO (AN): Player specific selection colors?
+    if (unit->control) {
       color = v4f(0.26f, 0.33f, 0.68f, 1.f);
     }
 
@@ -404,7 +405,7 @@ RenderSpaceObjects()
 }
 
 void
-Render(uint64_t player_id)
+Render(uint64_t player_index)
 {
   /*for (int i = 0; i < kUsedPlayer; ++i) {
     rgg::RenderRectangle(kPlayer[i].world_mouse, kTileScale, kDefaultRotation,
@@ -412,7 +413,7 @@ Render(uint64_t player_id)
   }*/
 
   for (int i = 0; i < kUsedShip; ++i) {
-    if (kShip[i].level != kPlayer[player_id].level) continue;
+    if (kShip[i].level != kPlayer[player_index].level) continue;
 
     simulation::TilemapSet(kShip[i].grid_index);
     RenderShip(i);

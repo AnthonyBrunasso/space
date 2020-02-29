@@ -33,7 +33,7 @@ struct NetworkState {
   // Unique id for this game
   uint64_t game_id;
   // Unique local player id for this game
-  uint64_t player_id;
+  uint64_t player_index;
   // Total players in this game
   uint64_t player_count;
   // Per Player
@@ -100,7 +100,7 @@ NetworkSetup()
       (size_t)ns->player_id, (size_t)ns->player_count, (size_t)ns->game_id);
 
   kNetworkState.game_id = ns->game_id;
-  kNetworkState.player_id = ns->player_id;
+  kNetworkState.player_index = ns->player_id;
   kNetworkState.player_count = ns->player_count;
 
   return true;
@@ -119,7 +119,7 @@ GetNextInputBuffer()
 
   // If unacknowledged packets exceed the queue, give up
   if (kNetworkState.outgoing_sequence -
-          kNetworkState.outgoing_ack[kNetworkState.player_id] >=
+          kNetworkState.outgoing_ack[kNetworkState.player_index] >=
       MAX_NETQUEUE)
     exit(2);
 
@@ -167,10 +167,10 @@ NetworkSend(uint64_t seq)
   // write frame
   Turn* header = (Turn*)kNetworkState.netbuffer;
   header->sequence = seq;
-  header->player_id = kNetworkState.player_id;
+  header->player_id = kNetworkState.player_index;
 #if 0
-  printf("CliSnd [ %lu seq ] [ %lu slot ] [ %lu player_id ] [ %lu events ]\n",
-         seq, slot, kNetworkState.player_id, ibuf->used_input_event);
+  printf("CliSnd [ %lu seq ] [ %lu slot ] [ %lu player_index ] [ %lu events ]\n",
+         seq, slot, kNetworkState.player_index, ibuf->used_input_event);
 #endif
 
   // write input
@@ -187,7 +187,7 @@ NetworkSend(uint64_t seq)
 uint64_t
 NetworkEgress()
 {
-  uint64_t begin_seq = kNetworkState.outgoing_ack[kNetworkState.player_id] + 1;
+  uint64_t begin_seq = kNetworkState.outgoing_ack[kNetworkState.player_index] + 1;
   uint64_t end_seq = kNetworkState.outgoing_sequence;
 
   // Re-send input history
@@ -204,28 +204,28 @@ NetworkEgress()
 void
 NetworkIngress(uint64_t current_frame)
 {
-  uint64_t local_player = kNetworkState.player_id;
+  uint64_t local_player = kNetworkState.player_index;
 
   int16_t bytes_received;
   while (udp::ReceiveFrom(kNetworkState.socket, sizeof(kNetworkState.netbuffer),
                           kNetworkState.netbuffer, &bytes_received)) {
     NotifyTurn* header = (NotifyTurn*)kNetworkState.netbuffer;
     uint64_t frame = header->frame;
-    uint64_t player_id = header->player_id;
+    uint64_t player_index = header->player_id;
 #if 0
-    printf("CliRcv [ %lu frame ] [ %lu player_id ] [ %lu ack_seq ]\n", frame,
-           player_id, header->ack_sequence);
+    printf("CliRcv [ %lu frame ] [ %lu player_index ] [ %lu ack_seq ]\n", frame,
+           player_index, header->ack_sequence);
 #endif
 
     // Drop old frames, the game has progressed
     if (frame < current_frame) continue;
     // Personal boundaries
-    if (player_id >= MAX_PLAYER) exit(1);
+    if (player_index >= MAX_PLAYER) exit(1);
     if (bytes_received > sizeof(NotifyTurn) + sizeof(InputBuffer::input_event))
       exit(3);
 
     uint64_t slot = NETQUEUE_SLOT(frame);
-    InputBuffer* ibuf = &kNetworkState.player_input[slot][player_id];
+    InputBuffer* ibuf = &kNetworkState.player_input[slot][player_index];
     memcpy(ibuf->input_event, header->event,
            bytes_received - sizeof(NotifyTurn));
     ibuf->used_input_event =
@@ -234,10 +234,10 @@ NetworkIngress(uint64_t current_frame)
     printf("Copied %lu, used_input_event %lu\n", bytes_received - header_size,
            ibuf->used_input_event);
 #endif
-    kNetworkState.player_received[slot][player_id] = true;
+    kNetworkState.player_received[slot][player_index] = true;
     // Accept highest received ack_sequence
-    kNetworkState.outgoing_ack[player_id] =
-        MAX(kNetworkState.outgoing_ack[player_id], header->ack_sequence);
+    kNetworkState.outgoing_ack[player_index] =
+        MAX(kNetworkState.outgoing_ack[player_index], header->ack_sequence);
   }
 }
 

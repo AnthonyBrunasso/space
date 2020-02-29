@@ -13,7 +13,6 @@ Delete items when they are done.
 ---------- TASKS ---------- 
 
 gameplay -
-  priority - player specific selection
   damage repair, hull repair
   ship invaders
   hover select can show module radius (turret)

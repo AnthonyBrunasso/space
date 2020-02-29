@@ -45,6 +45,10 @@
   sizeof(type), (const uint8_t*)k##type + offsetof(type, member), \
       (const uint8_t*)&k##type[kUsed##type]
 
+// Global game state that is local information
+static uint64_t kPlayerCount;
+static uint64_t kPlayerIndex;
+
 // Common Flags
 enum UnitAction {
   kUaNone = 0,
@@ -176,6 +180,7 @@ struct Unit {
   uint8_t aknown_max[CREWA_MAX] = CREW_ABEST;
 
   // Bit Fields
+  unsigned control : MAX_PLAYER;
   unsigned dead : 1;
   unsigned spacesuit : 1;
   unsigned inspace : 1;
@@ -237,6 +242,7 @@ struct Command {
   UnitAction type;
   v3f destination;
   uint32_t unit_id;
+  unsigned control : MAX_PLAYER;
 };
 DECLARE_GAME_QUEUE(Command, 16);
 
@@ -247,6 +253,7 @@ struct Player {
   uint64_t level = 1;
   unsigned hud_mode : kHudModeBits;
   unsigned mod_placement : kModBits;
+  unsigned local : 1;
 };
 DECLARE_GAME_TYPE(Player, MAX_PLAYER);
 
@@ -265,11 +272,6 @@ struct Consumable {
   uint32_t minerals : 6;
 };
 DECLARE_GAME_TYPE(Consumable, 16);
-
-struct Selection {
-  uint32_t unit_id;
-};
-DECLARE_GAME_TYPE(Selection, 16);
 
 constexpr int kMapWidth = 32;
 constexpr int kMapHeight = 32;

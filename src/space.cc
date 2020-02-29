@@ -33,9 +33,9 @@ static Stats kGameStats;
 
 // TODO (AN): Revisit cameras
 const Camera*
-GetCamera(uint64_t player_id)
+GetCamera(uint64_t player_index)
 {
-  return &kPlayer[player_id].camera;
+  return &kPlayer[player_index].camera;
 }
 
 void
@@ -133,13 +133,14 @@ main(int argc, char** argv)
   }
 
   // Game init
-  if (!simulation::Initialize(kNetworkState.player_count,
-                              kNetworkState.game_id)) {
+  kPlayerCount = kNetworkState.player_count;
+  kPlayerIndex = kNetworkState.player_index;
+  if (!simulation::Initialize(kNetworkState.game_id)) {
     return 1;
   }
 
   // Init view for local player's camera
-  camera::SetView(GetCamera(kNetworkState.player_id),
+  camera::SetView(GetCamera(kNetworkState.player_index),
                   &rgg::GetObserver()->view);
 
   // Projection init
@@ -210,7 +211,7 @@ main(int argc, char** argv)
         simulation::Update();
 
         // SetView for the local player's camera
-        camera::SetView(GetCamera(kNetworkState.player_id),
+        camera::SetView(GetCamera(kNetworkState.player_index),
                         &rgg::GetObserver()->view);
 
         // Give the user an update tick. The engine runs with
@@ -222,12 +223,12 @@ main(int argc, char** argv)
 #ifndef HEADLESS
     // Misc debug/feedback
     const v2f dims = window::GetWindowSize();
-    simulation::DebugPanel(kPlayer[kNetworkState.player_id], kGameStats,
+    simulation::DebugPanel(kPlayer[kNetworkState.player_index], kGameStats,
                            kGameState.frame_target_usec);
     simulation::LogPanel();
     simulation::Hud(dims);
 
-    gfx::Render(kNetworkState.player_id);
+    gfx::Render(kNetworkState.player_index);
 #endif
     imui::Reset();
 

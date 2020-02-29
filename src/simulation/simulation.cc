@@ -35,10 +35,8 @@ Reset(uint64_t seed)
 }
 
 bool
-Initialize(uint64_t player_count, uint64_t seed)
+Initialize(uint64_t seed)
 {
-  // Set player count here so scenario can setup players.
-  kPlayerCount = player_count;
   Reset(seed);
   return true;
 }
@@ -74,9 +72,9 @@ ThinkAI(uint64_t ship_index)
 
   for (uint64_t i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
-    if (IsUnitSelected(unit->id)) continue;
+    if (unit->control) continue;
 
-    Command c = {kUaNone, v3f(), unit->id};
+    Command c = {kUaNone, v3f(), unit->id, 0};
 
     for (int k = 0; k < kUsedModule; ++k) {
       Module* mod = &kModule[k];
@@ -580,7 +578,8 @@ UpdateModule(uint64_t ship_index)
 
       v2i random_tile(rand() % kMapWidth, rand() % kMapHeight);
       v2f random_world = TilePosToWorld(random_tile);
-      v2f random_dir = Normalize(random_world - TilePosToWorld(v2i(m->cx, m->cy)));
+      v2f random_dir =
+          Normalize(random_world - TilePosToWorld(v2i(m->cx, m->cy)));
       Unit* unit = UseIdUnit();
       unit->transform.position =
           TilePosToWorld(v2i(m->cx, m->cy)) + (random_dir * kTileWidth);
@@ -731,18 +730,18 @@ Decide()
 {
   while (CountCommand()) {
     Command c = PopCommand();
-    // Dispatch command to all selected units if command was made with not
-    // specific unit targeted.
     if (c.unit_id == kInvalidUnit) {
-      for (int i = 0; i < kUsedSelection; ++i) {
-        Selection* selection = &kSelection[i];
-        Unit* unit = FindUnit(selection->unit_id);
-        if (!unit) continue;
-        ApplyCommand(unit, c);
+      const unsigned player_control = (1 << kPlayerIndex);
+      for (int i = 0; i < kUsedUnit; ++i) {
+        // The issuer of a command must have a set bit
+        if (0 == (kUnit[i].control & c.control)) continue;
+        ApplyCommand(&kUnit[i], c);
       }
     } else {
       Unit* unit = FindUnit(c.unit_id);
       if (!unit) continue;
+      // Unit specific commands must exactly match the original control bits
+      if (unit->control != c.control) continue;
       // Unit is busy.
       if (unit->uaction != kUaNone) continue;
       ApplyCommand(unit, c);

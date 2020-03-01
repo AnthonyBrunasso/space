@@ -51,8 +51,10 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
              StatsMean(&stats), 100.f * StatsUnbiasedRsDev(&stats));
     imui::Indent(2);
     imui::Text(buffer);
-    snprintf(buffer, BUFFER_SIZE, "Network Rtt: %06lu us [%lu/%lu queue]",
-             kNetworkState.last_egress * frame_target_usec, NetworkReadyCount(),
+    snprintf(buffer, BUFFER_SIZE,
+             "Network Rtt: [%06lu us to %06lu us] [%lu/%lu queue]",
+             kNetworkState.egress_min * frame_target_usec,
+             kNetworkState.egress_max * frame_target_usec, NetworkReadyCount(),
              MAX_NETQUEUE);
     imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE, "Window Size: %ix%i", (int)sz.x, (int)sz.y);

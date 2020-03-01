@@ -26,13 +26,6 @@ struct State {
   uint64_t logic_updates = 0;
   // Number of times the game frame was exceptionally delayed
   uint64_t game_jerk = 0;
-  // run_ahead > 0:
-  //  input is lower latency but simulation may be irregular
-  // run_ahead == 0:
-  //  input allows one frame of padding (higher latency) and often results in
-  //  smooth simulation
-  uint64_t run_ahead = 1;
-  // TODO (AN): add network variable for sampling latency over a frame count
 };
 
 static State kGameState;
@@ -196,13 +189,15 @@ main(int argc, char** argv)
     NetworkEgress();
     NetworkIngress(kGameState.logic_updates);
 
-    const int advance = 1 + (NetworkReadyCount() + kGameState.run_ahead >
-                             kNetworkState.last_egress);
+    const int advance = 1 + (NetworkReadyCount() > 1);
     for (int frame = 0; frame < advance; ++frame) {
       uint64_t slot = NETQUEUE_SLOT(kGameState.logic_updates);
 #if DEBUG_NETWORK
-      printf("[last_egress %d] [ready %d] [advance %d]\n",
-             kNetworkState.last_egress, NetworkReadyCount(), advance);
+      printf(
+          "[egress_min %lu] [egress_max %lu] [queue_goal %lu] [ready_count %d] "
+          "[advance %d]\n",
+          kNetworkState.egress_min, kNetworkState.egress_max,
+          NetworkQueueGoal(), NetworkReadyCount(), advance);
 #endif
       if (SlotReady(slot)) {
         simulation::Hash();
@@ -233,7 +228,7 @@ main(int argc, char** argv)
     // Misc debug/feedback
     const v2f dims = window::GetWindowSize();
     ui::DebugPanel(kPlayer[kNetworkState.player_index], kGameStats,
-                           kGameState.frame_target_usec);
+                   kGameState.frame_target_usec);
     ui::LogPanel();
     ui::Hud(dims);
 

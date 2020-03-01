@@ -42,8 +42,9 @@ struct NetworkState {
   InputBuffer player_input[MAX_NETQUEUE][MAX_PLAYER];
   bool player_received[MAX_NETQUEUE][MAX_PLAYER];
   uint64_t outgoing_ack[MAX_PLAYER];
-  // Number of packets sent last NetworkEgress()
-  uint64_t last_egress;
+  // Range of packets sent last in NetworkEgress()
+  uint64_t egress_min = UINT64_MAX;
+  uint64_t egress_max = 0;
 };
 
 static NetworkState kNetworkState;
@@ -206,7 +207,14 @@ NetworkEgress()
     ++count;
   }
 
-  kNetworkState.last_egress = count;
+  bool received_ack =
+      kNetworkState.outgoing_ack[kNetworkState.player_index] > 0;
+  uint64_t min_value = (received_ack * count) + (!received_ack * UINT64_MAX);
+  uint64_t max_value = count;
+
+  kNetworkState.egress_min = MIN(kNetworkState.egress_min, min_value);
+  kNetworkState.egress_max = MAX(kNetworkState.egress_max, max_value);
+
   return count;
 }
 
@@ -248,5 +256,14 @@ NetworkIngress(uint64_t current_frame)
     kNetworkState.outgoing_ack[player_index] =
         MAX(kNetworkState.outgoing_ack[player_index], header->ack_sequence);
   }
+}
+
+uint64_t
+NetworkQueueGoal()
+{
+  // No ack data yet, allow unbuffered play
+  if (kNetworkState.egress_min == UINT64_MAX) return 1;
+
+  return MAX(kNetworkState.egress_max - kNetworkState.egress_min, 1);
 }
 

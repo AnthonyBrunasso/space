@@ -248,7 +248,12 @@ WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
       platform_event->wheel_delta =
         (float)GET_WHEEL_DELTA_WPARAM(wparam) / (float)WHEEL_DELTA;
       platform_event->type = MOUSE_WHEEL;
-    }
+    } break;
+    case WM_SYSCOMMAND: {
+      if (wparam == SC_CLOSE) {
+        PostQuitMessage(0);
+      }
+    } break;
     default: {
       result = DefWindowProcA(window, msg, wparam, lparam); 
     } break;

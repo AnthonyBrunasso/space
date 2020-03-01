@@ -62,7 +62,6 @@ GatherWindowInput(InputBuffer* input_buffer)
     }
   }
 
-  printf("input done %d\n", i);
   // Always append an estimate of the the local mouse cursor
   input_buffer->input_event[event_count].type = MOUSE_POSITION;
   input_buffer->input_event[event_count].position = window::GetCursorPosition();

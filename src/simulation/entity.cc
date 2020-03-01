@@ -177,6 +177,7 @@ struct Unit {
   int attack_cooldown = 60;
   float health = 5.0f;
   float max_health = 5.0f;
+  float speed = 1.f;
 
   uint8_t acurrent[CREWA_MAX];
   uint8_t aknown_min[CREWA_MAX] = CREW_AWORST;

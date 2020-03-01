@@ -172,6 +172,8 @@ InitializeScenario(bool reset_features = true)
       kUnit[1].transform.scale = v3f(0.25f, 0.25f, 0.f);
       kUnit[1].alliance = kEnemy;
       kUnit[1].kind = kAlien;
+      kUnit[1].attack_radius = 30.f;
+      kUnit[1].speed = 0.5f;
       BB_SET(kUnit[1].bb, kUnitBehavior, kUnitBehaviorSimple);
     } break;
     default:

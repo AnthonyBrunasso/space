@@ -26,7 +26,6 @@ constexpr float kDsqGather = 25.f * 25.f;
 constexpr float kDsqOperate = 50.f * 35.f;
 constexpr float kDsqOperatePod = 75.f * 75.f;
 constexpr float kAvoidanceScaling = 0.15f;
-constexpr float kMovementScaling = 1.0f;
 static uint64_t kSimulationHash = DJB2_CONST;
 static bool kSimulationOver = false;
 
@@ -500,7 +499,7 @@ MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
   v3f new_dest =
       (dest * near_goal) + (TilePosToWorld(path->tile[1]) * !near_goal);
   move_dir += math::Normalize(new_dest.xy() - unit->transform.position.xy()) *
-              kMovementScaling;
+              unit->speed;
   unit->transform.position += move_dir;
   return false;
 }

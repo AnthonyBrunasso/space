@@ -155,6 +155,25 @@ TileVacuum(const v2i pos)
   return Normalize(posf - center);
 }
 
+v2f
+TileRandomPosition()
+{
+  v2i random_tile(rand() % kMapWidth, rand() % kMapHeight);
+  return TilePosToWorld(random_tile);
+}
+
+v2i
+TileRandomNeighbor(v2i tile)
+{
+  int idx = rand() % kMaxNeighbor;
+  v2i n = tile + kNeighbor[idx];
+  while (!TileOk(n)) {
+    idx = rand() % kMaxNeighbor;
+    n = tile + kNeighbor[idx];
+  }
+  return n;
+}
+
 math::Rectf
 TilemapWorldBounds()
 {

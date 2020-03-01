@@ -18,6 +18,8 @@
 #include "util.cc"
 
 #include "platform/macro.h"
+
+#include "ai.cc"
 namespace simulation
 {
 constexpr float kDsqGather = 25.f * 25.f;
@@ -594,11 +596,8 @@ UpdateModule(uint64_t ship_index)
       if (m->mkind != kModBarrack) continue;
       // Hack: Module 0 spawns kCrew, others spawn kEnemy
       if (i != reinforce_team) continue;
-
-      v2i random_tile(rand() % kMapWidth, rand() % kMapHeight);
-      v2f random_world = TilePosToWorld(random_tile);
-      v2f random_dir =
-          Normalize(random_world - TilePosToWorld(v2i(m->cx, m->cy)));
+      v2f random_dir = Normalize(
+          TileRandomPosition() - TilePosToWorld(v2i(m->cx, m->cy)));
       Unit* unit = UseIdUnit();
       unit->transform.position =
           TilePosToWorld(v2i(m->cx, m->cy)) + (random_dir * kTileWidth);
@@ -647,6 +646,8 @@ UpdateUnit(uint64_t ship_index)
     if (tile->nooxygen) {
       unit->uaction = kUaVacuum;
     }
+
+    AIThink(unit);
 
     // Implementation of uaction should properly reset persistent_uaction
     // when they are completed. Otherwise units will never have their uaction

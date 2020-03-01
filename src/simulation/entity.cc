@@ -146,6 +146,7 @@ struct Asteroid {
   uint64_t mineral_source;
   unsigned implode : 1;
   unsigned deplete : 1;
+  uint64_t PADDING : 62;
 };
 DECLARE_GAME_TYPE(Asteroid, 8);
 
@@ -163,11 +164,11 @@ DECLARE_GAME_TYPE(Pod, 8);
 struct Unit {
   Transform transform;
   Blackboard bb;
+  uint64_t ship_index = UINT64_MAX;
 
   uint32_t id;
   UnitKind kind;
   Alliance alliance = kCrew;
-  uint64_t ship_index = UINT64_MAX;
 
   // Maybe need a weapon type?
   float attack_radius = 100.0f;
@@ -189,6 +190,7 @@ struct Unit {
   unsigned uaction : 3;
   unsigned persistent_uaction : 3;
   unsigned mskill : kModBits;
+  uint64_t PADDING : 18;
 };
 DECLARE_GAME_TYPE_WITH_ID(Unit, 16);
 
@@ -197,13 +199,14 @@ struct Ship {
   uint64_t operate_flags = 0;
   uint64_t danger = 0;
   uint64_t grid_index = UINT64_MAX;
+  uint64_t level;
+  uint64_t pod_capacity;
   float sys[kModCount];
   float used_power;
   float power_delta;
-  uint64_t level;
-  uint64_t pod_capacity;
   unsigned ftl_frame : 6;
   unsigned engine_animation : 4;
+  uint64_t PADDING : 22;
 };
 
 DECLARE_GAME_TYPE(Ship, 2);
@@ -218,6 +221,7 @@ struct Missile {
   v2i tile_hit;
   signed y_velocity : 3 + 1;
   unsigned explode_frame : 6;
+  unsigned PADDING : 22;
 };
 DECLARE_GAME_TYPE(Missile, 8);
 
@@ -238,6 +242,7 @@ struct Module {
   unsigned cx : 5;
   unsigned cy : 5;
   unsigned mkind : kModBits;
+  uint64_t PADDING : 51;
 };
 DECLARE_GAME_TYPE(Module, 32);
 
@@ -246,6 +251,7 @@ struct Command {
   v3f destination;
   uint32_t unit_id;
   unsigned control : MAX_PLAYER;
+  uint64_t PADDING : 30;
 };
 DECLARE_GAME_QUEUE(Command, 16);
 
@@ -257,6 +263,7 @@ struct Player {
   unsigned hud_mode : kHudModeBits;
   unsigned mod_placement : kModBits;
   unsigned local : 1;
+  uint64_t PADDING : 58;
 };
 DECLARE_GAME_TYPE(Player, MAX_PLAYER);
 
@@ -264,6 +271,7 @@ constexpr unsigned kNotifyAgeBits = 5;
 struct Notify {
   v3f position;
   unsigned age : kNotifyAgeBits;
+  uint64_t PADDING : 27;
 };
 DECLARE_GAME_TYPE(Notify, 4);
 
@@ -273,6 +281,7 @@ struct Consumable {
   unsigned cy : 5;
   unsigned cryo_chamber : 1;
   uint32_t minerals : 6;
+  uint64_t PADDING : 47;
 };
 DECLARE_GAME_TYPE(Consumable, 16);
 
@@ -286,6 +295,7 @@ struct Tile {
   unsigned shroud : 1;
   unsigned explored : 1;
   unsigned exterior : 1;
+  unsigned PADDING : 11;
 };
 struct Grid {
   Transform transform;

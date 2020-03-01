@@ -12,7 +12,8 @@ AIWander(Unit* unit)
 
   v2i rpos = TileRandomNeighbor(WorldToTilePos(unit->transform.position));
   v2f wpos = TilePosToWorld(rpos);
-  BB_SET(unit->bb, kUnitDestination, v3f(wpos.x, wpos.y, 0.f));
+  v3f destination( wpos.x, wpos.y, 0.f );
+  BB_SET(unit->bb, kUnitDestination, destination);
   unit->uaction = kUaMove;
 }
 

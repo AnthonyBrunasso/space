@@ -43,7 +43,8 @@ GatherWindowInput(InputBuffer* input_buffer)
 {
   uint64_t event_count = 0;
 
-  while (event_count < (MAX_TICK_EVENTS - 1)) {
+  for (int i = 0; i < MAX_TICK_EVENTS*2; i) {
+    if (event_count >= (MAX_TICK_EVENTS - 1)) break;
     PlatformEvent pevent;
     if (!window::PollEvent(&pevent)) break;
 

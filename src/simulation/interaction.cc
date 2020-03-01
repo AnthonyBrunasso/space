@@ -141,22 +141,6 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
   }
   v4f ready_color = v4f(1.0f, 0.0f, 1.0f, 0.75f);
   v4f unready_color = v4f(0.3f, 0.3f, 0.3f, 0.5f);
-  for (int i = 0; i < kUsedShip; ++i) {
-    bool ftl_ready = simulation::ShipFtlReady(i);
-    if (imui::Button(math::Rectf(50, 100 + (i * 50), 40, 40),
-                     ftl_ready ? ready_color : unready_color)
-            .clicked) {
-      if (!ftl_ready) {
-        LOG("Faster Than Light engine is offline!");
-      } else if (kResource[0].mineral >= kFtlCost) {
-        LOG("Faster Than Light engine activated!");
-        kShip[i].ftl_frame = 1;
-        kResource[0].mineral -= kFtlCost;
-      } else {
-        LOGFMT("Ftl requires minerals [%d]!", kFtlCost);
-      }
-    }
-  }
 
   {
     v4f orange(1.0f, .3f, .3f, .75f);
@@ -398,6 +382,21 @@ ControlEvent(const PlatformEvent* event, Player* player)
             Notify* n = UseNotify();
             n->position = kUnit[unit_index].transform.position;
             n->age = 1;
+          }
+        } break;
+        case ' ': {
+          for (int i = 0; i < kUsedShip; ++i) {
+            if (kShip[i].level != player->level) continue;
+            bool ftl_ready = simulation::ShipFtlReady(i);
+            if (!ftl_ready) {
+              LOG("Faster Than Light engine is offline!");
+            } else if (kResource[0].mineral >= kFtlCost) {
+              LOG("Faster Than Light engine activated!");
+              kShip[i].ftl_frame = 1;
+              kResource[0].mineral -= kFtlCost;
+            } else {
+              LOGFMT("Ftl requires minerals [%d]!", kFtlCost);
+            }
           }
         } break;
         default:

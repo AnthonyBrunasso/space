@@ -69,7 +69,7 @@ Initialize()
    3.0, 0.3f, 0.0, 0.0f, 0.0f, 0.0f};
   constexpr int kPlusVert = 8;
 #define ORIGIN 0.0f, 0.0f, 0.0f
-  GLfloat plus[kExhaustVert*3] = 
+  GLfloat plus[kPlusVert*3] = 
   {-1.0f, 0.f, 0.f, ORIGIN,
     0.0f, -1.0f, 0.0f, ORIGIN,
     1.0f, 0.0f, 0.0f, ORIGIN, 

@@ -206,7 +206,7 @@ main(int argc, char** argv)
 #endif
       if (SlotReady(slot)) {
         simulation::Hash();
-        simulation::CacheSyncHashes(slot == 0, kGameState.logic_updates);
+        ui::CacheSyncHashes(slot == 0, kGameState.logic_updates);
 
         // Game Mutation: Apply player commands for turn N
         InputBuffer* game_turn = GetSlot(slot);
@@ -232,10 +232,10 @@ main(int argc, char** argv)
 #ifndef HEADLESS
     // Misc debug/feedback
     const v2f dims = window::GetWindowSize();
-    simulation::DebugPanel(kPlayer[kNetworkState.player_index], kGameStats,
+    ui::DebugPanel(kPlayer[kNetworkState.player_index], kGameStats,
                            kGameState.frame_target_usec);
-    simulation::LogPanel();
-    simulation::Hud(dims);
+    ui::LogPanel();
+    ui::Hud(dims);
 
     gfx::Render(kNetworkState.player_index);
 #endif

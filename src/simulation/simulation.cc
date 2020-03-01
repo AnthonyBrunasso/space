@@ -26,6 +26,7 @@ constexpr float kDsqOperatePod = 75.f * 75.f;
 constexpr float kAvoidanceScaling = 0.15f;
 constexpr float kMovementScaling = 1.0f;
 static uint64_t kSimulationHash = DJB2_CONST;
+static bool kSimulationOver = false;
 
 void
 Reset(uint64_t seed)
@@ -765,24 +766,19 @@ Decide()
   }
 }
 
-bool
-SimulationOver()
-{
-  return ScenarioOver();
-}
-
 void
 Update()
 {
+  kSimulationOver = ScenarioOver();
   ++kResource[0].frame;
 
-  // Camera
+  // Camera can move even when game is over
   for (int i = 0; i < kUsedPlayer; ++i) {
     camera::Update(&kPlayer[i].camera);
     kPlayer[i].camera.motion.z = 0.f;
   }
 
-  if (SimulationOver()) return;
+  if (kSimulationOver) return;
 
   for (int i = 0; i < kUsedShip; ++i) {
     TilemapSet(kShip[i].grid_index);

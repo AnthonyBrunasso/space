@@ -8,34 +8,19 @@
 namespace simulation
 {
 static uint64_t kInputHash = DJB2_CONST;
-
-bool
-ShipFtlReady(uint64_t ship_index)
-{
-  return kShip[ship_index].sys[kModEngine] > .5f;
 }
 
-void
-ControlShipFtl(uint64_t ship_index)
+// READ ONLY access to simulation data must be maintained
+// This code runs outside of the Logic frame
+namespace ui
 {
-}
-
-uint32_t
-UnitId()
-{
-  for (int i = 0; i < kUsedUnit; ++i) {
-    if (!kUnit[i].kind) return kUnit[i].id;
-  }
-  return kInvalidUnit;
-}
-
 static uint64_t kDebugInputHash;
 static uint64_t kDebugSimulationHash;
 void
 CacheSyncHashes(bool update, uint64_t frame)
 {
-  kDebugInputHash ^= (update * kInputHash);
-  kDebugSimulationHash ^= (update * kSimulationHash);
+  kDebugInputHash ^= (update * simulation::kInputHash);
+  kDebugSimulationHash ^= (update * simulation::kSimulationHash);
 #ifdef DEBUG_SYNC
   printf(
       "[Frame %u] [DebugInputHash 0x%016lx] [DebugSimulationHash 0x016%lx]\n",
@@ -82,7 +67,7 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
     imui::Indent(-2);
   }
 
-  static bool enable_game_menu = false;
+  /*static bool enable_game_menu = false;
   if (imui::Text("Game Menu", debug_options).clicked) {
     enable_game_menu = !enable_game_menu;
   }
@@ -128,14 +113,14 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
       imui::Indent(-2);
     }
     imui::Indent(-2);
-  }
+  }*/
 
   snprintf(buffer, BUFFER_SIZE, "Minerals: %lu", kResource[0].mineral);
   imui::Text(buffer);
   snprintf(buffer, BUFFER_SIZE, "Level: %lu", player.level);
   imui::Text(buffer);
 
-  if (simulation::SimulationOver()) {
+  if (simulation::kSimulationOver) {
     snprintf(buffer, BUFFER_SIZE, "Game Over");
     imui::Text(buffer);
   }
@@ -242,6 +227,10 @@ Hud(v2f screen)
   imui::End();
 }
 
+}  // namespace ui
+
+namespace simulation
+{
 void
 ControlEvent(const PlatformEvent* event, Player* player)
 {
@@ -369,7 +358,7 @@ ControlEvent(const PlatformEvent* event, Player* player)
         case ' ': {
           for (int i = 0; i < kUsedShip; ++i) {
             if (kShip[i].level != player->level) continue;
-            bool ftl_ready = simulation::ShipFtlReady(i);
+            bool ftl_ready = kShip[i].sys[kModEngine] > .5f;
             if (!ftl_ready) {
               LOG("Faster Than Light engine is offline!");
             } else if (kResource[0].mineral >= kFtlCost) {

@@ -8,14 +8,9 @@
 namespace simulation
 {
 static uint64_t kInputHash = DJB2_CONST;
-}
-
-// READ ONLY access to simulation data must be maintained
-// This code runs outside of the Logic frame
-namespace ui
-{
 static uint64_t kDebugInputHash;
 static uint64_t kDebugSimulationHash;
+
 void
 CacheSyncHashes(bool update, uint64_t frame)
 {
@@ -31,8 +26,6 @@ CacheSyncHashes(bool update, uint64_t frame)
 void
 DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
 {
-  using namespace simulation;
-
   auto sz = window::GetWindowSize();
 #define BUFFER_SIZE 64
   char buffer[BUFFER_SIZE];
@@ -275,10 +268,6 @@ Hud(v2f screen)
   imui::End();
 }
 
-}  // namespace ui
-
-namespace simulation
-{
 void
 ControlEvent(const PlatformEvent* event, Player* player)
 {

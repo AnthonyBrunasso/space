@@ -202,8 +202,9 @@ main(int argc, char** argv)
           NetworkQueueGoal(), NetworkReadyCount(), advance);
 #endif
       if (SlotReady(slot)) {
+	imui::Reset();
         simulation::Hash();
-        ui::CacheSyncHashes(slot == 0, kGameState.logic_updates);
+        simulation::CacheSyncHashes(slot == 0, kGameState.logic_updates);
 
         // Game Mutation: Apply player commands for turn N
         InputBuffer* game_turn = GetSlot(slot);
@@ -215,6 +216,14 @@ main(int argc, char** argv)
 
         // Game Mutation: continue simulation
         simulation::Update();
+#ifndef HEADLESS
+	// Misc debug/feedback
+	const v2f dims = window::GetWindowSize();
+	simulation::LogPanel();
+	simulation::Hud(dims);
+	simulation::DebugPanel(kPlayer[kNetworkState.player_index], kGameStats,
+			kGameState.frame_target_usec);
+#endif
 
         // SetView for the local player's camera
         camera::SetView(GetCamera(kNetworkState.player_index),
@@ -227,16 +236,8 @@ main(int argc, char** argv)
     }
 
 #ifndef HEADLESS
-    // Misc debug/feedback
-    const v2f dims = window::GetWindowSize();
-    ui::DebugPanel(kPlayer[kNetworkState.player_index], kGameStats,
-                   kGameState.frame_target_usec);
-    ui::LogPanel();
-    ui::Hud(dims);
-
     gfx::Render(kNetworkState.player_index);
 #endif
-    imui::Reset();
 
     // Capture frame time before the potential stall on vertical sync
     const uint64_t elapsed_usec = platform::delta_usec(&kGameState.game_clock);

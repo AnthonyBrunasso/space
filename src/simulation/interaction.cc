@@ -139,24 +139,6 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
     snprintf(buffer, BUFFER_SIZE, "Game Over");
     imui::Text(buffer);
   }
-  v4f ready_color = v4f(1.0f, 0.0f, 1.0f, 0.75f);
-  v4f unready_color = v4f(0.3f, 0.3f, 0.3f, 0.5f);
-
-  {
-    v4f orange(1.0f, .3f, .3f, .75f);
-    int level_change = 0;
-    if (imui::Button(math::Rectf(10, 125, 30, 30), orange).clicked) {
-      level_change = -1;
-    }
-    if (imui::Button(math::Rectf(100, 125, 30, 30), orange).clicked) {
-      level_change = 1;
-    }
-
-    {
-      Player* p = &kPlayer[&player - kPlayer];
-      p->level = CLAMP(p->level + level_change, 1, 10);
-    }
-  }
 
   imui::End();
 }
@@ -398,6 +380,12 @@ ControlEvent(const PlatformEvent* event, Player* player)
               LOGFMT("Ftl requires minerals [%d]!", kFtlCost);
             }
           }
+        } break;
+        case 'h': {
+          player->level = CLAMP(player->level - 1, 1, 10);
+        } break;
+        case 'l': {
+          player->level = CLAMP(player->level + 1, 1, 10);
         } break;
         default:
           break;

@@ -29,7 +29,7 @@ static bool running = true;
 #define MAX_BUFFER (4 * 1024)
 #define MAX_PLAYER 2
 PlayerState player[MAX_PLAYER];
-uint64_t next_game_id = 1;
+uint64_t next_game_id = time(0);
 bool game_ready;
 Clock_t server_clock;
 #define TIMEOUT_USEC (2 * 1000 * 1000)
@@ -169,7 +169,7 @@ server_main(void* void_arg)
               i, player_id, num_players, next_game_id, player_cookie);
           response->player_id = player_id;
           response->player_count = num_players;
-          response->game_id = next_game_id;
+          response->game_id = next_game_id - 1;
           response->cookie = player_cookie;
           udp::SendTo(location, player[i].peer, in_buffer, sizeof(NotifyGame));
           player[i].pending_game_id = next_game_id;

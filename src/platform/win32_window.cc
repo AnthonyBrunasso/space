@@ -217,6 +217,8 @@ WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
     case WM_CLOSE: {
       kWindow.should_close = true;
     } break;
+    case WM_MOVE: {
+    } break;
     case WM_DESTROY: {
       PostQuitMessage(0);
     } break;

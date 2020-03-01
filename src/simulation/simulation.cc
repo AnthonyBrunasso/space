@@ -507,6 +507,8 @@ MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
 void
 AttackTarget(Unit* unit, Unit* target)
 {
+  BB_SET(target->bb, kUnitAttacker, unit->id); 
+
   if (!ShouldAttack(unit, target)) {
     return;
   }

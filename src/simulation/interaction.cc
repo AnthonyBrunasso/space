@@ -176,6 +176,12 @@ RenderBlackboard(const Unit* unit)
         snprintf(txt, 64, "behavior: %i", *b);
         imui::Text(txt);
       } break;
+      case kUnitAttacker: {
+        const int* t = nullptr;
+        if (!BB_GET(unit->bb, kUnitAttacker, t)) continue;
+        snprintf(txt, 64, "attacker: %i", *t);
+        imui::Text(txt);
+      } break;
       default: {
         snprintf(txt, 64, "set: %i", i);
         if (BB_EXI(unit->bb, i)) {

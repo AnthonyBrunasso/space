@@ -521,18 +521,6 @@ AttackTarget(Unit* unit, Unit* target)
   unit->attack_frame = kResource[0].frame;
 }
 
-Unit*
-FindUnitInRangeToAttack(Unit* unit)
-{
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* target = &kUnit[i];
-    if (unit == target) continue;
-    if (!ShouldAttack(unit, target)) continue;
-    if (InRange(unit, target)) return target;
-  }
-  return nullptr;
-}
-
 void
 ApplyCommand(Unit* unit, const Command& c)
 {

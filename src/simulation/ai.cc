@@ -3,6 +3,7 @@
 namespace simulation
 {
 
+// AI Will wander to adjacent tiles.
 void
 AIWander(Unit* unit)
 {
@@ -14,11 +15,20 @@ AIWander(Unit* unit)
   unit->uaction = kUaMove;
 }
 
+// AI Will wander to adjacent tiles until it finds someone it can attack.
 void
 AISimpleBehavior(Unit* unit)
 {
   // Non interrupting behavior.
   if (unit->uaction != kUaNone) return;
+
+  Unit* nearby_target = FindUnitInRangeToAttack(unit);
+  if (nearby_target) {
+    BB_SET(unit->bb, kUnitTarget, nearby_target->id);
+    unit->uaction = kUaAttack;
+    return;
+  }
+
   AIWander(unit);
 }
 

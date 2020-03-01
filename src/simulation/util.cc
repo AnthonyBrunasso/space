@@ -100,4 +100,16 @@ ShouldAttack(uint64_t unit, uint64_t target)
   return ShouldAttack(FindUnit(unit), FindUnit(target));
 }
 
+Unit*
+FindUnitInRangeToAttack(Unit* unit)
+{
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* target = &kUnit[i];
+    if (unit == target) continue;
+    if (!ShouldAttack(unit, target)) continue;
+    if (InRange(unit, target)) return target;
+  }
+  return nullptr;
+}
+
 }  // namespace simulation

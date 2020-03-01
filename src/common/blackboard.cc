@@ -10,26 +10,34 @@ static constexpr int kMaxBlackboardValueSize = 64;
 static uint8_t kEmptyValue[kMaxBlackboardValueSize];
 
 struct Blackboard {
-  bool Set(int idx, const uint8_t* bytes, int size) {
+  bool
+  Set(uint64_t idx, const uint8_t* bytes, uint64_t size)
+  {
     assert(idx < kMaxBlackboardItems);
     assert(size < kMaxBlackboardValueSize);
     memcpy(&value[idx], bytes, size);
     return true;
   }
 
-  bool Get(int idx, uint8_t** bytes) {
+  bool
+  Get(uint64_t idx, const uint8_t** bytes) const
+  {
     assert(idx < kMaxBlackboardItems);
     if (!Exists(idx)) return false;
     *bytes = value[idx];
     return true;
   }
 
-  bool Exists(int idx) {
+  bool
+  Exists(uint64_t idx) const
+  {
     assert(idx < kMaxBlackboardItems);
     return memcmp(&value[idx], &kEmptyValue, kMaxBlackboardValueSize) != 0;
-  } 
+  }
 
-  void Remove(int idx) {
+  void
+  Remove(uint64_t idx)
+  {
     assert(idx < kMaxBlackboardItems);
     memcpy(&value[idx], &kEmptyValue, kMaxBlackboardValueSize);
   }
@@ -37,7 +45,9 @@ struct Blackboard {
   uint8_t value[kMaxBlackboardItems][kMaxBlackboardValueSize];
 };
 
-#define BB_SET(bb, idx, val) bb.Set((int)idx, (uint8_t*)&val, sizeof(val))
-#define BB_GET(bb, idx, ptr) bb.Get((int)idx, (uint8_t**)&ptr)
-#define BB_EXI(bb, idx) bb.Exists((int)idx)
-#define BB_REM(bb, idx) bb.Remove((int)idx)
+#define BB_SET(bb, idx, val) \
+  bb.Set(idx, reinterpret_cast<const uint8_t*>(&val), sizeof(val))
+#define BB_GET(bb, idx, ptr) \
+  bb.Get(idx, reinterpret_cast<const uint8_t**>(&ptr))
+#define BB_EXI(bb, idx) bb.Exists(idx)
+#define BB_REM(bb, idx) bb.Remove(idx)

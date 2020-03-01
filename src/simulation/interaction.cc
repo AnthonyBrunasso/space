@@ -159,26 +159,26 @@ LogPanel()
 }
 
 void
-RenderBlackboard(Unit* unit)
+RenderBlackboard(const Unit* unit)
 {
   char txt[64];
   for (int i = 0; i < kUnitBbEntryMax; ++i) {
     UnitBbEntry bb_entry = (UnitBbEntry)i;
     switch (bb_entry) {
       case kUnitDestination: {
-        v3f* d = nullptr;
+        const v3f* d = nullptr;
         if (!BB_GET(unit->bb, kUnitDestination, d)) continue;
         snprintf(txt, 64, "dest: %.0f,%.0f", d->x, d->y);
         imui::Text(txt);
       } break;
       case kUnitAttackDestination: {
-        v3f* d = nullptr;
+        const v3f* d = nullptr;
         if (!BB_GET(unit->bb, kUnitAttackDestination, d)) continue;
         snprintf(txt, 64, "adest: %.0f,%.0f", d->x, d->y);
         imui::Text(txt);
       } break;
       case kUnitTarget: {
-        int* t = nullptr;
+        const int* t = nullptr;
         if (!BB_GET(unit->bb, kUnitTarget, t)) continue;
         snprintf(txt, 64, "target: %i", *t);
         imui::Text(txt);
@@ -210,7 +210,7 @@ Hud(v2f screen)
 
   // selected Unit text
   uint64_t player_control = (1 << kPlayerIndex);
-  Unit* unit = nullptr;
+  const Unit* unit = nullptr;
   for (int i = 0; i < kUsedUnit; ++i) {
     if (0 == (kUnit[i].control & player_control)) continue;
     unit = &kUnit[i];

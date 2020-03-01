@@ -166,7 +166,7 @@ RenderCrew(uint64_t ship_index)
 
     // Show the path they are on if they have one.
     v2i start = WorldToTilePos(unit->transform.position);
-    v3f* dest = nullptr;
+    const v3f* dest = nullptr;
     if (!BB_GET(unit->bb, kUnitDestination, dest)) continue;
     v2i end = WorldToTilePos(*dest);
 

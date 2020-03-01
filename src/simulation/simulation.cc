@@ -635,13 +635,13 @@ UpdateUnit(uint64_t ship_index)
     } else if (unit->uaction == kUaVacuum) {
       transform->position += TileVacuum(tilepos) * 3.0f;
     } else if (unit->uaction == kUaMove) {
-      v3f* dest = nullptr;
+      const v3f* dest = nullptr;
       if (!BB_GET(unit->bb, kUnitDestination, dest)) {
         continue;
       }
       MoveTowards(unit, tilepos, *dest, kUaNone);
     } else if (unit->uaction == kUaAttack) {
-      uint32_t* target = nullptr;
+      const uint32_t* target = nullptr;
       if (!BB_GET(unit->bb, kUnitTarget, target)) {
         continue;
       }
@@ -673,7 +673,7 @@ UpdateUnit(uint64_t ship_index)
                        (WeaponKind)(rand() % kWeaponCount));
       unit->attack_frame = kResource[0].frame;
     } else if (unit->uaction == kUaAttackMove) {
-      v3f* dest = nullptr;
+      const v3f* dest = nullptr;
       if (!BB_GET(unit->bb, kUnitAttackDestination, dest)) {
         continue;
       }

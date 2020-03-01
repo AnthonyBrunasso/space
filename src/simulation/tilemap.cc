@@ -165,12 +165,11 @@ TileRandomPosition()
 v2i
 TileRandomNeighbor(v2i tile)
 {
-  int idx = rand() % kMaxNeighbor;
-  v2i n = tile + kNeighbor[idx];
-  while (!TileOk(n)) {
-    idx = rand() % kMaxNeighbor;
+  v2i n;
+  do {
+    int idx = rand() % kMaxNeighbor;
     n = tile + kNeighbor[idx];
-  }
+  } while (!TileOk(n));
   return n;
 }
 

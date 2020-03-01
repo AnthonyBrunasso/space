@@ -43,7 +43,8 @@ GatherWindowInput(InputBuffer* input_buffer)
 {
   uint64_t event_count = 0;
 
-  for (int i = 0; i < MAX_TICK_EVENTS*2; i) {
+  int i = 0;
+  for (; i < MAX_TICK_EVENTS*2; ++i) {
     if (event_count >= (MAX_TICK_EVENTS - 1)) break;
     PlatformEvent pevent;
     if (!window::PollEvent(&pevent)) break;
@@ -61,6 +62,7 @@ GatherWindowInput(InputBuffer* input_buffer)
     }
   }
 
+  printf("input done %d\n", i);
   // Always append an estimate of the the local mouse cursor
   input_buffer->input_event[event_count].type = MOUSE_POSITION;
   input_buffer->input_event[event_count].position = window::GetCursorPosition();

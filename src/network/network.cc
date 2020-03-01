@@ -168,9 +168,12 @@ NetworkReadyCount()
 }
 
 void
-NetworkSend(uint64_t seq)
+NetworkSend(uint64_t player_index, uint64_t seq)
 {
   uint64_t slot = NETQUEUE_SLOT(seq);
+  bool received = kNetworkState.player_received[slot][player_index];
+
+  if (received) return;
   InputBuffer* ibuf = &kNetworkState.input[slot];
 
   // write frame
@@ -196,19 +199,18 @@ NetworkSend(uint64_t seq)
 uint64_t
 NetworkEgress()
 {
-  uint64_t begin_seq =
-      kNetworkState.outgoing_ack[kNetworkState.player_index] + 1;
+  uint64_t player_index = kNetworkState.player_index;
+  uint64_t begin_seq = kNetworkState.outgoing_ack[player_index] + 1;
   uint64_t end_seq = kNetworkState.outgoing_sequence;
 
   // Re-send input history
   uint64_t count = 0;
   for (uint64_t i = begin_seq; i < end_seq; ++i) {
-    NetworkSend(i);
+    NetworkSend(player_index, i);
     ++count;
   }
 
-  bool received_ack =
-      kNetworkState.outgoing_ack[kNetworkState.player_index] > 0;
+  bool received_ack = kNetworkState.outgoing_ack[player_index] > 0;
   uint64_t min_value = (received_ack * count) + (!received_ack * UINT64_MAX);
   uint64_t max_value = count;
 

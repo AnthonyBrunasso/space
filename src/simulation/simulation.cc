@@ -650,7 +650,7 @@ UpdateUnit(uint64_t ship_index)
 
     // Implementation of uaction should properly reset persistent_uaction
     // when they are completed. Otherwise units will never have their uaction
-    // reset to kUaNone and will continue to execute an order until a player
+    // reset to kUaNone and will continue to execute an action until a player
     // has explicitly issued them a new command.
     if (unit->uaction == kUaNone) {
       unit->uaction = unit->persistent_uaction;

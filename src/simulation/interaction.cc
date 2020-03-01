@@ -31,6 +31,8 @@ CacheSyncHashes(bool update, uint64_t frame)
 void
 DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
 {
+  using namespace simulation;
+
   auto sz = window::GetWindowSize();
 #define BUFFER_SIZE 64
   char buffer[BUFFER_SIZE];
@@ -67,7 +69,7 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
     imui::Indent(-2);
   }
 
-  /*static bool enable_game_menu = false;
+  static bool enable_game_menu = false;
   if (imui::Text("Game Menu", debug_options).clicked) {
     enable_game_menu = !enable_game_menu;
   }
@@ -113,7 +115,7 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
       imui::Indent(-2);
     }
     imui::Indent(-2);
-  }*/
+  }
 
   snprintf(buffer, BUFFER_SIZE, "Minerals: %lu", kResource[0].mineral);
   imui::Text(buffer);

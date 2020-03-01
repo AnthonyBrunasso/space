@@ -474,7 +474,7 @@ DecidePod(uint64_t ship_index)
   }
 }
 
-void
+bool
 MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
 {
   v2i end = WorldToTilePos(dest);
@@ -482,7 +482,7 @@ MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
   if (!path) {
     unit->uaction = set_on_arrival;
     BB_REM(unit->bb, kUnitDestination);
-    return;
+    return true;
   }
 
   bool near_goal = (path->size == 1);
@@ -492,7 +492,7 @@ MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
     unit->transform.position = dest;
     unit->uaction = set_on_arrival;
     BB_REM(unit->bb, kUnitDestination);
-    return;
+    return true;
   }
 
   v3f new_dest =
@@ -500,6 +500,23 @@ MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
   move_dir += math::Normalize(new_dest.xy() - unit->transform.position.xy()) *
               kMovementScaling;
   unit->transform.position += move_dir;
+  return false;
+}
+
+void
+AttackTarget(Unit* unit, Unit* target)
+{
+  if (!ShouldAttack(unit, target)) {
+    return;
+  }
+
+  // Shoot at the target if weapon is off cooldown.
+  if (kResource[0].frame - unit->attack_frame < unit->attack_cooldown) {
+    return;
+  }
+
+  ProjectileCreate(target, unit, 7.5f, (WeaponKind)(rand() % kWeaponCount));
+  unit->attack_frame = kResource[0].frame;
 }
 
 Unit*
@@ -631,6 +648,10 @@ UpdateUnit(uint64_t ship_index)
       unit->uaction = kUaVacuum;
     }
 
+    // Implementation of uaction should properly reset persistent_uaction
+    // when they are completed. Otherwise units will never have their uaction
+    // reset to kUaNone and will continue to execute an order until a player
+    // has explicitly issued them a new command.
     if (unit->uaction == kUaNone) {
       unit->uaction = unit->persistent_uaction;
     } else if (unit->uaction == kUaVacuum) {
@@ -640,7 +661,10 @@ UpdateUnit(uint64_t ship_index)
       if (!BB_GET(unit->bb, kUnitDestination, dest)) {
         continue;
       }
-      MoveTowards(unit, tilepos, *dest, kUaNone);
+
+      if (MoveTowards(unit, tilepos, *dest, kUaNone)) {
+        unit->persistent_uaction = kUaNone;
+      }
     } else if (unit->uaction == kUaAttack) {
       const uint32_t* target = nullptr;
       if (!BB_GET(unit->bb, kUnitTarget, target)) {
@@ -648,9 +672,10 @@ UpdateUnit(uint64_t ship_index)
       }
 
       Unit* target_unit = FindUnit(*target);
-      if (!target_unit) {
+      if (!target_unit || target_unit->dead) {
         BB_REM(unit->bb, kUnitTarget);
         unit->uaction = kUaNone;
+        unit->persistent_uaction = kUaNone;
         continue;
       }
 
@@ -661,18 +686,7 @@ UpdateUnit(uint64_t ship_index)
         continue;
       }
 
-      if (!ShouldAttack(unit, target_unit)) {
-        continue;
-      }
-
-      // Shoot at the target if weapon is off cooldown.
-      if (kResource[0].frame - unit->attack_frame < unit->attack_cooldown) {
-        continue;
-      }
-
-      ProjectileCreate(target_unit, unit, 7.5f,
-                       (WeaponKind)(rand() % kWeaponCount));
-      unit->attack_frame = kResource[0].frame;
+      AttackTarget(unit, target_unit);
     } else if (unit->uaction == kUaAttackMove) {
       const v3f* dest = nullptr;
       if (!BB_GET(unit->bb, kUnitAttackDestination, dest)) {
@@ -681,12 +695,13 @@ UpdateUnit(uint64_t ship_index)
 
       Unit* target_unit = FindUnitInRangeToAttack(unit);
       if (!target_unit) {
-        MoveTowards(unit, tilepos, *dest, kUaNone);
+        if (MoveTowards(unit, tilepos, *dest, kUaNone)) {
+          unit->persistent_uaction = kUaNone;
+        }
         continue;
       }
 
-      unit->uaction = kUaAttack;
-      BB_SET(unit->bb, kUnitTarget, target_unit->id);
+      AttackTarget(unit, target_unit);
     }
   }
 

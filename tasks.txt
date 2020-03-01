@@ -57,6 +57,7 @@ ui -
 platform -
 
   anthony: Bring macosx window to focus when starting. Currently game starts in background.
+  anthony: fix win32 window movement hang
 
 graphics - 
 
@@ -67,6 +68,7 @@ graphics -
   anthony: Moving background, so it actually looks like we're flying.
 
 network -
+  alan: Dropped packet handling
   AWS space_server in us-west-2 (oregon)
   server packet buffer
   server authoritative packet reordering

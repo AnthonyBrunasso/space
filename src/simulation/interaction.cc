@@ -29,6 +29,20 @@ UnitId()
   return kInvalidUnit;
 }
 
+static uint64_t kDebugInputHash;
+static uint64_t kDebugSimulationHash;
+void
+CacheSyncHashes(bool update, uint64_t frame)
+{
+  kDebugInputHash ^= (update * kInputHash);
+  kDebugSimulationHash ^= (update * kSimulationHash);
+#ifdef DEBUG_SYNC
+  printf(
+      "[Frame %u] [DebugInputHash 0x%016lx] [DebugSimulationHash 0x016%lx]\n",
+      frame, kDebugInputHash, kDebugSimulationHash);
+#endif
+}
+
 void
 DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
 {
@@ -59,9 +73,9 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
     snprintf(buffer, BUFFER_SIZE, "Mouse Pos In World: (%.1f,%.1f)",
              player.world_mouse.x, player.world_mouse.y);
     imui::Text(buffer);
-    snprintf(buffer, BUFFER_SIZE, "Input hash: 0x%lx", kInputHash);
+    snprintf(buffer, BUFFER_SIZE, "Input hash: 0x%lx", kDebugInputHash);
     imui::Text(buffer);
-    snprintf(buffer, BUFFER_SIZE, "Sim hash: 0x%lx", kSimulationHash);
+    snprintf(buffer, BUFFER_SIZE, "Sim hash: 0x%lx", kDebugSimulationHash);
     imui::Text(buffer);
     const char* ui_err = imui::LastErrorString();
     if (ui_err) imui::Text(ui_err);

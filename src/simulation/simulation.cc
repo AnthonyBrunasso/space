@@ -41,15 +41,16 @@ Initialize(uint64_t seed)
   return true;
 }
 
-bool
-VerifyIntegrity()
+void
+Hash()
 {
   for (int i = 0; i < kUsedRegistry; ++i) {
     uint64_t len = kRegistry[i].memb_size * kRegistry[i].memb_max;
     djb2_hash_more((const uint8_t*)kRegistry[i].ptr, len, &kSimulationHash);
+#ifdef DEBUG_SYNC
+    printf("[ Type %d ] [ hash %016lx ]\n", i, kSimulationHash);
+#endif
   }
-
-  return true;
 }
 
 bool

@@ -26,6 +26,13 @@ struct State {
   uint64_t logic_updates = 0;
   // Number of times the game frame was exceptionally delayed
   uint64_t game_jerk = 0;
+  // run_ahead > 0:
+  //  input is lower latency but simulation may be irregular
+  // run_ahead == 0:
+  //  input allows one frame of padding (higher latency) and often results in
+  //  smooth simulation
+  uint64_t run_ahead = 1;
+  // TODO (AN): add network variable for sampling latency over a frame count
 };
 
 static State kGameState;
@@ -157,6 +164,8 @@ main(int argc, char** argv)
   uint64_t min_ptr = UINT64_MAX;
   uint64_t max_ptr = 0;
   for (int i = 0; i < kUsedRegistry; ++i) {
+    printf("[%d] Registry ptr %p [%lu size] [%lu count]\n", i, kRegistry[i].ptr,
+           kRegistry[i].memb_size, kRegistry[i].memb_max);
     bytes += kRegistry[i].memb_max * kRegistry[i].memb_size;
     max_ptr = MAX((uint64_t)kRegistry[i].ptr, max_ptr);
     min_ptr = MIN((uint64_t)kRegistry[i].ptr, min_ptr);
@@ -187,7 +196,8 @@ main(int argc, char** argv)
     NetworkEgress();
     NetworkIngress(kGameState.logic_updates);
 
-    const int advance = 1 + (NetworkReadyCount() > kNetworkState.last_egress);
+    const int advance = 1 + (NetworkReadyCount() + kGameState.run_ahead >
+                             kNetworkState.last_egress);
     for (int frame = 0; frame < advance; ++frame) {
       uint64_t slot = NETQUEUE_SLOT(kGameState.logic_updates);
 #if DEBUG_NETWORK
@@ -195,9 +205,8 @@ main(int argc, char** argv)
              kNetworkState.last_egress, NetworkReadyCount(), advance);
 #endif
       if (SlotReady(slot)) {
-        // Hash the simulation state every 0th slot
-        if (!slot)
-          if (!simulation::VerifyIntegrity()) exit(4);
+        simulation::Hash();
+        simulation::CacheSyncHashes(slot == 0, kGameState.logic_updates);
 
         // Game Mutation: Apply player commands for turn N
         InputBuffer* game_turn = GetSlot(slot);

@@ -169,7 +169,7 @@ RenderBlackboard(const Unit* unit)
         imui::Text(txt);
       } break;
       case kUnitBehavior: {
-        int* b = nullptr;
+        const int* b = nullptr;
         if (!BB_GET(unit->bb, kUnitBehavior, b)) continue;
         snprintf(txt, 64, "behavior: %i", *b);
         imui::Text(txt);
@@ -237,7 +237,7 @@ DebugHudAI(v2f screen)
   int unit_ai_count = 0;
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
-    int* behavior;
+    const int* behavior;
     if (!BB_GET(unit->bb, kUnitBehavior, behavior)) continue;
     snprintf(txt, 64, "AI Unit %i", unit->id);
     if (imui::Text(txt).highlighted || render_all_ai_data) {

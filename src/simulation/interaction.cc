@@ -169,6 +169,10 @@ RenderBlackboard(const Unit* unit)
         imui::Text(txt);
       } break;
       case kUnitBehavior: {
+        int* b = nullptr;
+        if (!BB_GET(unit->bb, kUnitBehavior, b)) continue;
+        snprintf(txt, 64, "behavior: %i", *b);
+        imui::Text(txt);
       } break;
       default: {
         snprintf(txt, 64, "set: %i", i);
@@ -181,7 +185,7 @@ RenderBlackboard(const Unit* unit)
 }
 
 void
-Hud(v2f screen)
+HudSelection(v2f screen)
 {
   v2f dims(40, 40);
   if (imui::Button(math::Rectf(screen.x - 10 - dims.x, 100, dims.x, dims.y),
@@ -218,12 +222,46 @@ Hud(v2f screen)
     snprintf(selected_text[t++], 64, "id: %i", unit->id);
   }
 
-  imui::Begin(v2f(screen.x - 225.f, screen.y - 30.0f));
   for (int i = 0; i < MAX_SELECTED_TEXT; ++i) {
     imui::Text(selected_text[i]);
   }
   imui::Text("Blackboard");
   RenderBlackboard(unit);
+}
+
+void
+DebugHudAI(v2f screen)
+{
+  char txt[64];
+  static bool render_all_ai_data = false;
+  int unit_ai_count = 0;
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* unit = &kUnit[i];
+    int* behavior;
+    if (!BB_GET(unit->bb, kUnitBehavior, behavior)) continue;
+    snprintf(txt, 64, "AI Unit %i", unit->id);
+    if (imui::Text(txt).highlighted || render_all_ai_data) {
+      imui::Indent(1);
+      RenderBlackboard(unit);
+      imui::Indent(-1);
+    }
+    unit_ai_count++;
+  }
+  if (!unit_ai_count) return;
+  imui::TextOptions options;
+  options.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
+  if (imui::Text("Render All", options).clicked) {
+    render_all_ai_data = !render_all_ai_data;
+  }
+}
+
+void
+Hud(v2f screen)
+{
+  imui::Begin(v2f(screen.x - 225.f, screen.y - 30.0f));
+  HudSelection(screen);
+  // TODO(abrunasso): Perhaps enable / disable this in Debug panel?
+  DebugHudAI(screen);  
   imui::End();
 }
 

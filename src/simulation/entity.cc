@@ -95,8 +95,8 @@ enum UnitBbEntry {
   kUnitTarget = 0,
   kUnitDestination = 1,
   kUnitAttackDestination = 2,
-  kUnitBbEntryMax = 3,
-  kUnitBehavior = 4,
+  kUnitBehavior = 3,
+  kUnitBbEntryMax = 4,
 };
 // TODO (AN): Document/test priority behaviors
 enum PodAiGoals {

@@ -202,7 +202,7 @@ main(int argc, char** argv)
           NetworkQueueGoal(), NetworkReadyCount(), advance);
 #endif
       if (SlotReady(slot)) {
-	imui::Reset();
+        imui::Reset();
         simulation::Hash();
         simulation::CacheSyncHashes(slot == 0, kGameState.logic_updates);
 
@@ -217,12 +217,12 @@ main(int argc, char** argv)
         // Game Mutation: continue simulation
         simulation::Update();
 #ifndef HEADLESS
-	// Misc debug/feedback
-	const v2f dims = window::GetWindowSize();
-	simulation::LogPanel();
-	simulation::Hud(dims);
-	simulation::DebugPanel(kPlayer[kNetworkState.player_index], kGameStats,
-			kGameState.frame_target_usec);
+        // Misc debug/feedback
+        const v2f dims = window::GetWindowSize();
+        simulation::LogPanel();
+        simulation::Hud(dims);
+        simulation::DebugPanel(kPlayer[kNetworkState.player_index], kGameStats,
+			                         kGameState.frame_target_usec);
 #endif
 
         // SetView for the local player's camera

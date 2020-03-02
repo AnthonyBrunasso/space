@@ -177,6 +177,7 @@ struct Unit {
   int attack_frame;
   // Can attack every N frames.
   int attack_cooldown = 60;
+  WeaponKind weapon_kind = kWeaponLaser;
   float health = 5.0f;
   float max_health = 5.0f;
   float speed = 1.f;

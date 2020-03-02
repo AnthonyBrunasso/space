@@ -519,7 +519,7 @@ AttackTarget(Unit* unit, Unit* target)
     return;
   }
 
-  ProjectileCreate(target, unit, 7.5f, (WeaponKind)(rand() % kWeaponCount));
+  ProjectileCreate(target, unit, 7.5f, unit->weapon_kind);
   unit->attack_frame = kResource[0].frame;
 }
 

@@ -69,7 +69,6 @@ graphics -
 
 network -
   alan: Dropped packet handling
-  AWS space_server in us-west-2 (oregon)
   server packet buffer
   server authoritative packet reordering
   rewrite udp_ack flow (severe packet loss cases for 2p+)

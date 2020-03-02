@@ -100,6 +100,8 @@ RenderCrew(uint64_t ship_index)
     Unit* unit = &kUnit[i];
     if (unit->ship_index != ship_index) continue;
     if (unit->inspace) continue;
+    Tile* tile = TilePtr(WorldToTilePos(unit->transform.position));
+    if (tile && tile->shroud) continue;
 
     v4f color;
     switch (unit->kind) {

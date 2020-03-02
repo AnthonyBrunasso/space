@@ -91,6 +91,7 @@ enum ShipAiGoals {
   kShipAiGoals = 64,
 };
 constexpr int kUnitBehaviorSimple = 1;
+constexpr int kUnitBehaviorAttackWhenDiscovered = 2;
 enum UnitBbEntry {
   kUnitTarget = 0,
   kUnitDestination = 1,

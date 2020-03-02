@@ -76,6 +76,7 @@ ThinkAI(uint64_t ship_index)
   for (uint64_t i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     if (unit->control) continue;
+    if (unit->alliance == kEnemy) continue;
 
     Command c = {kUaNone, v3f(), unit->id, 0};
 
@@ -621,15 +622,17 @@ UpdateUnit(uint64_t ship_index)
     }
 
     // Reveal the shroud
-    Tile keep_bits;
-    memset(&keep_bits, 0xff, sizeof(Tile));
-    keep_bits.shroud = 0;
-    Tile set_bits;
-    memset(&set_bits, 0x00, sizeof(Tile));
-    set_bits.explored = 1;
-    float tile_world_distance = kTileWidth * 2.0f;
-    BfsMutate(unit->transform.position, keep_bits, set_bits,
-              tile_world_distance * tile_world_distance);
+    if (unit->alliance != kEnemy) {
+      Tile keep_bits;
+      memset(&keep_bits, 0xff, sizeof(Tile));
+      keep_bits.shroud = 0;
+      Tile set_bits;
+      memset(&set_bits, 0x00, sizeof(Tile));
+      set_bits.explored = 1;
+      float tile_world_distance = kTileWidth * 2.0f;
+      BfsMutate(unit->transform.position, keep_bits, set_bits,
+                tile_world_distance * tile_world_distance);
+    }
 
     // Crew has been sucked away into the vacuum
     if (tile->nooxygen) {

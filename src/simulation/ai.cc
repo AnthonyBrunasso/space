@@ -46,6 +46,23 @@ AISimpleBehavior(Unit* unit)
 }
 
 void
+AIAttackWhenDiscovered(Unit* unit)
+{
+  // Non interrupting behavior.
+  if (unit->uaction != kUaNone) return;
+
+  Tile* tile = TilePtr(WorldToTilePos(unit->transform.position));
+  if (!tile) return;
+  if (tile->shroud) return;
+
+  Unit* target = GetNearestEnemyUnit(unit);
+  if (!target) return;
+
+  BB_SET(unit->bb, kUnitTarget, target->id);
+  unit->uaction = kUaAttack;
+}
+
+void
 AIThink(Unit* unit)
 {
   if (!unit) return;
@@ -54,6 +71,9 @@ AIThink(Unit* unit)
   switch (*behavior) {
     case kUnitBehaviorSimple: {
       AISimpleBehavior(unit);
+    } break;
+    case kUnitBehaviorAttackWhenDiscovered: {
+      AIAttackWhenDiscovered(unit);
     } break;
     default: break;
   }

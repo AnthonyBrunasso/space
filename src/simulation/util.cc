@@ -112,4 +112,21 @@ FindUnitInRangeToAttack(Unit* unit)
   return nullptr;
 }
 
+Unit*
+GetNearestEnemyUnit(Unit* unit)
+{
+  float d = FLT_MAX;
+  Unit* target = nullptr;
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* new_target = &kUnit[i];
+    float nd = v3fDsq(unit->transform.position,
+                      new_target->transform.position);
+    if (nd < d && ShouldAttack(unit, new_target)) {
+      target = new_target;
+      d = nd;
+    }
+  }
+  return target;
+}
+
 }  // namespace simulation

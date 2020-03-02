@@ -115,6 +115,35 @@ InitializeScenario(bool reset_features = true)
       kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
       kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
 
+      UseIdUnit();
+      kUnit[1].ship_index = 0;
+      kUnit[1].transform.position = v3f(440.f, 300.f, 0.f);
+      kUnit[1].transform.scale = v3f(0.25f, 0.25f, 0.f);
+      kUnit[1].alliance = kEnemy;
+      kUnit[1].kind = kAlien;
+      kUnit[1].attack_radius = 30.f;
+      kUnit[1].speed = 0.5f;
+      BB_SET(kUnit[1].bb, kUnitBehavior, kUnitBehaviorAttackWhenDiscovered);
+
+      UseIdUnit();
+      kUnit[2].ship_index = 0;
+      kUnit[2].transform.position = v3f(440.f, 500.f, 0.f);
+      kUnit[2].transform.scale = v3f(0.25f, 0.25f, 0.f);
+      kUnit[2].alliance = kEnemy;
+      kUnit[2].kind = kAlien;
+      kUnit[2].attack_radius = 30.f;
+      kUnit[2].speed = 0.5f;
+      BB_SET(kUnit[2].bb, kUnitBehavior, kUnitBehaviorAttackWhenDiscovered);
+
+      UseIdUnit();
+      kUnit[3].ship_index = 0;
+      kUnit[3].transform.position = v3f(280.f, 500.f, 0.f);
+      kUnit[3].transform.scale = v3f(0.25f, 0.25f, 0.f);
+      kUnit[3].alliance = kEnemy;
+      kUnit[3].kind = kAlien;
+      kUnit[3].attack_radius = 30.f;
+      kUnit[3].speed = 0.5f;
+      BB_SET(kUnit[3].bb, kUnitBehavior, kUnitBehaviorAttackWhenDiscovered);
     } break;
     case Scenario::kTwoShip: {
       if (reset_features) {

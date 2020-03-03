@@ -157,14 +157,16 @@ SlotReady(uint64_t slot)
 }
 
 uint64_t
-NetworkReadyCount()
+NetworkContiguousSlotReady(uint64_t frame)
 {
-  uint64_t ready = 0;
+  uint64_t count = 0;
   for (int i = 0; i < MAX_NETQUEUE; ++i) {
-    ready += SlotReady(i);
+    uint64_t check_slot = NETQUEUE_SLOT(frame + i);
+    if (!SlotReady(check_slot)) return count;
+    ++count;
   }
 
-  return ready;
+  return MAX_NETQUEUE;
 }
 
 void

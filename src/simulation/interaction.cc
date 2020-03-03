@@ -24,7 +24,8 @@ CacheSyncHashes(bool update, uint64_t frame)
 }
 
 void
-DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
+DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec,
+           uint64_t frame)
 {
   auto sz = window::GetWindowSize();
 #define BUFFER_SIZE 64
@@ -47,8 +48,8 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec)
     snprintf(buffer, BUFFER_SIZE,
              "Network Rtt: [%06lu us to %06lu us] [%lu/%lu queue]",
              kNetworkState.egress_min * frame_target_usec,
-             kNetworkState.egress_max * frame_target_usec, NetworkReadyCount(),
-             MAX_NETQUEUE);
+             kNetworkState.egress_max * frame_target_usec,
+             NetworkContiguousSlotReady(frame), MAX_NETQUEUE);
     imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE, "Window Size: %ix%i", (int)sz.x, (int)sz.y);
     imui::Text(buffer);
@@ -264,7 +265,7 @@ Hud(v2f screen)
   imui::Begin(v2f(screen.x - 225.f, screen.y - 30.0f));
   HudSelection(screen);
   // TODO(abrunasso): Perhaps enable / disable this in Debug panel?
-  DebugHudAI(screen);  
+  DebugHudAI(screen);
   imui::End();
 }
 

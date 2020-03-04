@@ -37,15 +37,9 @@ BfsStart(v2i start)
   kSearch.queue_size = 0;
   kSearch.queue_ptr = 0;
   kSearch.path.size = 0;
-
-  auto& queue = kSearch.queue;
-  int& qsz = kSearch.queue_size;
-  int& qptr = kSearch.queue_ptr;
-  auto& path_map = kSearch.path_map;
-
-  queue[qsz++] = start;
-  path_map[start.y][start.x].from = start;
-  path_map[start.y][start.x].checked = true;
+  kSearch.queue[kSearch.queue_size++] = start;
+  kSearch.path_map[start.y][start.x].from = start;
+  kSearch.path_map[start.y][start.x].checked = true;
 }
 
 bool
@@ -130,7 +124,6 @@ BfsRemoveOxygen(v2i start, const uint64_t limit)
   auto& queue = kSearch.queue;
   int& qsz = kSearch.queue_size;
   int& qptr = kSearch.queue_ptr;
-  auto& path_map = kSearch.path_map;
 
   while (count < limit) {
     // No more tiles
@@ -167,7 +160,6 @@ BfsMutate(v3f origin, Tile keep_bits, Tile set_bits, float tile_dsq)
   auto& queue = kSearch.queue;
   int& qsz = kSearch.queue_size;
   int& qptr = kSearch.queue_ptr;
-  auto& path_map = kSearch.path_map;
 
   while (1) {
     // No more tiles

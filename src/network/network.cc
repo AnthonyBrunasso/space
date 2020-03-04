@@ -12,7 +12,7 @@
 // Game loop inputs allowed in-flight on the network
 #define MAX_NETQUEUE 128ul
 // Convert frame id into a NETQUEUE slot
-#define NETQUEUE_SLOT(sequence) (sequence % MAX_NETQUEUE)
+#define NETQUEUE_SLOT(sequence) ((sequence) % MAX_NETQUEUE)
 
 struct InputBuffer {
   PlatformEvent input_event[MAX_TICK_EVENTS];

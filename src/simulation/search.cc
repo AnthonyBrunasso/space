@@ -29,12 +29,9 @@ struct Search {
 
 static Search kSearch;
 
-Path*
-PathTo(const v2i& start, const v2i& end)
+void
+BfsStart(v2i start)
 {
-  if (!TileOk(end)) return nullptr;
-  if (!TileOk(start)) return nullptr;
-
   constexpr int N = kMapHeight * kMapWidth;
   memset(kSearch.path_map, 0, sizeof(PathNode) * N);
   kSearch.queue_size = 0;
@@ -49,25 +46,47 @@ PathTo(const v2i& start, const v2i& end)
   queue[qsz++] = start;
   path_map[start.y][start.x].from = start;
   path_map[start.y][start.x].checked = true;
+}
 
+bool
+BfsStep(int i, v2i* n)
+{
+  auto& queue = kSearch.queue;
+  int& qsz = kSearch.queue_size;
+  int& qptr = kSearch.queue_ptr;
+  auto& path_map = kSearch.path_map;
+  auto& from = queue[qptr];
+  if (i >= kMaxNeighbor - 1) ++qptr;
+  const v2i neighbor = from + kNeighbor[i];
+  Tile* neighbor_tile = TilePtr(neighbor);
+  if (!neighbor_tile || neighbor_tile->blocked) return false;
+  if (path_map[neighbor.y][neighbor.x].checked == true) return false;
+  path_map[neighbor.y][neighbor.x].checked = true;
+  path_map[neighbor.y][neighbor.x].from = from;
+  *n = neighbor;
+  return true;
+}
+
+Path*
+PathTo(const v2i& start, const v2i& end)
+{
+  if (!TileOk(end)) return nullptr;
+  if (!TileOk(start)) return nullptr;
+  
+  BfsStart(start);
+
+  auto& queue = kSearch.queue;
+  int& qsz = kSearch.queue_size;
+  int& qptr = kSearch.queue_ptr;
+  auto& path_map = kSearch.path_map;
   while (1) {
     // No Path
     if (qptr == qsz) return nullptr;
-
-    auto& node = queue[qptr++];
     // Path success
-    if (node == end) break;
-
+    if (queue[qptr] == end) break;
+    v2i n;
     for (int i = 0; i < kMaxNeighbor; ++i) {
-      const v2i neighbor = node + kNeighbor[i];
-      Tile* neighbor_tile = TilePtr(neighbor);
-      if (!neighbor_tile || neighbor_tile->blocked) continue;
-
-      if (path_map[neighbor.y][neighbor.x].checked == true) continue;
-      path_map[neighbor.y][neighbor.x].checked = true;
-      path_map[neighbor.y][neighbor.x].from = node;
-
-      queue[qsz++] = neighbor;
+      if (BfsStep(i, &n)) queue[qsz++] = n;
     }
   }
 
@@ -106,41 +125,25 @@ BfsRemoveOxygen(v2i start, const uint64_t limit)
     }
   }
 
-  constexpr int N = kMapHeight * kMapWidth;
-  memset(kSearch.path_map, 0, sizeof(PathNode) * N);
-  kSearch.queue_size = 0;
-  kSearch.queue_ptr = 0;
-  kSearch.path.size = 0;
+  BfsStart(start);
 
   auto& queue = kSearch.queue;
   int& qsz = kSearch.queue_size;
   int& qptr = kSearch.queue_ptr;
   auto& path_map = kSearch.path_map;
 
-  queue[qsz++] = start;
-  path_map[start.y][start.x].from = start;
-  path_map[start.y][start.x].checked = true;
-
   while (count < limit) {
     // No more tiles
     if (qptr == qsz) return count;
-
-    auto& node = queue[qptr++];
+    v2i n;
     for (int i = 0; i < kMaxNeighbor; ++i) {
-      const v2i neighbor = node + kNeighbor[i];
-      Tile* neighbor_tile = TilePtr(neighbor);
-      if (!neighbor_tile) continue;
-      if (path_map[neighbor.y][neighbor.x].checked == true) continue;
-      path_map[neighbor.y][neighbor.x].checked = true;
-      path_map[neighbor.y][neighbor.x].from = node;
-
-      if (neighbor_tile->nooxygen == 0) {
-        neighbor_tile->nooxygen = 1;
-        ++count;
-      }
-
-      if (!neighbor_tile->blocked) {
-        queue[qsz++] = neighbor;
+      if (BfsStep(i, &n)) {
+        Tile* neighbor_tile = TilePtr(n);
+        if (neighbor_tile->nooxygen == 0) {
+          neighbor_tile->nooxygen = 1;
+          ++count;
+        }
+        queue[qsz++] = n;
       }
     }
   }
@@ -159,43 +162,30 @@ BfsMutate(v3f origin, Tile keep_bits, Tile set_bits, float tile_dsq)
     *start_tile = TileOR(*start_tile, set_bits);
   }
 
-  constexpr int N = kMapHeight * kMapWidth;
-  memset(kSearch.path_map, 0, sizeof(PathNode) * N);
-  kSearch.queue_size = 0;
-  kSearch.queue_ptr = 0;
-  kSearch.path.size = 0;
+  BfsStart(start);
 
   auto& queue = kSearch.queue;
   int& qsz = kSearch.queue_size;
   int& qptr = kSearch.queue_ptr;
   auto& path_map = kSearch.path_map;
 
-  queue[qsz++] = start;
-  path_map[start.y][start.x].from = start;
-  path_map[start.y][start.x].checked = true;
-
   while (1) {
     // No more tiles
     if (qptr == qsz) return;
-
-    auto& node = queue[qptr++];
+    v2i n;
     for (int i = 0; i < kMaxNeighbor; ++i) {
-      const v2i neighbor = node + kNeighbor[i];
-      Tile* neighbor_tile = TilePtr(neighbor);
-      if (!neighbor_tile) continue;
-      if (path_map[neighbor.y][neighbor.x].checked == true) continue;
-      path_map[neighbor.y][neighbor.x].checked = true;
-      path_map[neighbor.y][neighbor.x].from = node;
+      if (BfsStep(i, &n)) {
+        Tile* neighbor_tile = TilePtr(n);
+        v3f neighbor_world = TilePosToWorld(n);
+        v3f world = neighbor_world - origin;
+        float distance = LengthSquared(world);
+        if (distance > tile_dsq) continue;
 
-      v3f neighbor_world = TilePosToWorld(neighbor);
-      v3f world = neighbor_world - origin;
-      float distance = LengthSquared(world);
-      if (distance > tile_dsq) continue;
-
-      if (!neighbor_tile->blocked) {
-        *neighbor_tile = TileAND(*neighbor_tile, keep_bits);
-        *neighbor_tile = TileOR(*neighbor_tile, set_bits);
-        queue[qsz++] = neighbor;
+        if (!neighbor_tile->blocked) {
+          *neighbor_tile = TileAND(*neighbor_tile, keep_bits);
+          *neighbor_tile = TileOR(*neighbor_tile, set_bits);
+          queue[qsz++] = n;
+        }
       }
     }
   }

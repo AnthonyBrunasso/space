@@ -1,0 +1,12 @@
+[Unit]
+Description=Space Dedicated Server
+
+[Service]
+User=ec2-user
+Group=ec2-user
+Type=exec
+ExecStart=/usr/bin/space_server
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

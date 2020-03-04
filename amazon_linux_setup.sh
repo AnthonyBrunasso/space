@@ -7,3 +7,7 @@ fi
 yum install libX11-devel
 yum install mesa-libGL-devel
 yum install mesa-libEGL-devel
+
+ln -s `realpath bin`/space_server /usr/bin/space_server
+cp space.service /etc/systemd/system/
+systemctl enable space

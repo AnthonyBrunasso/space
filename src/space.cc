@@ -200,7 +200,8 @@ main(int argc, char** argv)
           "[egress_min %lu] [egress_max %lu] [queue_goal %lu] [ready_count %d] "
           "[advance %d]\n",
           kNetworkState.egress_min, kNetworkState.egress_max,
-          NetworkQueueGoal(), NetworkContiguousSlotReady(kGameState.logic_updates), advance);
+          NetworkQueueGoal(),
+          NetworkContiguousSlotReady(kGameState.logic_updates), advance);
 #endif
       if (SlotReady(slot)) {
         imui::Reset();

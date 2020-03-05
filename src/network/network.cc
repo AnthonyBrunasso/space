@@ -26,6 +26,7 @@ struct NetworkState {
   uint64_t outgoing_sequence = 1;
   // Network resources
   Udp4 socket;
+  Udp4 loopback;
   uint8_t netbuffer[PAGE];
   const char* server_ip = "localhost";
   const char* server_port = "9845";
@@ -66,6 +67,9 @@ NetworkSetup()
 
   if (!udp::GetAddr4(kNetworkState.server_ip, kNetworkState.server_port,
                      &kNetworkState.socket))
+    return false;
+
+  if (!udp::GetAddr4("127.0.0.1", "10060", &kNetworkState.loopback))
     return false;
 
   const uint64_t greeting_size = 6;
@@ -198,12 +202,24 @@ NetworkSend(uint64_t player_index, uint64_t seq)
   }
 }
 
+void
+LoopbackCopy(uint64_t sequence)
+{
+  uint64_t slot = NETQUEUE_SLOT(sequence);
+
+  InputBuffer* ibuf = &kNetworkState.input[slot];
+  udp::Send(kNetworkState.loopback, ibuf->input_event,
+            sizeof(PlatformEvent) * ibuf->used_input_event);
+}
+
 uint64_t
 NetworkEgress()
 {
   uint64_t player_index = kNetworkState.player_index;
   uint64_t begin_seq = kNetworkState.outgoing_ack[player_index] + 1;
   uint64_t end_seq = kNetworkState.outgoing_sequence;
+
+  LoopbackCopy(end_seq - 1);
 
   // Re-send input history
   uint64_t count = 0;

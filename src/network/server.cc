@@ -103,15 +103,15 @@ server_main(void* void_arg)
   }
 
   uint64_t realtime_usec = 0;
-  uint64_t time_step = 1000;
-  platform::clock_init(time_step, &server_clock);
+  uint64_t time_step_usec = 1000;
+  platform::clock_init(time_step_usec, &server_clock);
   while (running) {
     uint16_t received_bytes;
     Udp4 peer;
 
     uint64_t sleep_usec;
     if (platform::clock_sync(&server_clock, &sleep_usec)) {
-      realtime_usec += time_step;
+      realtime_usec += time_step_usec;
       prune_players(realtime_usec);
     }
     if (!udp::ReceiveAny(location, MAX_BUFFER, in_buffer, &received_bytes,

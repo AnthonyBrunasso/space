@@ -202,9 +202,9 @@ NetworkSend(uint64_t player_index, uint64_t seq)
   header->ack_frame = kNetworkState.ack_frame;
 #if 1
   printf(
-      "CliSnd [ %lu slot ] [ %lu seq ] [ %lu ack_frame ] [ %lu player_index ] "
+      "CliSnd [ %lu slot ] [ %lu seq ] [ %lu ack_sequence ] [ %lu ack_frame ] [ %lu player_index ] "
       "[ %lu events ]\n",
-      slot, seq, kNetworkState.ack_frame, kNetworkState.player_index,
+      slot, seq, kNetworkState.ack_sequence, kNetworkState.ack_frame, kNetworkState.player_index,
       ibuf->used_input_event);
 #endif
 

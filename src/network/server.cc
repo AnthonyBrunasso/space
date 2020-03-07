@@ -261,7 +261,7 @@ server_main(void* void_arg)
   }
 
   uint64_t realtime_usec = 0;
-  uint64_t time_step_usec = 1000;
+  uint64_t time_step_usec = 16 * 1000;
   Clock_t server_clock;
   platform::clock_init(time_step_usec, &server_clock);
   while (running) {
@@ -401,7 +401,8 @@ server_main(void* void_arg)
     // Require stream integrity
     Turn* packet = (Turn*)in_buffer;
     int64_t player_delta = packet->sequence - player[pidx].sequence;
-    if (player_delta >= MAX_GAMEQUEUE || player_delta <= 0) {
+    // TODO (AN): Accept out of order packets from the player
+    if (player_delta != 1) {
       // puts("packet sequence not relevant to player");
       continue;
     }

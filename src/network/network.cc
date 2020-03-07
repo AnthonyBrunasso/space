@@ -19,6 +19,12 @@ struct InputBuffer {
   uint64_t used_input_event = 0;
 };
 
+enum Slot {
+  kSlotInFlight = 0,
+  kSlotReceived,
+  kSlotSimulated,
+};
+
 struct NetworkState {
   // Events handled per input game frame for NETQUEUE frames
   // History is preserved until network acknowledgement
@@ -41,7 +47,7 @@ struct NetworkState {
   uint64_t player_count;
   // Per Player
   InputBuffer player_input[MAX_NETQUEUE][MAX_PLAYER];
-  bool player_received[MAX_NETQUEUE][MAX_PLAYER];
+  Slot network_slot[MAX_NETQUEUE][MAX_PLAYER];
   uint64_t outgoing_ack[MAX_PLAYER];
   // Range of packets sent last in NetworkEgress()
   uint64_t egress_min = UINT64_MAX;
@@ -55,8 +61,12 @@ NetworkSetup()
 {
   // No player takes action on frame 0
   // Initialize with frame 0 "ready" for update
-  for (int i = 0; i < MAX_PLAYER; ++i) {
-    kNetworkState.player_received[0][i] = true;
+  for (int i = 0; i < MAX_NETQUEUE; ++i) {
+    Slot val = Slot(TERNARY(i == 0, kSlotReceived, kSlotSimulated));
+
+    for (int j = 0; j < MAX_PLAYER; ++j) {
+      kNetworkState.network_slot[i][j] = val;
+    }
   }
 
   if (!udp::Init()) return false;
@@ -123,7 +133,6 @@ InputBuffer*
 GetNextInputBuffer()
 {
   uint64_t slot = NETQUEUE_SLOT(kNetworkState.outgoing_sequence);
-  uint64_t event_count = 0;
 
 #if 0
   printf("ProcessInput [ %lu seq ][ %lu slot ]\n", kNetworkState.outgoing_sequence,
@@ -136,6 +145,10 @@ GetNextInputBuffer()
       MAX_NETQUEUE)
     exit(2);
 
+  for (int i = 0; i < kNetworkState.num_players; ++i) {
+    assert(kNetworkState.network_slot[slot][i] == kSlotSimulated);
+    kNetworkState.network_slot[slot][i] = kSlotInFlight;
+  }
   kNetworkState.outgoing_sequence += 1;
 
   return &kNetworkState.input[slot];
@@ -144,8 +157,9 @@ GetNextInputBuffer()
 InputBuffer*
 GetSlot(uint64_t slot)
 {
-  for (int i = 0; i < MAX_PLAYER; ++i) {
-    kNetworkState.player_received[slot][i] = false;
+  for (int i = 0; i < kNetworkState.num_players; ++i) {
+    assert(kNetworkState.network_slot[slot][i] == kSlotReceived);
+    kNetworkState.network_slot[slot][i] = kSlotSimulated;
   }
   return kNetworkState.player_input[slot];
 }
@@ -154,7 +168,7 @@ bool
 SlotReady(uint64_t slot)
 {
   for (int i = 0; i < kNetworkState.player_count; ++i) {
-    if (!kNetworkState.player_received[slot][i]) return false;
+    if (kNetworkState.network_slot[slot][i] != kSlotReceived) return false;
   }
 
   return true;
@@ -177,9 +191,8 @@ void
 NetworkSend(uint64_t player_index, uint64_t seq)
 {
   uint64_t slot = NETQUEUE_SLOT(seq);
-  bool received = kNetworkState.player_received[slot][player_index];
 
-  if (received) return;
+  if (kNetworkState.network_slot[slot][player_index] >= kSlotReceived) return;
   InputBuffer* ibuf = &kNetworkState.input[slot];
 
   // write frame
@@ -268,10 +281,10 @@ NetworkIngress(uint64_t current_frame)
     ibuf->used_input_event =
         (bytes_received - sizeof(NotifyTurn)) / sizeof(PlatformEvent);
 #if 0
-    printf("Copied %lu, used_input_event %lu\n", bytes_received - header_size,
-           ibuf->used_input_event);
+    printf("Copied %lu, used_input_event %lu\n",
+           bytes_received - sizeof(NotifyTurn), ibuf->used_input_event);
 #endif
-    kNetworkState.player_received[slot][player_index] = true;
+    kNetworkState.network_slot[slot][player_index] = kSlotReceived;
     // Accept highest received ack_sequence
     kNetworkState.outgoing_ack[player_index] =
         MAX(kNetworkState.outgoing_ack[player_index], header->ack_sequence);

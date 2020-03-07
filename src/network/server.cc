@@ -39,8 +39,8 @@ struct Game {
   uint64_t game_id;
   // Players in game at launch
   uint64_t num_players;
-  // Current simulation frame of the game session
-  uint64_t frame;
+  // Last simulation frame of the game session
+  uint64_t last_frame;
   // Simulation frame confirmed by all participants
   uint64_t ack_frame;
   // Game data (no protocol wrapper)
@@ -164,10 +164,10 @@ game_transmit(Udp4 location, uint64_t game_index)
   if (!game_id) return;
 
   const uint64_t start_frame = g->ack_frame + 1;
-  const uint64_t end_frame = g->frame;
+  const uint64_t end_frame = g->last_frame;
 
   // Retransmission of NotifyTurn per player
-  for (uint64_t send_frame = start_frame; send_frame < end_frame;
+  for (uint64_t send_frame = start_frame; send_frame <= end_frame;
        ++send_frame) {
     for (int pidx = 0; pidx < MAX_PLAYER; ++pidx) {
       if (player[pidx].game_index != game_index) continue;
@@ -189,7 +189,7 @@ game_update(uint64_t game_index)
 {
   Game* g = &game[game_index];
   const uint64_t game_id = g->game_id;
-  const uint64_t next_frame = g->frame + 1;
+  const uint64_t next_frame = g->last_frame + 1;
   if (!game_id) return false;
 
 #if 0
@@ -220,7 +220,7 @@ game_update(uint64_t game_index)
          next_frame, g->ack_frame, new_ack_frame);
 #endif
 
-  g->frame = next_frame;
+  g->last_frame = next_frame;
   g->ack_frame = new_ack_frame;
 
   return true;
@@ -378,7 +378,7 @@ server_main(void* void_arg)
         player[pidx].game_index = gidx;
         game[gidx].game_id = game_id;
         game[gidx].num_players = player[pidx].num_players;
-        game[gidx].frame = 0;
+        game[gidx].last_frame = 0;
         game[gidx].ack_frame = 0;
         printf("Server created Game [ game_index %lu ]\n", gidx);
         continue;
@@ -405,7 +405,7 @@ server_main(void* void_arg)
     }
 
     // Verify relevance to game state
-    int64_t game_delta = packet->sequence - game[gidx].frame;
+    int64_t game_delta = packet->sequence - game[gidx].last_frame;
     if (game_delta >= MAX_GAMEQUEUE || game_delta <= 0) {
       // puts("packet seqeuence not relevant to game");
       continue;

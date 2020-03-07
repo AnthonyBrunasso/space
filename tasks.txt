@@ -67,17 +67,19 @@ graphics -
   anthony: Load bitmaps.
   anthony: Moving background, so it actually looks like we're flying.
 
-network -
-  alan: Dropped packet handling
-  server packet buffer
-  server authoritative packet reordering
-  rewrite udp_ack flow (severe packet loss cases for 2p+)
-  netqueue depth handling under network variance
+engine -
   pause frames
+
+network -
+  protocol add ack_frame to allow server retransmission of dropped turns
+  server game clock & turn reordering
+  server retransmission of NotifyGame
+  server consider tradeoffs of turn batching 
+  client tune netqueue for smooth simulation under network variance
 
 Tutorial story -
   Looting a derelict ship (no pressure, have to get ship working)
   Gather things
   fight some crew combats
   Return home and build batteries, engines
-  
+

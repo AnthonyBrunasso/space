@@ -271,11 +271,14 @@ server_main(void* void_arg)
       realtime_usec += time_step_usec;
       prune_players(realtime_usec);
       prune_games();
+      bool ready[MAX_GAME] = {};
       for (int i = 0; i < MAX_GAME; ++i) {
         while (game_update(i)) {
+          ready[i] = true;
         }
       }
       for (int i = 0; i < MAX_GAME; ++i) {
+        if (!ready[i]) continue;
         game_transmit(location, i);
       }
     }

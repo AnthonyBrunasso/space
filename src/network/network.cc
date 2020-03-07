@@ -48,7 +48,7 @@ struct NetworkState {
   // Per Player
   InputBuffer player_input[MAX_NETQUEUE][MAX_PLAYER];
   Slot network_slot[MAX_NETQUEUE][MAX_PLAYER];
-  uint64_t outgoing_ack[MAX_PLAYER];
+  uint64_t ack_sequence;
   uint64_t ack_frame;
   // Range of packets sent last in NetworkEgress()
   uint64_t egress_min = UINT64_MAX;
@@ -141,8 +141,7 @@ GetNextInputBuffer()
 #endif
 
   // If unacknowledged packets exceed the queue, give up
-  if (kNetworkState.outgoing_sequence -
-          kNetworkState.outgoing_ack[kNetworkState.player_index] >=
+  if (kNetworkState.outgoing_sequence - kNetworkState.ack_sequence >=
       MAX_NETQUEUE)
     exit(2);
 
@@ -231,7 +230,7 @@ uint64_t
 NetworkEgress()
 {
   uint64_t player_index = kNetworkState.player_index;
-  uint64_t begin_seq = kNetworkState.outgoing_ack[player_index] + 1;
+  uint64_t begin_seq = kNetworkState.ack_sequence + 1;
   uint64_t end_seq = kNetworkState.outgoing_sequence;
 
   LoopbackCopy(end_seq - 1);
@@ -243,7 +242,7 @@ NetworkEgress()
     ++count;
   }
 
-  bool received_ack = kNetworkState.outgoing_ack[player_index] > 0;
+  bool received_ack = kNetworkState.ack_sequence > 0;
   uint64_t min_value = (received_ack * count) + (!received_ack * UINT64_MAX);
   uint64_t max_value = count;
 
@@ -288,8 +287,8 @@ NetworkIngress(uint64_t current_frame)
 #endif
     kNetworkState.network_slot[slot][player_index] = kSlotReceived;
     // Accept highest received ack_sequence
-    kNetworkState.outgoing_ack[player_index] =
-        MAX(kNetworkState.outgoing_ack[player_index], header->ack_sequence);
+    kNetworkState.ack_sequence =
+        MAX(kNetworkState.ack_sequence, header->ack_sequence);
   }
 
   uint64_t ready_to_frame =

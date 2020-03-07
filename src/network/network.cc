@@ -202,19 +202,19 @@ NetworkSend(uint64_t player_index, uint64_t seq)
   header->ack_frame = kNetworkState.ack_frame;
 #if 1
   printf(
-      "CliSnd [ %lu seq ] [ %lu slot ] [ %lu player_index ] [ %lu events ]\n",
-      seq, slot, kNetworkState.player_index, ibuf->used_input_event);
+      "CliSnd [ %lu slot ] [ %lu seq ] [ %lu ack_frame ] [ %lu player_index ] "
+      "[ %lu events ]\n",
+      slot, seq, kNetworkState.ack_frame, kNetworkState.player_index,
+      ibuf->used_input_event);
 #endif
 
   // write input
   memcpy(header->event, ibuf->input_event,
          sizeof(PlatformEvent) * ibuf->used_input_event);
 
-  if (!udp::Send(
-          kNetworkState.socket, kNetworkState.netbuffer,
-          sizeof(Turn) + sizeof(PlatformEvent) * ibuf->used_input_event)) {
-    exit(1);
-  }
+  // Failure will be retried
+  udp::Send(kNetworkState.socket, kNetworkState.netbuffer,
+            sizeof(Turn) + sizeof(PlatformEvent) * ibuf->used_input_event);
 }
 
 void
@@ -254,7 +254,7 @@ NetworkEgress()
 }
 
 void
-NetworkIngress(uint64_t current_frame)
+NetworkIngress(uint64_t next_simulation_frame)
 {
   uint64_t local_player = kNetworkState.player_index;
 
@@ -262,21 +262,26 @@ NetworkIngress(uint64_t current_frame)
   while (udp::ReceiveFrom(kNetworkState.socket, sizeof(kNetworkState.netbuffer),
                           kNetworkState.netbuffer, &bytes_received)) {
     NotifyTurn* header = (NotifyTurn*)kNetworkState.netbuffer;
-    uint64_t frame = header->frame;
+    uint64_t header_frame = header->frame;
     uint64_t player_index = header->player_id;
 #if 1
-    printf("CliRcv [ %lu frame ] [ %lu player_index ] [ %lu ack_seq ]\n", frame,
-           player_index, header->ack_sequence);
+    printf(
+        "CliRcv [ %lu next_simulation_frame ] [ %lu header_frame ] [ %lu "
+        "player_index ] [ %lu ack_seq ]\n",
+        next_simulation_frame, header_frame, player_index,
+        header->ack_sequence);
 #endif
 
     // Drop old frames, the game has progressed
-    if (frame < current_frame) continue;
+    if (header_frame < next_simulation_frame) continue;
+    // Drop out of range frames
+    if (header_frame - next_simulation_frame >= MAX_NETQUEUE) continue;
     // Personal boundaries
     if (player_index >= MAX_PLAYER) exit(1);
     if (bytes_received > sizeof(NotifyTurn) + sizeof(InputBuffer::input_event))
       exit(3);
 
-    uint64_t slot = NETQUEUE_SLOT(frame);
+    uint64_t slot = NETQUEUE_SLOT(header_frame);
     InputBuffer* ibuf = &kNetworkState.player_input[slot][player_index];
     memcpy(ibuf->input_event, header->event,
            bytes_received - sizeof(NotifyTurn));
@@ -293,8 +298,8 @@ NetworkIngress(uint64_t current_frame)
   }
 
   uint64_t ready_to_frame =
-      current_frame + NetworkContiguousSlotReady(current_frame);
-  kNetworkState.ack_frame = ready_to_frame;
+      next_simulation_frame + NetworkContiguousSlotReady(next_simulation_frame);
+  kNetworkState.ack_frame = ready_to_frame - 1;
 }
 
 uint64_t

@@ -209,6 +209,10 @@ main(int argc, char** argv)
         simulation::CacheSyncHashes(slot == 0, kGameState.logic_updates);
 
         // Game Mutation: Apply player commands for turn N
+#if 1
+        printf("Simulation [ %lu slot ] [ %lu frame ]\n", slot,
+               kGameState.logic_updates);
+#endif
         InputBuffer* game_turn = GetSlot(slot);
         for (int i = 0; i < MAX_PLAYER; ++i) {
           InputBuffer* player_turn = &game_turn[i];

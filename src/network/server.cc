@@ -157,12 +157,40 @@ SendFrame(Udp4 location, uint64_t frame, uint64_t pidx, const Game* g)
 }
 
 void
-update_game(Udp4 location, uint64_t game_index)
+game_transmit(Udp4 location, uint64_t game_index)
+{
+  const Game* g = &game[game_index];
+  const uint64_t game_id = g->game_id;
+  if (!game_id) return;
+
+  const uint64_t start_frame = g->ack_frame + 1;
+  const uint64_t end_frame = g->frame;
+
+  // Retransmission of NotifyTurn per player
+  for (uint64_t send_frame = start_frame; send_frame < end_frame;
+       ++send_frame) {
+    for (int pidx = 0; pidx < MAX_PLAYER; ++pidx) {
+      if (player[pidx].game_index != game_index) continue;
+      if (player[pidx].ack_frame >= send_frame) continue;
+
+      if (!SendFrame(location, send_frame, pidx, g)) {
+        printf("server send failed [ player_index %d ]\n", pidx);
+      }
+    }
+  }
+#if 1
+  printf("Server transmit [ start_frame %lu ] [ end_frame %lu ]\n", start_frame,
+         end_frame);
+#endif
+}
+
+bool
+game_update(uint64_t game_index)
 {
   Game* g = &game[game_index];
   const uint64_t game_id = g->game_id;
   const uint64_t next_frame = g->frame + 1;
-  if (!game_id) return;
+  if (!game_id) return false;
 
 #if 0
   printf("Update game [ game_id %lu ] [ num_players %lu ]\n", g->game_id,
@@ -170,7 +198,7 @@ update_game(Udp4 location, uint64_t game_index)
 #endif
   uint64_t sidx = GAMEQUEUE_SLOT(next_frame);
   for (uint64_t i = 0; i < g->num_players; ++i) {
-    if (g->used_slot[sidx][i] == 0) return;
+    if (g->used_slot[sidx][i] == 0) return false;
   }
   uint64_t new_ack_frame = UINT64_MAX;
   for (int pidx = 0; pidx < MAX_PLAYER; ++pidx) {
@@ -187,18 +215,6 @@ update_game(Udp4 location, uint64_t game_index)
     }
   }
 
-  // Retransmission of NotifyTurn per player
-  for (uint64_t send_frame = new_ack_frame + 1; send_frame <= next_frame;
-       ++send_frame) {
-    for (int pidx = 0; pidx < MAX_PLAYER; ++pidx) {
-      if (player[pidx].game_index != game_index) continue;
-      if (player[pidx].ack_frame >= send_frame) continue;
-
-      if (!SendFrame(location, send_frame, pidx, g)) {
-        printf("server send failed [ player_index %d ]\n", pidx);
-      }
-    }
-  }
 #if 1
   printf("Server game [ frame %lu ] [ ack_frame %lu ] [ new_ack_frame %lu ]\n",
          next_frame, g->ack_frame, new_ack_frame);
@@ -206,6 +222,8 @@ update_game(Udp4 location, uint64_t game_index)
 
   g->frame = next_frame;
   g->ack_frame = new_ack_frame;
+
+  return true;
 }
 
 uint64_t
@@ -254,7 +272,11 @@ server_main(void* void_arg)
       prune_players(realtime_usec);
       prune_games();
       for (int i = 0; i < MAX_GAME; ++i) {
-        update_game(location, i);
+        while (game_update(i)) {
+        }
+      }
+      for (int i = 0; i < MAX_GAME; ++i) {
+        game_transmit(location, i);
       }
     }
     if (!udp::ReceiveAny(location, MAX_PACKET, in_buffer, &received_bytes,

@@ -185,7 +185,7 @@ game_transmit(Udp4 location, uint64_t game_index)
 }
 
 bool
-game_update(uint64_t game_index)
+game_update(uint64_t game_index, Clock_t clock)
 {
   Game* g = &game[game_index];
   const uint64_t game_id = g->game_id;
@@ -216,8 +216,10 @@ game_update(uint64_t game_index)
   }
 
 #if 1
-  printf("Server game [ frame %lu ] [ ack_frame %lu ] [ new_ack_frame %lu ]\n",
-         next_frame, g->ack_frame, new_ack_frame);
+  printf(
+      "Server game [ frame %lu ] [ ack_frame %lu ] [ new_ack_frame %lu ] [ "
+      "jerk %lu ]\n",
+      next_frame, g->ack_frame, new_ack_frame, clock.jerk);
 #endif
 
   g->last_frame = next_frame;
@@ -273,7 +275,7 @@ server_main(void* void_arg)
       prune_games();
       bool ready[MAX_GAME] = {};
       for (int i = 0; i < MAX_GAME; ++i) {
-        while (game_update(i)) {
+        while (game_update(i, server_clock)) {
           ready[i] = true;
         }
       }

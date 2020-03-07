@@ -73,7 +73,6 @@ engine -
 network -
   server game clock & turn reordering
   server retransmission of NotifyGame
-  server retransmission of NotifyTurn
   server consider tradeoffs of turn batching 
   client tune netqueue for smooth simulation under network variance
 

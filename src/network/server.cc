@@ -133,10 +133,32 @@ prune_games()
   }
 }
 
+bool
+SendFrame(Udp4 location, uint64_t frame, uint64_t pidx, const Game* g)
+{
+  static uint8_t out_buffer[MAX_PACKET];
+  uint64_t sidx = GAMEQUEUE_SLOT(frame);
+  uint64_t num_players = player[pidx].num_players;
+  uint64_t ack_sequence = player[pidx].sequence;
+  bool ret = true;
+
+  for (int j = 0; j < num_players; ++j) {
+    NotifyTurn* nt = (NotifyTurn*)out_buffer;
+    nt->frame = frame;
+    nt->player_id = j;
+    nt->ack_sequence = ack_sequence;
+    uint64_t event_bytes = g->used_slot[sidx][j];
+    memcpy(nt->event, g->slot[sidx][j], event_bytes);
+    ret = ret && (udp::SendTo(location, player[pidx].peer, out_buffer,
+                              event_bytes + sizeof(NotifyTurn)));
+  }
+
+  return ret;
+}
+
 void
 update_game(Udp4 location, uint64_t game_index)
 {
-  static uint8_t out_buffer[MAX_PACKET];
   Game* g = &game[game_index];
   const uint64_t game_id = g->game_id;
   const uint64_t next_frame = g->frame + 1;
@@ -155,34 +177,32 @@ update_game(Udp4 location, uint64_t game_index)
     if (player[pidx].game_index != game_index) continue;
 
     new_ack_frame = MIN(new_ack_frame, player[pidx].ack_frame);
-    // Send player packets for each participant's frame
-    uint64_t num_players = player[pidx].num_players;
-    uint64_t ack_sequence = player[pidx].sequence;
-    for (int j = 0; j < num_players; ++j) {
-      NotifyTurn* nt = (NotifyTurn*)out_buffer;
-      nt->frame = next_frame;
-      nt->player_id = j;
-      nt->ack_sequence = ack_sequence;
-      uint64_t event_bytes = g->used_slot[sidx][j];
-      memcpy(nt->event, g->slot[sidx][j], event_bytes);
-      if (!udp::SendTo(location, player[pidx].peer, out_buffer,
-                       event_bytes + sizeof(NotifyTurn))) {
-        puts("server send failed");
-        break;
-      }
-    }
   }
 
-#if 0
-  printf("Server game [ frame %lu ] [ ack_frame %lu ] [ new_ack_frame %lu ]\n",
-         next_frame, g->ack_frame, new_ack_frame);
-#endif
+  // Clear acked slots for reuse
   for (uint64_t i = g->ack_frame; i < new_ack_frame; ++i) {
     uint64_t sidx = GAMEQUEUE_SLOT(i);
     for (int j = 0; j < g->num_players; ++j) {
       g->used_slot[sidx][j] = 0;
     }
   }
+
+  // Retransmission of NotifyTurn per player
+  for (uint64_t send_frame = new_ack_frame + 1; send_frame <= next_frame;
+       ++send_frame) {
+    for (int pidx = 0; pidx < MAX_PLAYER; ++pidx) {
+      if (player[pidx].game_index != game_index) continue;
+      if (player[pidx].ack_frame >= send_frame) continue;
+
+      if (!SendFrame(location, send_frame, pidx, g)) {
+        printf("server send failed [ player_index %d ]\n", pidx);
+      }
+    }
+  }
+#if 0
+  printf("Server game [ frame %lu ] [ ack_frame %lu ] [ new_ack_frame %lu ]\n",
+         next_frame, g->ack_frame, new_ack_frame);
+#endif
 
   g->frame = next_frame;
   g->ack_frame = new_ack_frame;

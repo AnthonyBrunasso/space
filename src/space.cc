@@ -24,8 +24,6 @@ struct State {
   // Number of times the game has been updated.
   uint64_t game_updates = 0;
   uint64_t logic_updates = 0;
-  // Number of times the game frame was exceptionally delayed
-  uint64_t game_jerk = 0;
 };
 
 static State kGameState;
@@ -172,7 +170,6 @@ main(int argc, char** argv)
   // Reset State
   StatsInit(&kGameStats);
   kGameState.game_updates = 0;
-  kGameState.game_jerk = 0;
   kGameState.frame_target_usec = 1000.f * 1000.f / kGameState.framerate;
 
 #ifndef HEADLESS
@@ -210,8 +207,8 @@ main(int argc, char** argv)
 
         // Game Mutation: Apply player commands for turn N
 #if 1
-        printf("Simulation [ %lu slot ] [ %lu frame ]\n", slot,
-               kGameState.logic_updates);
+        printf("Simulation [ %lu slot ] [ %lu frame ] [ %lu jerk ]\n", slot,
+               kGameState.logic_updates, kGameState.game_clock.jerk);
 #endif
         InputBuffer* game_turn = GetSlot(slot);
         for (int i = 0; i < MAX_PLAYER; ++i) {

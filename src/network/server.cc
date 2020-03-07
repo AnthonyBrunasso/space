@@ -199,7 +199,7 @@ update_game(Udp4 location, uint64_t game_index)
       }
     }
   }
-#if 0
+#if 1
   printf("Server game [ frame %lu ] [ ack_frame %lu ] [ new_ack_frame %lu ]\n",
          next_frame, g->ack_frame, new_ack_frame);
 #endif
@@ -365,6 +365,12 @@ server_main(void* void_arg)
       continue;
     }
 
+    // Require address stability
+    if (memcmp(&player[pidx].peer, &peer, sizeof(Udp4)) != 0) {
+      puts("unhandled: player address changed");
+      continue;
+    }
+
     // Require stream integrity
     Turn* packet = (Turn*)in_buffer;
     int64_t player_delta = packet->sequence - player[pidx].sequence;
@@ -395,10 +401,11 @@ server_main(void* void_arg)
     player[pidx].ack_frame = MAX(player[pidx].ack_frame, packet->ack_frame);
     memcpy(game[gidx].slot[sidx][pid], packet->event, event_bytes);
     game[gidx].used_slot[sidx][pid] = event_bytes;
-#if 0
+#if 1
     printf(
-        "SvrRcv [ %d socket ] [ %d bytes ] [ %lu sequence ] [ %lu game_id ] \n",
-        location.socket, received_bytes, packet->sequence, game_id);
+        "SvrRcv [ %d player_index ] [ %d bytes ] [ %lu sequence ] [ %lu "
+        "game_id ] \n",
+        pidx, received_bytes, packet->sequence, game_id);
 #endif
   }
 

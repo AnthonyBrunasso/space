@@ -135,9 +135,9 @@ GetNextInputBuffer()
 {
   uint64_t slot = NETQUEUE_SLOT(kNetworkState.outgoing_sequence);
 
-#if 0
-  printf("ProcessInput [ %lu seq ][ %lu slot ]\n", kNetworkState.outgoing_sequence,
-         slot);
+#if 1
+  printf("ProcessInput [ %lu seq ][ %lu slot ]\n",
+         kNetworkState.outgoing_sequence, slot);
 #endif
 
   // If unacknowledged packets exceed the queue, give up
@@ -200,9 +200,10 @@ NetworkSend(uint64_t player_index, uint64_t seq)
   header->sequence = seq;
   header->player_id = kNetworkState.player_index;
   header->ack_frame = kNetworkState.ack_frame;
-#if 0
-  printf("CliSnd [ %lu seq ] [ %lu slot ] [ %lu player_index ] [ %lu events ]\n",
-         seq, slot, kNetworkState.player_index, ibuf->used_input_event);
+#if 1
+  printf(
+      "CliSnd [ %lu seq ] [ %lu slot ] [ %lu player_index ] [ %lu events ]\n",
+      seq, slot, kNetworkState.player_index, ibuf->used_input_event);
 #endif
 
   // write input
@@ -263,7 +264,7 @@ NetworkIngress(uint64_t current_frame)
     NotifyTurn* header = (NotifyTurn*)kNetworkState.netbuffer;
     uint64_t frame = header->frame;
     uint64_t player_index = header->player_id;
-#if 0
+#if 1
     printf("CliRcv [ %lu frame ] [ %lu player_index ] [ %lu ack_seq ]\n", frame,
            player_index, header->ack_sequence);
 #endif

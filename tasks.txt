@@ -71,9 +71,9 @@ engine -
   pause frames
 
 network -
-  protocol add ack_frame to allow server retransmission of dropped turns
   server game clock & turn reordering
   server retransmission of NotifyGame
+  server retransmission of NotifyTurn
   server consider tradeoffs of turn batching 
   client tune netqueue for smooth simulation under network variance
 

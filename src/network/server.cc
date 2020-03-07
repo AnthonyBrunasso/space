@@ -26,6 +26,7 @@ struct PlayerState {
   uint64_t pending_game_id;
   uint64_t last_active;
   uint64_t sequence;
+  uint64_t ack_frame;
   uint64_t player_id;
   uint64_t cookie;
   uint64_t cookie_mismatch;
@@ -40,6 +41,8 @@ struct Game {
   uint64_t num_players;
   // Current simulation frame of the game session
   uint64_t frame;
+  // Simulation frame confirmed by all participants
+  uint64_t ack_frame;
   // Game data (no protocol wrapper)
   uint8_t slot[MAX_GAMEQUEUE][MAX_PLAYER][MAX_PACKET];
   // Game byte count
@@ -147,17 +150,19 @@ update_game(Udp4 location, uint64_t game_index)
   for (uint64_t i = 0; i < g->num_players; ++i) {
     if (g->used_slot[sidx][i] == 0) return;
   }
+  uint64_t new_ack_frame = UINT64_MAX;
   for (int pidx = 0; pidx < MAX_PLAYER; ++pidx) {
     if (player[pidx].game_index != game_index) continue;
 
+    new_ack_frame = MIN(new_ack_frame, player[pidx].ack_frame);
     // Send player packets for each participant's frame
     uint64_t num_players = player[pidx].num_players;
-    uint64_t ack = player[pidx].sequence;
+    uint64_t ack_sequence = player[pidx].sequence;
     for (int j = 0; j < num_players; ++j) {
       NotifyTurn* nt = (NotifyTurn*)out_buffer;
       nt->frame = next_frame;
       nt->player_id = j;
-      nt->ack_sequence = ack;
+      nt->ack_sequence = ack_sequence;
       uint64_t event_bytes = g->used_slot[sidx][j];
       memcpy(nt->event, g->slot[sidx][j], event_bytes);
       if (!udp::SendTo(location, player[pidx].peer, out_buffer,
@@ -169,14 +174,18 @@ update_game(Udp4 location, uint64_t game_index)
   }
 
 #if 0
-  printf("Server send [ frame %lu ]\n", next_frame);
+  printf("Server game [ frame %lu ] [ ack_frame %lu ] [ new_ack_frame %lu ]\n",
+         next_frame, g->ack_frame, new_ack_frame);
 #endif
-  g->frame = next_frame;
-  // TODO (AN): Add client ack_frame to protocol to allow retransmit
-  //   This code assumes no packet loss and clears after one send
-  for (uint64_t i = 0; i < g->num_players; ++i) {
-    g->used_slot[sidx][i] = 0;
+  for (uint64_t i = g->ack_frame; i < new_ack_frame; ++i) {
+    uint64_t sidx = GAMEQUEUE_SLOT(i);
+    for (int j = 0; j < g->num_players; ++j) {
+      g->used_slot[sidx][j] = 0;
+    }
   }
+
+  g->frame = next_frame;
+  g->ack_frame = new_ack_frame;
 }
 
 uint64_t
@@ -325,6 +334,7 @@ server_main(void* void_arg)
         game[gidx].game_id = game_id;
         game[gidx].num_players = player[pidx].num_players;
         game[gidx].frame = 0;
+        game[gidx].ack_frame = 0;
         printf("Server created Game [ game_index %lu ]\n", gidx);
         continue;
       }
@@ -342,7 +352,6 @@ server_main(void* void_arg)
       // puts("packet sequence not relevant to player");
       continue;
     }
-    player[pidx].sequence = packet->sequence;
 
     // Verify relevance to game state
     int64_t game_delta = packet->sequence - game[gidx].frame;
@@ -351,14 +360,22 @@ server_main(void* void_arg)
       continue;
     }
 
-    // Handle storage of new packet in game
+    // Packet OK - Check game synchronization
     uint64_t event_bytes = received_bytes - sizeof(Turn);
     uint64_t game_id = game[gidx].game_id;
     uint64_t sidx = GAMEQUEUE_SLOT(packet->sequence);
     uint64_t pid = player[pidx].player_id;
+    if (game[gidx].used_slot[sidx][pid]) {
+      puts("Game participant latency gap is excessive - data dropped");
+      continue;
+    }
+
+    // Handle storage of new packet in game
+    player[pidx].sequence = packet->sequence;
+    player[pidx].ack_frame = MAX(player[pidx].ack_frame, packet->ack_frame);
     memcpy(game[gidx].slot[sidx][pid], packet->event, event_bytes);
     game[gidx].used_slot[sidx][pid] = event_bytes;
-#if 1
+#if 0
     printf(
         "SvrRcv [ %d socket ] [ %d bytes ] [ %lu sequence ] [ %lu game_id ] \n",
         location.socket, received_bytes, packet->sequence, game_id);

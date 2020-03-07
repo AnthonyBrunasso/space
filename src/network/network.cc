@@ -49,6 +49,7 @@ struct NetworkState {
   InputBuffer player_input[MAX_NETQUEUE][MAX_PLAYER];
   Slot network_slot[MAX_NETQUEUE][MAX_PLAYER];
   uint64_t outgoing_ack[MAX_PLAYER];
+  uint64_t ack_frame;
   // Range of packets sent last in NetworkEgress()
   uint64_t egress_min = UINT64_MAX;
   uint64_t egress_max = 0;
@@ -199,6 +200,7 @@ NetworkSend(uint64_t player_index, uint64_t seq)
   Turn* header = (Turn*)kNetworkState.netbuffer;
   header->sequence = seq;
   header->player_id = kNetworkState.player_index;
+  header->ack_frame = kNetworkState.ack_frame;
 #if 0
   printf("CliSnd [ %lu seq ] [ %lu slot ] [ %lu player_index ] [ %lu events ]\n",
          seq, slot, kNetworkState.player_index, ibuf->used_input_event);
@@ -289,6 +291,10 @@ NetworkIngress(uint64_t current_frame)
     kNetworkState.outgoing_ack[player_index] =
         MAX(kNetworkState.outgoing_ack[player_index], header->ack_sequence);
   }
+
+  uint64_t ready_to_frame =
+      current_frame + NetworkContiguousSlotReady(current_frame);
+  kNetworkState.ack_frame = ready_to_frame;
 }
 
 uint64_t

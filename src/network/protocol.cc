@@ -28,6 +28,7 @@ struct BeginGame {
 struct Turn {
   uint64_t sequence;
   uint64_t player_id;
+  uint64_t ack_frame;
   PlatformEvent event[];
 };
 

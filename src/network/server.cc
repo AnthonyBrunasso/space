@@ -16,7 +16,8 @@ static ServerParam thread_param;
 #define GAMEQUEUE_SLOT(sequence) ((sequence) % MAX_GAMEQUEUE)
 #define MAX_GAME 10
 #define MAX_PLAYER 2
-#define MAX_PACKET 1024
+#define MAX_PACKET_IN 1024
+#define MAX_PACKET_OUT (MAX_PLAYER * 1024)
 #define TIMEOUT_USEC (2 * 1000 * 1000)
 
 struct PlayerState {
@@ -45,7 +46,7 @@ struct Game {
   // Simulation frame confirmed by all participants
   uint64_t ack_frame;
   // Game data (no protocol wrapper)
-  uint8_t slot[MAX_GAMEQUEUE][MAX_PLAYER][MAX_PACKET];
+  uint8_t slot[MAX_GAMEQUEUE][MAX_PLAYER][MAX_PACKET_IN];
   // Game byte count
   uint64_t used_slot[MAX_GAMEQUEUE][MAX_PLAYER];
 };
@@ -164,24 +165,26 @@ prune_games()
 bool
 SendFrame(Udp4 location, uint64_t frame, uint64_t pidx, const Game* g)
 {
-  static uint8_t out_buffer[MAX_PACKET];
+  static uint8_t out_buffer[MAX_PACKET_OUT];
   uint64_t sidx = GAMEQUEUE_SLOT(frame);
   uint64_t num_players = player[pidx].num_players;
   uint64_t ack_sequence = player[pidx].sequence;
-  bool ret = true;
 
+  NotifyFrame* nf = (NotifyFrame*)out_buffer;
+  nf->frame = frame;
+  nf->ack_sequence = ack_sequence;
+  uint8_t* offset = out_buffer + sizeof(NotifyFrame);
   for (int j = 0; j < num_players; ++j) {
-    NotifyTurn* nt = (NotifyTurn*)out_buffer;
-    nt->frame = frame;
-    nt->player_id = j;
-    nt->ack_sequence = ack_sequence;
+    NotifyTurn* nt = (NotifyTurn*)offset;
     uint64_t event_bytes = g->used_slot[sidx][j];
     memcpy(nt->event, g->slot[sidx][j], event_bytes);
-    ret = ret && (udp::SendTo(location, player[pidx].peer, out_buffer,
-                              event_bytes + sizeof(NotifyTurn)));
+    nt->event_bytes = event_bytes;
+
+    offset += sizeof(NotifyTurn) + event_bytes;
   }
 
-  return ret;
+  return (udp::SendTo(location, player[pidx].peer, out_buffer,
+                      offset - out_buffer));
 }
 
 void
@@ -266,7 +269,7 @@ server_main(void* void_arg)
            platform::thread_affinity_count());
   }
 
-  uint8_t in_buffer[MAX_PACKET];
+  uint8_t in_buffer[MAX_PACKET_IN];
   if (!udp::Init()) {
     puts("server: fail init");
     return 1;
@@ -314,7 +317,7 @@ server_main(void* void_arg)
       continue;
     }
 
-    if (!udp::ReceiveAny(location, MAX_PACKET, in_buffer, &received_bytes,
+    if (!udp::ReceiveAny(location, MAX_PACKET_IN, in_buffer, &received_bytes,
                          &peer)) {
       if (udp_errno) running = false;
       if (udp_errno) printf("Server udp_errno %d\n", udp_errno);

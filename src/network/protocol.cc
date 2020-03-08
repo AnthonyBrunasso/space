@@ -33,8 +33,12 @@ struct Turn {
 };
 
 struct NotifyTurn {
-  uint64_t frame;
-  uint64_t player_id;
-  uint64_t ack_sequence;
+  uint64_t event_bytes;
   PlatformEvent event[];
+};
+
+struct NotifyFrame {
+  uint64_t frame;
+  uint64_t ack_sequence;
+  NotifyTurn turn[];
 };

@@ -66,7 +66,7 @@ engine -
   pause frames
 
 network -
-  NotifyTurn: batch all players (otherwise any lost packet would result in inability to simulate frame)
+  handle truncated udp packets and zero length packets
   retransmission clock OR consider modifying ack_frame and ack_sequence to use latest value w/ packet history
   server game clock & turn reordering
   server retransmission of NotifyGame

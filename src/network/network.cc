@@ -260,40 +260,48 @@ NetworkIngress(uint64_t next_simulation_frame)
   int16_t bytes_received;
   while (udp::ReceiveFrom(kNetworkState.socket, sizeof(kNetworkState.netbuffer),
                           kNetworkState.netbuffer, &bytes_received)) {
-    NotifyTurn* header = (NotifyTurn*)kNetworkState.netbuffer;
-    uint64_t header_frame = header->frame;
-    uint64_t player_index = header->player_id;
+    NotifyFrame* nf = (NotifyFrame*)kNetworkState.netbuffer;
+    uint64_t header_frame = nf->frame;
+    uint64_t ack_sequence = nf->ack_sequence;
 #if 1
     printf(
-        "CliRcv [ %lu next_simulation_frame ] [ %lu header_frame ] [ %lu "
-        "player_index ] [ %lu ack_seq ]\n",
-        next_simulation_frame, header_frame, player_index,
-        header->ack_sequence);
+        "CliRcv [ %lu header_frame ] [ %lu "
+        "ack_seq ] [ %lu next_simulation_frame ]\n",
+        header_frame, ack_sequence, next_simulation_frame);
 #endif
 
     // Drop old frames, the game has progressed
     if (header_frame < next_simulation_frame) continue;
     // Drop out of range frames
     if (header_frame - next_simulation_frame >= MAX_NETQUEUE) continue;
-    // Personal boundaries
-    if (player_index >= MAX_PLAYER) exit(1);
-    if (bytes_received > sizeof(NotifyTurn) + sizeof(InputBuffer::input_event))
-      exit(3);
 
     uint64_t slot = NETQUEUE_SLOT(header_frame);
-    InputBuffer* ibuf = &kNetworkState.player_input[slot][player_index];
-    memcpy(ibuf->input_event, header->event,
-           bytes_received - sizeof(NotifyTurn));
-    ibuf->used_input_event =
-        (bytes_received - sizeof(NotifyTurn)) / sizeof(PlatformEvent);
+    const uint8_t* read_offset = kNetworkState.netbuffer + sizeof(NotifyFrame);
+    uint64_t num_players = kNetworkState.num_players;
+    for (int i = 0; i < num_players; ++i) {
+      const NotifyTurn* nt = (NotifyTurn*)read_offset;
+      uint64_t event_bytes = nt->event_bytes;
+
+      // Personal boundaries
+      if (event_bytes > sizeof(PlatformEvent) * MAX_TICK_EVENTS) {
+        puts("Corrupt packet");
+        return;
+      }
+
+      InputBuffer* ibuf = &kNetworkState.player_input[slot][i];
+      memcpy(ibuf->input_event, nt->event, event_bytes);
+      ibuf->used_input_event = event_bytes / sizeof(PlatformEvent);
+      _Static_assert(sizeof(PlatformEvent) % 2 == 0,
+                     "Prefer a power of 2 for fast division.");
+      kNetworkState.network_slot[slot][i] = kSlotReceived;
 #if 0
-    printf("Copied %lu, used_input_event %lu\n",
-           bytes_received - sizeof(NotifyTurn), ibuf->used_input_event);
+    printf("Copied NotifyTurn [ %lu player_id ] [ %lu event_bytes ]\n", i, event_bytes);
 #endif
-    kNetworkState.network_slot[slot][player_index] = kSlotReceived;
+      read_offset += sizeof(NotifyTurn) + event_bytes;
+    }
+
     // Accept highest received ack_sequence
-    kNetworkState.ack_sequence =
-        MAX(kNetworkState.ack_sequence, header->ack_sequence);
+    kNetworkState.ack_sequence = MAX(kNetworkState.ack_sequence, ack_sequence);
   }
 
   uint64_t ready_to_frame =

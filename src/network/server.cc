@@ -104,14 +104,14 @@ PlayerContiguousSequence(uint64_t pidx)
   assert(gidx != UINT64_MAX);
   Game* g = &game[gidx];
 
-  uint64_t next_frame = g->last_frame + 1;
-  uint64_t end_seq = g->last_frame + MAX_GAMEQUEUE;
+  uint64_t slot = GAMEQUEUE_SLOT(g->last_frame + 1);
+  uint64_t end_slot = GAMEQUEUE_SLOT(g->ack_frame);
   uint64_t count = 0;
-  for (uint64_t seq = next_frame; seq < end_seq; ++seq) {
-    uint64_t slot = GAMEQUEUE_SLOT(seq);
+  while (slot != end_slot) {
     if (!g->used_slot[slot][pidx]) {
       break;
     }
+    slot = GAMEQUEUE_SLOT(slot + 1);
     count += 1;
   }
 

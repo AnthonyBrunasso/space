@@ -96,6 +96,27 @@ PlayerInGame(uint64_t gidx)
   return false;
 }
 
+uint64_t
+PlayerContiguousSequence(uint64_t pidx)
+{
+  uint64_t gidx = player[pidx].game_index;
+  assert(gidx != UINT64_MAX);
+  Game* g = &game[gidx];
+
+  uint64_t next_frame = g->last_frame + 1;
+  uint64_t end_seq = g->last_frame + MAX_GAMEQUEUE;
+  uint64_t count = 0;
+  for (uint64_t seq = next_frame; seq < end_seq; ++seq) {
+    uint64_t slot = GAMEQUEUE_SLOT(seq);
+    if (!g->used_slot[slot][pidx]) {
+      break;
+    }
+    count += 1;
+  }
+
+  return count;
+}
+
 void
 prune_players(uint64_t rt_usec)
 {
@@ -407,14 +428,14 @@ server_main(void* void_arg)
     Turn* packet = (Turn*)in_buffer;
     int64_t player_delta = packet->sequence - player[pidx].sequence;
     // TODO (AN): Accept out of order packets from the player
-    if (player_delta != 1) {
+    if (player_delta < 1 || player_delta >= MAX_GAMEQUEUE) {
       // puts("packet sequence not relevant to player");
       continue;
     }
 
     // Verify relevance to game state
     int64_t game_delta = packet->sequence - game[gidx].last_frame;
-    if (game_delta >= MAX_GAMEQUEUE || game_delta <= 0) {
+    if (game_delta < 1 || game_delta >= MAX_GAMEQUEUE) {
       // puts("packet seqeuence not relevant to game");
       continue;
     }
@@ -430,15 +451,17 @@ server_main(void* void_arg)
     }
 
     // Handle storage of new packet in game
-    player[pidx].sequence = packet->sequence;
+    player[pidx].sequence =
+        game[gidx].last_frame + PlayerContiguousSequence(pidx);
     player[pidx].ack_frame = MAX(player[pidx].ack_frame, packet->ack_frame);
     memcpy(game[gidx].slot[sidx][pid], packet->event, event_bytes);
     game[gidx].used_slot[sidx][pid] = event_bytes;
 #if 1
     printf(
-        "SvrRcv [ %d player_index ] [ %d bytes ] [ %lu sequence ] [ %lu "
+        "SvrRcv [ %d player_index ] [ %d bytes ] [ %lu packet_sequence ] [ %lu "
+        "player_sequence ] [ %lu "
         "game_id ] \n",
-        pidx, received_bytes, packet->sequence, game_id);
+        pidx, received_bytes, packet->sequence, player[pidx].sequence, game_id);
 #endif
   }
 

@@ -71,7 +71,6 @@ engine -
   pause frames
 
 network -
-  server accept ahead-of-order packets from client
   server game clock & turn reordering
   server retransmission of NotifyGame
   server consider tradeoffs of turn batching 

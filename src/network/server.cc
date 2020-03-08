@@ -213,7 +213,7 @@ game_transmit(Udp4 location, uint64_t game_index)
 }
 
 bool
-game_update(uint64_t game_index, Clock_t clock)
+game_update(uint64_t game_index)
 {
   Game* g = &game[game_index];
   const uint64_t game_id = g->game_id;
@@ -244,10 +244,8 @@ game_update(uint64_t game_index, Clock_t clock)
   }
 
 #if 1
-  printf(
-      "Server game [ frame %lu ] [ ack_frame %lu ] [ new_ack_frame %lu ] [ "
-      "jerk %lu ]\n",
-      next_frame, g->ack_frame, new_ack_frame, clock.jerk);
+  printf("Server game [ frame %lu ] [ ack_frame %lu ] [ new_ack_frame %lu ]\n",
+         next_frame, g->ack_frame, new_ack_frame);
 #endif
 
   g->last_frame = next_frame;
@@ -299,11 +297,13 @@ server_main(void* void_arg)
     uint64_t sleep_usec;
     if (platform::clock_sync(&server_clock, &sleep_usec)) {
       realtime_usec += time_step_usec;
+
       prune_players(realtime_usec);
       prune_games();
+
       bool ready[MAX_GAME] = {};
       for (int i = 0; i < MAX_GAME; ++i) {
-        while (game_update(i, server_clock)) {
+        while (game_update(i)) {
           ready[i] = true;
         }
       }
@@ -311,7 +311,9 @@ server_main(void* void_arg)
         if (!ready[i]) continue;
         game_transmit(location, i);
       }
+      continue;
     }
+
     if (!udp::ReceiveAny(location, MAX_PACKET, in_buffer, &received_bytes,
                          &peer)) {
       if (udp_errno) running = false;
@@ -428,7 +430,6 @@ server_main(void* void_arg)
     // Require stream integrity
     Turn* packet = (Turn*)in_buffer;
     int64_t player_delta = packet->sequence - player[pidx].sequence;
-    // TODO (AN): Accept out of order packets from the player
     if (player_delta < 1 || player_delta >= MAX_GAMEQUEUE) {
       // puts("packet sequence not relevant to player");
       continue;
@@ -449,8 +450,10 @@ server_main(void* void_arg)
     uint64_t pid = player[pidx].player_id;
     int64_t sync_delta = packet->sequence - game[gidx].ack_frame;
     if (sync_delta < 1 || sync_delta >= MAX_GAMEQUEUE) {
-      printf("Latency Excess [ %lu packet_sequence ] [ %lu ack_frame ]\n",
-             packet->sequence, game[gidx].ack_frame);
+      printf(
+          "Latency Excess [ %lu player_index ] [ %lu packet_sequence ] [ %lu "
+          "ack_frame ] [ %lu clock_jerk ]\n",
+          pidx, packet->sequence, game[gidx].ack_frame, server_clock.jerk);
       player[pidx].latency_excess += 1;
       continue;
     }

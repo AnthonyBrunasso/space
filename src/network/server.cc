@@ -30,6 +30,7 @@ struct PlayerState {
   uint64_t player_id;
   uint64_t cookie;
   uint64_t cookie_mismatch;
+  uint64_t latency_excess;
 };
 static PlayerState zero_player;
 static PlayerState player[MAX_PLAYER];
@@ -107,6 +108,10 @@ prune_players(uint64_t rt_usec)
     }
     if (player[i].cookie_mismatch > 3) {
       printf("Server closed packet flow: cookie_mismatch. [index %d]\n", i);
+      player[i] = PlayerState{};
+    }
+    if (player[i].latency_excess > 3) {
+      puts("Server closed packet flow: ack_frame latency gap is excessive");
       player[i] = PlayerState{};
     }
   }
@@ -420,7 +425,7 @@ server_main(void* void_arg)
     uint64_t sidx = GAMEQUEUE_SLOT(packet->sequence);
     uint64_t pid = player[pidx].player_id;
     if (game[gidx].used_slot[sidx][pid]) {
-      puts("Game participant latency gap is excessive - data dropped");
+      player[pidx].latency_excess += 1;
       continue;
     }
 

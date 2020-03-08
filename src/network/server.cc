@@ -458,11 +458,13 @@ server_main(void* void_arg)
     if (game[gidx].used_slot[sidx][pid]) continue;
 
     // Handle storage of new packet in game
-    player[pidx].sequence =
-        game[gidx].last_frame + PlayerContiguousSequence(pidx);
     player[pidx].ack_frame = MAX(player[pidx].ack_frame, packet->ack_frame);
     memcpy(game[gidx].slot[sidx][pid], packet->event, event_bytes);
     game[gidx].used_slot[sidx][pid] = event_bytes;
+
+    // Player sequence can be determined after storage
+    player[pidx].sequence =
+        game[gidx].last_frame + PlayerContiguousSequence(pidx);
 #if 1
     printf(
         "SvrRcv [ %d player_index ] [ %d bytes ] [ %lu packet_sequence ] [ %lu "

@@ -121,19 +121,21 @@ void
 prune_players(uint64_t rt_usec)
 {
   for (int i = 0; i < MAX_PLAYER; ++i) {
-    if (memcmp(&zero_player, &player[i], sizeof(PlayerState)) == 0) continue;
+    if (memcmp(&player[i], &zero_player, sizeof(PlayerState)) == 0) continue;
     if (rt_usec - player[i].last_active > TIMEOUT_USEC) {
-      printf("Server dropped packet flow. [ index %d ] [ game_index %lu ]\n", i,
-             player[i].game_index);
-      player[i] = PlayerState{};
+      printf(
+          "Server dropped packet flow. [ index %d ] [ game_index %lu ] [ "
+          "realtime_usec %lu ] [ last_active %lu ]\n",
+          i, player[i].game_index, rt_usec, player[i].last_active);
+      player[i] = {};
     }
     if (player[i].cookie_mismatch > 3) {
       printf("Server closed packet flow: cookie_mismatch. [index %d]\n", i);
-      player[i] = PlayerState{};
+      player[i] = {};
     }
     if (player[i].latency_excess > 3) {
       puts("Server closed packet flow: ack_frame latency gap is excessive");
-      player[i] = PlayerState{};
+      player[i] = {};
     }
   }
 }
@@ -287,7 +289,7 @@ server_main(void* void_arg)
   }
 
   uint64_t realtime_usec = 0;
-  uint64_t time_step_usec = 16 * 1000;
+  uint64_t time_step_usec = 8 * 1000;
   Clock_t server_clock;
   platform::clock_init(time_step_usec, &server_clock);
   while (running) {
@@ -379,7 +381,6 @@ server_main(void* void_arg)
 
     // Filter Identified clients
     if (pidx == -1) {
-      puts("unknown client && packet");
       continue;
     }
 
@@ -444,11 +445,17 @@ server_main(void* void_arg)
     uint64_t event_bytes = received_bytes - sizeof(Turn);
     uint64_t game_id = game[gidx].game_id;
     uint64_t sidx = GAMEQUEUE_SLOT(packet->sequence);
+    uint64_t ack_sidx = GAMEQUEUE_SLOT(game[gidx].ack_frame);
     uint64_t pid = player[pidx].player_id;
-    if (game[gidx].used_slot[sidx][pid]) {
+    int64_t sync_delta = packet->sequence - game[gidx].ack_frame;
+    if (sync_delta < 1 || sync_delta >= MAX_GAMEQUEUE) {
+      printf("Latency Excess [ %lu packet_sequence ] [ %lu ack_frame ]\n",
+             packet->sequence, game[gidx].ack_frame);
       player[pidx].latency_excess += 1;
       continue;
     }
+    // Duplicate Packet
+    if (game[gidx].used_slot[sidx][pid]) continue;
 
     // Handle storage of new packet in game
     player[pidx].sequence =

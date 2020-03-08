@@ -66,9 +66,9 @@ engine -
   pause frames
 
 network -
-  retransmission clock
+  NotifyTurn: batch all players (otherwise any lost packet would result in inability to simulate frame)
+  retransmission clock OR consider modifying ack_frame and ack_sequence to use latest value w/ packet history
   server game clock & turn reordering
   server retransmission of NotifyGame
-  server consider tradeoffs of turn batching 
   client tune netqueue for smooth simulation under network variance
 

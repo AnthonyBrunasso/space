@@ -83,12 +83,10 @@ NetworkSetup()
   if (!udp::GetAddr4("127.0.0.1", "10060", &kNetworkState.loopback))
     return false;
 
-  const uint64_t greeting_size = 6;
-  const char greeting[greeting_size] = {"space"};
   uint64_t jerk;
   int16_t bytes_received = 0;
   Clock_t handshake_clock;
-  const uint64_t usec = 5 * 1000;
+  const uint64_t usec = 50 * 1000;
   platform::clock_init(usec, &handshake_clock);
   Handshake h = {.num_players = kNetworkState.num_players};
   printf("Client: send '%s' for %lu players\n", h.greeting,
@@ -202,10 +200,11 @@ NetworkSend(uint64_t player_index, uint64_t seq)
   header->ack_frame = kNetworkState.ack_frame;
 #if 1
   printf(
-      "CliSnd [ %lu slot ] [ %lu seq ] [ %lu ack_sequence ] [ %lu ack_frame ] [ %lu player_index ] "
+      "CliSnd [ %lu slot ] [ %lu seq ] [ %lu ack_sequence ] [ %lu ack_frame ] "
+      "[ %lu player_index ] "
       "[ %lu events ]\n",
-      slot, seq, kNetworkState.ack_sequence, kNetworkState.ack_frame, kNetworkState.player_index,
-      ibuf->used_input_event);
+      slot, seq, kNetworkState.ack_sequence, kNetworkState.ack_frame,
+      kNetworkState.player_index, ibuf->used_input_event);
 #endif
 
   // write input

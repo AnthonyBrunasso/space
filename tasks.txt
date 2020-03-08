@@ -14,11 +14,9 @@ Delete items when they are done.
 
 gameplay -
   damage repair, hull repair
-  ship invaders
   hover select can show module radius (turret)
   crew exhaustion: restoration via beds and cafeteria
   prototype building ship extensions while in space
-  hostility on shroud reveal
   Combat with derelict ship inhabitants
   Motion on ships
   Unit inventory for grabbing minerals
@@ -29,7 +27,6 @@ gameplay -
 
 ai -
   c file with branching?
-  local "blackboard" for arbitrary bytes associated with a stateful event at a time
   global "blackboard" for group decisions (do we have a game example of groupthink for ai?)
 
 sound -
@@ -40,7 +37,6 @@ sound -
 
 ui -
 
-  anthony: Pane with options.
   anthony: Header on ui panes.
   anthony: Close ui pane.
   anthony: Minimize ui pane.
@@ -49,8 +45,7 @@ ui -
   anthony: Button relative to pane.
   anthony: imui::SameLine() or something - renders next imui call on same line.
   anthony: Text input.
-  anthony: Event log.
-  anthony: Some sort of button feedback options. Highlight on hover / click effect.
+  anthony: Button click effect.
   anthony: Function to test whether cursor is intersecting with any UI element. Can
            be used to determine if interaction is in game vs ui.
 
@@ -71,14 +66,9 @@ engine -
   pause frames
 
 network -
+  retransmission clock
   server game clock & turn reordering
   server retransmission of NotifyGame
   server consider tradeoffs of turn batching 
   client tune netqueue for smooth simulation under network variance
-
-Tutorial story -
-  Looting a derelict ship (no pressure, have to get ship working)
-  Gather things
-  fight some crew combats
-  Return home and build batteries, engines
 

@@ -23,6 +23,7 @@ platform_getopt(int argc, char* const argv[], const char* optstring)
         return *optiter;
       }
     }
+    break;
   }
 
   return -1;

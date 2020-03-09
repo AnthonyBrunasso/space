@@ -13,7 +13,7 @@ thread_affinity_count()
 }
 
 bool
-thread_affinity_set(int cpu_index)
+thread_affinity_usecore(int cpu_index)
 {
   cpu_set_t mask;
   pthread_t pt = pthread_self();
@@ -26,7 +26,7 @@ thread_affinity_set(int cpu_index)
 }
 
 bool
-thread_affinity_clear(int cpu_index)
+thread_affinity_avoidcore(int cpu_index)
 {
   cpu_set_t mask;
   pthread_t pt = pthread_self();

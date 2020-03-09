@@ -7,13 +7,13 @@ thread_affinity_count()
 }
 
 bool
-thread_affinity_set(int cpu_index)
+thread_affinity_usecore(int cpu_index)
 {
   return false;
 }
 
 bool
-thread_affinity_clear(int cpu_index)
+thread_affinity_avoidcore(int cpu_index)
 {
   return false;
 }

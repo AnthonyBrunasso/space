@@ -264,7 +264,7 @@ server_main(void* void_arg)
 
   // network thread affinity set to anything but core 0
   if (platform::thread_affinity_count() > 1) {
-    platform::thread_affinity_clear(0);
+    platform::thread_affinity_avoidcore(0);
     printf("Server thread may run on %d cores\n",
            platform::thread_affinity_count());
   }

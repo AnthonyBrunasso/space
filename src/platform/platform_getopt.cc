@@ -17,9 +17,12 @@ platform_getopt(int argc, char* const argv[], const char* optstring)
     for (; *optiter; ++optiter) {
       int val_param = *(optiter + 1) == ':';
       if (arg[0] == '-' && *optiter == arg[1]) {
-        if (val_param && platform_optind + 1 < argc)
+        unsigned used_param = 1;
+        if (val_param && platform_optind + 1 < argc) {
           platform_optarg = argv[platform_optind + 1];
-        ++platform_optind;
+          used_param += 1;
+        }
+        platform_optind += used_param;
         return *optiter;
       }
     }

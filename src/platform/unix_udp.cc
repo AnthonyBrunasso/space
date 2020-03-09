@@ -3,9 +3,12 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include <cassert>
 #include <cstdint>
 #include <cstring>
 
+#include "macro.h"
 #include "udp.h"
 
 extern "C" {
@@ -55,8 +58,11 @@ BindAddr(Udp4 peer, const char* host, const char* service_or_port)
 
   if (result->ai_addrlen != sizeof(struct sockaddr_in)) return false;
 
-  bind(peer.socket, (const struct sockaddr*)result->ai_addr,
-       result->ai_addrlen);
+  if (bind(peer.socket, (const struct sockaddr*)result->ai_addr,
+           result->ai_addrlen) != 0) {
+    udp_errno = errno;
+    return false;
+  }
 
   freeaddrinfo(result);
 
@@ -69,6 +75,9 @@ Send(Udp4 peer, const void* buffer, uint16_t len)
   ssize_t bytes = sendto(peer.socket, buffer, len, MSG_DONTWAIT,
                          (const struct sockaddr*)peer.socket_address,
                          sizeof(struct sockaddr_in));
+
+  if (bytes < 0) udp_errno = TERNARY(errno == EAGAIN, 0, errno);
+
   return bytes == len;
 }
 
@@ -78,6 +87,8 @@ SendTo(Udp4 location, Udp4 peer, const void* buffer, uint16_t len)
   ssize_t bytes = sendto(location.socket, buffer, len, MSG_DONTWAIT,
                          (const struct sockaddr*)peer.socket_address,
                          sizeof(struct sockaddr_in));
+
+  if (bytes < 0) udp_errno = TERNARY(errno == EAGAIN, 0, errno);
 
   return bytes == len;
 }
@@ -96,7 +107,7 @@ ReceiveFrom(Udp4 peer, uint16_t buffer_len, uint8_t* buffer,
 
     *bytes_received = bytes;
     if (bytes < 0) {
-      udp_errno = (errno == EAGAIN) ? 0 : errno;
+      udp_errno = TERNARY(errno == EAGAIN, 0, errno);
       return false;
     }
 
@@ -121,11 +132,11 @@ ReceiveAny(Udp4 location, uint16_t buffer_len, uint8_t* buffer,
                            (struct sockaddr*)&remote_addr, &remote_len);
   *bytes_received = bytes;
   if (bytes < 0) {
-    udp_errno = (errno == EAGAIN) ? 0 : errno;
+    udp_errno = TERNARY(errno == EAGAIN, 0, errno);
     return false;
   }
 
-  if (sizeof(struct sockaddr_in) != remote_len) return false;
+  assert(sizeof(struct sockaddr_in) == remote_len);
 
   from_peer->socket = -1;
   memcpy(from_peer->socket_address, &remote_addr, sizeof(struct sockaddr_in));
@@ -154,10 +165,12 @@ GetAddr4(const char* host, const char* service_or_port, Udp4* out)
   out->socket =
       socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 
-  udp_errno = errno;
-  if (out->socket == -1) return false;
+  if (out->socket == -1) {
+    udp_errno = errno;
+    return false;
+  }
 
-  if (result->ai_addrlen > sizeof(struct sockaddr_in)) return false;
+  assert(result->ai_addrlen == sizeof(struct sockaddr_in));
 
   memcpy(out->socket_address, result->ai_addr, result->ai_addrlen);
 

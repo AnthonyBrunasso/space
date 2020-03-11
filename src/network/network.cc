@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdio>
+#include <cassert>
 
 #include "common/constants.h"
 #include "math/math.cc"
@@ -201,6 +202,7 @@ NetworkAppend(uint64_t player_index, const uint8_t* end_buffer,
 
   InputBuffer* ibuf = &kNetworkState.input[slot];
   Turn* turn = (Turn*)netbuffer;
+  uint8_t* event = netbuffer+sizeof(Turn);
   uint64_t event_bytes = sizeof(PlatformEvent) * ibuf->used_input_event;
 
   // Full packet
@@ -216,7 +218,7 @@ NetworkAppend(uint64_t player_index, const uint8_t* end_buffer,
 #endif
 
   turn->event_bytes = event_bytes;
-  memcpy(turn->event, ibuf->input_event, event_bytes);
+  memcpy(event, ibuf->input_event, event_bytes);
 
   // Advance
   *write_ref += event_bytes + sizeof(Turn);
@@ -314,6 +316,7 @@ NetworkIngress(uint64_t next_simulation_frame)
     uint64_t num_players = kNetworkState.num_players;
     for (int i = 0; i < num_players; ++i) {
       const NotifyTurn* nt = (NotifyTurn*)read_offset;
+      const uint8_t *event = read_offset+sizeof(NotifyTurn);
       uint64_t event_bytes = nt->event_bytes;
 
       // Personal boundaries
@@ -323,9 +326,9 @@ NetworkIngress(uint64_t next_simulation_frame)
       }
 
       InputBuffer* ibuf = &kNetworkState.player_input[slot][i];
-      memcpy(ibuf->input_event, nt->event, event_bytes);
+      memcpy(ibuf->input_event, event, event_bytes);
       ibuf->used_input_event = event_bytes / sizeof(PlatformEvent);
-      _Static_assert(sizeof(PlatformEvent) % 2 == 0,
+      static_assert(sizeof(PlatformEvent) % 2 == 0,
                      "Prefer a power of 2 for fast division.");
       kNetworkState.network_slot[slot][i] = kSlotReceived;
 #if 0

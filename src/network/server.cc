@@ -181,8 +181,9 @@ SendFrame(Udp4 location, uint64_t frame, uint64_t pidx, const Game* g)
   uint8_t* offset = out_buffer + sizeof(NotifyFrame);
   for (int j = 0; j < num_players; ++j) {
     NotifyTurn* nt = (NotifyTurn*)offset;
+    uint8_t * event = offset+sizeof(NotifyTurn);
     uint64_t event_bytes = g->used_slot[sidx][j];
-    memcpy(nt->event, g->slot[sidx][j], event_bytes);
+    memcpy(event, g->slot[sidx][j], event_bytes);
     nt->event_bytes = event_bytes;
 
     offset += sizeof(NotifyTurn) + event_bytes;
@@ -499,6 +500,7 @@ server_main(void* void_arg)
       }
 
       const Turn* turn = (const Turn*)read_offset;
+      const uint8_t *event = read_offset+sizeof(Turn);
       uint64_t event_bytes = turn->event_bytes;
 
 #if 0
@@ -512,7 +514,7 @@ server_main(void* void_arg)
 
       if (!game[gidx].used_slot[sidx][pid]) {
         // Apply turn data
-        memcpy(game[gidx].slot[sidx][pid], turn->event, event_bytes);
+        memcpy(game[gidx].slot[sidx][pid], event, event_bytes);
         game[gidx].used_slot[sidx][pid] = event_bytes;
       }
 

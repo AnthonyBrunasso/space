@@ -27,22 +27,30 @@ struct BeginGame {
 
 struct Turn {
   uint64_t event_bytes;
+#ifndef _WIN32
   PlatformEvent event[];
+#endif
 };
 
 struct Update {
   uint64_t sequence;
   uint64_t ack_frame;
+#ifndef _WIN32
   Turn turn[];
+#endif
 };
 
 struct NotifyTurn {
   uint64_t event_bytes;
+#ifndef _WIN32
   PlatformEvent event[];
+#endif
 };
 
 struct NotifyFrame {
   uint64_t frame;
   uint64_t ack_sequence;
+#ifndef _WIN32
   NotifyTurn turn[];
+#endif
 };

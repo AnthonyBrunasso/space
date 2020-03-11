@@ -32,6 +32,7 @@ struct PlayerState {
   uint64_t cookie;
   uint64_t cookie_mismatch;
   uint64_t latency_excess;
+  uint64_t corrupted;
 };
 static PlayerState zero_player;
 static PlayerState player[MAX_PLAYER];
@@ -136,6 +137,10 @@ prune_players(uint64_t rt_usec)
     }
     if (player[i].latency_excess > 3) {
       puts("Server closed packet flow: ack_frame latency gap is excessive");
+      player[i] = {};
+    }
+    if (player[i].corrupted) {
+      puts("Server closed packet flow: corrupted");
       player[i] = {};
     }
   }
@@ -430,29 +435,36 @@ server_main(void* void_arg)
       continue;
     }
 
+    const Update* packet = (Update*)in_buffer;
+#if 0
+    printf(
+        "SvrRcv Precheck "
+        "[ %lu received_bytes ] "
+        "[ %lu packet_sequence ] "
+        "[ %lu packet_ack_frame ] "
+        "\n",
+        received_bytes, packet->sequence, packet->ack_frame);
+#endif
+
     // Require stream integrity
-    Turn* packet = (Turn*)in_buffer;
     int64_t player_delta = packet->sequence - player[pidx].sequence;
-    if (player_delta < 1 || player_delta >= MAX_GAMEQUEUE) {
+    if (player_delta >= MAX_GAMEQUEUE) {
       // puts("packet sequence not relevant to player");
       continue;
     }
 
     // Verify relevance to game state
     int64_t game_delta = packet->sequence - game[gidx].last_frame;
-    if (game_delta < 1 || game_delta >= MAX_GAMEQUEUE) {
+    if (game_delta >= MAX_GAMEQUEUE) {
       // puts("packet seqeuence not relevant to game");
       continue;
     }
 
     // Packet OK - Check game synchronization
-    uint64_t event_bytes = received_bytes - sizeof(Turn);
     uint64_t game_id = game[gidx].game_id;
-    uint64_t sidx = GAMEQUEUE_SLOT(packet->sequence);
-    uint64_t ack_sidx = GAMEQUEUE_SLOT(game[gidx].ack_frame);
     uint64_t pid = player[pidx].player_id;
     int64_t sync_delta = packet->sequence - game[gidx].ack_frame;
-    if (sync_delta < 1 || sync_delta >= MAX_GAMEQUEUE) {
+    if (sync_delta < 1) {
       printf(
           "Latency Excess [ %lu player_index ] [ %lu packet_sequence ] [ %lu "
           "ack_frame ] [ %lu clock_jerk ]\n",
@@ -460,22 +472,73 @@ server_main(void* void_arg)
       player[pidx].latency_excess += 1;
       continue;
     }
-    // Duplicate Packet
-    if (game[gidx].used_slot[sidx][pid]) continue;
 
     // Handle storage of new packet in game
     player[pidx].ack_frame = MAX(player[pidx].ack_frame, packet->ack_frame);
-    memcpy(game[gidx].slot[sidx][pid], packet->event, event_bytes);
-    game[gidx].used_slot[sidx][pid] = event_bytes;
+    const uint8_t* read_offset = in_buffer + sizeof(Update);
+    const uint8_t* end_buffer = in_buffer + received_bytes;
+    uint64_t sequence = packet->sequence;
+    uint64_t ack_sidx = GAMEQUEUE_SLOT(game[gidx].ack_frame);
 
-    // Player sequence can be determined after storage
-    player[pidx].sequence =
-        game[gidx].last_frame + PlayerContiguousSequence(pidx);
-#if 1
+#if 0
     printf(
-        "SvrRcv [ %d player_index ] [ %d bytes ] [ %lu packet_sequence ] [ %lu "
-        "player_sequence ] [ %lu "
-        "game_id ] \n",
+        "Server processing "
+        "[ %ld bytes ] "
+        "[ %p read ] "
+        "[ %p end ] "
+        "\n",
+        received_bytes, read_offset, end_buffer);
+#endif
+
+    while (read_offset < end_buffer) {
+      uint64_t sidx = GAMEQUEUE_SLOT(sequence);
+
+      // Prevent clobber of unprocessed turns
+      if (sidx == ack_sidx) {
+        break;
+      }
+
+      const Turn* turn = (const Turn*)read_offset;
+      uint64_t event_bytes = turn->event_bytes;
+
+#if 0
+      printf(
+          "Server Apply "
+          "[ sequence %lu ] "
+          "[ event_bytes %lu ] "
+          "\n",
+          sequence, event_bytes);
+#endif
+
+      if (!game[gidx].used_slot[sidx][pid]) {
+        // Apply turn data
+        memcpy(game[gidx].slot[sidx][pid], turn->event, event_bytes);
+        game[gidx].used_slot[sidx][pid] = event_bytes;
+      }
+
+      // Advance
+      read_offset += event_bytes + sizeof(Turn);
+      sequence += 1;
+    }
+
+    if (read_offset == end_buffer) {
+      // Player sequence can be determined after storage
+      player[pidx].sequence =
+          game[gidx].last_frame + PlayerContiguousSequence(pidx);
+    } else {
+      // Do not advance
+      player[pidx].corrupted = 1;
+    }
+
+#if 0
+    printf(
+        "SvrRcv "
+        "[ %d player_index ] "
+        "[ %d bytes ] "
+        "[ %lu packet_sequence ] "
+        "[ %lu player_sequence ] "
+        "[ %lu game_id ] "
+        "\n",
         pidx, received_bytes, packet->sequence, player[pidx].sequence, game_id);
 #endif
   }

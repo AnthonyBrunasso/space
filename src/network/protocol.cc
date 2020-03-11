@@ -26,10 +26,14 @@ struct BeginGame {
 };
 
 struct Turn {
-  uint64_t sequence;
-  uint64_t player_id;
-  uint64_t ack_frame;
+  uint64_t event_bytes;
   PlatformEvent event[];
+};
+
+struct Update {
+  uint64_t sequence;
+  uint64_t ack_frame;
+  Turn turn[];
 };
 
 struct NotifyTurn {

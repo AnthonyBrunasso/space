@@ -13,6 +13,10 @@
 #define MAX_NETQUEUE 128ul
 // Convert frame id into a NETQUEUE slot
 #define NETQUEUE_SLOT(sequence) ((sequence) % MAX_NETQUEUE)
+// Largest network message
+#define MAX_NETBUFFER (PAGE)
+// Update packets per frame
+#define MAX_UPDATE 1
 
 struct InputBuffer {
   PlatformEvent input_event[MAX_TICK_EVENTS];
@@ -33,7 +37,7 @@ struct NetworkState {
   // Network resources
   Udp4 socket;
   Udp4 loopback;
-  uint8_t netbuffer[PAGE];
+  uint8_t netbuffer[MAX_NETBUFFER];
   const char* server_ip = "localhost";
   const char* server_port = "9845";
   uint64_t num_players = 1;
@@ -134,7 +138,7 @@ GetNextInputBuffer()
   uint64_t slot = NETQUEUE_SLOT(kNetworkState.outgoing_sequence);
 
 #if 1
-  printf("ProcessInput [ %lu seq ][ %lu slot ]\n",
+  printf("--ProcessInput [ %lu seq ][ %lu slot ]\n",
          kNetworkState.outgoing_sequence, slot);
 #endif
 
@@ -185,35 +189,40 @@ NetworkContiguousSlotReady(uint64_t frame)
   return MAX_NETQUEUE;
 }
 
-void
-NetworkSend(uint64_t player_index, uint64_t seq)
+bool
+NetworkAppend(uint64_t player_index, const uint8_t* end_buffer,
+              uint8_t** write_ref, uint64_t* seq_ref)
 {
-  uint64_t slot = NETQUEUE_SLOT(seq);
+  uint64_t slot = NETQUEUE_SLOT(*seq_ref);
+  uint8_t* netbuffer = *write_ref;
 
-  if (kNetworkState.network_slot[slot][player_index] >= kSlotReceived) return;
+  if (kNetworkState.network_slot[slot][player_index] >= kSlotReceived)
+    return true;
+
   InputBuffer* ibuf = &kNetworkState.input[slot];
+  Turn* turn = (Turn*)netbuffer;
+  uint64_t event_bytes = sizeof(PlatformEvent) * ibuf->used_input_event;
 
-  // write frame
-  Turn* header = (Turn*)kNetworkState.netbuffer;
-  header->sequence = seq;
-  header->player_id = kNetworkState.player_index;
-  header->ack_frame = kNetworkState.ack_frame;
+  // Full packet
+  if (end_buffer - netbuffer < event_bytes) return false;
+
 #if 1
   printf(
-      "CliSnd [ %lu slot ] [ %lu seq ] [ %lu ack_sequence ] [ %lu ack_frame ] "
-      "[ %lu player_index ] "
-      "[ %lu events ]\n",
-      slot, seq, kNetworkState.ack_sequence, kNetworkState.ack_frame,
-      kNetworkState.player_index, ibuf->used_input_event);
+      "Client NetworkAppend "
+      "[ event_bytes %lu ] "
+      "[ sequence %lu ] "
+      "\n",
+      event_bytes, *seq_ref);
 #endif
 
-  // write input
-  memcpy(header->event, ibuf->input_event,
-         sizeof(PlatformEvent) * ibuf->used_input_event);
+  turn->event_bytes = event_bytes;
+  memcpy(turn->event, ibuf->input_event, event_bytes);
 
-  // Failure will be retried
-  udp::Send(kNetworkState.socket, kNetworkState.netbuffer,
-            sizeof(Turn) + sizeof(PlatformEvent) * ibuf->used_input_event);
+  // Advance
+  *write_ref += event_bytes + sizeof(Turn);
+  *seq_ref += 1;
+
+  return true;
 }
 
 void
@@ -236,13 +245,38 @@ NetworkEgress()
   LoopbackCopy(end_seq - 1);
 
   // Re-send input history
-  uint64_t count = 0;
-  for (uint64_t i = begin_seq; i < end_seq; ++i) {
-    NetworkSend(player_index, i);
-    ++count;
+  uint64_t seq = begin_seq;
+  for (int i = 0; i < MAX_UPDATE; ++i) {
+    Update* header = (Update*)kNetworkState.netbuffer;
+    header->sequence = seq;
+    header->ack_frame = kNetworkState.ack_frame;
+
+    uint8_t* write_buffer = kNetworkState.netbuffer + sizeof(Update);
+    const uint8_t* end_buffer = kNetworkState.netbuffer + sizeof(kNetworkState.netbuffer);
+    while (seq < end_seq) {
+      if (!NetworkAppend(player_index, end_buffer, &write_buffer, &seq)) break;
+    }
+
+#if 1
+    printf(
+        "CliSnd "
+        "[ %lu player_index ] "
+        "[ %lu header_sequence ] "
+        "[ %lu ack_sequence ] "
+        "[ %lu ack_frame ] "
+        "[ %ld written ] "
+        "\n",
+        kNetworkState.player_index, header->sequence,
+        kNetworkState.ack_sequence, kNetworkState.ack_frame,
+        write_buffer - kNetworkState.netbuffer);
+#endif
+
+    udp::Send(kNetworkState.socket, kNetworkState.netbuffer,
+              write_buffer - kNetworkState.netbuffer);
   }
 
   bool received_ack = kNetworkState.ack_sequence > 0;
+  uint64_t count = end_seq - begin_seq;
   uint64_t min_value = (received_ack * count) + (!received_ack * UINT64_MAX);
   uint64_t max_value = count;
 

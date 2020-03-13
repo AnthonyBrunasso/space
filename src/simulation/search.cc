@@ -37,6 +37,7 @@ BfsStart(v2i start)
   kSearch.queue_size = 0;
   kSearch.queue_ptr = 0;
   kSearch.path.size = 0;
+  if (!TileOk(start)) return;
   kSearch.queue[kSearch.queue_size++] = start;
   kSearch.path_map[start.y][start.x].from = start;
   kSearch.path_map[start.y][start.x].checked = true;

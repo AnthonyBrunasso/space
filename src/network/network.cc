@@ -8,6 +8,8 @@
 
 #include "server.cc"
 
+#define ALAN_DEBUG 0
+
 // Input events capable of being processed in one game loop
 #define MAX_TICK_EVENTS 32ul
 // Game loop inputs allowed in-flight on the network
@@ -94,8 +96,10 @@ NetworkSetup()
   const uint64_t usec = 50 * 1000;
   platform::clock_init(usec, &handshake_clock);
   Handshake h = {.num_players = kNetworkState.num_players};
+#if ALAN_DEBUG
   printf("Client: send '%s' for %lu players\n", h.greeting,
          kNetworkState.num_players);
+#endif
   for (int send_count = 0; bytes_received <= 0 && send_count < 5000000;
        ++send_count) {
     if (!udp::Send(kNetworkState.socket, &h, sizeof(h))) exit(1);
@@ -111,12 +115,16 @@ NetworkSetup()
     }
   }
 
+#if ALAN_DEBUG
   printf("Client Handshake [bytes_received %d]\n", bytes_received);
+#endif
   if (bytes_received != sizeof(NotifyGame)) exit(3);
 
   NotifyGame* ns = (NotifyGame*)kNetworkState.netbuffer;
+#if ALAN_DEBUG
   printf("Handshake success [ player_id %zu ] [ player_count %zu ] \n",
          (size_t)ns->player_id, (size_t)ns->player_count);
+#endif
 
   kNetworkState.game_id = ns->game_id;
   kNetworkState.player_index = ns->player_id;
@@ -138,7 +146,7 @@ GetNextInputBuffer()
 {
   uint64_t slot = NETQUEUE_SLOT(kNetworkState.outgoing_sequence);
 
-#if 1
+#if ALAN_DEBUG
   printf("--ProcessInput [ %lu seq ][ %lu slot ]\n",
          kNetworkState.outgoing_sequence, slot);
 #endif
@@ -208,7 +216,7 @@ NetworkAppend(uint64_t player_index, const uint8_t* end_buffer,
   // Full packet
   if (end_buffer - netbuffer < event_bytes) return false;
 
-#if 1
+#if ALAN_DEBUG
   printf(
       "Client NetworkAppend "
       "[ event_bytes %lu ] "
@@ -260,7 +268,7 @@ NetworkEgress()
       if (!NetworkAppend(player_index, end_buffer, &write_buffer, &seq)) break;
     }
 
-#if 1
+#if ALAN_DEBUG
     printf(
         "CliSnd "
         "[ %lu player_index ] "
@@ -299,7 +307,7 @@ NetworkIngress(uint64_t next_simulation_frame)
     const uint64_t ack_sequence = update->ack_sequence;
     const int64_t ack_delta = ack_sequence - update->ack_sequence;
 
-#if 1
+#if ALAN_DEBUG
     printf(
         "CliRcv "
         "[ %lu ack_seq ] "
@@ -321,12 +329,14 @@ NetworkIngress(uint64_t next_simulation_frame)
       const uint64_t frame = nf->frame;
       const uint64_t slot = NETQUEUE_SLOT(frame);
 
+#if ALAN_DEBUG
       printf(
           "CliRcvFrame "
           "[ %lu slot ] "
           "[ %lu frame ] "
           "\n",
           slot, frame);
+#endif
 
       for (int i = 0; i < num_players; ++i) {
         if (offset + sizeof(Turn) >= end_buffer) {

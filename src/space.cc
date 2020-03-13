@@ -206,7 +206,7 @@ main(int argc, char** argv)
         simulation::CacheSyncHashes(slot == 0, kGameState.logic_updates);
 
         // Game Mutation: Apply player commands for turn N
-#if 1
+#if ALAN_DEBUG
         printf("Simulation [ %lu slot ] [ %lu frame ] [ %lu jerk ]\n", slot,
                kGameState.logic_updates, kGameState.game_clock.jerk);
 #endif

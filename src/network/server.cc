@@ -229,7 +229,7 @@ game_transmit(Udp4 location, uint64_t game_index)
       update->ack_sequence = player[pidx].sequence;
       udp::SendTo(location, player[pidx].peer, out_buffer, offset - out_buffer);
     }
-#if 1
+#if ALAN_DEBUG
     printf("Server transmit [ start_frame %lu ] [ last_frame %lu ]\n",
            start_frame, send_frame - 1);
 #endif
@@ -248,7 +248,7 @@ game_update(uint64_t realtime_usec, uint64_t game_index)
   int64_t realtime_delta = realtime_usec - next_tick;
   if (realtime_delta < 0) return false;
 
-#if 1
+#if ALAN_DEBUG
   printf(
       "Update game "
       "[ game_id %lu ] "
@@ -279,7 +279,7 @@ game_update(uint64_t realtime_usec, uint64_t game_index)
     }
   }
 
-#if 1
+#if ALAN_DEBUG
   printf("Server game [ frame %lu ] [ ack_frame %lu ] [ new_ack_frame %lu ]\n",
          next_frame, g->ack_frame, new_ack_frame);
 #endif
@@ -559,7 +559,7 @@ server_main(void* void_arg)
       player[pidx].corrupted = 1;
     }
 
-#if 1
+#if ALAN_DEBUG
     printf(
         "SvrRcv "
         "[ %d player_index ] "

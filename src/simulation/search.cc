@@ -65,6 +65,13 @@ BfsStep(int i, v2i* n, Tile** tile)
   return true;
 }
 
+inline bool
+BfsStep(int i, v2i* n)
+{
+  Tile* t;
+  return BfsStep(i, n, &t);
+}
+
 // Returns the next valid tile of the bfs algorithm while expanding neighbors
 // into the queue. Differs from BfsStep in that it alters the queue and it does
 // not provide an ability to filter results before entering the queue.
@@ -74,15 +81,12 @@ BfsNext(v2i* pos, Tile** tile)
   auto& queue = kSearch.queue;
   int& qsz = kSearch.queue_size;
   int& qptr = kSearch.queue_ptr;
-  auto& path_map = kSearch.path_map;
-  int oqsz = qsz;
   if (qptr == qsz) return false;
   *pos = queue[qptr];
   *tile = TilePtr(*pos);
   for (int i = 0; i < kMaxNeighbor; ++i) {
     v2i np;
-    Tile* nt;
-    if (BfsStep(i, &np, &nt)) queue[qsz++] = np;
+    if (BfsStep(i, &np)) queue[qsz++] = np;
   }
   return true;
 }
@@ -102,18 +106,16 @@ PathTo(const v2i& start, const v2i& end)
   BfsStart(start);
   
   v2i p;
-  Tile* t;
-  while (BfsNext(&p, &t)) {
+  while (BfsNext(&p)) {
     if (p == end) break;
   }
 
-  auto& path_map = kSearch.path_map;
   auto& path = kSearch.path;
   auto& psz = kSearch.path.size;
   path.tile[psz++] = end;
   while (path.tile[psz - 1] != start) {
     auto& prev = path.tile[psz - 1];
-    path.tile[psz++] = path_map[prev.y][prev.x].from;
+    path.tile[psz++] = kSearch.path_map[prev.y][prev.x].from;
   }
   // Reverse it
   for (int i = 0, e = psz - 1; i < e; ++i, --e) {

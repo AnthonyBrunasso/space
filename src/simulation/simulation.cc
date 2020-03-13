@@ -747,15 +747,14 @@ Decide()
     if (c.unit_id == kInvalidUnit) {
       bool group_move = units_selected > 1 && c.type == kUaMove;
       const unsigned player_control = (1 << kPlayerIndex);
-      if (group_move) BfsStart(WorldToTilePos(c.destination));
-      int bfsi = 0;
+      BfsStart(WorldToTilePos(c.destination));
       for (int i = 0; i < kUsedUnit; ++i) {
         // The issuer of a command must have a set bit
         if (0 == (kUnit[i].control & c.control)) continue;
-        if (i > 0 && group_move) {
-          v2i n;
-          BfsStep(bfsi++, &n);
-          c.destination = TilePosToWorld(n);
+        if (group_move) {
+          v2i pos;
+          BfsNext(&pos);
+          c.destination = TilePosToWorld(pos);
         }
         ApplyCommand(&kUnit[i], c);
       }

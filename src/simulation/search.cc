@@ -42,8 +42,12 @@ BfsStart(v2i start)
   kSearch.path_map[start.y][start.x].checked = true;
 }
 
-bool
-BfsStep(int i, v2i* n)
+// Performs a single step of the bfs expansion. Returns false if the neighbor
+// tile could not be expanded. True otherwise.
+//
+// Out parameters are the tile that is currently being expanded.
+inline bool
+BfsStep(int i, v2i* n, Tile** tile)
 {
   auto& queue = kSearch.queue;
   int& qsz = kSearch.queue_size;
@@ -52,13 +56,41 @@ BfsStep(int i, v2i* n)
   auto& from = queue[qptr];
   if (i >= kMaxNeighbor - 1) ++qptr;
   const v2i neighbor = from + kNeighbor[i];
-  Tile* neighbor_tile = TilePtr(neighbor);
-  if (!neighbor_tile || neighbor_tile->blocked) return false;
+  *tile = TilePtr(neighbor);
+  if (!(*tile) || (*tile)->blocked) return false;
   if (path_map[neighbor.y][neighbor.x].checked == true) return false;
   path_map[neighbor.y][neighbor.x].checked = true;
   path_map[neighbor.y][neighbor.x].from = from;
   *n = neighbor;
   return true;
+}
+
+// Returns the next valid tile of the bfs algorithm while expanding neighbors
+// into the queue. Differs from BfsStep in that it alters the queue and it does
+// not provide an ability to filter results before entering the queue.
+inline bool
+BfsNext(v2i* pos, Tile** tile)
+{
+  auto& queue = kSearch.queue;
+  int& qsz = kSearch.queue_size;
+  int& qptr = kSearch.queue_ptr;
+  auto& path_map = kSearch.path_map;
+  int oqsz = qsz;
+  if (qptr == qsz) return false;
+  *pos = queue[qptr];
+  *tile = TilePtr(*pos);
+  for (int i = 0; i < kMaxNeighbor; ++i) {
+    v2i np;
+    Tile* nt;
+    if (BfsStep(i, &np, &nt)) queue[qsz++] = np;
+  }
+  return true;
+}
+
+inline bool
+BfsNext(v2i* pos) {
+  Tile* t;
+  return BfsNext(pos, &t);
 }
 
 Path*
@@ -68,22 +100,14 @@ PathTo(const v2i& start, const v2i& end)
   if (!TileOk(start)) return nullptr;
   
   BfsStart(start);
-
-  auto& queue = kSearch.queue;
-  int& qsz = kSearch.queue_size;
-  int& qptr = kSearch.queue_ptr;
-  auto& path_map = kSearch.path_map;
-  while (1) {
-    // No Path
-    if (qptr == qsz) return nullptr;
-    // Path success
-    if (queue[qptr] == end) break;
-    v2i n;
-    for (int i = 0; i < kMaxNeighbor; ++i) {
-      if (BfsStep(i, &n)) queue[qsz++] = n;
-    }
+  
+  v2i p;
+  Tile* t;
+  while (BfsNext(&p, &t)) {
+    if (p == end) break;
   }
 
+  auto& path_map = kSearch.path_map;
   auto& path = kSearch.path;
   auto& psz = kSearch.path.size;
   path.tile[psz++] = end;
@@ -97,12 +121,7 @@ PathTo(const v2i& start, const v2i& end)
     path.tile[e] = path.tile[i];
     path.tile[i] = t;
   }
-#if 0
-  printf("Path is\n\n");
-  for (int i = 0; i < psz; ++i) {
-    printf("(%i,%i)\n", path.tile[i].x, path.tile[i].y);
-  }
-#endif
+
   return &kSearch.path;
 }
 
@@ -130,8 +149,8 @@ BfsRemoveOxygen(v2i start, const uint64_t limit)
     if (qptr == qsz) return count;
     v2i n;
     for (int i = 0; i < kMaxNeighbor; ++i) {
-      if (BfsStep(i, &n)) {
-        Tile* neighbor_tile = TilePtr(n);
+      Tile* neighbor_tile;
+      if (BfsStep(i, &n, &neighbor_tile)) {
         if (neighbor_tile->nooxygen == 0) {
           neighbor_tile->nooxygen = 1;
           ++count;
@@ -166,8 +185,8 @@ BfsMutate(v3f origin, Tile keep_bits, Tile set_bits, float tile_dsq)
     if (qptr == qsz) return;
     v2i n;
     for (int i = 0; i < kMaxNeighbor; ++i) {
-      if (BfsStep(i, &n)) {
-        Tile* neighbor_tile = TilePtr(n);
+      Tile* neighbor_tile;
+      if (BfsStep(i, &n, &neighbor_tile)) {
         v3f neighbor_world = TilePosToWorld(n);
         v3f world = neighbor_world - origin;
         float distance = LengthSquared(world);

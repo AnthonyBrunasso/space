@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstdio>
 #include <cassert>
+#include <cstdio>
 
 #include "common/constants.h"
 #include "math/math.cc"
@@ -202,7 +202,7 @@ NetworkAppend(uint64_t player_index, const uint8_t* end_buffer,
 
   InputBuffer* ibuf = &kNetworkState.input[slot];
   Turn* turn = (Turn*)netbuffer;
-  uint8_t* event = netbuffer+sizeof(Turn);
+  uint8_t* event = netbuffer + sizeof(Turn);
   uint64_t event_bytes = sizeof(PlatformEvent) * ibuf->used_input_event;
 
   // Full packet
@@ -254,7 +254,8 @@ NetworkEgress()
     header->ack_frame = kNetworkState.ack_frame;
 
     uint8_t* write_buffer = kNetworkState.netbuffer + sizeof(Update);
-    const uint8_t* end_buffer = kNetworkState.netbuffer + sizeof(kNetworkState.netbuffer);
+    const uint8_t* end_buffer =
+        kNetworkState.netbuffer + sizeof(kNetworkState.netbuffer);
     while (seq < end_seq) {
       if (!NetworkAppend(player_index, end_buffer, &write_buffer, &seq)) break;
     }
@@ -291,59 +292,74 @@ NetworkEgress()
 void
 NetworkIngress(uint64_t next_simulation_frame)
 {
-  uint64_t local_player = kNetworkState.player_index;
-
   int16_t bytes_received;
   while (udp::ReceiveFrom(kNetworkState.socket, sizeof(kNetworkState.netbuffer),
                           kNetworkState.netbuffer, &bytes_received)) {
-    NotifyFrame* nf = (NotifyFrame*)kNetworkState.netbuffer;
-    uint64_t header_frame = nf->frame;
-    uint64_t ack_sequence = nf->ack_sequence;
+    NotifyUpdate* update = (NotifyUpdate*)kNetworkState.netbuffer;
+    const uint64_t ack_sequence = update->ack_sequence;
+    const int64_t ack_delta = ack_sequence - update->ack_sequence;
+
 #if 1
     printf(
-        "CliRcv [ %lu header_frame ] [ %lu "
-        "ack_seq ] [ %lu next_simulation_frame ]\n",
-        header_frame, ack_sequence, next_simulation_frame);
+        "CliRcv "
+        "[ %lu ack_seq ] "
+        "[ %ld ack_delta ] "
+        "\n",
+        ack_sequence, ack_delta);
 #endif
 
-    // Drop old frames, the game has progressed
-    if (header_frame < next_simulation_frame) continue;
-    // Drop out of range frames
-    if (header_frame - next_simulation_frame >= MAX_NETQUEUE) continue;
+    if (ack_delta < 0) continue;
+    if (ack_sequence - kNetworkState.ack_sequence >= MAX_NETQUEUE) continue;
+    kNetworkState.ack_sequence = ack_sequence;
 
-    uint64_t slot = NETQUEUE_SLOT(header_frame);
-    const uint8_t* read_offset = kNetworkState.netbuffer + sizeof(NotifyFrame);
-    uint64_t num_players = kNetworkState.num_players;
-    for (int i = 0; i < num_players; ++i) {
-      const NotifyTurn* nt = (NotifyTurn*)read_offset;
-      const uint8_t *event = read_offset+sizeof(NotifyTurn);
-      uint64_t event_bytes = nt->event_bytes;
+    const uint8_t* offset = (kNetworkState.netbuffer + sizeof(NotifyUpdate));
+    const uint8_t* end_buffer = kNetworkState.netbuffer + bytes_received;
+    const uint64_t num_players = kNetworkState.num_players;
+    while (offset + sizeof(NotifyFrame) < end_buffer) {
+      NotifyFrame* nf = (NotifyFrame*)offset;
+      offset += sizeof(NotifyFrame);
+      const uint64_t frame = nf->frame;
+      const uint64_t slot = NETQUEUE_SLOT(frame);
 
-      // Personal boundaries
-      if (event_bytes > sizeof(PlatformEvent) * MAX_TICK_EVENTS) {
-        puts("Corrupt packet");
-        return;
+      printf(
+          "CliRcvFrame "
+          "[ %lu slot ] "
+          "[ %lu frame ] "
+          "\n",
+          slot, frame);
+
+      for (int i = 0; i < num_players; ++i) {
+        if (offset + sizeof(Turn) >= end_buffer) {
+          puts("Corrupt packet");
+          exit(3);
+        }
+        Turn* turn = (Turn*)offset;
+        const uint64_t event_bytes = turn->event_bytes;
+        if (offset + event_bytes + sizeof(Turn) > end_buffer) {
+          puts("Corrupt packet");
+          exit(3);
+        }
+        if (event_bytes > sizeof(PlatformEvent) * MAX_TICK_EVENTS) {
+          puts("Overflow packet");
+          exit(3);
+        }
+        if (kNetworkState.network_slot[slot][i] == kSlotInFlight) {
+          const uint8_t* event = offset + sizeof(Turn);
+          InputBuffer* ibuf = &kNetworkState.player_input[slot][i];
+          memcpy(ibuf->input_event, event, event_bytes);
+          ibuf->used_input_event = event_bytes / sizeof(PlatformEvent);
+          static_assert(sizeof(PlatformEvent) % 2 == 0,
+                        "Prefer a power of 2 for fast division.");
+          kNetworkState.network_slot[slot][i] = kSlotReceived;
+        }
+        offset += event_bytes + sizeof(Turn);
       }
-
-      InputBuffer* ibuf = &kNetworkState.player_input[slot][i];
-      memcpy(ibuf->input_event, event, event_bytes);
-      ibuf->used_input_event = event_bytes / sizeof(PlatformEvent);
-      static_assert(sizeof(PlatformEvent) % 2 == 0,
-                     "Prefer a power of 2 for fast division.");
-      kNetworkState.network_slot[slot][i] = kSlotReceived;
-#if 0
-    printf("Copied NotifyTurn [ %lu player_id ] [ %lu event_bytes ]\n", i, event_bytes);
-#endif
-      read_offset += sizeof(NotifyTurn) + event_bytes;
     }
-
-    // Accept highest received ack_sequence
-    kNetworkState.ack_sequence = MAX(kNetworkState.ack_sequence, ack_sequence);
   }
 
-  uint64_t ready_to_frame =
+  uint64_t end_frame =
       next_simulation_frame + NetworkContiguousSlotReady(next_simulation_frame);
-  kNetworkState.ack_frame = ready_to_frame - 1;
+  kNetworkState.ack_frame = end_frame - 1;
 }
 
 uint64_t

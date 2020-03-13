@@ -68,7 +68,7 @@ engine -
 network -
   handle truncated udp packets and zero length packets
   retransmission clock OR consider modifying ack_frame and ack_sequence to use latest value w/ packet history
-  server game clock & turn reordering
+  server turn injection/reordering
   server retransmission of NotifyGame
   client tune netqueue for smooth simulation under network variance
 

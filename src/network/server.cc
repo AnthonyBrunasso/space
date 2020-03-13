@@ -19,6 +19,10 @@ static ServerParam thread_param;
 #define MAX_PACKET_IN 1024
 #define MAX_PACKET_OUT (MAX_PLAYER * 1024)
 #define TIMEOUT_USEC (2 * 1000 * 1000)
+// Update packets per frame
+#define MAX_UPDATE 1
+#define GAME_TICK_USEC (16666)
+#define SERVER_TICK_USEC (8333)
 
 struct PlayerState {
   Udp4 peer;
@@ -50,6 +54,8 @@ struct Game {
   uint8_t slot[MAX_GAMEQUEUE][MAX_PLAYER][MAX_PACKET_IN];
   // Game byte count
   uint64_t used_slot[MAX_GAMEQUEUE][MAX_PLAYER];
+  // Game start time
+  uint64_t start_usec;
 };
 static Game game[MAX_GAME];
 
@@ -168,71 +174,92 @@ prune_games()
 }
 
 bool
-SendFrame(Udp4 location, uint64_t frame, uint64_t pidx, const Game* g)
+AppendFrame(uint64_t frame, uint64_t game_index, const uint8_t* end_buffer,
+            uint8_t** write_ref)
 {
-  static uint8_t out_buffer[MAX_PACKET_OUT];
   uint64_t sidx = GAMEQUEUE_SLOT(frame);
-  uint64_t num_players = player[pidx].num_players;
-  uint64_t ack_sequence = player[pidx].sequence;
+  uint64_t num_players = game[game_index].num_players;
 
-  NotifyFrame* nf = (NotifyFrame*)out_buffer;
+  NotifyFrame* nf = (NotifyFrame*)*write_ref;
   nf->frame = frame;
-  nf->ack_sequence = ack_sequence;
-  uint8_t* offset = out_buffer + sizeof(NotifyFrame);
+  uint8_t* offset = (*write_ref + sizeof(NotifyFrame));
   for (int j = 0; j < num_players; ++j) {
-    NotifyTurn* nt = (NotifyTurn*)offset;
-    uint8_t * event = offset+sizeof(NotifyTurn);
-    uint64_t event_bytes = g->used_slot[sidx][j];
-    memcpy(event, g->slot[sidx][j], event_bytes);
+    Turn* nt = (Turn*)offset;
+    uint64_t event_bytes = game[game_index].used_slot[sidx][j];
+
+    if (offset + sizeof(Turn) + event_bytes >= end_buffer) return false;
+
+    uint8_t* event = offset + sizeof(Turn);
+    memcpy(event, game[game_index].slot[sidx][j], event_bytes);
     nt->event_bytes = event_bytes;
 
-    offset += sizeof(NotifyTurn) + event_bytes;
+    offset += sizeof(Turn) + event_bytes;
   }
 
-  return (udp::SendTo(location, player[pidx].peer, out_buffer,
-                      offset - out_buffer));
+  *write_ref = offset;
+
+  return true;
 }
 
 void
 game_transmit(Udp4 location, uint64_t game_index)
 {
+  static uint8_t out_buffer[MAX_PACKET_OUT];
   const Game* g = &game[game_index];
   const uint64_t game_id = g->game_id;
   if (!game_id) return;
 
-  const uint64_t start_frame = g->ack_frame + 1;
-  const uint64_t end_frame = g->last_frame;
-
   // Retransmission of NotifyTurn per player
-  for (uint64_t send_frame = start_frame; send_frame <= end_frame;
-       ++send_frame) {
+  uint64_t send_frame = g->ack_frame + 1;
+  uint64_t last_frame = g->last_frame;
+  for (int i = 0; i < MAX_UPDATE; ++i) {
+    NotifyUpdate* update = (NotifyUpdate*)out_buffer;
+    uint8_t* offset = out_buffer + sizeof(NotifyUpdate);
+
+    const uint64_t start_frame = send_frame;
+    while (send_frame <= last_frame) {
+      if (!AppendFrame(send_frame, game_index, out_buffer + sizeof(out_buffer),
+                       &offset))
+        break;
+      ++send_frame;
+    }
+
     for (int pidx = 0; pidx < MAX_PLAYER; ++pidx) {
       if (player[pidx].game_index != game_index) continue;
-      if (player[pidx].ack_frame >= send_frame) continue;
-
-      if (!SendFrame(location, send_frame, pidx, g)) {
-        printf("server send failed [ player_index %d ]\n", pidx);
-      }
+      update->ack_sequence = player[pidx].sequence;
+      udp::SendTo(location, player[pidx].peer, out_buffer, offset - out_buffer);
     }
-  }
 #if 1
-  printf("Server transmit [ start_frame %lu ] [ end_frame %lu ]\n", start_frame,
-         end_frame);
+    printf("Server transmit [ start_frame %lu ] [ last_frame %lu ]\n",
+           start_frame, send_frame - 1);
 #endif
+  }
 }
 
 bool
-game_update(uint64_t game_index)
+game_update(uint64_t realtime_usec, uint64_t game_index)
 {
   Game* g = &game[game_index];
   const uint64_t game_id = g->game_id;
   const uint64_t next_frame = g->last_frame + 1;
   if (!game_id) return false;
 
-#if 0
-  printf("Update game [ game_id %lu ] [ num_players %lu ]\n", g->game_id,
-         g->num_players);
+  const uint64_t next_tick = g->start_usec + (next_frame * GAME_TICK_USEC);
+  int64_t realtime_delta = realtime_usec - next_tick;
+  if (realtime_delta < 0) return false;
+
+#if 1
+  printf(
+      "Update game "
+      "[ game_id %lu ] "
+      "[ num_players %lu ] "
+      "[ realtime_usec %lu ] "
+      "[ next_tick %lu ] "
+      "[ realtime_delta %ld ] "
+      "\n",
+      g->game_id, g->num_players, realtime_usec, next_tick, realtime_delta);
 #endif
+
   uint64_t sidx = GAMEQUEUE_SLOT(next_frame);
   for (uint64_t i = 0; i < g->num_players; ++i) {
     if (g->used_slot[sidx][i] == 0) return false;
@@ -296,23 +323,22 @@ server_main(void* void_arg)
   }
 
   uint64_t realtime_usec = 0;
-  uint64_t time_step_usec = 8 * 1000;
   Clock_t server_clock;
-  platform::clock_init(time_step_usec, &server_clock);
+  platform::clock_init(SERVER_TICK_USEC, &server_clock);
   while (running) {
     uint16_t received_bytes;
     Udp4 peer;
 
     uint64_t sleep_usec;
     if (platform::clock_sync(&server_clock, &sleep_usec)) {
-      realtime_usec += time_step_usec;
+      realtime_usec += SERVER_TICK_USEC;
 
       prune_players(realtime_usec);
       prune_games();
 
       bool ready[MAX_GAME] = {};
       for (int i = 0; i < MAX_GAME; ++i) {
-        while (game_update(i)) {
+        while (game_update(realtime_usec, i)) {
           ready[i] = true;
         }
       }
@@ -420,6 +446,7 @@ server_main(void* void_arg)
         game[gidx].num_players = player[pidx].num_players;
         game[gidx].last_frame = 0;
         game[gidx].ack_frame = 0;
+        game[gidx].start_usec = realtime_usec;
         printf("Server created Game [ game_index %lu ]\n", gidx);
         continue;
       }
@@ -500,7 +527,7 @@ server_main(void* void_arg)
       }
 
       const Turn* turn = (const Turn*)read_offset;
-      const uint8_t *event = read_offset+sizeof(Turn);
+      const uint8_t* event = read_offset + sizeof(Turn);
       uint64_t event_bytes = turn->event_bytes;
 
 #if 0
@@ -532,7 +559,7 @@ server_main(void* void_arg)
       player[pidx].corrupted = 1;
     }
 
-#if 0
+#if 1
     printf(
         "SvrRcv "
         "[ %d player_index ] "

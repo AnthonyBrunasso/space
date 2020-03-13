@@ -36,21 +36,22 @@ struct Update {
   uint64_t sequence;
   uint64_t ack_frame;
 #ifndef _WIN32
+  // N updates from the local player
   Turn turn[];
-#endif
-};
-
-struct NotifyTurn {
-  uint64_t event_bytes;
-#ifndef _WIN32
-  PlatformEvent event[];
 #endif
 };
 
 struct NotifyFrame {
   uint64_t frame;
+#ifndef _WIN32
+  // N updates, one for each game participant on frame
+  Turn turn[];
+#endif
+};
+
+struct NotifyUpdate {
   uint64_t ack_sequence;
 #ifndef _WIN32
-  NotifyTurn turn[];
+  NotifyFrame turn[];
 #endif
 };

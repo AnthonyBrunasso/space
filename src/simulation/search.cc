@@ -84,6 +84,7 @@ BfsNext(v2i* pos, Tile** tile)
   if (qptr == qsz) return false;
   *pos = queue[qptr];
   *tile = TilePtr(*pos);
+  int oqsz = qsz;
   for (int i = 0; i < kMaxNeighbor; ++i) {
     v2i np;
     if (BfsStep(i, &np)) queue[qsz++] = np;
@@ -106,9 +107,15 @@ PathTo(const v2i& start, const v2i& end)
   BfsStart(start);
   
   v2i p;
+  bool path_found = false;
   while (BfsNext(&p)) {
-    if (p == end) break;
+    if (p == end) {
+      path_found = true;
+      break;
+    }
   }
+
+  if (!path_found) return nullptr;
 
   auto& path = kSearch.path;
   auto& psz = kSearch.path.size;

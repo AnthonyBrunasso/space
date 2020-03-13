@@ -128,10 +128,8 @@ RenderCrew(uint64_t ship_index)
         continue;
     }
 
-    if (unit->control) {
-      if (unit->control & (1 << kPlayerIndex)) {
-        color = v4f(34.f / 255.f, 139.f / 255.f, 34.f / 255.f, 1.f);
-      }
+    if (unit->control & (1 << kPlayerIndex)) {
+      color = v4f(34.f / 255.f, 139.f / 255.f, 34.f / 255.f, 1.f);
     }
 
     rgg::RenderRectangle(unit->transform.position, unit->transform.scale,

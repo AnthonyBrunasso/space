@@ -163,6 +163,8 @@ struct Pod {
 };
 DECLARE_GAME_TYPE(Pod, 8);
 
+constexpr uint64_t kNonPlayerId = UINT64_MAX;
+
 struct Unit {
   Transform transform;
   Blackboard bb;
@@ -181,6 +183,7 @@ struct Unit {
   float health = 5.0f;
   float max_health = 5.0f;
   float speed = 1.f;
+  uint64_t player_id = kNonPlayerId;
 
   uint8_t acurrent[CREWA_MAX];
   uint8_t aknown_min[CREWA_MAX] = CREW_AWORST;

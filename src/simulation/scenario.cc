@@ -38,6 +38,13 @@ constexpr const char* kScenarioNames[Scenario::kMaxScenario] = {
     "Game", "Combat", "Solo", "TwoShip", "CombatGroup", "AI", "Empty",
 };
 
+int
+AssignPlayerId()
+{
+  static int id = 0;
+  return (id++ % kPlayerCount);
+}
+
 void
 SpawnCrew(int count)
 {
@@ -56,6 +63,7 @@ SpawnCrew(int count)
     unit->spacesuit = 1;
     // Everybody is unique!
     unit->mskill = i;
+    unit->player_id = AssignPlayerId();
   }
 }
 
@@ -94,6 +102,7 @@ InitializeScenario(bool reset_features = true)
       kUnit[0].ship_index = 0;
       kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
       kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
+      kUnit[0].player_id = AssignPlayerId();
 
       UseIdUnit();
       kUnit[1].ship_index = 0;
@@ -114,6 +123,7 @@ InitializeScenario(bool reset_features = true)
       kUnit[0].ship_index = 0;
       kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
       kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
+      kUnit[0].player_id = AssignPlayerId();
 
       UseIdUnit();
       kUnit[1].ship_index = 0;
@@ -163,6 +173,7 @@ InitializeScenario(bool reset_features = true)
       kUnit[0].ship_index = 0;
       kUnit[0].transform.position = v3f(300.f, 300.f, 0.f);
       kUnit[0].transform.scale = v3f(0.25f, 0.25f, 0.f);
+      kUnit[0].player_id = AssignPlayerId();
 
       Module* mod = UseModule();
       v2i tpos = WorldToTilePos(kUnit[0].transform.position);

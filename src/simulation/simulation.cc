@@ -597,6 +597,7 @@ UpdateModule(uint64_t ship_index)
       unit->ship_index = ship_index;
       unit->kind = kMilitary;
       unit->alliance = reinforce_team;
+      unit->player_id = AssignPlayerId();
     }
   }
 }
@@ -728,6 +729,7 @@ UpdateConsumable(uint64_t ship_index)
         new_unit->kind = kOperator;
         // Everybody is unique!
         new_unit->mskill = rand() % kModCount;
+        new_unit->player_id = AssignPlayerId();
 
         *c = kZeroConsumable;
       } else {

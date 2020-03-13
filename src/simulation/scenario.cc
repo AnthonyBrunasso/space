@@ -23,7 +23,6 @@ struct Scenario {
   Type type;
 
   // Feature enabled in the scenario.
-  unsigned ai : 1;
   unsigned ship : 1;
   unsigned asteroid : 1;
   unsigned missile : 1;
@@ -115,7 +114,6 @@ InitializeScenario(bool reset_features = true)
     case Scenario::kSoloMission: {
       if (reset_features) {
         memset(&kScenario, 0, sizeof(kScenario));
-        kScenario.ai = 1;
         kScenario.tilemap = 2;
       }
       // One unit
@@ -158,7 +156,6 @@ InitializeScenario(bool reset_features = true)
     case Scenario::kTwoShip: {
       if (reset_features) {
         memset(&kScenario, 0xff, sizeof(kScenario));
-        kScenario.ai = 0;
         kScenario.missile = 0;
         kScenario.asteroid = 0;
       }

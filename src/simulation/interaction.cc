@@ -102,7 +102,6 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec,
     ResetScenario(false);                            \
   }
       imui::Indent(2);
-      UI_TOGGLE_FEATURE(ai);
       UI_TOGGLE_FEATURE(ship);
       UI_TOGGLE_FEATURE(asteroid);
       UI_TOGGLE_FEATURE(missile);

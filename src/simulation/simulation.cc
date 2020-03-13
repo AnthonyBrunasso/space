@@ -69,36 +69,6 @@ operator_save_power(Unit* unit, float power_delta)
 }
 
 void
-ThinkAI(uint64_t ship_index)
-{
-  if (!kScenario.ai) return;
-
-  for (uint64_t i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
-    if (unit->control) continue;
-    if (unit->alliance == kEnemy) continue;
-
-    Command c = {kUaNone, v3f(), unit->id, 0};
-
-    for (int k = 0; k < kUsedModule; ++k) {
-      Module* mod = &kModule[k];
-      // Already near a module, operate it
-      if (v3fDsq(v3fModule(mod), unit->transform.position) < kDsqOperate) {
-        c = (Command{kUaOperate, v3fModule(mod), unit->id});
-        break;
-      }
-      // Unit seeks a module to apply unique skills
-      if (mod->mkind == unit->mskill) {
-        c = (Command{kUaMove, v3fModule(mod), unit->id});
-        break;
-      }
-    }
-
-    PushCommand(c);
-  }
-}
-
-void
 ThinkShip(uint64_t ship_index)
 {
   if (!kScenario.ship) return;
@@ -304,7 +274,6 @@ Think()
     // Shroud is reset each frame
     TilemapUpdate(kScenario.tilemap);
 
-    ThinkAI(i);
     ThinkShip(i);
     ThinkMissle(i);
     ThinkPod(i);

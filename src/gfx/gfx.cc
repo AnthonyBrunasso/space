@@ -105,12 +105,22 @@ RenderCrew(uint64_t ship_index)
 
     v4f color;
     switch (unit->kind) {
-      case kOperator:
-        color = v4f(0.50f, .33f, .33f, 1.f);
-        break;
-      case kMilitary:
-        color = v4f(0.80, 0.10f, 0.10f, 1.f);
-        break;
+      case kOperator: {
+        switch (unit->player_id) {
+          case 0:
+            color = v4f(0.70f, .33f, .33f, 1.f);
+            break;
+          case 1:
+            color = v4f(0.33f, .33f, .70f, 1.f);
+            break;
+          case 2:
+            color = v4f(0.33f, .33f, .33f, 1.f);
+            break;
+          default:
+            color = v4f(1.f, 1.f, 1.f, 1.f);
+            break;
+        }
+      } break;
       case kAlien:
         color = v4f(0.30, 0.70f, 0.10f, 1.f);
         break;
@@ -118,9 +128,10 @@ RenderCrew(uint64_t ship_index)
         continue;
     }
 
-    // TODO (AN): Player specific selection colors?
     if (unit->control) {
-      color = v4f(0.26f, 0.33f, 0.68f, 1.f);
+      if (unit->control & (1 << kPlayerIndex)) {
+        color = v4f(34.f / 255.f, 139.f / 255.f, 34.f / 255.f, 1.f);
+      }
     }
 
     rgg::RenderRectangle(unit->transform.position, unit->transform.scale,

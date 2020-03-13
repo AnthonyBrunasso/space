@@ -60,7 +60,6 @@ enum UnitAction {
 };
 enum UnitKind {
   kOperator,
-  kMilitary,
   kAlien,
 };
 enum ModuleKind {

@@ -595,7 +595,7 @@ UpdateModule(uint64_t ship_index)
       uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
       memcpy(unit->acurrent, attrib, sizeof(attrib));
       unit->ship_index = ship_index;
-      unit->kind = kMilitary;
+      unit->kind = kOperator;
       unit->alliance = reinforce_team;
       unit->player_id = AssignPlayerId();
     }

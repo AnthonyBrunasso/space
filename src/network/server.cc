@@ -323,14 +323,14 @@ server_main(void* void_arg)
   }
 
   uint64_t realtime_usec = 0;
-  Clock_t server_clock;
-  platform::clock_init(SERVER_TICK_USEC, &server_clock);
+  TscClock_t server_clock;
+  clock_init(SERVER_TICK_USEC, &server_clock);
   while (running) {
     uint16_t received_bytes;
     Udp4 peer;
 
     uint64_t sleep_usec;
-    if (platform::clock_sync(&server_clock, &sleep_usec)) {
+    if (clock_sync(&server_clock, &sleep_usec)) {
       realtime_usec += SERVER_TICK_USEC;
 
       prune_players(realtime_usec);

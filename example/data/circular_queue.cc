@@ -73,8 +73,6 @@ main()
   puts("using compaction");
   test_compaction();
 #endif
-  // Clock_t clock;
-  // platform::clock_init(1000.0 * 1000.0 / 16.0f, &clock);
 
   uint64_t sleep;
   for (int i = 0; i < MAX_COMMAND; ++i) {
@@ -83,7 +81,6 @@ main()
 #else
     printf("%lu\n", pop_and_compact());
 #endif
-    // while (!platform::clock_sync(&clock, &sleep)) { }
   }
 
   return 0;

@@ -14,7 +14,7 @@ struct State {
   // Calculated available microseconds per game_update
   uint64_t frame_target_usec;
   // Game clock state
-  Clock_t game_clock;
+  TscClock_t game_clock;
   // Time it took to run a frame.
   uint64_t frame_time_usec = 0;
   // (optional) limit the simulation frames (UINT64_MAX will loop infinitely)
@@ -179,7 +179,7 @@ main(int argc, char** argv)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #endif
   // Reset the clock for simulation
-  platform::clock_init(kGameState.frame_target_usec, &kGameState.game_clock);
+  clock_init(kGameState.frame_target_usec, &kGameState.game_clock);
   const uint64_t frame_limit = kGameState.frame_limit;
   for (uint64_t frame = 0; frame <= frame_limit; ++frame) {
     if (window::ShouldClose()) break;
@@ -244,7 +244,7 @@ main(int argc, char** argv)
 #endif
 
     // Capture frame time before the potential stall on vertical sync
-    const uint64_t elapsed_usec = platform::delta_usec(&kGameState.game_clock);
+    const uint64_t elapsed_usec = clock_delta_usec(&kGameState.game_clock);
     kGameState.frame_time_usec = elapsed_usec;
     StatsAdd(elapsed_usec, &kGameStats);
 
@@ -260,7 +260,7 @@ main(int argc, char** argv)
 
     uint64_t sleep_usec = 0;
     uint64_t sleep_count = kGameState.sleep_on_loop;
-    while (!platform::clock_sync(&kGameState.game_clock, &sleep_usec)) {
+    while (!clock_sync(&kGameState.game_clock, &sleep_usec)) {
       while (sleep_count) {
         --sleep_count;
         platform::sleep_usec(sleep_usec);

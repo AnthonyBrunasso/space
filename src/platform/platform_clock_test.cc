@@ -29,7 +29,7 @@ main(int argc, char** argv)
   }
 
   int target_usec = 1000.0 * 1000.0 / framerate;
-  Clock_t clock;
+  TscClock_t clock;
   uint64_t sleep_usec = 0;
   uint64_t frame = 0;
   uint64_t did_sleep = 0;
@@ -39,13 +39,13 @@ main(int argc, char** argv)
       (uint64_t*)malloc(sizeof(uint64_t) * framerate * runtime_seconds);
   memset(sleep_duration, 0, sizeof(uint64_t) * framerate * runtime_seconds);
 
-  platform::clock_init(target_usec, &clock);
+  clock_init(target_usec, &clock);
 
   while (frame < framerate * runtime_seconds) {
     delta[frame] = platform::delta_usec(&clock);
 
     uint64_t sleep_count = yield_on_idle;
-    while (!platform::clock_sync(&clock, &sleep_usec)) {
+    while (!clock_sync(&clock, &sleep_usec)) {
       while (sleep_count) {
         --sleep_count;
         ++did_sleep;

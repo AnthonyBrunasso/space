@@ -28,9 +28,9 @@ main()
 
   printf("Listening on %s\n", port);
   printf("Limits [ %lu turns ] [ %lu bytes ]\n", MAX_TURN, MAX_BUFFER);
-  Clock_t server_clock;
+  TscClock_t server_clock;
   uint64_t time_step_usec = 1000;
-  platform::clock_init(time_step_usec, &server_clock);
+  clock_init(time_step_usec, &server_clock);
 
   uint8_t* write_buffer = buffer;
   uint16_t* write_record = record;
@@ -42,7 +42,7 @@ main()
     uint16_t bytes = 0;
 
     uint64_t sleep_usec;
-    platform::clock_sync(&server_clock, &sleep_usec);
+    clock_sync(&server_clock, &sleep_usec);
 
     if (!udp::ReceiveAny(local_socket, MAX_RECEIVE, write_buffer, &bytes,
                          &peer)) {

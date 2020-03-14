@@ -92,9 +92,9 @@ NetworkSetup()
 
   uint64_t jerk;
   int16_t bytes_received = 0;
-  Clock_t handshake_clock;
+  TscClock_t handshake_clock;
   const uint64_t usec = 50 * 1000;
-  platform::clock_init(usec, &handshake_clock);
+  clock_init(usec, &handshake_clock);
   Handshake h = {.num_players = kNetworkState.num_players};
 #if ALAN_DEBUG
   printf("Client: send '%s' for %lu players\n", h.greeting,
@@ -110,7 +110,7 @@ NetworkSetup()
                            kNetworkState.netbuffer, &bytes_received))
         break;
       uint64_t sleep_usec = 0;
-      platform::clock_sync(&handshake_clock, &sleep_usec);
+      clock_sync(&handshake_clock, &sleep_usec);
       platform::sleep_usec(sleep_usec);
     }
   }

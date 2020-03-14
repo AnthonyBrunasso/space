@@ -55,9 +55,9 @@ main(int argc, char** argv)
 
   NetworkSetup();
 
-  Clock_t game_clock;
+  TscClock_t game_clock;
   float frame_target_usec = 1000.f * 1000.f / 60.f;
-  platform::clock_init(frame_target_usec, &game_clock);
+  clock_init(frame_target_usec, &game_clock);
   uint16_t* current_record = record_start;
   char* game_data = (char*)(record_end + 1);
   uint64_t frame = 0;
@@ -83,7 +83,7 @@ main(int argc, char** argv)
     printf("[ logic_usec %lu ]\n", logic_usec);
     uint64_t sleep_usec = 0;
     uint64_t sleep_count = 1;
-    while (!platform::clock_sync(&game_clock, &sleep_usec)) {
+    while (!clock_sync(&game_clock, &sleep_usec)) {
       while (sleep_count) {
         --sleep_count;
         platform::sleep_usec(sleep_usec);

@@ -5,7 +5,7 @@
 #include "macro.h"
 #include "rdtsc.h"
 
-struct Clock_t {
+typedef struct {
   // Conversion constants
   uint64_t median_tsc_per_usec;
   uint64_t median_usec_per_tsc;
@@ -17,15 +17,13 @@ struct Clock_t {
   uint64_t tsc_clock;
   // Used for time delta within a single frame
   uint64_t frame_to_frame_tsc;
-};
+} TscClock_t;
 
 #define USEC_PER_CLOCK (1000.f / 1000.f / CLOCKS_PER_SEC)
 #define CLOCKS_PER_MS (CLOCKS_PER_SEC / 1000)
 
-namespace platform
-{
 void
-clock_init(uint64_t frame_goal_usec, Clock_t *out_clock)
+clock_init(uint64_t frame_goal_usec, TscClock_t *out_clock)
 {
   clock_t c = clock();
   clock_t p;
@@ -71,19 +69,19 @@ clock_init(uint64_t frame_goal_usec, Clock_t *out_clock)
 }
 
 uint64_t
-__tscdelta_to_usec(const Clock_t *clock, uint64_t delta_tsc)
+__tscdelta_to_usec(const TscClock_t *clock, uint64_t delta_tsc)
 {
   return (delta_tsc * clock->median_usec_per_tsc) >> 33;
 }
 
 uint64_t
-delta_usec(const Clock_t *clock)
+clock_delta_usec(const TscClock_t *clock)
 {
   return __tscdelta_to_usec(clock, rdtsc() - clock->frame_to_frame_tsc);
 }
 
 bool
-clock_sync(Clock_t *clock, uint64_t *optional_sleep_usec)
+clock_sync(TscClock_t *clock, uint64_t *optional_sleep_usec)
 {
   uint64_t tsc_now = rdtsc();
   uint64_t tsc_previous = clock->tsc_clock;
@@ -109,4 +107,3 @@ clock_sync(Clock_t *clock, uint64_t *optional_sleep_usec)
   clock->frame_to_frame_tsc = tsc_now;
   return true;
 }
-}  // namespace platform

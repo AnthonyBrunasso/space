@@ -112,9 +112,9 @@ main(int argc, char** argv)
   if (!udp::Init()) exit(1);
   if (!udp::GetAddr4(ip, port, &location)) exit(2);
 
-  Clock_t game_clock;
+  TscClock_t game_clock;
   float frame_target_usec = 1000.f * 1000.f / (float)FRAMERATE;
-  platform::clock_init(frame_target_usec, &game_clock);
+  clock_init(frame_target_usec, &game_clock);
   uint64_t total_send = 0;
   uint64_t total_receive = 0;
   for (int i = 0; i < batch_count; ++i) {
@@ -152,7 +152,7 @@ main(int argc, char** argv)
       //      game_clock.jerk);
       uint64_t sleep_usec = 0;
       uint64_t sleep_count = 1;
-      while (!platform::clock_sync(&game_clock, &sleep_usec)) {
+      while (!clock_sync(&game_clock, &sleep_usec)) {
         while (sleep_count) {
           --sleep_count;
           platform::sleep_usec(sleep_usec);
@@ -173,7 +173,7 @@ main(int argc, char** argv)
 
       uint64_t sleep_usec = 0;
       uint64_t sleep_count = 1;
-      while (!platform::clock_sync(&game_clock, &sleep_usec)) {
+      while (!clock_sync(&game_clock, &sleep_usec)) {
         while (sleep_count) {
           --sleep_count;
           platform::sleep_usec(sleep_usec);

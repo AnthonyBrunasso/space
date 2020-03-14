@@ -40,14 +40,14 @@ main(int argc, char** argv)
 
   uint64_t realtime_usec = 0;
   uint64_t time_step_usec = 1 * 1000;
-  Clock_t server_clock;
-  platform::clock_init(time_step_usec, &server_clock);
+  TscClock_t server_clock;
+  clock_init(time_step_usec, &server_clock);
   while (!udp_errno) {
     uint16_t received_bytes;
     Udp4 peer;
 
     uint64_t sleep_usec;
-    if (platform::clock_sync(&server_clock, &sleep_usec)) {
+    if (clock_sync(&server_clock, &sleep_usec)) {
       realtime_usec += time_step_usec;
       continue;
     }

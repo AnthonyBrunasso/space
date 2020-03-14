@@ -1,6 +1,5 @@
 #include <cassert>
 #include <cstdint>
-#include <cstdlib>
 #include <ctime>
 
 #include "macro.h"
@@ -22,16 +21,6 @@ struct Clock_t {
 
 #define USEC_PER_CLOCK (1000.f / 1000.f / CLOCKS_PER_SEC)
 #define CLOCKS_PER_MS (CLOCKS_PER_SEC / 1000)
-
-int
-cmp(const void *lhs, const void *rhs)
-{
-  uint64_t lhv = *((const uint64_t *)lhs);
-  uint64_t rhv = *((const uint64_t *)rhs);
-  if (lhv < rhv) return -1;
-  if (lhv > rhv) return 1;
-  return 0;
-}
 
 namespace platform
 {
@@ -58,7 +47,16 @@ clock_init(uint64_t frame_goal_usec, Clock_t *out_clock)
     tsc_per_usec[i] = (rc - rp) * ((c - p) * USEC_PER_CLOCK);
   }
 
-  qsort(tsc_per_usec, MAX_SAMPLES, sizeof(tsc_per_usec[0]), cmp);
+  // bubble sort
+  for (int i = 0; i < MAX_SAMPLES - 1; ++i) {
+    for (int j = i + 1; j < MAX_SAMPLES; ++j) {
+      if (tsc_per_usec[i] > tsc_per_usec[j]) {
+        uint64_t tmp = tsc_per_usec[i];
+        tsc_per_usec[i] = tsc_per_usec[j];
+        tsc_per_usec[j] = tmp;
+      }
+    }
+  }
   out_clock->median_tsc_per_usec = tsc_per_usec[MAX_SAMPLES / 2];
 
   // Calculate the step
@@ -73,7 +71,7 @@ clock_init(uint64_t frame_goal_usec, Clock_t *out_clock)
 }
 
 uint64_t
-tscdelta_to_usec(const Clock_t *clock, uint64_t delta_tsc)
+__tscdelta_to_usec(const Clock_t *clock, uint64_t delta_tsc)
 {
   return (delta_tsc * clock->median_usec_per_tsc) >> 33;
 }
@@ -81,7 +79,7 @@ tscdelta_to_usec(const Clock_t *clock, uint64_t delta_tsc)
 uint64_t
 delta_usec(const Clock_t *clock)
 {
-  return tscdelta_to_usec(clock, rdtsc() - clock->frame_to_frame_tsc);
+  return __tscdelta_to_usec(clock, rdtsc() - clock->frame_to_frame_tsc);
 }
 
 bool
@@ -94,7 +92,7 @@ clock_sync(Clock_t *clock, uint64_t *optional_sleep_usec)
   if (tsc_next - tsc_now < clock->tsc_step) {
     // no-op, busy wait
     // optional sleep time
-    *optional_sleep_usec = tscdelta_to_usec(clock, tsc_next - tsc_now);
+    *optional_sleep_usec = __tscdelta_to_usec(clock, tsc_next - tsc_now);
     return false;
   } else if (tsc_now - tsc_next <= clock->tsc_step) {
     // frame slightly over goal time

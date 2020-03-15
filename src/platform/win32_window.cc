@@ -165,30 +165,8 @@ void
 HandleKeyEvent(WPARAM wparam, bool is_down, PlatformEvent* event)
 {
   event->type = is_down == true ? KEY_DOWN : KEY_UP;
-  // Capture key events here.
-  // TODO: Automatically convert to lowercase if character between A-Z.
-  switch (wparam) {
-    case 'W':
-      event->key = 'w';
-      break;
-    case 'A':
-      event->key = 'a';
-      break;
-    case 'S':
-      event->key = 's';
-      break;
-    case 'D':
-      event->key = 'd';
-      break;
-    case 'R':
-      event->key = 'r';
-      break;
-    case 'U':
-      event->key = 'u';
-      break;
-    default:
-      break;
-  }
+  if (wparam >= 'A' && wparam <= 'Z') event->key = wparam + 32;
+  else event->key = wparam;
 }
 
 void

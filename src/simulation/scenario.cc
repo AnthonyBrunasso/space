@@ -11,10 +11,10 @@ namespace simulation
 // to 0xff or 0x0.
 struct Scenario {
   enum Type {
-    kGameScenario = 0,
+    kTwoShip = 0,
     kCombatScenario,
     kSoloMission,
-    kTwoShip,
+    kGameScenario,
     kCombatGroup,
     kAI,
     kEmptyScenario,

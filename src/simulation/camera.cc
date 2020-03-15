@@ -46,11 +46,10 @@ SetView(const Camera* cam, math::Mat4f* view)
 v3f
 ScreenToWorldSpace(const Camera* cam, const v3f screen)
 {
+  v3f pos = v3f(screen - window::GetWindowSize() * 0.5f);
   math::Mat4f camera_transform = math::Rotation(cam->orientation) *
                                  math::Translation(cam->position);
-  v3f ret = camera_transform * screen;
-
-  return ret;
+  return camera_transform * pos;
 }
 
 void

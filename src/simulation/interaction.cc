@@ -261,8 +261,7 @@ Hud(v2f screen)
 void
 ControlEvent(const PlatformEvent* event, Player* player)
 {
-  v3f world_pos = camera::ScreenToWorldSpace(
-      &player->camera, v3f(event->position - window::GetWindowSize() * 0.5f));
+  v3f world_pos = camera::ScreenToWorldSpace(&player->camera, event->position);
   uint64_t player_index = player - kPlayer;
 
   djb2_hash_more((const uint8_t*)event, sizeof(PlatformEvent), &kInputHash);
@@ -371,8 +370,7 @@ ControlEvent(const PlatformEvent* event, Player* player)
         } break;
         case 'u': {
           v3f pos = camera::ScreenToWorldSpace(
-              &player->camera,
-              v3f(event->position - window::GetWindowSize() * 0.5f));
+              &player->camera, event->position);
           float dsq;
           uint64_t unit_index =
               v3fNearTransform(pos, GAME_ITER(Unit, transform), &dsq);

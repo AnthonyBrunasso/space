@@ -25,7 +25,7 @@ typedef struct {
 
 // clock() will accumulate per thread
 // thus restricted to one thread at a time
-uint64_t
+static uint64_t
 __tsc_per_usec()
 {
   static volatile uint64_t lock_id ALIGNAS(sizeof(uint64_t));
@@ -69,7 +69,7 @@ __tsc_per_usec()
   return tsc_per_usec[MAX_SAMPLES / 2];
 }
 
-uint64_t
+static uint64_t
 __tscdelta_to_usec(const TscClock_t *clock, uint64_t delta_tsc)
 {
   return (delta_tsc * clock->median_usec_per_tsc) >> 33;
@@ -80,7 +80,6 @@ clock_init(uint64_t frame_goal_usec, TscClock_t *out_clock)
 {
   const uint64_t tsc_per_usec = __tsc_per_usec();
   out_clock->median_tsc_per_usec = tsc_per_usec;
-  printf("clock_init tsc_per_usec %lu \n", tsc_per_usec);
 
   // Calculate the step
   out_clock->tsc_step = frame_goal_usec * tsc_per_usec;

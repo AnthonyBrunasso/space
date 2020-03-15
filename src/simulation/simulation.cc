@@ -718,6 +718,7 @@ Decide()
     if (c.unit_id == kInvalidUnit) {
       bool group_move = units_selected > 1 && c.type == kUaMove;
       const unsigned player_control = (1 << kPlayerIndex);
+      TilemapSet(TilemapWorldToGrid(c.destination));
       BfsStart(WorldToTilePos(c.destination));
       for (int i = 0; i < kUsedUnit; ++i) {
         // The issuer of a command must have a set bit

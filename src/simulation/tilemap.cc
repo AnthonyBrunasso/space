@@ -198,6 +198,8 @@ TilemapWorldCenter()
 void
 TilemapSet(uint64_t grid_idx)
 {
+  if (grid_idx == kInvalidIndex) return;  
+
   if (grid_idx > kUsedGrid) {
     kTilemap = nullptr;
     return;
@@ -205,6 +207,20 @@ TilemapSet(uint64_t grid_idx)
 
   kTilemap = (Tile*)kGrid[grid_idx].tilemap;
   kTilemapWorldOffset = kGrid[grid_idx].transform.position.xy();
+}
+
+uint64_t
+TilemapWorldToGrid(v3f world)
+{
+  for (int i = 0; i < kUsedGrid; ++i) {
+    auto* grid = &kGrid[i];
+    math::Rectf r(grid->transform.position.x, grid->transform.position.y, 
+                  kMapWidth * kTileWidth, kMapHeight * kTileHeight);
+    if (math::PointInRect(world.xy(), r)) {
+      return i;
+    }
+  }
+  return kInvalidIndex;
 }
 
 uint64_t

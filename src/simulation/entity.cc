@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "common/common.cc"
@@ -48,6 +47,8 @@
 // Global game state that is local information
 static uint64_t kPlayerCount;
 static uint64_t kPlayerIndex;
+
+constexpr uint64_t kInvalidIndex = UINT64_MAX;
 
 // Common Flags
 enum UnitAction {

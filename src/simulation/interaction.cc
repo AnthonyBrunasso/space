@@ -190,16 +190,6 @@ RenderBlackboard(const Unit* unit)
 void
 HudSelection(v2f screen)
 {
-  v2f dims(40, 40);
-  if (imui::Button(math::Rectf(screen.x - 10 - dims.x, 100, dims.x, dims.y),
-                   v4f(1.0f, 0.0f, 1.0f, 0.75f))
-          .clicked) {
-    kPlayer[kNetworkState.player_index].hud_mode = kHudModule;
-    kPlayer[kNetworkState.player_index].mod_placement += 1;
-    LOGFMT("Hud Module placement. [type %d]",
-           kPlayer[kNetworkState.player_index].mod_placement);
-  }
-
   // selected Unit text
   uint64_t player_control = (1 << kPlayerIndex);
   const Unit* unit = nullptr;
@@ -406,6 +396,11 @@ ControlEvent(const PlatformEvent* event, Player* player)
               LOGFMT("Ftl requires minerals [%d]!", kFtlCost);
             }
           }
+        } break;
+	case 'm': {
+          player->hud_mode = kHudModule;
+          player->mod_placement += 1;
+          LOGFMT("Hud Module placement. [type %d]", player->mod_placement);
         } break;
         case 'h': {
           player->level = CLAMP(player->level - 1, 1, 10);

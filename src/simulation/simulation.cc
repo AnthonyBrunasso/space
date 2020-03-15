@@ -712,7 +712,6 @@ UpdateConsumable(uint64_t ship_index)
 void
 Decide()
 {
-  uint64_t units_selected = CountUnitSelection(kPlayerIndex);
   while (CountCommand()) {
     Command c = PopCommand();
     if (c.unit_id == kInvalidUnit) {

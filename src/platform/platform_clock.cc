@@ -32,8 +32,6 @@ __tsc_per_usec()
   static volatile uint64_t running_thread ALIGNAS(sizeof(uint64_t));
   uint64_t thread_id = lock_id++;
   while (thread_id != running_thread) {
-    struct timespec ts = {0, MAX_SAMPLES * 1000 * 1000};
-    nanosleep(&ts, NULL);
   }
 
   clock_t c = clock();

@@ -248,7 +248,8 @@ Initialize()
   // clang-format on
   kRGG.rectangle_vao_reference = gl::CreateGeometryVAO(18, square);
 
-  // Line is flat on the x-axis with distance m.
+  // Don't use CreateGeometryVAO here because the vbo reference is used by
+  // RenderLine to feed line endpoints directly to GPU.
   GLfloat line[6] = {-1.f, 0.f, 0.f, 1.f, 0.f, 0.f};
   glGenBuffers(1, &kRGG.line_vbo_reference);
   glBindBuffer(GL_ARRAY_BUFFER, kRGG.line_vbo_reference);
@@ -538,7 +539,7 @@ RenderLineCube(const math::Cubef& cube, const v4f& color)
   glUseProgram(kRGG.geometry_program_3d.reference);
   glBindVertexArray(kRGG.cube_vao_reference);
   v3f pos(cube.pos.x + cube.width / 2.f, cube.pos.y + cube.height / 2.f,
-          cube.pos.z - cube.depth / 2.f);
+          cube.pos.z + cube.depth / 2.f);
   v3f scale(cube.width, cube.height, cube.depth);
   math::Mat4f model = math::Model(pos, scale);
   math::Mat4f matrix = kObserver.projection * kObserver.view * model;
@@ -546,8 +547,36 @@ RenderLineCube(const math::Cubef& cube, const v4f& color)
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program_3d.matrix_uniform, 1, GL_FALSE,
                      &matrix.data_[0]);
-  glDrawArrays(GL_TRIANGLES, 0, 12 * 3);
+  v3f back_top_left = cube.pos + v3f(0.f, cube.height, 0.f);
+  v3f back_top_right = cube.pos + v3f(cube.width, cube.height, 0.f);
+  v3f back_bottom_left = cube.pos;
+  v3f back_bottom_right = cube.pos + v3f(cube.width, 0.f, 0.f);
 
+
+  v3f front_top_left = cube.pos + v3f(0.f, cube.height, cube.depth);
+  v3f front_top_right = cube.pos + v3f(cube.width, cube.height, cube.depth);
+  v3f front_bottom_left = cube.pos + v3f(0.f, 0.f, cube.depth);;
+  v3f front_bottom_right = cube.pos + v3f(cube.width, 0.f, cube.depth);
+
+  // TODO(abrunasso): Probably a cheapear way to do this.
+
+  // Draw back face
+  RenderLine(back_bottom_left, back_top_left, color);
+  RenderLine(back_bottom_left, back_bottom_right, color);
+  RenderLine(back_bottom_right, back_top_right, color);
+  RenderLine(back_top_left, back_top_right, color);
+
+  // Connecting edges between back and front.
+  RenderLine(back_bottom_left, front_bottom_left, color);
+  RenderLine(back_bottom_right, front_bottom_right, color);
+  RenderLine(back_top_left, front_top_left, color);
+  RenderLine(back_top_right, front_top_right, color);
+
+  // Draw front face.
+  RenderLine(front_bottom_left, front_top_left, color);
+  RenderLine(front_bottom_left, front_bottom_right, color);
+  RenderLine(front_bottom_right, front_top_right, color);
+  RenderLine(front_top_left, front_top_right, color);
 }
 
 }  // namespace rgg

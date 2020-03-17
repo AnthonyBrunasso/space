@@ -60,14 +60,9 @@ main(int argc, char** argv)
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    rgg::RenderRectangle(math::Rectf(30.f, 30.f, 30.f, 30.f), v4f(1.f, 1.f, 1.f, 1.f));
-
-    rgg::RenderCube(math::Cubef(v3f(0.f, 0.f, 0.f), 30.f, 30.f, 30.f),
-                    v4f(1.f, 1.f, 1.f, 1.f));
-
-    rgg::RenderLine(v3f(100.f, 0.f, 0.f), v3f(30.f, 30.f, 30.f),
-                    v4f(1.f, 0.f, 0.f, 1.f));
-
+    rgg::RenderLineCube(math::Cubef(v3f(0.f, 0.f, 0.f), 30.f, 30.f, 30.f),
+                        v4f(1.f, 1.f, 1.f, 1.f));
+#if 1
     rgg::RenderLine(cpos + v3f(0.f, 0.f, -5.f), v3f(30.f, 30.f, 30.f),
                     v4f(1.f, 0.f, 0.f, 1.f));
 
@@ -79,7 +74,7 @@ main(int argc, char** argv)
 
     rgg::RenderLine(cpos + v3f(0.f, 0.f, -5.f), v3f(0.f, 0.f, 30.f),
                     v4f(0.f, 4.f, 4.f, 1.f));
-
+#endif
     window::SwapBuffers();
     platform::sleep_usec(10*1000);
   }

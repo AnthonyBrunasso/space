@@ -61,6 +61,7 @@ ScreenToWorldSpace(const Camera* cam, const v3f screen)
   v3f n(0.f, 0.f, 1.f);
   float t = -(math::Dot(cam->position, n) + d) / math::Dot(ray_world, n);
   v3f res = cam->position + ray_world * d;
+  //res.z = 0.f;
   //printf("d:%.3f,%.3f,%.3f r:%.3f, %.3f, %.3f d:%.3f t:%.3f\n",
   //       ray_world.x, ray_world.y, ray_world.z, res.x, res.y, res.z, d, t);
   return res;
@@ -69,7 +70,7 @@ ScreenToWorldSpace(const Camera* cam, const v3f screen)
 void
 InitialCamera(Camera* cam)
 {
-  cam->position = v3f(0.f, 0.f, 1000.f);
+  cam->position = v3f(0.f, 0.f, 100.f);
   cam->target = v3f(0.f, 0.f, 0.f);
 }
 

@@ -196,42 +196,36 @@ View(const v3f& translation, const v3f& right, const v3f& up, const v3f& forward
   view.data_[5] = up.y;
   view.data_[6] = up.z;
   view.data_[7] = 0.0f;
-  view.data_[8] = forward.x;
-  view.data_[9] = forward.y;
-  view.data_[10] = forward.z;
+  view.data_[8] = -forward.x;
+  view.data_[9] = -forward.y;
+  view.data_[10] = -forward.z;
   view.data_[11] = 0.0f;
-  view.data_[12] = -translation.x;
-  view.data_[13] = -translation.y;
-  view.data_[14] = -translation.z;
+  view.data_[12] = -Dot(right, translation);
+  view.data_[13] = -Dot(up, translation);
+  view.data_[14] = Dot(forward, translation);
   view.data_[15] = 1.0f;
   return view;
 }
 
 Mat4f
-LookAt(const v3f& from, const v3f& target, const v3f& up)
+LookAt(const v3f& eye, const v3f& target, const v3f& up)
 {
-  v3f forward = math::Normalize(from - target);
-  v3f right = math::Normalize(math::Cross(up, forward));
-  v3f nup = math::Cross(forward, right);
-  return View(from, right, nup, forward);
+  v3f forward = math::Normalize(target - eye);
+  v3f right = math::Normalize(math::Cross(forward, up));
+  v3f nup = math::Cross(right, forward);
+  return View(eye, right, nup, forward);
 }
 
 Mat4f
-Perspective(float width, float height, float near_clip, float far_clip,
-            float fov_degrees)
+Perspective(float fov_degrees, float aspect, float znear, float zfar)
 {
   float fov = fov_degrees * ONE_DEG_IN_RAD;
-  float aspect = width / height;
-  // matrix components
-  float range = tan(fov * 0.5f) * near_clip;
-  float Sx = (2.0f * near_clip) / (range * aspect + range * aspect);
-  float Sy = near_clip / range;
-  float Sz = -(far_clip + near_clip) / (far_clip - near_clip);
-  float Pz = -(2.0f * far_clip * near_clip) / (far_clip - near_clip);
-  return Mat4f(Sx,   0.0f, 0.0f,  0.0f,
-               0.0f,   Sy, 0.0f,  0.0f,
-               0.0f, 0.0f,   Sz, -1.0f,
-               0.0f, 0.0f,   Pz,  0.0f);
+  float thf = tan(fov / 2.f);
+  return Mat4f(
+      1.f / (aspect * thf), 0.f, 0.f, 0.f,
+      0.f, 1.f / thf, 0.f, 0.f,
+      0.f, 0.f, -(zfar + znear) / (zfar - znear), -1.f,
+      0.f, 0.0f, -(2.f * zfar * znear) / (zfar - znear), 0.0f);
 }
 
 Mat4f

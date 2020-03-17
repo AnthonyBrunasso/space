@@ -119,7 +119,8 @@ main(int argc, char** argv)
     rgg::RenderLine(cpos - v3f(0.0f, 0.0f, 1.1f), v3f(0.0f, 0.0f, 0.0f),
                     v4f(0.f, 4.f, 4.f, 1.f));
 
-    rgg::RenderLine(v3f(30.f, 0.f, 100.f), v3f(0.0f, 0.0f, 0.0f), v4f(1.f, 0.f, 0.f, 1.f));
+    rgg::RenderLine(v3f(30.f, 0.f, 100.f), v3f(0.0f, 0.0f, 0.0f),
+                    v4f(1.f, 0.f, 0.f, 1.f));
 
     rgg::RenderCube(math::Cubef(cubepos, 30.f, 30.f, 30.f),
                         v4f(1.f, 1.f, 1.f, 1.f));
@@ -127,7 +128,6 @@ main(int argc, char** argv)
     RenderAxis();
 
     UI();
-    //rgg::RenderLine(-cpos - v3f(0.0f, 0.0f, 1.1f), v3f(0.0f, 0.0f, 0.0f), v4f(0.f, 4.f, 4.f, 1.f));
 
     imui::Render();
     imui::Reset();

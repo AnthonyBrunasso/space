@@ -47,31 +47,28 @@ ScreenToWorldSpace(const Camera* cam, const v3f screen)
 {
   v2f dims = window::GetWindowSize();
   // Construct a ray taken into consideration camera's position in world space.
-  v3f ray((2.f * screen.x) / dims.x - 1.f, (2.f * screen.y) / dims.y - 1.f,
-          1.f);
-  v4f ray_clip(ray.x, ray.y, -1.f, 1.f);
-  //math::Print4x4Matrix(rgg::GetObserver()->projection);
+  v4f ray_clip(math::ScaleRange(screen.x, 0.f, dims.x, -1.f, 1.f), 
+               math::ScaleRange(screen.y, 0.f, dims.y, -1.f, 1.f), 
+               -1.f, 1.f);
   v4f ray_eye = math::Inverse(rgg::GetObserver()->projection) * ray_clip;
-  //math::Print4x4Matrix(math::Inverse(rgg::GetObserver()->projection));
-  //printf("%.3f,%.3f,%.3f\n", ray_eye.x, ray_eye.y, ray_eye.z);
   ray_eye = v4f(ray_eye.x, ray_eye.y, -1.f, 0.f);
   v3f ray_world = math::Normalize(
       (math::Inverse(rgg::GetObserver()->view) * ray_eye).xyz());
-  float d = math::Length(cam->target - cam->position);
+  // Plane rooted at origin - 0.
+  // I think you can use pixel depth info here if we need the ray to intersect
+  // with taller objects.
+  float d = 0;
   v3f n(0.f, 0.f, 1.f);
   float t = -(math::Dot(cam->position, n) + d) / math::Dot(ray_world, n);
-  v3f res = cam->position + ray_world * d;
-  //res.z = 0.f;
-  //printf("d:%.3f,%.3f,%.3f r:%.3f, %.3f, %.3f d:%.3f t:%.3f\n",
-  //       ray_world.x, ray_world.y, ray_world.z, res.x, res.y, res.z, d, t);
+  v3f res = cam->position + ray_world * t;
   return res;
 }
 
 void
 InitialCamera(Camera* cam)
 {
-  cam->position = v3f(0.f, 0.f, 100.f);
-  cam->target = v3f(0.f, 0.f, 0.f);
+  cam->position = v3f(400.f, 400.f, 500.f);
+  cam->target = v3f(400.f, 400.f, 0.f);
 }
 
 }  // namespace camera

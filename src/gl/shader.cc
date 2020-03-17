@@ -39,6 +39,7 @@ CompileShader(GLenum shader_type, const GLchar* const* src, GLuint* id)
   glGetShaderiv(*id, GL_COMPILE_STATUS, &params);
   if (params != GL_TRUE) {
     GetShaderInfoLog(*id, length, kBuffer);
+    printf("%s\n", *src);
     printf("Shader Log: %s\n", kBuffer);
     return false;
   }

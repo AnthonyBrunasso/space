@@ -115,6 +115,7 @@ main(int argc, char** argv)
     rgg::RenderLine(cpos + v3f(0.f, 0.f, -5.f), v3f(0.f, 0.f, 33.f),
                     v4f(0.f, 4.f, 4.f, 1.f));
 #endif
+    rgg::kObserver.position = cpos;
 
     rgg::RenderLine(cpos - v3f(0.0f, 0.0f, 1.1f), v3f(0.0f, 0.0f, 0.0f),
                     v4f(0.f, 4.f, 4.f, 1.f));

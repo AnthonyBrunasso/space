@@ -28,6 +28,7 @@ struct GeometryProgram3d {
   GLuint view_uniform = -1;
   GLuint model_uniform = -1;
   GLuint color_uniform = -1;
+  GLuint light_position_world_uniform = -1;
 };
 
 
@@ -51,6 +52,7 @@ struct CircleProgram {
 struct Observer {
   math::Mat4f projection;
   math::Mat4f view = math::Identity();
+  v3f position;
 };
 
 struct RGG {
@@ -132,9 +134,12 @@ SetupGeometryProgram3d()
   kRGG.geometry_program_3d.model_uniform =
       glGetUniformLocation(kRGG.geometry_program_3d.reference, "model");
   assert(kRGG.geometry_program_3d.model_uniform != uint32_t(-1));
-  //kRGG.geometry_program_3d.color_uniform =
-  //    glGetUniformLocation(kRGG.geometry_program_3d.reference, "color");
-  //assert(kRGG.geometry_program_3d.color_uniform != uint32_t(-1));
+  kRGG.geometry_program_3d.light_position_world_uniform =
+      glGetUniformLocation(kRGG.geometry_program_3d.reference, "light_position_world");
+  assert(kRGG.geometry_program_3d.light_position_world_uniform != uint32_t(-1));
+  kRGG.geometry_program_3d.color_uniform =
+      glGetUniformLocation(kRGG.geometry_program_3d.reference, "color");
+  assert(kRGG.geometry_program_3d.color_uniform != uint32_t(-1));
   return true;
 }
 
@@ -607,6 +612,9 @@ RenderCube(const math::Cubef& cube, const v4f& color)
                      &kObserver.view.data_[0]);
   glUniformMatrix4fv(kRGG.geometry_program_3d.model_uniform, 1, GL_FALSE,
                      &model.data_[0]);
+  glUniform3f(kRGG.geometry_program_3d.light_position_world_uniform,
+              kObserver.position.x, kObserver.position.y,
+              kObserver.position.z);
   glDrawArrays(GL_TRIANGLES, 0, 12 * 3);
 }
 

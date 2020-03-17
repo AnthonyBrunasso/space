@@ -22,6 +22,15 @@ struct GeometryProgram {
   GLuint color_uniform = -1;
 };
 
+struct GeometryProgram3d {
+  GLuint reference = -1;
+  GLuint projection_uniform = -1;
+  GLuint view_uniform = -1;
+  GLuint model_uniform = -1;
+  GLuint color_uniform = -1;
+};
+
+
 struct SmoothRectangleProgram {
   GLuint reference = -1;
   GLuint model_uniform = -1;
@@ -46,7 +55,7 @@ struct Observer {
 
 struct RGG {
   GeometryProgram geometry_program;
-  GeometryProgram geometry_program_3d;
+  GeometryProgram3d geometry_program_3d;
   SmoothRectangleProgram smooth_rectangle_program;
   CircleProgram circle_program;
 
@@ -95,6 +104,42 @@ GetObserver()
 }
 
 bool
+SetupGeometryProgram3d()
+{
+  GLuint vert_shader, frag_shader;
+  if (!gl::CompileShader(GL_VERTEX_SHADER, &kVertexShader3d, &vert_shader)) {
+    return false;
+  }
+
+  if (!gl::CompileShader(GL_FRAGMENT_SHADER, &kFragmentShader3d, &frag_shader)) {
+    return false;
+  }
+
+  if (!gl::LinkShaders(&kRGG.geometry_program_3d.reference, 2, vert_shader,
+                       frag_shader)) {
+    return false;
+  }
+
+  glDeleteShader(vert_shader);
+  glDeleteShader(frag_shader);
+
+  kRGG.geometry_program_3d.projection_uniform =
+      glGetUniformLocation(kRGG.geometry_program_3d.reference, "projection");
+  assert(kRGG.geometry_program_3d.projection_uniform != uint32_t(-1));
+  kRGG.geometry_program_3d.view_uniform =
+      glGetUniformLocation(kRGG.geometry_program_3d.reference, "view");
+  assert(kRGG.geometry_program_3d.view_uniform != uint32_t(-1));
+  kRGG.geometry_program_3d.model_uniform =
+      glGetUniformLocation(kRGG.geometry_program_3d.reference, "model");
+  assert(kRGG.geometry_program_3d.model_uniform != uint32_t(-1));
+  //kRGG.geometry_program_3d.color_uniform =
+  //    glGetUniformLocation(kRGG.geometry_program_3d.reference, "color");
+  //assert(kRGG.geometry_program_3d.color_uniform != uint32_t(-1));
+  return true;
+}
+
+
+bool
 SetupGeometryProgram()
 {
   GLuint vert_shader, frag_shader;
@@ -110,8 +155,6 @@ SetupGeometryProgram()
                        frag_shader)) {
     return false;
   }
-
-  kRGG.geometry_program_3d.reference = kRGG.geometry_program.reference;
 
   glDeleteShader(vert_shader);
   glDeleteShader(frag_shader);
@@ -140,14 +183,6 @@ SetupGeometryProgram()
   kRGG.geometry_program.color_uniform =
       glGetUniformLocation(kRGG.geometry_program.reference, "color");
   assert(kRGG.geometry_program.color_uniform != uint32_t(-1));
-
-  kRGG.geometry_program_3d.matrix_uniform =
-      glGetUniformLocation(kRGG.geometry_program_3d.reference, "matrix");
-  assert(kRGG.geometry_program_3d.matrix_uniform != uint32_t(-1));
-  kRGG.geometry_program_3d.color_uniform =
-      glGetUniformLocation(kRGG.geometry_program_3d.reference, "color");
-  assert(kRGG.geometry_program_3d.color_uniform != uint32_t(-1));
-
 
   kRGG.smooth_rectangle_program.model_uniform =
       glGetUniformLocation(kRGG.smooth_rectangle_program.reference, "model");
@@ -226,6 +261,7 @@ Initialize()
 
   // Compile and link shaders.
   if (!SetupGeometryProgram()) return false;
+  if (!SetupGeometryProgram3d()) return false;
   if (!SetupCircleProgram()) return false;
 
   // Create the geometry for basic shapes.
@@ -262,45 +298,85 @@ Initialize()
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
   static GLfloat cube[36 * 3] = {
-      -0.5f,-0.5f,-0.5f,
-      -0.5f,-0.5f, 0.5f,
-      -0.5f, 0.5f, 0.5f,
-      0.5f, 0.5f,-0.5f,
-      -0.5f,-0.5f,-0.5f,
-      -0.5f, 0.5f,-0.5f,
-      0.5f,-0.5f, 0.5f,
-      -0.5f,-0.5f,-0.5f,
-      0.5f,-0.5f,-0.5f,
-      0.5f, 0.5f,-0.5f,
-      0.5f,-0.5f,-0.5f,
-      -0.5f,-0.5f,-0.5f,
-      -0.5f,-0.5f,-0.5f,
-      -0.5f, 0.5f, 0.5f,
-      -0.5f, 0.5f,-0.5f,
-      0.5f,-0.5f, 0.5f,
-      -0.5f,-0.5f, 0.5f,
-      -0.5f,-0.5f,-0.5f,
-      -0.5f, 0.5f, 0.5f,
-      -0.5f,-0.5f, 0.5f,
-      0.5f,-0.5f, 0.5f,
-      0.5f, 0.5f, 0.5f,
-      0.5f,-0.5f,-0.5f,
-      0.5f, 0.5f,-0.5f,
-      0.5f,-0.5f,-0.5f,
-      0.5f, 0.5f, 0.5f,
-      0.5f,-0.5f, 0.5f,
-      0.5f, 0.5f, 0.5f,
-      0.5f, 0.5f,-0.5f,
-      -0.5f, 0.5f,-0.5f,
-      0.5f, 0.5f, 0.5f,
-      -0.5f, 0.5f,-0.5f,
-      -0.5f, 0.5f, 0.5f,
-      0.5f, 0.5f, 0.5f,
-      -0.5f, 0.5f, 0.5f,
-      0.5f,-0.5f, 0.5f
+    -0.5f,-0.5f,-0.5f, // Left face
+    -0.5f,-0.5f, 0.5f,
+    -0.5f, 0.5f, 0.5f,
+    0.5f, 0.5f,-0.5f,  // Back face
+    -0.5f,-0.5f,-0.5f,
+    -0.5f, 0.5f,-0.5f,
+    0.5f,-0.5f, 0.5f,  // Bottom face
+    -0.5f,-0.5f,-0.5f,
+    0.5f,-0.5f,-0.5f,
+    0.5f, 0.5f,-0.5f,  // Back face
+    0.5f,-0.5f,-0.5f,
+    -0.5f,-0.5f,-0.5f,
+    -0.5f,-0.5f,-0.5f, // Left face
+    -0.5f, 0.5f, 0.5f,
+    -0.5f, 0.5f,-0.5f,
+    0.5f,-0.5f, 0.5f,  // Bottom face
+    -0.5f,-0.5f, 0.5f,
+    -0.5f,-0.5f,-0.5f,
+    -0.5f, 0.5f, 0.5f, // Front face
+    -0.5f,-0.5f, 0.5f,
+    0.5f,-0.5f, 0.5f,
+    0.5f, 0.5f, 0.5f,  // Right face
+    0.5f,-0.5f,-0.5f,
+    0.5f, 0.5f,-0.5f,
+    0.5f,-0.5f,-0.5f,  // Right face
+    0.5f, 0.5f, 0.5f,
+    0.5f,-0.5f, 0.5f,
+    0.5f, 0.5f, 0.5f,  // Top face
+    0.5f, 0.5f,-0.5f,
+    -0.5f, 0.5f,-0.5f,
+    0.5f, 0.5f, 0.5f,  // Top face
+    -0.5f, 0.5f,-0.5f,
+    -0.5f, 0.5f, 0.5f,
+    0.5f, 0.5f, 0.5f,  // Front face
+    -0.5f, 0.5f, 0.5f,
+    0.5f,-0.5f, 0.5f
   };
 
-  kRGG.cube_vao_reference = gl::CreateGeometryVAO(36 * 3, cube);
+  static GLfloat cube_normals[36 * 3] = {
+    -1.f, 0.f, 0.f, // Left face
+    -1.f, 0.f, 0.f, // Left face
+    -1.f, 0.f, 0.f, // Left face
+    0.f, 0.f, -1.f, // Back face
+    0.f, 0.f, -1.f, // Back face
+    0.f, 0.f, -1.f, // Back face
+    0.f, -1.f, 0.f, // Bottom face
+    0.f, -1.f, 0.f, // Bottom face
+    0.f, -1.f, 0.f, // Bottom face
+    0.f, 0.f, -1.f, // Back face
+    0.f, 0.f, -1.f, // Back face
+    0.f, 0.f, -1.f, // Back face
+    -1.f, 0.f, 0.f, // Left face
+    -1.f, 0.f, 0.f, // Left face
+    -1.f, 0.f, 0.f, // Left face
+    0.f, -1.f, 0.f, // Bottom face
+    0.f, -1.f, 0.f, // Bottom face
+    0.f, -1.f, 0.f, // Bottom face
+    0.f, 0.f, 1.f,  // Front face
+    0.f, 0.f, 1.f,  // Front face
+    0.f, 0.f, 1.f,  // Front face
+    1.f, 0.f, 0.f,  // Right face
+    1.f, 0.f, 0.f,  // Right face
+    1.f, 0.f, 0.f,  // Right face
+    1.f, 0.f, 0.f,  // Right face
+    1.f, 0.f, 0.f,  // Right face
+    1.f, 0.f, 0.f,  // Right face
+    0.f, 1.f, 0.f,  // Top face
+    0.f, 1.f, 0.f,  // Top face
+    0.f, 1.f, 0.f,  // Top face
+    0.f, 1.f, 0.f,  // Top face
+    0.f, 1.f, 0.f,  // Top face
+    0.f, 1.f, 0.f,  // Top face
+    0.f, 0.f, 1.f,  // Front face
+    0.f, 0.f, 1.f,  // Front face
+    0.f, 0.f, 1.f,  // Front face
+  };
+
+  kRGG.cube_vao_reference = gl::CreateGeometryVAOWithNormals(
+      36 * 3, cube, cube_normals);
 
   if (!SetupTexture()) {
     printf("Failed to setup Texture.\n");
@@ -523,28 +599,25 @@ RenderCube(const math::Cubef& cube, const v4f& color)
   v3f pos(cube.pos.x, cube.pos.y, cube.pos.z);
   v3f scale(cube.width, cube.height, cube.depth);
   math::Mat4f model = math::Model(pos, scale);
-  math::Mat4f matrix = kObserver.projection * kObserver.view * model;
   glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
               color.w);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.matrix_uniform, 1, GL_FALSE,
-                     &matrix.data_[0]);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.projection_uniform, 1, GL_FALSE,
+                     &kObserver.projection.data_[0]);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.view_uniform, 1, GL_FALSE,
+                     &kObserver.view.data_[0]);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.model_uniform, 1, GL_FALSE,
+                     &model.data_[0]);
   glDrawArrays(GL_TRIANGLES, 0, 12 * 3);
-
 }
 
 void
 RenderLineCube(const math::Cubef& cube, const v4f& color)
 {
-  glUseProgram(kRGG.geometry_program_3d.reference);
-  glBindVertexArray(kRGG.cube_vao_reference);
-  v3f pos(cube.pos.x + cube.width / 2.f, cube.pos.y + cube.height / 2.f,
-          cube.pos.z + cube.depth / 2.f);
-  v3f scale(cube.width, cube.height, cube.depth);
-  math::Mat4f model = math::Model(pos, scale);
-  math::Mat4f matrix = kObserver.projection * kObserver.view * model;
+  glUseProgram(kRGG.geometry_program.reference);
+  math::Mat4f matrix = kObserver.projection * kObserver.view;
   glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
               color.w);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.matrix_uniform, 1, GL_FALSE,
+  glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
                      &matrix.data_[0]);
   v3f back_top_left = cube.pos + v3f(0.f, cube.height, 0.f);
   v3f back_top_right = cube.pos + v3f(cube.width, cube.height, 0.f);

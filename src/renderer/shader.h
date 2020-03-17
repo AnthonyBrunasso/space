@@ -23,6 +23,49 @@ inline constexpr const char* kFragmentShader = R"(
   }
 )";
 
+inline constexpr const char* kVertexShader3d = R"(
+  #version 410
+  layout (location = 0) in vec3 vertex_position;
+  layout (location = 1) in vec3 vertex_normal;
+  uniform mat4 projection;
+  uniform mat4 view;
+  uniform mat4 model;
+  uniform vec4 color;
+  out vec4 color_out;
+  out vec3 eye_position;
+  out vec3 eye_normal;
+  void main() {
+    eye_position = vec3(view * model * vec4(vertex_position, 1.0));
+    eye_normal = vec3(view * model * vec4(vertex_normal, 0.0));
+    color_out = color;
+    gl_Position = projection * vec4(eye_position, 1.0);
+  }
+)";
+
+inline constexpr const char* kFragmentShader3d = R"(
+  #version 410
+  in vec3 eye_position;
+  in vec3 eye_normal;
+  // Default light properties.
+  vec3 light_specular = vec3(1.0, 1.0, 1.0);
+  vec3 light_diffuse = vec3(0.7, 0.7, 0.7);
+  vec3 light_ambient = vec3(0.2, 0.2, 0.2);
+
+  // Surface reflectance.
+  vec3 surface_specular = vec3(1.0, 1.0, 1.0);
+  vec3 surface_diffuse = vec3(1.0, 0.5, 0.0);
+  vec3 surface_ambient = vec3(1.0, 1.0, 1.0);
+  float specular_exponent = 100.0; 
+  out vec4 frag_color;
+  void main() {
+    vec3 intensity_ambient = light_ambient * surface_ambient;
+    vec3 intensity_diffuse = vec3(0.0, 0.0, 0.0);
+    vec3 intensity_specular = vec3(0.0, 0.0, 0.0);
+    frag_color = vec4(intensity_ambient + intensity_diffuse + intensity_specular, 1.0);
+  }
+)";
+
+
 inline constexpr const char* kSmoothRectangleVertexShader = R"(
 #version 410
   layout (location = 0) in vec3 vertex_position;

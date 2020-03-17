@@ -68,7 +68,17 @@ main(int argc, char** argv)
     rgg::RenderLine(v3f(100.f, 0.f, 0.f), v3f(30.f, 30.f, 30.f),
                     v4f(1.f, 0.f, 0.f, 1.f));
 
-    rgg::RenderLine(v3f(0.f, 0.f, 100.f), v3f(30.f, 30.f, 30.f), v4f(1.f, 0.f, 0.f, 1.f));
+    rgg::RenderLine(cpos + v3f(0.f, 0.f, -5.f), v3f(30.f, 30.f, 30.f),
+                    v4f(1.f, 0.f, 0.f, 1.f));
+
+    rgg::RenderLine(cpos + v3f(0.f, 0.f, -5.f), v3f(30.f, 0.f, 30.f),
+                    v4f(0.f, 1.f, 0.f, 1.f));
+
+    rgg::RenderLine(cpos + v3f(0.f, 0.f, -5.f), v3f(0.f, 30.f, 30.f),
+                    v4f(0.f, 0.f, 1.f, 1.f));
+
+    rgg::RenderLine(cpos + v3f(0.f, 0.f, -5.f), v3f(0.f, 0.f, 30.f),
+                    v4f(0.f, 4.f, 4.f, 1.f));
 
     window::SwapBuffers();
     platform::sleep_usec(10*1000);

@@ -520,8 +520,7 @@ RenderCube(const math::Cubef& cube, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program_3d.reference);
   glBindVertexArray(kRGG.cube_vao_reference);
-  v3f pos(cube.pos.x + cube.width / 2.f, cube.pos.y + cube.height / 2.f,
-          cube.pos.z + cube.depth / 2.f);
+  v3f pos(cube.pos.x, cube.pos.y, cube.pos.z);
   v3f scale(cube.width, cube.height, cube.depth);
   math::Mat4f model = math::Model(pos, scale);
   math::Mat4f matrix = kObserver.projection * kObserver.view * model;

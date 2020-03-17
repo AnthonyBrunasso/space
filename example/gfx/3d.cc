@@ -62,7 +62,7 @@ main(int argc, char** argv)
 
     rgg::RenderRectangle(math::Rectf(30.f, 30.f, 30.f, 30.f), v4f(1.f, 1.f, 1.f, 1.f));
 
-    rgg::RenderCube(math::Cubef(v3f(0.f, 0.f, 0.f), 30.f, 30.f, -30.f),
+    rgg::RenderCube(math::Cubef(v3f(0.f, 0.f, 0.f), 30.f, 30.f, 30.f),
                     v4f(1.f, 1.f, 1.f, 1.f));
 
     rgg::RenderLine(v3f(100.f, 0.f, 0.f), v3f(30.f, 30.f, 30.f),

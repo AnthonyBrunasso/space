@@ -132,7 +132,7 @@ RenderCrew(uint64_t ship_index)
       color = v4f(34.f / 255.f, 139.f / 255.f, 34.f / 255.f, 1.f);
     }
 
-    rgg::RenderCube(math::Cubef(unit->transform.position, 15.f, 15.f, -15.f),
+    rgg::RenderCube(math::Cubef(unit->transform.position, 15.f, 15.f, 15.f),
                     color);
 
     // Render unit health bars.
@@ -230,7 +230,7 @@ RenderShip(uint64_t ship_index)
         CLAMPF(min_visibility, kShip[ship_index].sys[module->mkind], 1.0f);
     v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
     v2f t = simulation::TilePosToWorld(v2i{(int)module->cx, (int)module->cy});
-    rgg::RenderCube(math::Cubef(v3f(t.x, t.y, 0.f), 15.f, 15.f, -15.f), color);
+    rgg::RenderCube(math::Cubef(v3f(t.x, t.y, 0.f), 15.f, 15.f, 15.f), color);
   }
 
   {
@@ -286,7 +286,7 @@ RenderShip(uint64_t ship_index)
         rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
       } else if (tile->blocked) {
         color = v4f(.0f, .0f, .0f, 1.f);
-        rgg::RenderCube(math::Cubef(world_pos, kTileWidth, kTileHeight, -100.f),
+        rgg::RenderCube(math::Cubef(world_pos, kTileWidth, kTileHeight, 100.f),
                         color);
       } else if (tile->nooxygen) {
         color = v4f(1.f, 0.f, .2f, .4);
@@ -416,7 +416,7 @@ RenderSpaceObjects()
 
     if (pod->think_flags & FLAG(kPodAiUnmanned)) continue;
 
-    rgg::RenderCube(math::Cubef(pod->transform.position, 15.f, 15.f, -15.f),
+    rgg::RenderCube(math::Cubef(pod->transform.position, 15.f, 15.f, 15.f),
                     v4f(0.99f, 0.33f, 0.33f, 1.f));
     rgg::RenderCircle(pod->transform.position + v2f(15.f, 15.f), 12.f, 14.f,
                       v4f(0.99f, 0.33f, 0.33f, 1.f));

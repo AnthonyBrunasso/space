@@ -264,8 +264,9 @@ DECLARE_GAME_QUEUE(Command, 16);
 
 struct Player {
   Camera camera;  // Assumes fixed dimension window
-  v2f world_mouse;
-  math::Rectf world_selection;
+  v3f selection_start;
+  v3f world_mouse;
+  //math::Rectf world_selection;
   uint64_t level = 1;
   unsigned hud_mode : kHudModeBits;
   unsigned mod_placement : kModBits;

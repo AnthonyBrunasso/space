@@ -46,6 +46,7 @@ struct Observer {
 
 struct RGG {
   GeometryProgram geometry_program;
+  GeometryProgram geometry_program_3d;
   SmoothRectangleProgram smooth_rectangle_program;
   CircleProgram circle_program;
 
@@ -53,6 +54,7 @@ struct RGG {
   GLuint triangle_vao_reference;
   GLuint rectangle_vao_reference;
   GLuint line_vao_reference;
+  GLuint cube_vao_reference;
 
   int meter_size = 50;
 };
@@ -108,6 +110,8 @@ SetupGeometryProgram()
     return false;
   }
 
+  kRGG.geometry_program_3d.reference = kRGG.geometry_program.reference;
+
   glDeleteShader(vert_shader);
   glDeleteShader(frag_shader);
 
@@ -135,6 +139,14 @@ SetupGeometryProgram()
   kRGG.geometry_program.color_uniform =
       glGetUniformLocation(kRGG.geometry_program.reference, "color");
   assert(kRGG.geometry_program.color_uniform != uint32_t(-1));
+
+  kRGG.geometry_program_3d.matrix_uniform =
+      glGetUniformLocation(kRGG.geometry_program_3d.reference, "matrix");
+  assert(kRGG.geometry_program_3d.matrix_uniform != uint32_t(-1));
+  kRGG.geometry_program_3d.color_uniform =
+      glGetUniformLocation(kRGG.geometry_program_3d.reference, "color");
+  assert(kRGG.geometry_program_3d.color_uniform != uint32_t(-1));
+
 
   kRGG.smooth_rectangle_program.model_uniform =
       glGetUniformLocation(kRGG.smooth_rectangle_program.reference, "model");
@@ -206,7 +218,7 @@ Initialize()
   printf("Renderer: %s Version: %s\n", renderer, version);
 
   glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_LEQUAL);
+  glDepthFunc(GL_LESS);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_BLEND);
   glEnable(GL_LINE_SMOOTH);
@@ -238,6 +250,47 @@ Initialize()
   // Line is flat on the x-axis with distance m.
   GLfloat line[6] = {-1.f, 0.f, 0.f, 1.f, 0.f, 0.f};
   kRGG.line_vao_reference = gl::CreateGeometryVAO(6, line);
+
+  static GLfloat cube[36 * 3] = {
+      -0.5f,-0.5f,-0.5f,
+      -0.5f,-0.5f, 0.5f,
+      -0.5f, 0.5f, 0.5f,
+      0.5f, 0.5f,-0.5f,
+      -0.5f,-0.5f,-0.5f,
+      -0.5f, 0.5f,-0.5f,
+      0.5f,-0.5f, 0.5f,
+      -0.5f,-0.5f,-0.5f,
+      0.5f,-0.5f,-0.5f,
+      0.5f, 0.5f,-0.5f,
+      0.5f,-0.5f,-0.5f,
+      -0.5f,-0.5f,-0.5f,
+      -0.5f,-0.5f,-0.5f,
+      -0.5f, 0.5f, 0.5f,
+      -0.5f, 0.5f,-0.5f,
+      0.5f,-0.5f, 0.5f,
+      -0.5f,-0.5f, 0.5f,
+      -0.5f,-0.5f,-0.5f,
+      -0.5f, 0.5f, 0.5f,
+      -0.5f,-0.5f, 0.5f,
+      0.5f,-0.5f, 0.5f,
+      0.5f, 0.5f, 0.5f,
+      0.5f,-0.5f,-0.5f,
+      0.5f, 0.5f,-0.5f,
+      0.5f,-0.5f,-0.5f,
+      0.5f, 0.5f, 0.5f,
+      0.5f,-0.5f, 0.5f,
+      0.5f, 0.5f, 0.5f,
+      0.5f, 0.5f,-0.5f,
+      -0.5f, 0.5f,-0.5f,
+      0.5f, 0.5f, 0.5f,
+      -0.5f, 0.5f,-0.5f,
+      -0.5f, 0.5f, 0.5f,
+      0.5f, 0.5f, 0.5f,
+      -0.5f, 0.5f, 0.5f,
+      0.5f,-0.5f, 0.5f
+  };
+
+  kRGG.cube_vao_reference = gl::CreateGeometryVAO(36 * 3, cube);
 
   if (!SetupTexture()) {
     printf("Failed to setup Texture.\n");
@@ -311,13 +364,13 @@ RenderRectangle(const v3f& position, const v3f& scale,
 }
 
 void
-RenderRectangle(const math::Rectf& rect, const v4f& color)
+RenderRectangle(const math::Rectf& rect, float z, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   // Texture state has quad with length 1 geometry. This makes scaling simpler
   // as we can use the width / height directly in scale matrix.
   glBindVertexArray(kTextureState.vao_reference);
-  v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, 0.0f);
+  v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, z);
   v3f scale(rect.width, rect.height, 1.f);
   math::Mat4f model = math::Model(pos, scale);
   math::Mat4f matrix = kObserver.projection * kObserver.view * model;
@@ -329,13 +382,19 @@ RenderRectangle(const math::Rectf& rect, const v4f& color)
 }
 
 void
-RenderLineRectangle(const math::Rectf& rect, const v4f& color)
+RenderRectangle(const math::Rectf& rect, const v4f& color)
+{
+  RenderRectangle(rect, 0.f, color);
+}
+
+void
+RenderLineRectangle(const math::Rectf& rect, float z, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   // Texture state has quad with length 1 geometry. This makes scaling simpler
   // as we can use the width / height directly in scale matrix.
   glBindVertexArray(kTextureState.vao_reference);
-  v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, 0.0f);
+  v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, z);
   v3f scale(rect.width, rect.height, 1.f);
   math::Mat4f model = math::Model(pos, scale);
   math::Mat4f matrix = kObserver.projection * kObserver.view * model;
@@ -344,6 +403,12 @@ RenderLineRectangle(const math::Rectf& rect, const v4f& color)
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
                      &matrix.data_[0]);
   glDrawArrays(GL_LINE_LOOP, 0, 4);
+}
+
+void
+RenderLineRectangle(const math::Rectf& rect, const v4f& color)
+{
+  RenderLineRectangle(rect, 0.f, color);
 }
 
 void
@@ -468,6 +533,42 @@ RenderGrid(v2f grid, math::Rectf bounds, uint64_t color_count, v4f* color)
     i += 1;
     i = (i != color_count) * i;
   }
+}
+
+void
+RenderCube(const math::Cubef& cube, const v4f& color)
+{
+  glUseProgram(kRGG.geometry_program_3d.reference);
+  glBindVertexArray(kRGG.cube_vao_reference);
+  v3f pos(cube.pos.x + cube.width / 2.f, cube.pos.y + cube.height / 2.f,
+          cube.pos.z - cube.depth / 2.f);
+  v3f scale(cube.width, cube.height, cube.depth);
+  math::Mat4f model = math::Model(pos, scale);
+  math::Mat4f matrix = kObserver.projection * kObserver.view * model;
+  glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
+              color.w);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.matrix_uniform, 1, GL_FALSE,
+                     &matrix.data_[0]);
+  glDrawArrays(GL_TRIANGLES, 0, 12 * 3);
+
+}
+
+void
+RenderLineCube(const math::Cubef& cube, const v4f& color)
+{
+  glUseProgram(kRGG.geometry_program_3d.reference);
+  glBindVertexArray(kRGG.cube_vao_reference);
+  v3f pos(cube.pos.x + cube.width / 2.f, cube.pos.y + cube.height / 2.f,
+          cube.pos.z - cube.depth / 2.f);
+  v3f scale(cube.width, cube.height, cube.depth);
+  math::Mat4f model = math::Model(pos, scale);
+  math::Mat4f matrix = kObserver.projection * kObserver.view * model;
+  glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
+              color.w);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.matrix_uniform, 1, GL_FALSE,
+                     &matrix.data_[0]);
+  glDrawArrays(GL_TRIANGLES, 0, 12 * 3);
+
 }
 
 }  // namespace rgg

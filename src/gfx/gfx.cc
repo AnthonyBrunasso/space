@@ -132,8 +132,8 @@ RenderCrew(uint64_t ship_index)
       color = v4f(34.f / 255.f, 139.f / 255.f, 34.f / 255.f, 1.f);
     }
 
-    rgg::RenderRectangle(unit->transform.position, unit->transform.scale,
-                         kDefaultRotation, color);
+    rgg::RenderCube(math::Cubef(unit->transform.position, 15.f, 15.f, -15.f),
+                    color);
 
     // Render unit health bars.
     static const float kHealthSz = 5.f;
@@ -218,15 +218,7 @@ void
 RenderShip(uint64_t ship_index)
 {
   using namespace simulation;
-
-  const v2f grid_dims(kTileWidth, kTileHeight);
-  v4f colors[] = {
-      v4f(0.207f, 0.317f, 0.360f, 0.60f),
-      v4f(0.050f, 0.215f, 0.050f, 0.45f),
-  };
-  rgg::RenderGrid(grid_dims, TilemapWorldBounds(), ARRAY_LENGTH(colors),
-                  colors);
-
+  
   // Modules are always visible
   constexpr float min_visibility = .2f;
 
@@ -237,10 +229,8 @@ RenderShip(uint64_t ship_index)
     mcolor *=
         CLAMPF(min_visibility, kShip[ship_index].sys[module->mkind], 1.0f);
     v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
-
-    rgg::RenderRectangle(
-        v3f(simulation::TilePosToWorld(v2i{(int)module->cx, (int)module->cy})),
-        v3f(1.f / 2.f, 1.f / 2.f, 1.f), kDefaultRotation, color);
+    v2f t = simulation::TilePosToWorld(v2i{(int)module->cx, (int)module->cy});
+    rgg::RenderCube(math::Cubef(v3f(t.x, t.y, 0.f), 15.f, 15.f, -15.f), color);
   }
 
   {
@@ -288,14 +278,16 @@ RenderShip(uint64_t ship_index)
     for (int j = 0; j < kMapWidth; ++j) {
       const Tile* tile = TilePtr(v2i(j, i));
       v3f world_pos = TileToWorld(*tile);
+      //printf("%.3f\n", world_pos.z);
 
       v4f color;
       if (!tile->explored) {
         color = v4f(0.3f, 0.3f, 0.3f, .7);
         rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
       } else if (tile->blocked) {
-        color = v4f(1.f, 1.f, 1.f, ship_alpha);
-        rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
+        color = v4f(1.f, 1.f, 1.f, 1.f);
+        rgg::RenderCube(math::Cubef(world_pos, kTileWidth, kTileHeight, -100.f),
+                        color);
       } else if (tile->nooxygen) {
         color = v4f(1.f, 0.f, .2f, .4);
         rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
@@ -312,9 +304,17 @@ RenderShip(uint64_t ship_index)
 
     switch (p->hud_mode) {
       case kHudSelection: {
-        if (p->world_selection.x != 0.f || p->world_selection.y != 0.f) {
-          rgg::RenderRectangle(p->world_selection, kSelectionColor);
-          rgg::RenderLineRectangle(p->world_selection, kSelectionOutlineColor);
+        if (p->selection_start.x != 0.f || p->selection_start.y != 0.f ||
+            p->selection_start.z != 0.f) {
+          glDisable(GL_DEPTH_TEST);
+          v3f diff = p->world_mouse - p->selection_start;
+          math::Rectf sbox(p->selection_start.x, p->selection_start.y,
+                           diff.x, diff.y);
+          sbox = math::OrientToAabb(sbox);
+          rgg::RenderRectangle(sbox, p->world_mouse.z, kSelectionColor);
+          rgg::RenderLineRectangle(sbox, p->world_mouse.z,
+                                   kSelectionOutlineColor);
+          glEnable(GL_DEPTH_TEST);
         }
 
         if (!TileOk(mouse_grid)) continue;
@@ -336,12 +336,21 @@ RenderShip(uint64_t ship_index)
                              kDefaultRotation, color);
       } break;
       case kHudAttackMove: {
+        glDisable(GL_DEPTH_TEST);
         rgg::RenderTag(kGfx.plus_tag, p->world_mouse, kDefaultScale,
                        kDefaultRotation, v4f(1.f, 0.f, 0.f, 1.f));
-
+        glEnable(GL_DEPTH_TEST);
       } break;
     };
   }
+
+  const v2f grid_dims(kTileWidth, kTileHeight);
+  v4f colors[] = {
+      v4f(0.207f, 0.317f, 0.360f, 0.60f),
+      v4f(0.050f, 0.215f, 0.050f, 0.45f),
+  };
+  rgg::RenderGrid(grid_dims, TilemapWorldBounds(), ARRAY_LENGTH(colors),
+                  colors);
 }
 
 void
@@ -407,9 +416,8 @@ RenderSpaceObjects()
 
     if (pod->think_flags & FLAG(kPodAiUnmanned)) continue;
 
-    rgg::RenderRectangle(pod->transform.position + v2f(15.f, 15.f),
-                         v3f(0.25f, 0.25f, 0.f), kDefaultRotation,
-                         v4f(0.99f, 0.33f, 0.33f, 1.f));
+    rgg::RenderCube(math::Cubef(pod->transform.position, 15.f, 15.f, -15.f),
+                    v4f(0.99f, 0.33f, 0.33f, 1.f));
     rgg::RenderCircle(pod->transform.position + v2f(15.f, 15.f), 12.f, 14.f,
                       v4f(0.99f, 0.33f, 0.33f, 1.f));
   }
@@ -418,17 +426,12 @@ RenderSpaceObjects()
 void
 Render(uint64_t player_index)
 {
-  /*for (int i = 0; i < kUsedPlayer; ++i) {
-    rgg::RenderRectangle(kPlayer[i].world_mouse, kTileScale, kDefaultRotation,
-                         kWhite);
-  }*/
-
   for (int i = 0; i < kUsedShip; ++i) {
     if (kShip[i].level != kPlayer[player_index].level) continue;
 
     simulation::TilemapSet(kShip[i].grid_index);
-    RenderShip(i);
     RenderCrew(i);
+    RenderShip(i);
   }
 
   RenderSpaceObjects();

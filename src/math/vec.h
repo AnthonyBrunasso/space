@@ -394,6 +394,23 @@ struct Vec4 {
   }
 
   void
+  operator-=(T rhs)
+  {
+    x -= rhs;
+    y -= rhs;
+    z -= rhs;
+    w -= rhs;
+  }
+
+  Vec4<T>
+  operator-(T rhs) const
+  {
+    Vec4<T> t = *this;
+    t -= rhs;
+    return t;
+  }
+
+  void
   operator*=(const T& rhs)
   {
     x *= rhs;
@@ -453,6 +470,12 @@ struct Vec4 {
   operator!=(const Vec4<T>& rhs) const
   {
     return !(*this == rhs);
+  }
+
+  Vec3<T>
+  xyz() const
+  {
+    return Vec3<T>(x, y, z);
   }
 
   T x;

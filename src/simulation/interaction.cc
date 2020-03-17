@@ -53,8 +53,8 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec,
     imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE, "Window Size: %ix%i", (int)sz.x, (int)sz.y);
     imui::Text(buffer);
-    snprintf(buffer, BUFFER_SIZE, "Mouse Pos In World: (%.1f,%.1f)",
-             player.world_mouse.x, player.world_mouse.y);
+    snprintf(buffer, BUFFER_SIZE, "Mouse Pos In World: (%.1f,%.1f,%.1f)",
+             player.world_mouse.x, player.world_mouse.y, player.world_mouse.z);
     imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE, "Input hash: 0x%lx", kDebugInputHash);
     imui::Text(buffer);
@@ -267,13 +267,11 @@ ControlEvent(const PlatformEvent* event, Player* player)
   djb2_hash_more((const uint8_t*)event, sizeof(PlatformEvent), &kInputHash);
   switch (event->type) {
     case MOUSE_POSITION: {
-      player->world_mouse = world_pos.xy();
-      player->world_selection.width = world_pos.x - player->world_selection.x;
-      player->world_selection.height = world_pos.y - player->world_selection.y;
+      player->world_mouse = world_pos;
     } break;
     case MOUSE_WHEEL: {
       // TODO(abrunasso): Why does this need to be negative?
-      player->camera.motion.z = -0.1f * event->wheel_delta;
+      player->camera.motion.z = -10.f * event->wheel_delta;
     } break;
     case MOUSE_DOWN: {
       imui::MouseClick(event->position, event->button);
@@ -281,8 +279,7 @@ ControlEvent(const PlatformEvent* event, Player* player)
       if (event->button == BUTTON_LEFT) {
         switch (player->hud_mode) {
           case kHudSelection: {
-            player->world_selection.x = world_pos.x;
-            player->world_selection.y = world_pos.y;
+            player->selection_start = world_pos;
             UnselectPlayerUnits(player_index);
           } break;
           case kHudAttackMove: {
@@ -325,20 +322,21 @@ ControlEvent(const PlatformEvent* event, Player* player)
         // TODO(abrunasso): Unconvinced this is the best way to check if a
         // selection occurred. Also unconvined that it's not....
         Unit* unit = nullptr;
-        if (player->world_selection.x != 0.f ||
-            player->world_selection.y != 0.f) {
-          math::Rectf aabb_selection =
-              math::OrientToAabb(player->world_selection);
+        if (player->selection_start.x != 0.f ||
+            player->selection_start.y != 0.f ||
+            player->selection_start.z != 0.f) {
+          v3f diff = player->world_mouse - player->selection_start;
+          math::Rectf sbox(player->selection_start.x,
+                           player->selection_start.y, diff.x, diff.y);
+          sbox = math::OrientToAabb(sbox);
           for (int i = 0; i < kUsedUnit; ++i) {
-            unit = GetUnit(aabb_selection, i);
+            unit = GetUnit(sbox, i);
             if (!unit) continue;
             LOGFMT("Select unit: %i", unit->id);
             SelectPlayerUnit(player_index, unit);
           }
         }
-        player->world_selection.x = 0.f;
-        player->world_selection.y = 0.f;
-
+        player->selection_start = v3f(0.f, 0.f, 0.f);
         // Box selection missed, fallback to single unit selection
         if (!unit) {
           unit = GetUnit(world_pos);

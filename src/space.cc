@@ -88,8 +88,10 @@ SetProjection()
 #else
   v2f size = window::GetWindowSize();
 #endif
+  //rgg::GetObserver()->projection =
+  //    math::Ortho(size.x, 0.f, size.y, 0.f, -100.f, 0.f);
   rgg::GetObserver()->projection =
-      math::Ortho(size.x, 0.f, size.y, 0.f, -100.f, 0.f);
+    math::Perspective(size.x, size.y, 0.1f, 10000.f, 67.0f);
 }
 
 int

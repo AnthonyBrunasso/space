@@ -119,6 +119,7 @@ Reset()
 void
 Render()
 {
+  glDisable(GL_DEPTH_TEST);
   auto dims = window::GetWindowSize();
   rgg::ModifyObserver mod(math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f),
                           math::Identity());
@@ -154,6 +155,7 @@ Render()
     rgg::RenderRectangle(box->rect, box->color);
     rgg::RenderLineRectangle(box->rect, box->outline_color);
   }
+  glEnable(GL_DEPTH_TEST);
 }
 
 bool

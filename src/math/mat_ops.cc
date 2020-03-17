@@ -11,54 +11,145 @@ namespace math
 Mat4f
 Inverse(const Mat4f& m)
 {
-  v3f& a = *(v3f*)(&m[0]);
-  v3f& b = *(v3f*)(&m[1]);
-  v3f& c = *(v3f*)(&m[2]);
-  v3f& d = *(v3f*)(&m[3]);
+  Mat4f inv;
+  inv.data_[0] = m.data_[5]  * m.data_[10] * m.data_[15] - 
+           m.data_[5]  * m.data_[11] * m.data_[14] - 
+           m.data_[9]  * m.data_[6]  * m.data_[15] + 
+           m.data_[9]  * m.data_[7]  * m.data_[14] +
+           m.data_[13] * m.data_[6]  * m.data_[11] - 
+           m.data_[13] * m.data_[7]  * m.data_[10];
 
-  float x = m.data_[3];
-  float y = m.data_[7];
-  float z = m.data_[11];
-  float w = m.data_[15];
+  inv.data_[4] = -m.data_[4]  * m.data_[10] * m.data_[15] + 
+            m.data_[4]  * m.data_[11] * m.data_[14] + 
+            m.data_[8]  * m.data_[6]  * m.data_[15] - 
+            m.data_[8]  * m.data_[7]  * m.data_[14] - 
+            m.data_[12] * m.data_[6]  * m.data_[11] + 
+            m.data_[12] * m.data_[7]  * m.data_[10];
 
-  v3f s = Cross(a, b);
-  v3f t = Cross(c, d);
-  v3f u = a * y - b * x;
-  v3f v = c * w - d * z;
+  inv.data_[8] = m.data_[4]  * m.data_[9] * m.data_[15] - 
+           m.data_[4]  * m.data_[11] * m.data_[13] - 
+           m.data_[8]  * m.data_[5] * m.data_[15] + 
+           m.data_[8]  * m.data_[7] * m.data_[13] + 
+           m.data_[12] * m.data_[5] * m.data_[11] - 
+           m.data_[12] * m.data_[7] * m.data_[9];
 
-  float inv_det = 1.f / (Dot(s, v) + Dot(t, u));
-  s *= inv_det;
-  t *= inv_det;
-  u *= inv_det;
-  v *= inv_det;
+  inv.data_[12] = -m.data_[4]  * m.data_[9] * m.data_[14] + 
+             m.data_[4]  * m.data_[10] * m.data_[13] +
+             m.data_[8]  * m.data_[5] * m.data_[14] - 
+             m.data_[8]  * m.data_[6] * m.data_[13] - 
+             m.data_[12] * m.data_[5] * m.data_[10] + 
+             m.data_[12] * m.data_[6] * m.data_[9];
 
-  v3f r0 = Cross(b, v) + t * y;
-  v3f r1 = Cross(v, a) - t * x;
-  v3f r2 = Cross(d, u) + s * w;
-  v3f r3 = Cross(u, c) - s * z;
+  inv.data_[1] = -m.data_[1]  * m.data_[10] * m.data_[15] + 
+            m.data_[1]  * m.data_[11] * m.data_[14] + 
+            m.data_[9]  * m.data_[2] * m.data_[15] - 
+            m.data_[9]  * m.data_[3] * m.data_[14] - 
+            m.data_[13] * m.data_[2] * m.data_[11] + 
+            m.data_[13] * m.data_[3] * m.data_[10];
 
-  return Mat4f(r0.x, r1.x, r2.x, r3.x,
-               r0.y, r1.y, r2.y, r3.y,
-               r0.z, r1.z, r2.z, r3.z,
-               -Dot(b, t), Dot(a, t), -Dot(d, s), Dot(c, s));
+  inv.data_[5] = m.data_[0]  * m.data_[10] * m.data_[15] - 
+           m.data_[0]  * m.data_[11] * m.data_[14] - 
+           m.data_[8]  * m.data_[2] * m.data_[15] + 
+           m.data_[8]  * m.data_[3] * m.data_[14] + 
+           m.data_[12] * m.data_[2] * m.data_[11] - 
+           m.data_[12] * m.data_[3] * m.data_[10];
+
+  inv.data_[9] = -m.data_[0]  * m.data_[9] * m.data_[15] + 
+            m.data_[0]  * m.data_[11] * m.data_[13] + 
+            m.data_[8]  * m.data_[1] * m.data_[15] - 
+            m.data_[8]  * m.data_[3] * m.data_[13] - 
+            m.data_[12] * m.data_[1] * m.data_[11] + 
+            m.data_[12] * m.data_[3] * m.data_[9];
+
+  inv.data_[13] = m.data_[0]  * m.data_[9] * m.data_[14] - 
+            m.data_[0]  * m.data_[10] * m.data_[13] - 
+            m.data_[8]  * m.data_[1] * m.data_[14] + 
+            m.data_[8]  * m.data_[2] * m.data_[13] + 
+            m.data_[12] * m.data_[1] * m.data_[10] - 
+            m.data_[12] * m.data_[2] * m.data_[9];
+
+  inv.data_[2] = m.data_[1]  * m.data_[6] * m.data_[15] - 
+           m.data_[1]  * m.data_[7] * m.data_[14] - 
+           m.data_[5]  * m.data_[2] * m.data_[15] + 
+           m.data_[5]  * m.data_[3] * m.data_[14] + 
+           m.data_[13] * m.data_[2] * m.data_[7] - 
+           m.data_[13] * m.data_[3] * m.data_[6];
+
+  inv.data_[6] = -m.data_[0]  * m.data_[6] * m.data_[15] + 
+            m.data_[0]  * m.data_[7] * m.data_[14] + 
+            m.data_[4]  * m.data_[2] * m.data_[15] - 
+            m.data_[4]  * m.data_[3] * m.data_[14] - 
+            m.data_[12] * m.data_[2] * m.data_[7] + 
+            m.data_[12] * m.data_[3] * m.data_[6];
+
+  inv.data_[10] = m.data_[0]  * m.data_[5] * m.data_[15] - 
+            m.data_[0]  * m.data_[7] * m.data_[13] - 
+            m.data_[4]  * m.data_[1] * m.data_[15] + 
+            m.data_[4]  * m.data_[3] * m.data_[13] + 
+            m.data_[12] * m.data_[1] * m.data_[7] - 
+            m.data_[12] * m.data_[3] * m.data_[5];
+
+  inv.data_[14] = -m.data_[0]  * m.data_[5] * m.data_[14] + 
+             m.data_[0]  * m.data_[6] * m.data_[13] + 
+             m.data_[4]  * m.data_[1] * m.data_[14] - 
+             m.data_[4]  * m.data_[2] * m.data_[13] - 
+             m.data_[12] * m.data_[1] * m.data_[6] + 
+             m.data_[12] * m.data_[2] * m.data_[5];
+
+  inv.data_[3] = -m.data_[1] * m.data_[6] * m.data_[11] + 
+            m.data_[1] * m.data_[7] * m.data_[10] + 
+            m.data_[5] * m.data_[2] * m.data_[11] - 
+            m.data_[5] * m.data_[3] * m.data_[10] - 
+            m.data_[9] * m.data_[2] * m.data_[7] + 
+            m.data_[9] * m.data_[3] * m.data_[6];
+
+  inv.data_[7] = m.data_[0] * m.data_[6] * m.data_[11] - 
+           m.data_[0] * m.data_[7] * m.data_[10] - 
+           m.data_[4] * m.data_[2] * m.data_[11] + 
+           m.data_[4] * m.data_[3] * m.data_[10] + 
+           m.data_[8] * m.data_[2] * m.data_[7] - 
+           m.data_[8] * m.data_[3] * m.data_[6];
+
+  inv.data_[11] = -m.data_[0] * m.data_[5] * m.data_[11] + 
+             m.data_[0] * m.data_[7] * m.data_[9] + 
+             m.data_[4] * m.data_[1] * m.data_[11] - 
+             m.data_[4] * m.data_[3] * m.data_[9] - 
+             m.data_[8] * m.data_[1] * m.data_[7] + 
+             m.data_[8] * m.data_[3] * m.data_[5];
+
+  inv.data_[15] = m.data_[0] * m.data_[5] * m.data_[10] - 
+            m.data_[0] * m.data_[6] * m.data_[9] - 
+            m.data_[4] * m.data_[1] * m.data_[10] + 
+            m.data_[4] * m.data_[2] * m.data_[9] + 
+            m.data_[8] * m.data_[1] * m.data_[6] - 
+            m.data_[8] * m.data_[2] * m.data_[5];
+
+  float det = m.data_[0] * inv.data_[0] + m.data_[1] * inv.data_[4] + m.data_[2] * inv.data_[8] + m.data_[3] * inv.data_[12];
+
+  det = 1.0f / det;
+
+  for (int i = 0; i < 16; i++)
+      inv.data_[i] = inv.data_[i] * det;
+
+  return inv;
 }
 
 Mat4f
 Identity()
 {
-  return Mat4f(1.0f, 0.0f, 0.0f, 0.0f,
-               0.0f, 1.0f, 0.0f, 0.0f,
-               0.0f, 0.0f, 1.0f, 0.0f,
-               0.0f, 0.0f, 0.0f, 1.0f);
+return Mat4f(1.0f, 0.0f, 0.0f, 0.0f,
+             0.0f, 1.0f, 0.0f, 0.0f,
+             0.0f, 0.0f, 1.0f, 0.0f,
+             0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 Mat4f
 Translation(const v3f& translation)
 {
-  return Mat4f(1.0f, 0.0f, 0.0f, 0.0f,
-               0.0f, 1.0f, 0.0f, 0.0f,
-               0.0f, 0.0f, 1.0f, 0.0f,
-               translation.x, translation.y, translation.z, 1.0f);
+return Mat4f(1.0f, 0.0f, 0.0f, 0.0f,
+             0.0f, 1.0f, 0.0f, 0.0f,
+             0.0f, 0.0f, 1.0f, 0.0f,
+             translation.x, translation.y, translation.z, 1.0f);
 }
 
 Mat4f
@@ -94,27 +185,35 @@ Rotation(const Quatf& quat)
 }
 
 Mat4f
-View(const v3f& translation, const Quatf& quat)
+View(const v3f& translation, const v3f& right, const v3f& up, const v3f& forward)
 {
-  auto mat = Rotation(quat).Transpose();
   Mat4f view;
-  view.data_[0] = mat.data_[0];
-  view.data_[1] = mat.data_[1];
-  view.data_[2] = mat.data_[2];
+  view.data_[0] = right.x;
+  view.data_[1] = right.y;
+  view.data_[2] = right.z;
   view.data_[3] = 0.0f;
-  view.data_[4] = mat.data_[4];
-  view.data_[5] = mat.data_[5];
-  view.data_[6] = mat.data_[6];
+  view.data_[4] = up.x;
+  view.data_[5] = up.y;
+  view.data_[6] = up.z;
   view.data_[7] = 0.0f;
-  view.data_[8] = mat.data_[8];
-  view.data_[9] = mat.data_[9];
-  view.data_[10] = mat.data_[10];
+  view.data_[8] = forward.x;
+  view.data_[9] = forward.y;
+  view.data_[10] = forward.z;
   view.data_[11] = 0.0f;
   view.data_[12] = -translation.x;
   view.data_[13] = -translation.y;
   view.data_[14] = -translation.z;
   view.data_[15] = 1.0f;
   return view;
+}
+
+Mat4f
+LookAt(const v3f& from, const v3f& target, const v3f& up)
+{
+  v3f forward = math::Normalize(from - target);
+  v3f right = math::Normalize(math::Cross(up, forward));
+  v3f nup = math::Cross(forward, right);
+  return View(from, right, nup, forward);
 }
 
 Mat4f

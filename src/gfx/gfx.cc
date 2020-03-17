@@ -285,7 +285,7 @@ RenderShip(uint64_t ship_index)
         color = v4f(0.3f, 0.3f, 0.3f, .7);
         rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
       } else if (tile->blocked) {
-        color = v4f(1.f, 1.f, 1.f, 1.f);
+        color = v4f(.0f, .0f, .0f, 1.f);
         rgg::RenderCube(math::Cubef(world_pos, kTileWidth, kTileHeight, -100.f),
                         color);
       } else if (tile->nooxygen) {

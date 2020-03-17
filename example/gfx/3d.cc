@@ -11,12 +11,10 @@ main(int argc, char** argv)
 
   v2f size = window::GetWindowSize();
   auto* o = rgg::GetObserver();
-  o->projection =
-    math::Perspective(size.x, size.y, 10.f, 0.f, 45.0f);
-  v3f cpos(0.f, 0.f, 200.f);
-  v3f aim(0.f, 0.78f, -1.f);
-  math::Quatf cori(0.f, math::Normalize(aim));
-
+  o->projection = math::Perspective(size.x, size.y, 0.01f, 10000.f, 67.f);
+  v3f cpos(0.f, 0.f, 100.f);
+  v3f ctgt(0.f, 0.f, 0.f);
+  v3f cup(0.f, 1.f, 0.f);
 
   while (!window::ShouldClose()) {
     PlatformEvent event;
@@ -27,15 +25,19 @@ main(int argc, char** argv)
             case 'w': {
               printf("??\n");
               cpos.y += 1.f;
+              ctgt.y += 1.f;
             } break;
             case 'a': {
               cpos.x -= 1.f;
+              ctgt.x -= 1.f;
             } break;
             case 's': {
               cpos.y -= 1.f;
+              ctgt.y -= 1.f;
             } break;
             case 'd': {
               cpos.x += 1.f;
+              ctgt.x += 1.f;
             } break;
           }
         } break;
@@ -52,9 +54,9 @@ main(int argc, char** argv)
       }
     }
 
-    o->view = math::View(cpos, cori);
+    o->view = math::LookAt(cpos, ctgt, cup);
 
-    math::Print4x4Matrix(o->view);
+    //math::Print4x4Matrix(o->view);
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -62,6 +64,11 @@ main(int argc, char** argv)
 
     rgg::RenderCube(math::Cubef(v3f(0.f, 0.f, 0.f), 30.f, 30.f, -30.f),
                     v4f(1.f, 1.f, 1.f, 1.f));
+
+    rgg::RenderLine(v3f(100.f, 0.f, 0.f), v3f(30.f, 30.f, 30.f),
+                    v4f(1.f, 0.f, 0.f, 1.f));
+
+    rgg::RenderLine(v3f(0.f, 0.f, 100.f), v3f(30.f, 30.f, 30.f), v4f(1.f, 0.f, 0.f, 1.f));
 
     window::SwapBuffers();
     platform::sleep_usec(10*1000);

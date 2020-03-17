@@ -54,6 +54,7 @@ struct RGG {
   GLuint triangle_vao_reference;
   GLuint rectangle_vao_reference;
   GLuint line_vao_reference;
+  GLuint line_vbo_reference;
   GLuint cube_vao_reference;
 
   int meter_size = 50;
@@ -249,7 +250,15 @@ Initialize()
 
   // Line is flat on the x-axis with distance m.
   GLfloat line[6] = {-1.f, 0.f, 0.f, 1.f, 0.f, 0.f};
-  kRGG.line_vao_reference = gl::CreateGeometryVAO(6, line);
+  glGenBuffers(1, &kRGG.line_vbo_reference);
+  glBindBuffer(GL_ARRAY_BUFFER, kRGG.line_vbo_reference);
+  glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(GLfloat), &line[0],
+               GL_STATIC_DRAW);
+  glGenVertexArrays(1, &kRGG.line_vao_reference);
+  glBindVertexArray(kRGG.line_vao_reference);
+  glEnableVertexAttribArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, kRGG.line_vbo_reference);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
   static GLfloat cube[36 * 3] = {
       -0.5f,-0.5f,-0.5f,
@@ -459,35 +468,20 @@ RenderCircle(const v3f& position, float radius, const v4f& color)
   RenderCircle(position, 0.0f, radius, color);
 }
 
-math::Mat4f
-CreateLineTransform(const v3f& start, const v3f& end)
-{
-  // Line is the length of a meter on the horizontal axis.
-  //
-  // It must be translated / rotated / scaled to be properly moved
-  // to meet the start / end nature of the line component.
-
-  // Position is the midpoint of the start and end.
-  v3f translation = (start + end) / 2.f;
-  // Angle between the two points in 2d.
-  v3f diff = end - start;
-  float angle = atan2(diff.y, diff.x) * (180.f / PI);
-  float distance = math::Length(diff);
-  return math::Model(translation, v3f(distance / 2.f, distance / 2.f, 1.f),
-                     math::Quatf(angle, v3f(0.f, 0.f, -1.f)));
-}
-
 void
 RenderLine(const v3f& start, const v3f& end, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.line_vao_reference);
-  math::Mat4f matrix =
-      kObserver.projection * kObserver.view * CreateLineTransform(start, end);
+  // Model matrix unneeded here due to verts being set directly.
+  math::Mat4f view_pojection = kObserver.projection * kObserver.view;
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
-                     &matrix.data_[0]);
+                     &view_pojection.data_[0]);
+  float verts[6] = {start.x, start.y, start.z, end.x, end.y, end.z};
+  glBindBuffer(GL_ARRAY_BUFFER, kRGG.line_vbo_reference);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_DYNAMIC_DRAW);
   glDrawArrays(GL_LINES, 0, 2);
 }
 
@@ -504,15 +498,7 @@ RenderGrid(v2f grid, math::Rectf bounds, uint64_t color_count, v4f* color)
   for (float y = bounds.y; y <= top_right.y; y += grid.y) {
     auto start = v3f(bounds.x, y, 0.f);
     auto end = v3f(top_right.x, y, 0.f);
-    math::Mat4f matrix =
-        kObserver.projection * kObserver.view * CreateLineTransform(start, end);
-    glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
-                       &matrix.data_[0]);
-
-    glUniform4f(kRGG.geometry_program.color_uniform, color[i].x, color[i].y,
-                color[i].z, color[i].w);
-    glDrawArrays(GL_LINES, 0, 2);
-
+    RenderLine(start, end, *color);
     i += 1;
     i = (i != color_count) * i;
   }
@@ -522,14 +508,7 @@ RenderGrid(v2f grid, math::Rectf bounds, uint64_t color_count, v4f* color)
   for (float x = bounds.x; x <= top_right.x; x += grid.x) {
     auto start = v3f(x, bounds.y, 0.f);
     auto end = v3f(x, top_right.y, 0.f);
-    math::Mat4f matrix =
-        kObserver.projection * kObserver.view * CreateLineTransform(start, end);
-    glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
-                       &matrix.data_[0]);
-    glUniform4f(kRGG.geometry_program.color_uniform, color[i].x, color[i].y,
-                color[i].z, color[i].w);
-    glDrawArrays(GL_LINES, 0, 2);
-
+    RenderLine(start, end, *color);
     i += 1;
     i = (i != color_count) * i;
   }

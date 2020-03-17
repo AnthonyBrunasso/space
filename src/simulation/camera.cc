@@ -71,4 +71,11 @@ InitialCamera(Camera* cam)
   cam->target = v3f(400.f, 400.f, 0.f);
 }
 
+void
+Move(Camera* cam, v3f pos)
+{
+  cam->position = v3f(pos.x, pos.y, cam->position.z);
+  cam->target = v3f(pos.x, pos.y, 0.f);
+}
+
 }  // namespace camera

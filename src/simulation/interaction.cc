@@ -276,6 +276,10 @@ ControlEvent(const PlatformEvent* event, Player* player)
     case MOUSE_DOWN: {
       imui::MouseClick(event->position, event->button);
 
+      if (event->button == BUTTON_MIDDLE) {
+        camera::Move(&player->camera, world_pos);
+      }
+
       if (event->button == BUTTON_LEFT) {
         switch (player->hud_mode) {
           case kHudSelection: {

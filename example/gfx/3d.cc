@@ -75,7 +75,6 @@ main(int argc, char** argv)
             case 'l': {
               cubepos.x += speed;
             } break;
-
           }
         } break;
         case MOUSE_DOWN: {
@@ -84,6 +83,7 @@ main(int argc, char** argv)
           }
         } break;
         case MOUSE_WHEEL: {
+          printf("test\n");
           cpos.z += (-10.f * event.wheel_delta);
         } break;
         default: break;

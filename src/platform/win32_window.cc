@@ -188,8 +188,6 @@ WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
 {
   PlatformEvent* platform_event = kWindow.platform_event;
   LRESULT result = 0;
-  static bool l_mouse_down = false;
-  static bool r_mouse_down = false;
 
   switch (msg) {
     case WM_CLOSE: {
@@ -207,21 +205,24 @@ WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
       HandleKeyEvent(wparam, true, platform_event);
     } break;
     case WM_LBUTTONDOWN: {
-      l_mouse_down = true;
-      HandleMouseEvent(l_mouse_down, platform_event, BUTTON_LEFT);
+      HandleMouseEvent(true, platform_event, BUTTON_LEFT);
     } break;
     case WM_LBUTTONUP: {
-      l_mouse_down = false;
       HandleMouseEvent(false, platform_event, BUTTON_LEFT);
     } break;
     case WM_RBUTTONDOWN: {
-      r_mouse_down = true;
       HandleMouseEvent(true, platform_event, BUTTON_RIGHT);
     } break;
     case WM_RBUTTONUP: {
-      r_mouse_down = false;
       HandleMouseEvent(false, platform_event, BUTTON_RIGHT);
     } break;
+    case WM_MBUTTONDOWN: {
+      HandleMouseEvent(true, platform_event, BUTTON_MIDDLE);
+    } break;
+    case WM_MBUTTONUP: {
+      HandleMouseEvent(false, platform_event, BUTTON_MIDDLE);
+    } break;
+
     case WM_MOUSEWHEEL: {
       platform_event->wheel_delta =
         (float)GET_WHEEL_DELTA_WPARAM(wparam) / (float)WHEEL_DELTA;

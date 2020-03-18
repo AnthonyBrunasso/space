@@ -14,7 +14,7 @@ struct Scenario {
     kTwoShip = 0,
     kCombatScenario,
     kSoloMission,
-    kGameScenario,
+    kTwoShipScenario,
     kCombatGroup,
     kAI,
     kEmptyScenario,
@@ -32,6 +32,14 @@ struct Scenario {
 };
 
 static Scenario kScenario;
+
+// Hacky game scenario stuff.
+struct TwoShipScenario {
+  bool enemies_spawned = false;
+  uint64_t ship_two_idx;
+};
+
+static TwoShipScenario kTwoShipScenario;
 
 constexpr const char* kScenarioNames[Scenario::kMaxScenario] = {
     "Game", "Combat", "Solo", "TwoShip", "CombatGroup", "AI", "Empty",
@@ -85,7 +93,7 @@ ScenarioInitialize(bool reset_features = true)
 {
   int sid = kScenario.type;
   switch (sid) {
-    case Scenario::kGameScenario: {
+    case Scenario::kTwoShipScenario: {
       if (reset_features) {
         memset(&kScenario, 0xff, sizeof(kScenario));
       }
@@ -241,10 +249,10 @@ ScenarioInitialize(bool reset_features = true)
     case Scenario::kTwoShip: {
       // Create a second ship and tilemap
       Ship* s2 = UseShip();
-      grid_index = TilemapInitialize(2);
-      s2->grid_index = grid_index;
+      kTwoShipScenario.ship_two_idx = TilemapInitialize(2);
+      s2->grid_index = kTwoShipScenario.ship_two_idx;
       s2->level = 1;
-      kGrid[grid_index].transform.position = v2f(600.f, 600.f);
+      kGrid[kTwoShipScenario.ship_two_idx].transform.position = v2f(600.f, 800.f);
       TilemapUnexplored(TilemapWorldCenter());
     } break;
   }
@@ -272,9 +280,38 @@ ScenarioReset(bool reset_features)
 }
 
 void
+ScenarioSpawnEnemy(v2i tile_position, uint64_t ship_index)
+{
+  Unit* enemy = UseIdUnit();
+  enemy->ship_index = ship_index;
+  enemy->transform.position = TilePosToWorld(tile_position);
+  enemy->transform.scale = v3f(0.25f, 0.25f, 0.f);
+  enemy->alliance = kEnemy;
+  enemy->kind = kAlien;
+  enemy->attack_radius = 30.f;
+  enemy->speed = 0.5f;
+  BB_SET(enemy->bb, kUnitBehavior, kUnitBehaviorAttackWhenDiscovered);
+}
+
+void
 ScenarioGameUpdate()
 {
-  // When a unit enters the second tilemap spawn in the shroud.
+  // When a unit enters the second tilemap spawn enemies in the shroud.
+  if (kTwoShipScenario.enemies_spawned) return;
+
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* unit = &kUnit[i];
+    if (TilemapWorldToGrid(unit->transform.position) ==
+        kTwoShipScenario.ship_two_idx) {
+      LOG("Enemies Spawning.");
+      TilemapSet(kTwoShipScenario.ship_two_idx);
+      ScenarioSpawnEnemy(v2i(21, 12), kTwoShipScenario.ship_two_idx);
+      ScenarioSpawnEnemy(v2i(19, 20), kTwoShipScenario.ship_two_idx);
+      ScenarioSpawnEnemy(v2i(9, 21), kTwoShipScenario.ship_two_idx);
+      kTwoShipScenario.enemies_spawned = true;
+      break;
+    }
+  }
 }
 
 void
@@ -282,7 +319,7 @@ ScenarioUpdate()
 {
   int sid = kScenario.type;
   switch (sid) {
-    case Scenario::kGameScenario: {
+    case Scenario::kTwoShip: {
       ScenarioGameUpdate();
     } break;
     default: break;
@@ -294,7 +331,7 @@ ScenarioOver()
 {
   int sid = kScenario.type;
   switch (sid) {
-    case Scenario::kGameScenario:
+    case Scenario::kTwoShipScenario:
       if (kUsedShip == 0) {
         LOG("No ships remain.");
         return true;

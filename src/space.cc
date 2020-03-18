@@ -171,6 +171,7 @@ main(int argc, char** argv)
   StatsInit(&kGameStats);
   kGameState.game_updates = 0;
   kGameState.frame_target_usec = 1000.f * 1000.f / kGameState.framerate;
+  printf("Client target usec %lu\n", kGameState.frame_target_usec);
 
 #ifndef HEADLESS
   // If vsync is enabled, force the clock_init to align with clock_sync
@@ -207,8 +208,8 @@ main(int argc, char** argv)
 
         // Game Mutation: Apply player commands for turn N
 #if ALAN_DEBUG
-        printf("Simulation [ %lu slot ] [ %lu frame ] [ %lu jerk ]\n", slot,
-               kGameState.logic_updates, kGameState.game_clock.jerk);
+        printf("Simulation [ %lu slot ] [ %lu frame ] [ %lu jerk ] [ %lu median_tsc ]\n", slot,
+               kGameState.logic_updates, kGameState.game_clock.jerk, kGameState.game_clock.median_tsc_per_usec);
 #endif
         InputBuffer* game_turn = GetSlot(slot);
         for (int i = 0; i < MAX_PLAYER; ++i) {
@@ -226,7 +227,9 @@ main(int argc, char** argv)
         simulation::Hud(dims);
         simulation::DebugPanel(kPlayer[kNetworkState.player_index], kGameStats,
                                kGameState.frame_target_usec,
-                               kGameState.logic_updates);
+                               kGameState.logic_updates,
+                               kGameState.game_clock.jerk,
+                               kGameState.game_clock.median_tsc_per_usec);
 #endif
 
         // SetView for the local player's camera

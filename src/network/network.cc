@@ -8,8 +8,6 @@
 
 #include "server.cc"
 
-#define ALAN_DEBUG 0
-
 // Input events capable of being processed in one game loop
 #define MAX_TICK_EVENTS 32ul
 // Game loop inputs allowed in-flight on the network

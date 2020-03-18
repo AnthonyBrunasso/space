@@ -134,8 +134,8 @@ RenderCrew(uint64_t ship_index)
     }
 
     rgg::RenderCube(
-        math::Cubef(unit->transform.position + v3f(0.f, 0.f, 15.f / 2.f),
-                    15.f, 15.f, 15.f), color);
+        math::Cubef(unit->transform.position + v3f(0.f, 0.f, unit->bounds.z / 2.f),
+                    unit->bounds), color);
 
     // Render unit health bars.
     static const float kHealthSz = 5.f;
@@ -160,10 +160,11 @@ RenderCrew(uint64_t ship_index)
         hcolor.w = math::ScaleRange(hdiff, 0.f, bar_range, 1.f, 0.f);
       }
       rgg::RenderRectangle(
-          math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz), hcolor);
+          math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz),
+          unit->bounds.z, hcolor);
       rgg::RenderLineRectangle(
           math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz),
-          v4f(0.3f, 0.3f, 0.3f, 1.0f));
+          unit->bounds.z, v4f(0.3f, 0.3f, 0.3f, 1.0f));
       hstart.x += kHealthSz;
     }
 

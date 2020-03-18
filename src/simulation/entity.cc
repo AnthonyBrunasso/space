@@ -189,6 +189,9 @@ struct Unit {
   uint8_t aknown_min[CREWA_MAX] = CREW_AWORST;
   uint8_t aknown_max[CREWA_MAX] = CREW_ABEST;
 
+  // Width, height, depth of unit.
+  v3f bounds = v3f(15.f, 15.f, 15.f);
+
   // Bit Fields
   unsigned control : MAX_PLAYER;
   unsigned dead : 1;

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "imui.cc"
-#include "light.cc"
 #include "math/vec.h"
 #include "platform/platform.cc"
 #include "renderer/renderer.cc"

@@ -294,7 +294,7 @@ ScenarioSpawnEnemy(v2i tile_position, uint64_t ship_index)
 }
 
 void
-ScenarioGameUpdate()
+ScenarioTwoShipUpdate()
 {
   // When a unit enters the second tilemap spawn enemies in the shroud.
   if (kTwoShipScenario.enemies_spawned) return;
@@ -320,7 +320,7 @@ ScenarioUpdate()
   int sid = kScenario.type;
   switch (sid) {
     case Scenario::kTwoShip: {
-      ScenarioGameUpdate();
+      ScenarioTwoShipUpdate();
     } break;
     default: break;
   }

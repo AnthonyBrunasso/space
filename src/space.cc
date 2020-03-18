@@ -84,7 +84,7 @@ SetProjection()
 {
   // TODO (AN): revisit camera assumptions
 #ifdef HEADLESS
-  v2f size = {1280.0f, 720.0f};
+  v2f size = {1920.0f, 1080.0f};
 #else
   v2f size = window::GetWindowSize();
 #endif

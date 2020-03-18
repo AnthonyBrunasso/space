@@ -60,6 +60,8 @@ typedef void glGetActiveUniform_Func(GLuint, GLuint, GLsizei, GLsizei*, GLint*, 
 glGetActiveUniform_Func* glGetActiveUniform;
 typedef void glUniform4f_Func(GLint, GLfloat, GLfloat, GLfloat, GLfloat);
 glUniform4f_Func* glUniform4f;
+typedef void glUniform3f_Func(GLint, GLfloat, GLfloat, GLfloat);
+glUniform3f_Func* glUniform3f;
 typedef void glActiveTexture_Func(GLenum);
 glActiveTexture_Func* glActiveTexture;
 typedef void glUniform1i_Func(GLint, GLint);
@@ -448,6 +450,7 @@ SetupGLFunctions() {
   glGetAttribLocation = (glGetAttribLocation_Func*)GetGLFunction("glGetAttribLocation");
   glGetActiveUniform = (glGetActiveUniform_Func*)GetGLFunction("glGetActiveUniform");
   glUniform4f = (glUniform4f_Func*)GetGLFunction("glUniform4f");
+  glUniform3f = (glUniform3f_Func*)GetGLFunction("glUniform3f");
   glActiveTexture = (glActiveTexture_Func*)GetGLFunction("glActiveTexture");
   glUniform1i = (glUniform1i_Func*)GetGLFunction("glUniform1i");
   glDeleteShader = (glDeleteShader_Func*)GetGLFunction("glDeleteShader");

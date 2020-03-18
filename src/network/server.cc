@@ -21,7 +21,7 @@ static ServerParam thread_param;
 #define TIMEOUT_USEC (2 * 1000 * 1000)
 // Update packets per frame
 #define MAX_UPDATE 1
-#define GAME_TICK_USEC (16666)
+#define GAME_TICK_USEC (16333)
 #define SERVER_TICK_USEC (8333)
 
 struct PlayerState {

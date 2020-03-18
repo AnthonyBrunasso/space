@@ -129,7 +129,8 @@ RenderCrew(uint64_t ship_index)
     }
 
     if (unit->control & (1 << kPlayerIndex)) {
-      color = v4f(34.f / 255.f, 139.f / 255.f, 34.f / 255.f, 1.f);
+      rgg::RenderCircle(unit->transform.position, 12.f, 14.f,
+                        v4f(0.33f, 0.80f, 0.33f, 1.f));
     }
 
     rgg::RenderCube(
@@ -166,10 +167,11 @@ RenderCrew(uint64_t ship_index)
       hstart.x += kHealthSz;
     }
 
-    if (unit->spacesuit) {
-      rgg::RenderCircle(unit->transform.position, 12.f, 14.f,
-                        v4f(0.99f, 0.33f, 0.33f, 1.f));
-    }
+    // TODO(anyone): Render something for spacesuit.
+    //if (unit->spacesuit) {
+    //  rgg::RenderCircle(unit->transform.position, 12.f, 14.f,
+    //                    v4f(0.99f, 0.33f, 0.33f, 1.f));
+    //}
   }
 
   for (int i = 0; i < kUsedUnit; ++i) {

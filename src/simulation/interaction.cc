@@ -10,6 +10,7 @@ namespace simulation
 static uint64_t kInputHash = DJB2_CONST;
 static uint64_t kDebugInputHash;
 static uint64_t kDebugSimulationHash;
+static float kCameraSpeed = 4.f;
 
 void
 CacheSyncHashes(bool update, uint64_t frame)
@@ -355,16 +356,16 @@ ControlEvent(const PlatformEvent* event, Player* player)
     case KEY_DOWN: {
       switch (event->key) {
         case 'w': {
-          player->camera.motion.y = 1.f;
+          player->camera.motion.y = kCameraSpeed;
         } break;
         case 'a': {
-          player->camera.motion.x = -1.f;
+          player->camera.motion.x = -kCameraSpeed;
         } break;
         case 's': {
-          player->camera.motion.y = -1.f;
+          player->camera.motion.y = -kCameraSpeed;
         } break;
         case 'd': {
-          player->camera.motion.x = 1.f;
+          player->camera.motion.x = kCameraSpeed;
         } break;
         case 'r': {
           // This check has to happen, otherwise the cursor will go into attack

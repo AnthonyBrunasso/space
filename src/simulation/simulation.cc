@@ -601,7 +601,7 @@ UpdateUnit(uint64_t ship_index)
       set_bits.explored = 1;
       float tile_world_distance = kTileWidth * 2.0f;
       BfsMutate(unit->transform.position, keep_bits, set_bits,
-                tile_world_distance * tile_world_distance);
+                3.f * tile_world_distance * tile_world_distance);
     }
 
     // Crew has been sucked away into the vacuum

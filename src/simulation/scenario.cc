@@ -14,7 +14,7 @@ struct Scenario {
     kTwoShip = 0,
     kCombatScenario,
     kSoloMission,
-    kTwoShipScenario,
+    kGameScenario,
     kCombatGroup,
     kAI,
     kEmptyScenario,
@@ -42,7 +42,7 @@ struct TwoShipScenario {
 static TwoShipScenario kTwoShipScenario;
 
 constexpr const char* kScenarioNames[Scenario::kMaxScenario] = {
-    "Game", "Combat", "Solo", "TwoShip", "CombatGroup", "AI", "Empty",
+    "TowShip", "Combat", "Solo", "Game", "CombatGroup", "AI", "Empty",
 };
 
 int
@@ -93,7 +93,7 @@ ScenarioInitialize(bool reset_features = true)
 {
   int sid = kScenario.type;
   switch (sid) {
-    case Scenario::kTwoShipScenario: {
+    case Scenario::kGameScenario: {
       if (reset_features) {
         memset(&kScenario, 0xff, sizeof(kScenario));
       }
@@ -331,7 +331,7 @@ ScenarioOver()
 {
   int sid = kScenario.type;
   switch (sid) {
-    case Scenario::kTwoShipScenario:
+    case Scenario::kGameScenario:
       if (kUsedShip == 0) {
         LOG("No ships remain.");
         return true;

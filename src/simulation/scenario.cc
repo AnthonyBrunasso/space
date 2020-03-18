@@ -271,6 +271,24 @@ ScenarioReset(bool reset_features)
   ScenarioInitialize(reset_features);
 }
 
+void
+ScenarioGameUpdate()
+{
+  // When a unit enters the second tilemap spawn in the shroud.
+}
+
+void
+ScenarioUpdate()
+{
+  int sid = kScenario.type;
+  switch (sid) {
+    case Scenario::kGameScenario: {
+      ScenarioGameUpdate();
+    } break;
+    default: break;
+  }
+}
+
 bool
 ScenarioOver()
 {

@@ -756,6 +756,8 @@ Update()
   kSimulationOver = ScenarioOver();
   ++kResource[0].frame;
 
+  ScenarioUpdate();
+
   // Camera can move even when game is over
   for (int i = 0; i < kUsedPlayer; ++i) {
     camera::Update(&kPlayer[i].camera);

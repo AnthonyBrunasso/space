@@ -76,15 +76,6 @@ TileToWorld(const Tile tile)
   return TilePosToWorld(v2i(tile.cx, tile.cy));
 }
 
-v2i
-WorldToTilePos(const v3f pos)
-{
-  v2f relpos = pos.xy() - kTilemapWorldOffset;
-  int x = (int)(relpos.x * kInverseTileWidth);
-  int y = (int)(relpos.y * kInverseTileHeight);
-  return {x, y};
-}
-
 // Returns true for positions that exist as a tile in kTilemap
 bool
 TileOk(v2i pos)
@@ -221,6 +212,17 @@ TilemapWorldToGrid(v3f world)
     }
   }
   return kInvalidIndex;
+}
+
+v2i
+WorldToTilePos(const v3f pos)
+{
+  uint64_t tidx = TilemapWorldToGrid(pos);
+  v2f offset = kGrid[tidx].transform.position.xy();
+  v2f relpos = pos.xy() - offset;
+  int x = (int)(relpos.x * kInverseTileWidth);
+  int y = (int)(relpos.y * kInverseTileHeight);
+  return {x, y};
 }
 
 uint64_t

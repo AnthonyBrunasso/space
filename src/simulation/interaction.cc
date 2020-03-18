@@ -56,6 +56,10 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec,
     snprintf(buffer, BUFFER_SIZE, "Mouse Pos In World: (%.1f,%.1f,%.1f)",
              player.world_mouse.x, player.world_mouse.y, player.world_mouse.z);
     imui::Text(buffer);
+    v2i mouse_tile = WorldToTilePos(player.world_mouse);
+    snprintf(buffer, BUFFER_SIZE, "Mouse Pos To Tile: (%i,%i)",
+             mouse_tile.x, mouse_tile.y);
+    imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE, "Input hash: 0x%lx", kDebugInputHash);
     imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE, "Sim hash: 0x%lx", kDebugSimulationHash);

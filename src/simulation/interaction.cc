@@ -99,7 +99,7 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec,
            kScenario.name ? "enabled" : "disabled"); \
   if (imui::Text(buffer, debug_options).clicked) {   \
     kScenario.name = !kScenario.name;                \
-    ResetScenario(false);                            \
+    ScenarioReset(false);                            \
   }
       imui::Indent(2);
       UI_TOGGLE_FEATURE(ship);

@@ -81,7 +81,7 @@ TilemapUnexplored(v3f world_position)
 }
 
 void
-InitializeScenario(bool reset_features = true)
+ScenarioInitialize(bool reset_features = true)
 {
   int sid = kScenario.type;
   switch (sid) {
@@ -258,7 +258,7 @@ InitializeScenario(bool reset_features = true)
 }  // namespace simulation
 
 void
-ResetScenario(bool reset_features)
+ScenarioReset(bool reset_features)
 {
   // TODO (AN): GAME_QUEUE not in the registry
   kReadCommand = 0;
@@ -268,7 +268,7 @@ ResetScenario(bool reset_features)
   for (int i = 0; i < kUsedRegistry; ++i) {
     *kRegistry[i].memb_count = 0;
   }
-  InitializeScenario(reset_features);
+  ScenarioInitialize(reset_features);
 }
 
 bool

@@ -33,7 +33,7 @@ void
 Reset(uint64_t seed)
 {
   srand(seed);
-  ResetScenario(true);
+  ScenarioReset(true);
 }
 
 bool

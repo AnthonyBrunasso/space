@@ -189,7 +189,7 @@ TilemapWorldCenter()
 void
 TilemapSet(uint64_t grid_idx)
 {
-  if (grid_idx == kInvalidIndex) return;  
+  if (grid_idx == kInvalidIndex) return;
 
   if (grid_idx > kUsedGrid) {
     kTilemap = nullptr;
@@ -205,7 +205,7 @@ TilemapWorldToGrid(v3f world)
 {
   for (int i = 0; i < kUsedGrid; ++i) {
     auto* grid = &kGrid[i];
-    math::Rectf r(grid->transform.position.x, grid->transform.position.y, 
+    math::Rectf r(grid->transform.position.x, grid->transform.position.y,
                   kMapWidth * kTileWidth, kMapHeight * kTileHeight);
     if (math::PointInRect(world.xy(), r)) {
       return i;
@@ -226,18 +226,12 @@ WorldToTilePos(const v3f pos)
 }
 
 uint64_t
-TilemapInitialize(int tilemap_style)
+TilemapInitialize()
 {
-  memset(&kTilemap, 0, sizeof(kTilemap));
-
   Grid* grid = UseGrid();
   uint64_t grid_index = grid - kGrid;
   grid->transform.position = v3f();
   TilemapSet(grid_index);
-
-  if (!tilemap_style) {
-    return grid_index;
-  }
 
   // clang-format off
 static int kDefaultMap[kMapHeight][kMapWidth] = {
@@ -248,8 +242,8 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
   {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 1, 7, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 1, 7, 0, 0, 0, 0, 0, 5, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0},
-  {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0},
+  {0, 1, 3, 0, 0, 0, 0, 0, 5, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0},
+  {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0},
   {0, 1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0},
   {0, 1, 1, 1, 1, 1, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0},
@@ -262,9 +256,9 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
   {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0},
   {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0},
   {0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
-  {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0},
-  {0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0},
-  {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0},
+  {0, 1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0},
+  {0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0},
+  {0, 1, 3, 0, 0, 0, 0, 0, 5, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0},
   {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -276,40 +270,30 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
 };
 
   // clang-format on
-  for (int i = 0; i < kMapHeight; ++i) {
-    for (int j = 0; j < kMapWidth; ++j) {
-      Tile* tile = TilePtr(v2i(j, i));
-      tile->cx = j;
-      tile->cy = i;
-      tile->blocked = (kDefaultMap[i][j] == kTileBlock);
+  for (int y = kMapHeight-1; y >= 0; --y) {
+    for (int x = 0; x < kMapWidth; ++x) {
+      Tile* tile = TilePtr(v2i(x, y));
+      printf("y %d x %d %p \n", y, x, tile);
+      tile->cx = x;
+      tile->cy = y;
+      tile->blocked = (kDefaultMap[y][x] == kTileBlock);
       tile->nooxygen = 0;
       tile->explored = 1;
       tile->exterior = 1;
 
-      // No modules for tilemap_style 2
-      // Shroud enabled
-      // Fog enabled
-      if (tilemap_style == 2) {
-        if (kDefaultMap[i][j] == kTileConsumable) {
-          Consumable* c = UseConsumable();
-          c->ship_index = grid_index;
-          c->cx = tile->cx;
-          c->cy = tile->cy;
-          c->minerals = i * j % 89;
-          if (kDefaultMap[i][j - 1] == kTileBlock) {
-            c->cryo_chamber = 1;
-          }
-        } else if (kDefaultMap[i][j] == kTilePower) {
-          Module* t = UseModule();
-          t->ship_index = grid_index;
-          t->cx = tile->cx;
-          t->cy = tile->cy;
-          t->mkind = kModPower;
+      // Consumables enabled: cryo chamber, gatherable resources
+      if (kDefaultMap[y][x] == kTileConsumable) {
+        Consumable* c = UseConsumable();
+        c->ship_index = grid_index;
+        c->cx = tile->cx;
+        c->cy = tile->cy;
+        c->minerals = y * x % 89;
+        if (kDefaultMap[y][x - 1] == kTileBlock) {
+          c->cryo_chamber = 1;
         }
-
-        continue;
       }
-      switch (kDefaultMap[i][j]) {
+
+      switch (kDefaultMap[y][x]) {
         case kTilePower:
         case kTileEngine:
         case kTileMine:
@@ -318,17 +302,18 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
           t->ship_index = grid_index;
           t->cx = tile->cx;
           t->cy = tile->cy;
-          t->mkind = kDefaultMap[i][j] - kTileModule;
+          t->mkind = kDefaultMap[y][x] - kTileModule;
+          t->built = 0;
         } break;
       };
     }
   }
 
   return grid_index;
-}
+}  // namespace simulation
 
 void
-TilemapUpdate(int tilemap_style)
+TilemapUpdate()
 {
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {

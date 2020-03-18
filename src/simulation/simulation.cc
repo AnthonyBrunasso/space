@@ -272,7 +272,7 @@ Think()
   for (uint64_t i = 0; i < kUsedShip; ++i) {
     TilemapSet(kShip[i].grid_index);
     // Shroud is reset each frame
-    TilemapUpdate(kScenario.tilemap);
+    TilemapUpdate();
 
     ThinkShip(i);
     ThinkMissle(i);

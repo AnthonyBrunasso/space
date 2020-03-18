@@ -27,7 +27,6 @@ struct Scenario {
   unsigned asteroid : 1;
   unsigned missile : 1;
   unsigned pod : 1;
-  unsigned tilemap : 2;
   unsigned shroud : 1;
 };
 
@@ -122,7 +121,6 @@ ScenarioInitialize(bool reset_features = true)
     case Scenario::kSoloMission: {
       if (reset_features) {
         memset(&kScenario, 0, sizeof(kScenario));
-        kScenario.tilemap = 2;
       }
       // One unit
       UseIdUnit();
@@ -231,7 +229,7 @@ ScenarioInitialize(bool reset_features = true)
   }
   kScenario.type = (Scenario::Type)sid;
 
-  uint64_t grid_index = TilemapInitialize(kScenario.tilemap);
+  uint64_t grid_index = TilemapInitialize();
   // At least one ship
   kScenario.ship = 1;
   Ship* ship = UseShip();
@@ -249,7 +247,7 @@ ScenarioInitialize(bool reset_features = true)
     case Scenario::kTwoShip: {
       // Create a second ship and tilemap
       Ship* s2 = UseShip();
-      kTwoShipScenario.ship_two_idx = TilemapInitialize(2);
+      kTwoShipScenario.ship_two_idx = TilemapInitialize();
       s2->grid_index = kTwoShipScenario.ship_two_idx;
       s2->level = 1;
       kGrid[kTwoShipScenario.ship_two_idx].transform.position = v2f(600.f, 800.f);

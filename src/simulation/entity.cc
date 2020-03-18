@@ -252,7 +252,8 @@ struct Module {
   unsigned cx : 5;
   unsigned cy : 5;
   unsigned mkind : kModBits;
-  uint64_t PADDING : 51;
+  unsigned built : 1;
+  uint64_t PADDING : 50;
 };
 DECLARE_GAME_TYPE(Module, 32);
 
@@ -294,7 +295,7 @@ struct Consumable {
   uint32_t minerals : 6;
   uint64_t PADDING : 47;
 };
-DECLARE_GAME_TYPE(Consumable, 16);
+DECLARE_GAME_TYPE(Consumable, 32);
 
 constexpr int kMapWidth = 32;
 constexpr int kMapHeight = 32;

@@ -273,7 +273,6 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
   for (int y = kMapHeight-1; y >= 0; --y) {
     for (int x = 0; x < kMapWidth; ++x) {
       Tile* tile = TilePtr(v2i(x, y));
-      printf("y %d x %d %p \n", y, x, tile);
       tile->cx = x;
       tile->cy = y;
       tile->blocked = (kDefaultMap[y][x] == kTileBlock);

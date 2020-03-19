@@ -26,7 +26,7 @@ CacheSyncHashes(bool update, uint64_t frame)
 
 void
 DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec,
-           uint64_t frame, uint64_t jerk, uint64_t median_tsc)
+           uint64_t frame, uint64_t jerk)
 {
   auto sz = window::GetWindowSize();
 #define BUFFER_SIZE 64
@@ -64,9 +64,6 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec,
     snprintf(buffer, BUFFER_SIZE, "Input hash: 0x%lx", kDebugInputHash);
     imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE, "Sim hash: 0x%lx", kDebugSimulationHash);
-    imui::Text(buffer);
-    snprintf(buffer, BUFFER_SIZE, "Frame Jerk: %lu [ step %lu ]", jerk,
-             median_tsc);
     imui::Text(buffer);
     const char* ui_err = imui::LastErrorString();
     if (ui_err) imui::Text(ui_err);

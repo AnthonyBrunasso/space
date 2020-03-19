@@ -181,6 +181,7 @@ main(int argc, char** argv)
 #endif
   // Reset the clock for simulation
   clock_init(kGameState.frame_target_usec, &kGameState.game_clock);
+  printf("median_tsc_per_usec %lu\n", median_tsc_per_usec);
   const uint64_t frame_limit = kGameState.frame_limit;
   for (uint64_t frame = 0; frame <= frame_limit; ++frame) {
     if (window::ShouldClose()) break;
@@ -209,7 +210,7 @@ main(int argc, char** argv)
         // Game Mutation: Apply player commands for turn N
 #if ALAN_DEBUG
         printf("Simulation [ %lu slot ] [ %lu frame ] [ %lu jerk ] [ %lu median_tsc ]\n", slot,
-               kGameState.logic_updates, kGameState.game_clock.jerk, kGameState.game_clock.median_tsc_per_usec);
+               kGameState.logic_updates, kGameState.game_clock.jerk);
 #endif
         InputBuffer* game_turn = GetSlot(slot);
         for (int i = 0; i < MAX_PLAYER; ++i) {
@@ -228,8 +229,7 @@ main(int argc, char** argv)
         simulation::DebugPanel(kPlayer[kNetworkState.player_index], kGameStats,
                                kGameState.frame_target_usec,
                                kGameState.logic_updates,
-                               kGameState.game_clock.jerk,
-                               kGameState.game_clock.median_tsc_per_usec);
+                               kGameState.game_clock.jerk);
 #endif
 
         // SetView for the local player's camera

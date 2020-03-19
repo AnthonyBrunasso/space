@@ -237,7 +237,7 @@ game_transmit(Udp4 location, uint64_t game_index)
 }
 
 bool
-game_update(uint64_t realtime_usec, uint64_t game_index, uint64_t jerk, uint64_t median_tsc)
+game_update(uint64_t realtime_usec, uint64_t game_index, uint64_t jerk)
 {
   Game* g = &game[game_index];
   const uint64_t game_id = g->game_id;
@@ -280,8 +280,8 @@ game_update(uint64_t realtime_usec, uint64_t game_index, uint64_t jerk, uint64_t
   }
 
 #if ALAN_DEBUG
-  printf("Server game [ frame %lu ] [ ack_frame %lu ] [ new_ack_frame %lu ] [ jerk %lu ] [ tsc_step %lu ]\n",
-         next_frame, g->ack_frame, new_ack_frame, jerk, median_tsc);
+  printf("Server game [ frame %lu ] [ ack_frame %lu ] [ new_ack_frame %lu ] [ jerk %lu ]\n",
+         next_frame, g->ack_frame, new_ack_frame, jerk);
 #endif
 
   g->last_frame = next_frame;
@@ -338,7 +338,7 @@ server_main(void* void_arg)
 
       bool ready[MAX_GAME] = {};
       for (int i = 0; i < MAX_GAME; ++i) {
-        while (game_update(realtime_usec, i, server_clock.jerk, server_clock.median_tsc_per_usec)) {
+        while (game_update(realtime_usec, i, server_clock.jerk)) {
           ready[i] = true;
         }
       }

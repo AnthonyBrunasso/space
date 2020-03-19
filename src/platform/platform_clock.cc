@@ -5,10 +5,10 @@
 #include "macro.h"
 #include "rdtsc.h"
 
+EXTERN(uint64_t median_tsc_per_usec);
+EXTERN(uint64_t median_usec_per_tsc);
+
 typedef struct {
-  // Conversion constants
-  uint64_t median_tsc_per_usec;
-  uint64_t median_usec_per_tsc;
   // The ideal advacement cadence of tsc_clock
   uint64_t tsc_step;
   // Count the time rhythmic progression was lost
@@ -23,17 +23,9 @@ typedef struct {
 #define CLOCKS_PER_MS (CLOCKS_PER_SEC / 1000)
 #define MAX_SAMPLES 10
 
-// clock() will accumulate per thread
-// thus restricted to one thread at a time
 static uint64_t
 __tsc_per_usec()
 {
-  static volatile uint64_t lock_id ALIGNAS(sizeof(uint64_t));
-  static volatile uint64_t running_thread ALIGNAS(sizeof(uint64_t));
-  uint64_t thread_id = lock_id++;
-  while (thread_id != running_thread) {
-  }
-
   clock_t c = clock();
   clock_t p;
   uint64_t rc = rdtsc();
@@ -63,25 +55,42 @@ __tsc_per_usec()
     }
   }
 
-  ++running_thread;
   return tsc_per_usec[MAX_SAMPLES / 2];
 }
 
-static uint64_t
-__tscdelta_to_usec(const TscClock_t *clock, uint64_t delta_tsc)
+// clock() will accumulate per thread
+// thus restricted to one thread at a time
+// TODO (AN): Find a better cross-platform baseline?
+void
+__threadsafe_tsc_per_usec()
 {
-  return (delta_tsc * clock->median_usec_per_tsc) >> 33;
+  static volatile uint64_t lock_in ALIGNAS(sizeof(uint64_t));
+  static volatile uint64_t lock_out ALIGNAS(sizeof(uint64_t));
+  uint64_t thread_id = lock_in++;
+  while (thread_id) {
+    if (lock_out) {
+      return;
+    }
+  }
+
+  median_tsc_per_usec = __tsc_per_usec();
+  median_usec_per_tsc = ((uint64_t)1 << 33) / median_tsc_per_usec;
+  ++lock_out;
+}
+
+static uint64_t
+__tscdelta_to_usec(uint64_t delta_tsc)
+{
+  return (delta_tsc * median_usec_per_tsc) >> 33;
 }
 
 void
 clock_init(uint64_t frame_goal_usec, TscClock_t *out_clock)
 {
-  const uint64_t tsc_per_usec = __tsc_per_usec();
-  out_clock->median_tsc_per_usec = tsc_per_usec;
+  __threadsafe_tsc_per_usec();
 
   // Calculate the step
-  out_clock->tsc_step = frame_goal_usec * tsc_per_usec;
-  out_clock->median_usec_per_tsc = ((uint64_t)1 << 33) / tsc_per_usec;
+  out_clock->tsc_step = frame_goal_usec * median_tsc_per_usec;
   // Init to current time
   uint64_t now = rdtsc();
   out_clock->jerk = 0;
@@ -92,7 +101,7 @@ clock_init(uint64_t frame_goal_usec, TscClock_t *out_clock)
 uint64_t
 clock_delta_usec(const TscClock_t *clock)
 {
-  return __tscdelta_to_usec(clock, rdtsc() - clock->frame_to_frame_tsc);
+  return __tscdelta_to_usec(rdtsc() - clock->frame_to_frame_tsc);
 }
 
 bool
@@ -105,7 +114,7 @@ clock_sync(TscClock_t *clock, uint64_t *optional_sleep_usec)
   if (tsc_next - tsc_now < clock->tsc_step) {
     // no-op, busy wait
     // optional sleep time
-    *optional_sleep_usec = __tscdelta_to_usec(clock, tsc_next - tsc_now);
+    *optional_sleep_usec = __tscdelta_to_usec(tsc_next - tsc_now);
     return false;
   } else if (tsc_now - tsc_next <= clock->tsc_step) {
     // frame slightly over goal time

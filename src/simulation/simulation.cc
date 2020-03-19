@@ -123,8 +123,11 @@ ThinkShip(uint64_t ship_index)
       Module* mod = &kModule[k];
       if (mod->mkind != kModPower && ship->sys[kModPower] < 1.0f) continue;
 
-      if (v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperate)
+      if (v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperate) {
         satisfied |= FLAG(mod->mkind);
+        unit->busy = true;
+      } else {
+      }
     }
   }
 

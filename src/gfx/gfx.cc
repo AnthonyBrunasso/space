@@ -75,52 +75,39 @@ Initialize()
     0.0f, -1.0f, 0.0f, ORIGIN,
     1.0f, 0.0f, 0.0f, ORIGIN, 
     0.0f, 1.0f, 0.0f, ORIGIN};
-  constexpr int kGearVert = 40;
+  constexpr int kGearVert = 28;
   GLfloat gear[kGearVert * 3] = {
-    // Upper right quadrant.
-    1.0f, 5.3f, 0.f,
-    1.1f, 3.9f, 0.f,
-    1.5f, 3.7f, 0.f,
-    2.5f, 4.9f, 0.f,
-    3.9f, 3.9f, 0.f,
-    3.1f, 2.5f, 0.f,
-    3.4f, 2.1f, 0.f,
-    4.8f, 2.35f, 0.f,
-    5.2f, 0.9f, 0.f,
-    3.8f, 0.2f, 0.f,
-    // Bottom right quadrant.
-    3.8f, -0.2f, 0.f,
-    5.2f, -0.9f, 0.f,
-    4.8f, -2.35f, 0.f,
-    3.4f, -2.1f, 0.f,
-    3.1f, -2.5f, 0.f,
-    3.9f, -3.9f, 0.f,
-    2.5f, -4.9f, 0.f,
-    1.5f, -3.7f, 0.f,
-    1.1f, -3.9f, 0.f,
-    1.0f, -5.3f, 0.f,
-    // Bottom left quadrant.
-    -1.0f, -5.3f, 0.f,
-    -1.1f, -3.9f, 0.f,
-    -1.5f, -3.7f, 0.f,
-    -2.5f, -4.9f, 0.f,
-    -3.9f, -3.9f, 0.f,
-    -3.1f, -2.5f, 0.f,
-    -3.4f, -2.1f, 0.f,
-    -4.8f, -2.35f, 0.f,
-    -5.2f, -0.9f, 0.f,
-    -3.8f, -0.2f, 0.f,
-    // Upper left quadrant.
-    -3.8f, 0.2f, 0.f,
-    -5.2f, 0.9f, 0.f,
-    -4.8f, 2.35f, 0.f,
-    -3.4f, 2.1f, 0.f,
-    -3.1f, 2.5f, 0.f,
-    -3.9f, 3.9f, 0.f,
-    -2.5f, 4.9f, 0.f,
-    -1.5f, 3.7f, 0.f,
-    -1.1f, 3.9f, 0.f,
-    -1.0f, 5.3f, 0.f,
+    0.5f, 3.5f, 0.0f,
+    0.7f, 2.3f, 0.0f,
+    1.4f, 2.0f, 0.0f,
+    2.4f, 2.7f, 0.0f,
+    3.1f, 1.7f, 0.0f,
+    2.2f, 0.9f, 0.0f,
+    2.5f, 0.2f, 0.0f,
+
+    3.5f, -0.05f, 0.0f,
+    3.2f, -1.4f, 0.0f,
+    2.2f, -1.1f, 0.0f,
+    1.7f, -1.8f, 0.0f,
+    2.0f, -3.2f, 0.0f,
+    1.0f, -3.5f, 0.0f,
+    0.5f, -2.5f, 0.0f,
+
+    -0.5f, -2.5f, 0.0f,
+    -1.0f, -3.5f, 0.0f,
+    -2.0f, -3.2f, 0.0f,
+    -1.7f, -1.8f, 0.0f,
+    -2.2f, -1.1f, 0.0f,
+    -3.2f, -1.4f, 0.0f,
+    -3.5f, -0.05f, 0.0f,
+
+    -2.5f, 0.2f, 0.0f,
+    -2.2f, 0.9f, 0.0f,
+    -3.1f, 1.7f, 0.0f,
+    -2.4f, 2.7f, 0.0f,
+    -1.4f, 2.0f, 0.0f,
+    -0.7f, 2.3f, 0.0f,
+    -0.5f, 3.5f, 0.0f,
   };
   // clang-format on
   for (int i = 0; i < kFloatCount; ++i) asteroid[i] *= 15.f;      // HA
@@ -189,7 +176,10 @@ RenderCrew(uint64_t ship_index)
         // TODO(abrunasso): This should be the graphic when working on something.
         static float r = 0.f;
         rgg::RenderTag(
-            kGfx.gear_tag, unit->transform.position, v3f(0.15f, 0.15f, 0.15f),
+            kGfx.gear_tag, 
+            unit->transform.position +
+                v3f(-unit->bounds.x - 2.f, unit->bounds.y + 2.f, unit->bounds.z + .1f),
+            v3f(0.17f, 0.17f, 0.17f),
             math::Quatf(r, v3f(0.f, 0.f, 1.f)), v4f(0.7f, 0.7f, 0.7f, 1.f));
         r += 0.3f;
       }

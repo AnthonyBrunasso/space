@@ -195,9 +195,10 @@ RenderCrew(uint64_t ship_index)
       }
     }
 
-    rgg::RenderCube(
-        math::Cubef(unit->transform.position + v3f(0.f, 0.f, unit->bounds.z / 2.f),
-                    unit->bounds), color);
+    rgg::RenderCube(math::Cubef(unit->transform.position +
+                                    v3f(0.f, 0.f, unit->bounds.z / 2.f),
+                                unit->bounds),
+                    color);
 
     // Render unit health bars.
     static const float kHealthSz = 5.f;
@@ -222,16 +223,16 @@ RenderCrew(uint64_t ship_index)
         hcolor.w = math::ScaleRange(hdiff, 0.f, bar_range, 1.f, 0.f);
       }
       rgg::RenderRectangle(
-          math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz),
-          unit->bounds.z, hcolor);
+          math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz), unit->bounds.z,
+          hcolor);
       rgg::RenderLineRectangle(
-          math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz),
-          unit->bounds.z, v4f(0.3f, 0.3f, 0.3f, 1.0f));
+          math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz), unit->bounds.z,
+          v4f(0.3f, 0.3f, 0.3f, 1.0f));
       hstart.x += kHealthSz;
     }
 
     // TODO(anyone): Render something for spacesuit.
-    //if (unit->spacesuit) {
+    // if (unit->spacesuit) {
     //  rgg::RenderCircle(unit->transform.position, 12.f, 14.f,
     //                    v4f(0.99f, 0.33f, 0.33f, 1.f));
     //}
@@ -284,20 +285,22 @@ void
 RenderShip(uint64_t ship_index)
 {
   using namespace simulation;
-  
+
   // Modules are always visible
   constexpr float min_visibility = .2f;
 
   for (int i = 0; i < kUsedModule; ++i) {
     Module* module = &kModule[i];
     if (module->ship_index != ship_index) continue;
+    if (!module->built) continue;
     v3f mcolor = ModuleColor(module->mkind);
     mcolor *=
         CLAMPF(min_visibility, kShip[ship_index].sys[module->mkind], 1.0f);
     v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
     v2f t = simulation::TilePosToWorld(v2i{(int)module->cx, (int)module->cy});
     rgg::RenderCube(math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f),
-                    15.f, 15.f, 15.f), color);
+                                15.f, 15.f, 15.f),
+                    color);
   }
 
   {
@@ -345,7 +348,7 @@ RenderShip(uint64_t ship_index)
     for (int j = 0; j < kMapWidth; ++j) {
       const Tile* tile = TilePtr(v2i(j, i));
       v3f world_pos = TileToWorld(*tile);
-      //printf("%.3f\n", world_pos.z);
+      // printf("%.3f\n", world_pos.z);
 
       v4f color;
       if (!tile->explored) {
@@ -354,7 +357,8 @@ RenderShip(uint64_t ship_index)
       } else if (tile->blocked) {
         color = v4f(.15f, .15f, .15f, 1.f);
         rgg::RenderCube(math::Cubef(world_pos + v3f(0.f, 0.f, 50.f), kTileWidth,
-                        kTileHeight, 100.f), color);
+                                    kTileHeight, 100.f),
+                        color);
       } else if (tile->nooxygen) {
         color = v4f(1.f, 0.f, .2f, .4);
         rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
@@ -375,8 +379,8 @@ RenderShip(uint64_t ship_index)
             p->selection_start.z != 0.f) {
           glDisable(GL_DEPTH_TEST);
           v3f diff = p->world_mouse - p->selection_start;
-          math::Rectf sbox(p->selection_start.x, p->selection_start.y,
-                           diff.x, diff.y);
+          math::Rectf sbox(p->selection_start.x, p->selection_start.y, diff.x,
+                           diff.y);
           sbox = math::OrientToAabb(sbox);
           rgg::RenderRectangle(sbox, p->world_mouse.z, kSelectionColor);
           rgg::RenderLineRectangle(sbox, p->world_mouse.z,
@@ -395,12 +399,26 @@ RenderShip(uint64_t ship_index)
         }
       } break;
       case kHudModule: {
-        if (!TileOk(mouse_grid)) continue;
+        for (int j = 0; j < kUsedModule; ++j) {
+          Module *module = &kModule[j];
+          if (module->mkind != p->mod_placement) continue;
+          if (module->built) continue;
+          v2i tile(module->cx, module->cy);
 
-        v4f color;
-        color = v4f(1.0f, 0.0f, 1.f, 1.0f);
-        rgg::RenderRectangle(TilePosToWorld(mouse_grid), kTileScale,
-                             kDefaultRotation, color);
+          // Cursor hover matches a module location
+          v3f mcolor = ModuleColor(module->mkind);
+          if (tile == mouse_grid)
+            mcolor *= 1.f;
+          else
+            mcolor *= .3f;
+
+          v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
+          v2f t = simulation::TilePosToWorld(tile);
+          rgg::RenderCube(
+              math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f), 15.f,
+                          15.f, 15.f),
+              color);
+        }
       } break;
       case kHudAttackMove: {
         glDisable(GL_DEPTH_TEST);
@@ -484,8 +502,9 @@ RenderSpaceObjects()
     if (pod->think_flags & FLAG(kPodAiUnmanned)) continue;
 
     rgg::RenderCube(
-        math::Cubef(pod->transform.position + v3f(0.f, 0.f, 15.f / 2.f),
-                    15.f, 15.f, 15.f), v4f(0.99f, 0.33f, 0.33f, 1.f));
+        math::Cubef(pod->transform.position + v3f(0.f, 0.f, 15.f / 2.f), 15.f,
+                    15.f, 15.f),
+        v4f(0.99f, 0.33f, 0.33f, 1.f));
     rgg::RenderCircle(pod->transform.position + v2f(15.f, 15.f), 12.f, 14.f,
                       v4f(0.99f, 0.33f, 0.33f, 1.f));
   }

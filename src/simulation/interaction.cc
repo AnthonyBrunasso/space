@@ -58,14 +58,15 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec,
              player.world_mouse.x, player.world_mouse.y, player.world_mouse.z);
     imui::Text(buffer);
     v2i mouse_tile = WorldToTilePos(player.world_mouse);
-    snprintf(buffer, BUFFER_SIZE, "Mouse Pos To Tile: (%i,%i)",
-             mouse_tile.x, mouse_tile.y);
+    snprintf(buffer, BUFFER_SIZE, "Mouse Pos To Tile: (%i,%i)", mouse_tile.x,
+             mouse_tile.y);
     imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE, "Input hash: 0x%lx", kDebugInputHash);
     imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE, "Sim hash: 0x%lx", kDebugSimulationHash);
     imui::Text(buffer);
-    snprintf(buffer, BUFFER_SIZE, "Frame Jerk: %lu [ step %lu ]", jerk, median_tsc);
+    snprintf(buffer, BUFFER_SIZE, "Frame Jerk: %lu [ step %lu ]", jerk,
+             median_tsc);
     imui::Text(buffer);
     const char* ui_err = imui::LastErrorString();
     if (ui_err) imui::Text(ui_err);
@@ -298,16 +299,22 @@ ControlEvent(const PlatformEvent* event, Player* player)
                          (unsigned)(1 << player_index)});
           } break;
           case kHudModule: {
-            unsigned mkind = player->mod_placement;
+            const unsigned mkind = player->mod_placement;
+            uint64_t grid = TilemapWorldToGrid(world_pos);
+            if (grid == kInvalidIndex) break;
+            TilemapSet(grid);
+            const v2i tilepos = WorldToTilePos(world_pos);
             if (event->button == BUTTON_LEFT) {
-              for (int i = 0; i < kUsedShip; ++i) {
-                v2i tilepos = WorldToTilePos(world_pos);
-                if (!TileOk(tilepos)) continue;
-                Module* m = UseModule();
-                m->ship_index = i;
-                m->cx = tilepos.x;
-                m->cy = tilepos.y;
-                m->mkind = mkind;
+              for (int i = 0; i < kUsedModule; ++i) {
+                Module* module = &kModule[i];
+                if (module->ship_index != grid) continue;
+                if (module->mkind != mkind) continue;
+                if (module->built) continue;
+                v2i module_tile(module->cx, module->cy);
+
+                if (module_tile != tilepos) continue;
+                module->built = 1;
+                break;
               }
             }
           } break;
@@ -336,8 +343,8 @@ ControlEvent(const PlatformEvent* event, Player* player)
             player->selection_start.y != 0.f ||
             player->selection_start.z != 0.f) {
           v3f diff = player->world_mouse - player->selection_start;
-          math::Rectf sbox(player->selection_start.x,
-                           player->selection_start.y, diff.x, diff.y);
+          math::Rectf sbox(player->selection_start.x, player->selection_start.y,
+                           diff.x, diff.y);
           sbox = math::OrientToAabb(sbox);
           for (int i = 0; i < kUsedUnit; ++i) {
             unit = GetUnit(sbox, i);
@@ -377,8 +384,8 @@ ControlEvent(const PlatformEvent* event, Player* player)
           }
         } break;
         case 'u': {
-          v3f pos = camera::ScreenToWorldSpace(
-              &player->camera, event->position);
+          v3f pos =
+              camera::ScreenToWorldSpace(&player->camera, event->position);
           float dsq;
           uint64_t unit_index =
               v3fNearTransform(pos, GAME_ITER(Unit, transform), &dsq);
@@ -403,9 +410,13 @@ ControlEvent(const PlatformEvent* event, Player* player)
             }
           }
         } break;
-	case 'm': {
+        case 'm': {
+          if (player->hud_mode == kHudModule) {
+            player->mod_placement += 1;
+          } else {
+            player->mod_placement = 0;
+          }
           player->hud_mode = kHudModule;
-          player->mod_placement += 1;
           LOGFMT("Hud Module placement. [type %d]", player->mod_placement);
         } break;
         case 'h': {

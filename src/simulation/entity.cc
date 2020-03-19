@@ -192,8 +192,6 @@ struct Unit {
   // Width, height, depth of unit.
   v3f bounds = v3f(15.f, 15.f, 15.f);
 
-  bool busy = false;
-
   // Bit Fields
   unsigned control : MAX_PLAYER;
   unsigned dead : 1;

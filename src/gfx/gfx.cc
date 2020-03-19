@@ -183,12 +183,15 @@ RenderCrew(uint64_t ship_index)
                           v4f(0.33f, 0.80f, 0.33f, 1.f));
     }
 
-    if (unit->busy) {
-      // TODO(abrunasso): This should be the graphic when working on something.
-      static float r = 0.f;
-      rgg::RenderTag(kGfx.gear_tag, unit->transform.position, v3f(0.15f, 0.15f, 0.15f),
-                     math::Quatf(r, v3f(0.f, 0.f, 1.f)), v4f(0.7f, 0.7f, 0.7f, 1.f));
-      r += 0.3f;
+    for (int k = 0; k < kUsedModule; ++k) {
+      Module* mod = &kModule[k];
+      if (v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperate) {
+        // TODO(abrunasso): This should be the graphic when working on something.
+        static float r = 0.f;
+        rgg::RenderTag(kGfx.gear_tag, unit->transform.position, v3f(0.15f, 0.15f, 0.15f),
+                       math::Quatf(r, v3f(0.f, 0.f, 1.f)), v4f(0.7f, 0.7f, 0.7f, 1.f));
+        r += 0.3f;
+      }
     }
 
     rgg::RenderCube(

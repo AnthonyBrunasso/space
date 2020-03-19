@@ -125,9 +125,6 @@ ThinkShip(uint64_t ship_index)
 
       if (v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperate) {
         satisfied |= FLAG(mod->mkind);
-        unit->busy = true;
-      } else {
-        unit->busy = false;
       }
     }
   }

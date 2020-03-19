@@ -127,6 +127,7 @@ ThinkShip(uint64_t ship_index)
         satisfied |= FLAG(mod->mkind);
         unit->busy = true;
       } else {
+        unit->busy = false;
       }
     }
   }

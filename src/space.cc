@@ -183,7 +183,8 @@ main(int argc, char** argv)
   clock_init(kGameState.frame_target_usec, &kGameState.game_clock);
   printf("median_tsc_per_usec %lu\n", median_tsc_per_usec);
   const uint64_t frame_limit = kGameState.frame_limit;
-  for (uint64_t frame = 0; frame <= frame_limit; ++frame) {
+  uint64_t frame = 0;
+  for (; frame <= frame_limit; ++frame) {
     if (window::ShouldClose()) break;
 
     GatherInput();
@@ -270,6 +271,7 @@ main(int argc, char** argv)
       };
     }
   }
+  printf("[ last_frame %d ] \n", frame);
 
   return 0;
 }

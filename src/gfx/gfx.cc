@@ -287,7 +287,7 @@ RenderShip(uint64_t ship_index)
   using namespace simulation;
 
   // Modules are always visible
-  constexpr float min_visibility = .2f;
+  constexpr float min_visibility = .4f;
 
   for (int i = 0; i < kUsedModule; ++i) {
     Module* module = &kModule[i];

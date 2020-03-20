@@ -113,8 +113,12 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec,
       UI_TOGGLE_FEATURE(pod);
       imui::Indent(-2);
     }
+    if (imui::Text("Exit", debug_options).clicked) {
+      exit(1);
+    }
     imui::Indent(-2);
   }
+  
 
   snprintf(buffer, BUFFER_SIZE, "Minerals: %lu", kResource[0].mineral);
   imui::Text(buffer);

@@ -41,7 +41,7 @@ struct PlatformEvent {
 
 namespace window
 {
-int Create(const char* name, int width, int height);
+int Create(const char* name, int width, int height, bool fullscreen);
 
 // Returns true if an event existed. False otherwise.
 // Fully poll this queue at the top of each game loop.

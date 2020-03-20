@@ -139,7 +139,7 @@ CreateOpenGLContext()
 
 
 int
-Create(const char* name, int width, int height)
+Create(const char* name, int width, int height, bool fullscreen)
 {
   kWindow.gl_context = CreateOpenGLContext();
 

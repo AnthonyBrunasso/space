@@ -360,6 +360,9 @@ ControlEvent(const PlatformEvent* event, Player* player)
     } break;
     case KEY_DOWN: {
       switch (event->key) {
+        case 27 /* ESC */: {
+          exit(1);
+        } break;
         case 'w': {
           player->camera.motion.y = kCameraSpeed;
         } break;

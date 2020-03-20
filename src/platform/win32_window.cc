@@ -243,7 +243,8 @@ WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
 }
 
 HWND
-SetupWindow(HINSTANCE inst, const char* name, int width, int height)
+SetupWindow(HINSTANCE inst, const char* name, int width, int height,
+            bool fullscreen)
 {
   WNDCLASSA wc = {};
   wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -256,21 +257,35 @@ SetupWindow(HINSTANCE inst, const char* name, int width, int height)
   if (!RegisterClassA(&wc)) {
     assert("Failed to register window.");
   }
-
+ 
+  DWORD window_style = WS_POPUP;
+  DWORD window_extended_style = WS_EX_APPWINDOW;
   RECT rect = {};
   rect.right = width;
   rect.bottom = height;
 
-  DWORD window_style = WS_OVERLAPPEDWINDOW;
-  AdjustWindowRect(&rect, window_style, false);
+  if (fullscreen) {
+    DEVMODE screen_settings = {};
+    // TODO(abrunasso): This doesn't look nice when it's not the users native
+    // resolution. Is there a solution to that?
+    screen_settings.dmSize	= sizeof (DEVMODE);
+    screen_settings.dmPelsWidth	= width;
+    screen_settings.dmPelsHeight = height;
+    screen_settings.dmBitsPerPel	= 32;
+    screen_settings.dmFields	= DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+    ChangeDisplaySettings(&screen_settings, CDS_FULLSCREEN);
+    window_extended_style |= WS_EX_TOPMOST;
+  } else {
+    AdjustWindowRectEx(&rect, window_style, false, WS_EX_APPWINDOW);
+  }
 
   HWND window = CreateWindowExA(
-      0,
+      WS_EX_APPWINDOW,
       wc.lpszClassName,
       name,
       window_style,
-      CW_USEDEFAULT,
-      CW_USEDEFAULT,
+      0,
+      0,
       rect.right - rect.left,
       rect.bottom - rect.top,
       0,
@@ -462,9 +477,10 @@ SetupGLFunctions() {
 }
 
 int
-Create(const char* name, int width, int height)
+Create(const char* name, int width, int height, bool fullscreen)
 {
-  kWindow.hwnd = SetupWindow(GetModuleHandle(0), name, width, height);
+  kWindow.hwnd =
+      SetupWindow(GetModuleHandle(0), name, width, height, fullscreen);
   kWindow.hdc = GetDC(kWindow.hwnd);
   kWindow.hglrc = InitOpenGL(kWindow.hdc);
   SetupGLFunctions();

@@ -14,7 +14,6 @@ Delete items when they are done.
 
 new scenario -
   two units each players owns one
-  module destinations 1-3 per type
   construction in progress feedback
   operating module feedback
   level 2: unlock pod module

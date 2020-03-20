@@ -34,7 +34,7 @@ x11_ioerror_handler(Display*)
 }
 
 int
-Create(const char*, int width, int height)
+Create(const char*, int width, int height, bool fullscreen)
 {
   if (window_id) return 0;
 

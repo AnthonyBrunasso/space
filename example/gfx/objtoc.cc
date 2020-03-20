@@ -52,7 +52,7 @@ struct vn {
   v3f v;
 };
 
-constexpr int kMaxVertCount = 2048;
+constexpr int kMaxVertCount = 65538;
 
 static float kVerts[kMaxVertCount * 3];
 static int kVertCount;
@@ -163,12 +163,15 @@ AddTri(v3i root, v3i vi1, v3i vi2)
   kNorms[kNormCount++] = n3.x;
   kNorms[kNormCount++] = n3.y;
   kNorms[kNormCount++] = n3.z;
+  printf("%i\n", kVertCount);
 }
 
 void
 FillF(char* line)
 {
   if (line[0] != 'f' || line[1] != ' ') return;
+
+  printf(line);
 
   int idx = 2;
   // Get first  
@@ -180,6 +183,7 @@ FillF(char* line)
   GetAfterNextSlash(&idx, line);
   root.z = atoi(&line[idx]) - 1;
   while (line[idx] != '\n') {
+    printf("%i\n", idx);
     GetAfterNextSpace(&idx, line);
     v3i vertidx1, vertidx2;
     vertidx1.x = atoi(&line[idx]) - 1;
@@ -222,10 +226,14 @@ main(int argc, char** argv)
 
   
   while (fgets(line, sizeof(line), fptr)) {
+    printf("V\n");
     FillV(line);
+    printf("Vt\n");
     FillVt(line);
+    printf("VN\n");
     FillVN(line);
 
+    printf("F\n");
     FillF(line);
   }
 

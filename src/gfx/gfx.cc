@@ -515,6 +515,9 @@ Render(uint64_t player_index)
 
   RenderSpaceObjects();
 
+  rgg::RenderSphere(v3f(250.f, 300.f, 0.f), v3f(15.f, 15.f, 15.f),
+                    v4f(1.f, 1.f, 1.f, 0.2f));
+
   // Ui
   imui::Render();
 }

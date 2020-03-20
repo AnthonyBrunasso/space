@@ -190,6 +190,12 @@ RenderCrew(uint64_t ship_index)
                                 unit->bounds),
                     color);
 
+    if (unit->spacesuit) {
+      rgg::RenderSphere(unit->transform.position + v3f(0.f, 0.f, 7.5f),
+                        v3f(15.f, 15.f, 15.f), v4f(1.f, 1.f, 1.f, 0.3f));
+    }
+
+
     // Render unit health bars.
     static const float kHealthSz = 5.f;
     v3f hstart = unit->transform.position + v3f(-13.0f, 15.5f, 0.0f);
@@ -220,12 +226,6 @@ RenderCrew(uint64_t ship_index)
           v4f(0.3f, 0.3f, 0.3f, 1.0f));
       hstart.x += kHealthSz;
     }
-
-    // TODO(anyone): Render something for spacesuit.
-    // if (unit->spacesuit) {
-    //  rgg::RenderCircle(unit->transform.position, 12.f, 14.f,
-    //                    v4f(0.99f, 0.33f, 0.33f, 1.f));
-    //}
   }
 
   for (int i = 0; i < kUsedUnit; ++i) {
@@ -509,15 +509,13 @@ Render(uint64_t player_index)
     if (kShip[i].level != kPlayer[player_index].level) continue;
 
     simulation::TilemapSet(kShip[i].grid_index);
-    RenderCrew(i);
     RenderShip(i);
+    RenderCrew(i);
   }
 
   RenderSpaceObjects();
 
-  rgg::RenderSphere(v3f(250.f, 300.f, 0.f), v3f(15.f, 15.f, 15.f),
-                    v4f(1.f, 1.f, 1.f, 0.2f));
-
+  
   // Ui
   imui::Render();
 }

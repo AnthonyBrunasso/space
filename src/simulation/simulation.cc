@@ -756,6 +756,7 @@ Update()
 {
   kSimulationOver = ScenarioOver();
   ++kResource[0].frame;
+  ++kResource[0].mineral;
 
   ScenarioUpdate();
 

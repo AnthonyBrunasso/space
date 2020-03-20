@@ -261,12 +261,13 @@ RenderShip(uint64_t ship_index)
       Module* mod = &kModule[i];
       if (mod->ship_index != ship_index) continue;
       if (mod->mkind != kModEngine) continue;
+      if (!mod->built) continue;
       float engine_power = fminf(kShip[ship_index].sys[kModEngine],
                                  kShip[ship_index].sys[kModPower]);
       float visibility = fmaxf(min_visibility, engine_power);
       v3f mcolor = ModuleColor(mod->mkind);
       mcolor *= visibility;
-      v2i hack = {-1, 2};
+      v2i hack = {-1, 1};
       world = TilePosToWorld(v2i(mod->cx, mod->cy) + hack);
       v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
       float engine_scale = kShip[ship_index].engine_animation * .1f;
@@ -275,7 +276,6 @@ RenderShip(uint64_t ship_index)
       rgg::RenderTag(kGfx.exhaust_tag, world,
                      v3f(fmodf(engine_scale + 0.8f, 1.6f), 1.f, 1.f),
                      kDefaultRotation, color);
-      break;
     }
   }
 

@@ -16,7 +16,6 @@ struct Gfx {
   RenderTag cryo_tag;
   RenderTag exhaust_tag;
   RenderTag plus_tag;
-  RenderTag gear_tag;
 };
 
 static Gfx kGfx;
@@ -75,40 +74,6 @@ Initialize()
     0.0f, -1.0f, 0.0f, ORIGIN,
     1.0f, 0.0f, 0.0f, ORIGIN, 
     0.0f, 1.0f, 0.0f, ORIGIN};
-  constexpr int kGearVert = 28;
-  GLfloat gear[kGearVert * 3] = {
-    0.5f, 3.5f, 0.0f,
-    0.7f, 2.3f, 0.0f,
-    1.4f, 2.0f, 0.0f,
-    2.4f, 2.7f, 0.0f,
-    3.1f, 1.7f, 0.0f,
-    2.2f, 0.9f, 0.0f,
-    2.5f, 0.2f, 0.0f,
-
-    3.5f, -0.05f, 0.0f,
-    3.2f, -1.4f, 0.0f,
-    2.2f, -1.1f, 0.0f,
-    1.7f, -1.8f, 0.0f,
-    2.0f, -3.2f, 0.0f,
-    1.0f, -3.5f, 0.0f,
-    0.5f, -2.5f, 0.0f,
-
-    -0.5f, -2.5f, 0.0f,
-    -1.0f, -3.5f, 0.0f,
-    -2.0f, -3.2f, 0.0f,
-    -1.7f, -1.8f, 0.0f,
-    -2.2f, -1.1f, 0.0f,
-    -3.2f, -1.4f, 0.0f,
-    -3.5f, -0.05f, 0.0f,
-
-    -2.5f, 0.2f, 0.0f,
-    -2.2f, 0.9f, 0.0f,
-    -3.1f, 1.7f, 0.0f,
-    -2.4f, 2.7f, 0.0f,
-    -1.4f, 2.0f, 0.0f,
-    -0.7f, 2.3f, 0.0f,
-    -0.5f, 3.5f, 0.0f,
-  };
   // clang-format on
   for (int i = 0; i < kFloatCount; ++i) asteroid[i] *= 15.f;      // HA
   for (int i = 0; i < kPodVert * 3; ++i) pod[i] *= 22.f;          // HA
@@ -116,14 +81,12 @@ Initialize()
   for (int i = 0; i < kCryoVert * 3; ++i) cryo[i] *= 12.f;        // HA
   for (int i = 0; i < kExhaustVert * 3; ++i) exhaust[i] *= 15.f;  // HA
   for (int i = 0; i < kPlusVert * 3; ++i) plus[i] *= 15.f;        // HA
-  for (int i = 0; i < kGearVert * 3; ++i) gear[i] *= 15.f;        // HA
   kGfx.asteroid_tag = rgg::CreateRenderable(kVertCount, asteroid, GL_LINE_LOOP);
   kGfx.pod_tag = rgg::CreateRenderable(kPodVert, pod, GL_LINE_LOOP);
   kGfx.missile_tag = rgg::CreateRenderable(kMissileVert, missile, GL_LINE_LOOP);
   kGfx.cryo_tag = rgg::CreateRenderable(kCryoVert, cryo, GL_LINE_LOOP);
   kGfx.exhaust_tag = rgg::CreateRenderable(kExhaustVert, exhaust, GL_LINE_LOOP);
   kGfx.plus_tag = rgg::CreateRenderable(kPlusVert, plus, GL_LINE_LOOP);
-  kGfx.gear_tag = rgg::CreateRenderable(kGearVert, gear, GL_LINE_LOOP);
   return status;
 }
 

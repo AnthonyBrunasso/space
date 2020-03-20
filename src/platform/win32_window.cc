@@ -268,11 +268,11 @@ SetupWindow(HINSTANCE inst, const char* name, int width, int height,
     DEVMODE screen_settings = {};
     // TODO(abrunasso): This doesn't look nice when it's not the users native
     // resolution. Is there a solution to that?
-    screen_settings.dmSize	= sizeof (DEVMODE);
-    screen_settings.dmPelsWidth	= width;
+    screen_settings.dmSize = sizeof(DEVMODE);
+    screen_settings.dmPelsWidth = width;
     screen_settings.dmPelsHeight = height;
-    screen_settings.dmBitsPerPel	= 32;
-    screen_settings.dmFields	= DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+    screen_settings.dmBitsPerPel = 32;
+    screen_settings.dmFields = DM_BITSPERPEL| DM_PELSWIDTH| DM_PELSHEIGHT;
     ChangeDisplaySettings(&screen_settings, CDS_FULLSCREEN);
     window_extended_style |= WS_EX_TOPMOST;
   } else {

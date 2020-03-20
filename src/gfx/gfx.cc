@@ -285,12 +285,12 @@ RenderShip(uint64_t ship_index)
     const Tile* tile = TilePtr(v2i(c->cx, c->cy));
     if (!tile || !tile->explored) continue;
 
-    v4f color = v4f(1.f, 1.f, 1.f, 1.f);
+    v4f color = v4f(.3f, .3f, .7f, 1.f);
     v3f world = TileToWorld(*tile);
     if (c->cryo_chamber) {
       rgg::RenderTag(kGfx.cryo_tag, world, kTileScale, kDefaultRotation, color);
     } else {
-      rgg::RenderTriangle(world, kTileScale, kDefaultRotation, color);
+      rgg::RenderSphere(world + v3f(0.f, 0.f, 5.f), v3f(7.f, 7.f, 7.f), color);
     }
   }
 

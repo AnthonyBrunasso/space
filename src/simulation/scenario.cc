@@ -91,6 +91,7 @@ void
 ScenarioInitialize(bool reset_features = true)
 {
   int sid = kScenario.type;
+  TilemapType tilemap_type = kTilemapEmpty;
   switch (sid) {
     case Scenario::kGameScenario: {
       if (reset_features) {
@@ -98,7 +99,7 @@ ScenarioInitialize(bool reset_features = true)
       }
       SpawnCrew(5);
       kUnit[4].spacesuit = 1;
-
+      tilemap_type = kTilemapShip;
     } break;
     case Scenario::kCombatScenario: {
       if (reset_features) {
@@ -158,6 +159,8 @@ ScenarioInitialize(bool reset_features = true)
       kUnit[3].attack_radius = 30.f;
       kUnit[3].speed = 0.5f;
       BB_SET(kUnit[3].bb, kUnitBehavior, kUnitBehaviorAttackWhenDiscovered);
+
+      tilemap_type = kTilemapShip;
     } break;
     case Scenario::kTwoShip: {
       if (reset_features) {
@@ -166,7 +169,7 @@ ScenarioInitialize(bool reset_features = true)
         kScenario.asteroid = 0;
       }
       SpawnCrew(5);
-
+      tilemap_type = kTilemapShip;
     } break;
     case Scenario::kCombatGroup: {
       if (reset_features) {
@@ -229,7 +232,7 @@ ScenarioInitialize(bool reset_features = true)
   }
   kScenario.type = (Scenario::Type)sid;
 
-  uint64_t grid_index = TilemapInitialize();
+  uint64_t grid_index = TilemapInitialize(tilemap_type);
   // At least one ship
   kScenario.ship = 1;
   Ship* ship = UseShip();
@@ -247,7 +250,7 @@ ScenarioInitialize(bool reset_features = true)
     case Scenario::kTwoShip: {
       // Create a second ship and tilemap
       Ship* s2 = UseShip();
-      kTwoShipScenario.ship_two_idx = TilemapInitialize();
+      kTwoShipScenario.ship_two_idx = TilemapInitialize(tilemap_type);
       s2->grid_index = kTwoShipScenario.ship_two_idx;
       s2->level = 1;
       kGrid[kTwoShipScenario.ship_two_idx].transform.position = v2f(600.f, 800.f);

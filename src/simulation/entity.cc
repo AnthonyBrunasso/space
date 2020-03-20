@@ -306,6 +306,7 @@ struct Tile {
 struct Grid {
   Transform transform;
   Tile tilemap[kMapHeight][kMapWidth];
+  bool fog = true;
 };
 DECLARE_GAME_TYPE(Grid, 2);
 

@@ -15,7 +15,7 @@ constexpr float kInverseTileWidth = 1.0f / kTileWidth;
 constexpr float kTileHeight = 25.0f;
 constexpr float kInverseTileHeight = 1.0f / kTileHeight;
 
-Tile* kTilemap;
+Grid* kCurrentGrid;
 v2f kTilemapWorldOffset;
 
 enum TileType {
@@ -28,6 +28,11 @@ enum TileType {
   kTileTurret = kTileModule + kModTurret,
   kTileVacuum = 6,
   kTileConsumable = 7,
+};
+
+enum TilemapType {
+  kTilemapEmpty,
+  kTilemapShip
 };
 
 static_assert(sizeof(Tile) == sizeof(uint32_t),
@@ -90,8 +95,9 @@ TileOk(v2i pos)
 Tile*
 TilePtr(const v2i& pos)
 {
+  if (!kCurrentGrid) return nullptr;
   if (!TileOk(pos)) return nullptr;
-  return &kTilemap[pos.y * kMapWidth + pos.x];
+  return &kCurrentGrid->tilemap[pos.y][pos.x];
 }
 
 // Returns kTileBlock for non-existent tiles, and TileType otherwise.
@@ -192,12 +198,12 @@ TilemapSet(uint64_t grid_idx)
   if (grid_idx == kInvalidIndex) return;
 
   if (grid_idx > kUsedGrid) {
-    kTilemap = nullptr;
+    kCurrentGrid = nullptr;
     return;
   }
 
-  kTilemap = (Tile*)kGrid[grid_idx].tilemap;
-  kTilemapWorldOffset = kGrid[grid_idx].transform.position.xy();
+  kCurrentGrid = &kGrid[grid_idx];
+  kTilemapWorldOffset = kCurrentGrid->transform.position.xy();
 }
 
 uint64_t
@@ -226,7 +232,7 @@ WorldToTilePos(const v3f pos)
 }
 
 uint64_t
-TilemapInitialize()
+TilemapInitialize(TilemapType type)
 {
   Grid* grid = UseGrid();
   uint64_t grid_index = grid - kGrid;
@@ -270,42 +276,51 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
 };
 
   // clang-format on
-  for (int y = kMapHeight-1; y >= 0; --y) {
-    for (int x = 0; x < kMapWidth; ++x) {
-      Tile* tile = TilePtr(v2i(x, y));
-      tile->cx = x;
-      tile->cy = y;
-      tile->blocked = (kDefaultMap[y][x] == kTileBlock);
-      tile->nooxygen = 0;
-      tile->explored = 1;
-      tile->exterior = 1;
+  switch (type) {
+    case kTilemapEmpty: {
+      memset(kCurrentGrid->tilemap, 0,
+             sizeof(Tile) * sizeof(kMapHeight * kMapWidth));
+      kCurrentGrid->fog = false;
+    } break;
+    case kTilemapShip: {
+      for (int y = kMapHeight-1; y >= 0; --y) {
+        for (int x = 0; x < kMapWidth; ++x) {
+          Tile* tile = TilePtr(v2i(x, y));
+          tile->cx = x;
+          tile->cy = y;
+          tile->blocked = (kDefaultMap[y][x] == kTileBlock);
+          tile->nooxygen = 0;
+          tile->explored = 1;
+          tile->exterior = 1;
 
-      // Consumables enabled: cryo chamber, gatherable resources
-      if (kDefaultMap[y][x] == kTileConsumable) {
-        Consumable* c = UseConsumable();
-        c->ship_index = grid_index;
-        c->cx = tile->cx;
-        c->cy = tile->cy;
-        c->minerals = y * x % 89;
-        if (kDefaultMap[y][x - 1] == kTileBlock) {
-          c->cryo_chamber = 1;
+          // Consumables enabled: cryo chamber, gatherable resources
+          if (kDefaultMap[y][x] == kTileConsumable) {
+            Consumable* c = UseConsumable();
+            c->ship_index = grid_index;
+            c->cx = tile->cx;
+            c->cy = tile->cy;
+            c->minerals = y * x % 89;
+            if (kDefaultMap[y][x - 1] == kTileBlock) {
+              c->cryo_chamber = 1;
+            }
+          }
+
+          switch (kDefaultMap[y][x]) {
+            case kTilePower:
+            case kTileEngine:
+            case kTileMine:
+            case kTileTurret: {
+              Module* t = UseModule();
+              t->ship_index = grid_index;
+              t->cx = tile->cx;
+              t->cy = tile->cy;
+              t->mkind = kDefaultMap[y][x] - kTileModule;
+              t->built = 0;
+            } break;
+          };
         }
       }
-
-      switch (kDefaultMap[y][x]) {
-        case kTilePower:
-        case kTileEngine:
-        case kTileMine:
-        case kTileTurret: {
-          Module* t = UseModule();
-          t->ship_index = grid_index;
-          t->cx = tile->cx;
-          t->cy = tile->cy;
-          t->mkind = kDefaultMap[y][x] - kTileModule;
-          t->built = 0;
-        } break;
-      };
-    }
+    } break;
   }
 
   return grid_index;
@@ -314,6 +329,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
 void
 TilemapUpdate()
 {
+  if (!kCurrentGrid->fog) return;
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
       Tile* tile = TilePtr(v2i(j, i));

@@ -18,3 +18,4 @@ EVENTS.bin
 *.exe
 a.out
 *.pdb
+*.obj

@@ -3,6 +3,7 @@
 #include "shader.h"
 #include "tga_loader.cc"
 
+#include "asset/cube.cc"
 #include "gl/gl.cc"
 #include "math/math.cc"
 #include "platform/platform.cc"
@@ -302,86 +303,8 @@ Initialize()
   glBindBuffer(GL_ARRAY_BUFFER, kRGG.line_vbo_reference);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
-  static GLfloat cube[36 * 3] = {
-    -0.5f,-0.5f,-0.5f, // Left face
-    -0.5f,-0.5f, 0.5f,
-    -0.5f, 0.5f, 0.5f,
-    0.5f, 0.5f,-0.5f,  // Back face
-    -0.5f,-0.5f,-0.5f,
-    -0.5f, 0.5f,-0.5f,
-    0.5f,-0.5f, 0.5f,  // Bottom face
-    -0.5f,-0.5f,-0.5f,
-    0.5f,-0.5f,-0.5f,
-    0.5f, 0.5f,-0.5f,  // Back face
-    0.5f,-0.5f,-0.5f,
-    -0.5f,-0.5f,-0.5f,
-    -0.5f,-0.5f,-0.5f, // Left face
-    -0.5f, 0.5f, 0.5f,
-    -0.5f, 0.5f,-0.5f,
-    0.5f,-0.5f, 0.5f,  // Bottom face
-    -0.5f,-0.5f, 0.5f,
-    -0.5f,-0.5f,-0.5f,
-    -0.5f, 0.5f, 0.5f, // Front face
-    -0.5f,-0.5f, 0.5f,
-    0.5f,-0.5f, 0.5f,
-    0.5f, 0.5f, 0.5f,  // Right face
-    0.5f,-0.5f,-0.5f,
-    0.5f, 0.5f,-0.5f,
-    0.5f,-0.5f,-0.5f,  // Right face
-    0.5f, 0.5f, 0.5f,
-    0.5f,-0.5f, 0.5f,
-    0.5f, 0.5f, 0.5f,  // Top face
-    0.5f, 0.5f,-0.5f,
-    -0.5f, 0.5f,-0.5f,
-    0.5f, 0.5f, 0.5f,  // Top face
-    -0.5f, 0.5f,-0.5f,
-    -0.5f, 0.5f, 0.5f,
-    0.5f, 0.5f, 0.5f,  // Front face
-    -0.5f, 0.5f, 0.5f,
-    0.5f,-0.5f, 0.5f
-  };
-
-  static GLfloat cube_normals[36 * 3] = {
-    -1.f, 0.f, 0.f, // Left face
-    -1.f, 0.f, 0.f, // Left face
-    -1.f, 0.f, 0.f, // Left face
-    0.f, 0.f, -1.f, // Back face
-    0.f, 0.f, -1.f, // Back face
-    0.f, 0.f, -1.f, // Back face
-    0.f, -1.f, 0.f, // Bottom face
-    0.f, -1.f, 0.f, // Bottom face
-    0.f, -1.f, 0.f, // Bottom face
-    0.f, 0.f, -1.f, // Back face
-    0.f, 0.f, -1.f, // Back face
-    0.f, 0.f, -1.f, // Back face
-    -1.f, 0.f, 0.f, // Left face
-    -1.f, 0.f, 0.f, // Left face
-    -1.f, 0.f, 0.f, // Left face
-    0.f, -1.f, 0.f, // Bottom face
-    0.f, -1.f, 0.f, // Bottom face
-    0.f, -1.f, 0.f, // Bottom face
-    0.f, 0.f, 1.f,  // Front face
-    0.f, 0.f, 1.f,  // Front face
-    0.f, 0.f, 1.f,  // Front face
-    1.f, 0.f, 0.f,  // Right face
-    1.f, 0.f, 0.f,  // Right face
-    1.f, 0.f, 0.f,  // Right face
-    1.f, 0.f, 0.f,  // Right face
-    1.f, 0.f, 0.f,  // Right face
-    1.f, 0.f, 0.f,  // Right face
-    0.f, 1.f, 0.f,  // Top face
-    0.f, 1.f, 0.f,  // Top face
-    0.f, 1.f, 0.f,  // Top face
-    0.f, 1.f, 0.f,  // Top face
-    0.f, 1.f, 0.f,  // Top face
-    0.f, 1.f, 0.f,  // Top face
-    0.f, 0.f, 1.f,  // Front face
-    0.f, 0.f, 1.f,  // Front face
-    0.f, 0.f, 1.f,  // Front face
-  };
-
   kRGG.cube_vao_reference = gl::CreateGeometryVAOWithNormals(
-      36 * 3, cube, cube_normals);
+      kCubeVertCount * 3, kCubeVerts, kCubeVertNorms);
 
   if (!SetupTexture()) {
     printf("Failed to setup Texture.\n");

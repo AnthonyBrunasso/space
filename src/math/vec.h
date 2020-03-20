@@ -517,6 +517,26 @@ Normalize(const Vec4<T>& v)
 using v2i = math::Vec2<int>;
 using v2f = math::Vec2<float>;
 
+using v3i = math::Vec3<int>;
+
 using v3f = math::Vec3<float>;
 
 using v4f = math::Vec4<float>;
+
+void
+Printv3f(v3f v)
+{
+  printf("%.5f,%.5f,%.5f\n", v.x, v.y, v.z);
+}
+
+void
+Printv3i(v3i v)
+{
+  printf("%i,%i,%i\n", v.x, v.y, v.z);
+}
+
+void
+Printv2f(v2f v)
+{
+  printf("%.5f,%.5f\n", v.x, v.y);
+}

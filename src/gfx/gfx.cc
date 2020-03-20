@@ -102,6 +102,10 @@ RenderCrew(uint64_t ship_index)
     if (unit->inspace) continue;
     Tile* tile = TilePtr(WorldToTilePos(unit->transform.position));
     if (tile && tile->shroud) continue;
+    if (unit->notify) {
+      const float radius = 50.f - (unit->notify * 1.f);
+      rgg::RenderCircle(unit->transform.position, radius - 10.f, radius, kWhite);
+    }
 
     v4f color;
     switch (unit->kind) {
@@ -441,12 +445,6 @@ RenderSpaceObjects()
       case kWeaponCount:
         break;
     }
-  }
-
-  for (int i = 0; i < kUsedNotify; ++i) {
-    Notify* n = &kNotify[i];
-    float radius = 50.f - (n->age * 1.f);
-    rgg::RenderCircle(n->position, radius - 10.f, radius, kWhite);
   }
 
   for (int i = 0; i < kUsedPod; ++i) {

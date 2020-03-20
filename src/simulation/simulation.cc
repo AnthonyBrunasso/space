@@ -96,15 +96,15 @@ ThinkShip(uint64_t ship_index)
         if (mod->mkind != kModPower) continue;
         if (v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperatePod) {
           if (operator_save_power(unit, ship->power_delta)) {
-            // Visual
-            Notify* n = UseNotify();
-            n->age = 1;
-            n->position = v3fModule(mod);
+            unit->notify = 1;
 
             ship->power_delta = 0.0f;
             LOGFMT("Unit %u prevented the power surge from damaging ship %i.",
                    unit->id, ship_index);
             break;
+          }
+          else {
+            ship->danger += 1;
           }
         }
       }
@@ -776,13 +776,9 @@ Update()
   Decide();
   TilemapSet(-1);
 
-  for (int i = 0; i < kUsedNotify; ++i) {
-    Notify* n = &kNotify[i];
-    if (POPCNT(n->age) == kNotifyAgeBits) {
-      *n = kZeroNotify;
-    } else {
-      n->age += (n->age > 0);
-    }
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* u = &kUnit[i];
+    u->notify += (u->notify > 0);
   }
 
   ProjectileSimulation();

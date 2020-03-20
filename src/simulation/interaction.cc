@@ -380,18 +380,6 @@ ControlEvent(const PlatformEvent* event, Player* player)
             player->hud_mode = kHudAttackMove;
           }
         } break;
-        case 'u': {
-          v3f pos =
-              camera::ScreenToWorldSpace(&player->camera, event->position);
-          float dsq;
-          uint64_t unit_index =
-              v3fNearTransform(pos, GAME_ITER(Unit, transform), &dsq);
-          if (unit_index < kUsedUnit) {
-            Notify* n = UseNotify();
-            n->position = kUnit[unit_index].transform.position;
-            n->age = 1;
-          }
-        } break;
         case ' ': {
           for (int i = 0; i < kUsedShip; ++i) {
             if (kShip[i].level != player->level) continue;

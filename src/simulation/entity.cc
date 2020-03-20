@@ -164,6 +164,7 @@ struct Pod {
 DECLARE_GAME_TYPE(Pod, 8);
 
 constexpr uint64_t kNonPlayerId = UINT64_MAX;
+constexpr unsigned kNotifyAgeBits = 5;
 
 struct Unit {
   Transform transform;
@@ -200,7 +201,8 @@ struct Unit {
   unsigned uaction : 3;
   unsigned persistent_uaction : 3;
   unsigned mskill : kModBits;
-  uint64_t PADDING : 18;
+  unsigned notify : kNotifyAgeBits;
+  uint64_t PADDING : 13;
 };
 DECLARE_GAME_TYPE_WITH_ID(Unit, 16);
 
@@ -278,14 +280,6 @@ struct Player {
   uint64_t PADDING : 58;
 };
 DECLARE_GAME_TYPE(Player, MAX_PLAYER);
-
-constexpr unsigned kNotifyAgeBits = 5;
-struct Notify {
-  v3f position;
-  unsigned age : kNotifyAgeBits;
-  uint64_t PADDING : 27;
-};
-DECLARE_GAME_TYPE(Notify, 4);
 
 struct Consumable {
   uint64_t ship_index = UINT64_MAX;

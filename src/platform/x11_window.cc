@@ -154,6 +154,21 @@ Create(const char*, int width, int height)
   XMapWindow(display, window_id);
   XStoreName(display, window_id, "Space");
 
+  Atom WM_HINTS = XInternAtom(display, "_MOTIF_WM_HINTS", True);
+  /* Hints used by Motif compliant window managers */
+  const int border = 0;
+  struct {
+    unsigned long flags;
+    unsigned long functions;
+    unsigned long decorations;
+    long input_mode;
+    unsigned long status;
+  } MWMHints = {(1L << 1), 0, border ? 1 : 0, 0, 0};
+
+  XChangeProperty(display, window_id, WM_HINTS, WM_HINTS, 32, PropModeReplace,
+                      (unsigned char*)&MWMHints,
+                      sizeof(MWMHints) / sizeof(long));
+
   attrib[0] = EGL_NONE;
   attrib[1] = EGL_NONE;
   egl_surface = eglCreateWindowSurface(egl_display, egl_config[selected_config],

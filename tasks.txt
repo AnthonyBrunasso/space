@@ -14,8 +14,6 @@ Delete items when they are done.
 
 new scenario -
   two units each players owns one
-  level 1: unlock the power module
-  level 1: unlock the engine module after power
   module destinations 1-3 per type
   construction in progress feedback
   operating module feedback

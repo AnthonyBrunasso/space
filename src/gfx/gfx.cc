@@ -271,9 +271,12 @@ RenderShip(uint64_t ship_index)
       world = TilePosToWorld(v2i(mod->cx, mod->cy) + hack);
       v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
       float engine_scale = kShip[ship_index].engine_animation * .1f;
-      rgg::RenderTag(kGfx.exhaust_tag, world, v3f(engine_scale, 1.f, 1.f),
-                     kDefaultRotation, color);
-      rgg::RenderTag(kGfx.exhaust_tag, world,
+      rgg::RenderExhaust(world + v3f(-40.f, -20.f, 0.f), v3f(22.f, 22.f, 22.f),
+                        math::Quatf(180, v3f(0.f, 0.f, 1.f)),
+                        v4f(0.4f, 0.4f, 0.4f, 1.f));
+      rgg::RenderTag(kGfx.exhaust_tag, world + v3f(-50.f, 3.f, 0.f),
+                     v3f(engine_scale, 1.f, 1.f), kDefaultRotation, color);
+      rgg::RenderTag(kGfx.exhaust_tag, world + v3f(-50.f, 3.f, 0.f),
                      v3f(fmodf(engine_scale + 0.8f, 1.6f), 1.f, 1.f),
                      kDefaultRotation, color);
     }
@@ -476,12 +479,6 @@ Render(uint64_t player_index)
   }
 
   RenderSpaceObjects();
-
-  //static float r = 0.1f;
-  //rgg::RenderGear(v3f(0.f, 0.f, 0.f), v3f(25.f, 25.f, 25.f),
-  //                math::Quatf(r, v3f(0.f, 0.f, 1.f)), v4f(1.f, 1.f, 1.f, 1.f));
-  //r += .1f;
-
   
   // Ui
   imui::Render();

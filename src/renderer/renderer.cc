@@ -5,6 +5,7 @@
 
 #include "asset/cube.cc"
 #include "asset/cone.cc"
+#include "asset/exhaust.cc"
 #include "asset/gear.cc"
 #include "asset/sphere.cc"
 #include "gl/gl.cc"
@@ -74,6 +75,7 @@ struct RGG {
   GLuint cone_vao_reference;
   GLuint gear_vao_reference;
   GLuint sphere_vao_reference;
+  GLuint exhaust_vao_reference;
 
   int meter_size = 50;
 };
@@ -320,6 +322,9 @@ Initialize()
 
   kRGG.sphere_vao_reference = gl::CreateGeometryVAOWithNormals(
       kSphereVertCount * 3, kSphereVerts, kSphereVertNorms);
+
+  kRGG.exhaust_vao_reference = gl::CreateGeometryVAOWithNormals(
+      kExhaustVertCount * 3, kExhaustVerts, kExhaustVertNorms);
 
   if (!SetupTexture()) {
     printf("Failed to setup Texture.\n");
@@ -634,6 +639,26 @@ RenderSphere(v3f pos, v3f scale, const v4f& color)
               kObserver.position.x, kObserver.position.y,
               kObserver.position.z);
   glDrawArrays(GL_TRIANGLES, 0, kSphereVertCount);
+}
+
+void
+RenderExhaust(v3f pos, v3f scale, const math::Quatf& quat, const v4f& color)
+{
+  glUseProgram(kRGG.geometry_program_3d.reference);
+  glBindVertexArray(kRGG.exhaust_vao_reference);
+  math::Mat4f model = math::Model(pos, scale, quat);
+  glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
+              color.w);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.projection_uniform, 1, GL_FALSE,
+                     &kObserver.projection.data_[0]);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.view_uniform, 1, GL_FALSE,
+                     &kObserver.view.data_[0]);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.model_uniform, 1, GL_FALSE,
+                     &model.data_[0]);
+  glUniform3f(kRGG.geometry_program_3d.light_position_world_uniform,
+              kObserver.position.x, kObserver.position.y,
+              kObserver.position.z);
+  glDrawArrays(GL_TRIANGLES, 0, kExhaustVertCount);
 }
 
 void

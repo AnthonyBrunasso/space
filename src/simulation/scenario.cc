@@ -88,6 +88,33 @@ TilemapUnexplored(v3f world_position)
 }
 
 void
+ScenarioSpawnEnemy(v2i tile_position, uint64_t ship_index)
+{
+  Unit* enemy = UseIdUnit();
+  enemy->ship_index = ship_index;
+  enemy->transform.position = TilePosToWorld(tile_position);
+  enemy->transform.scale = v3f(0.25f, 0.25f, 0.f);
+  enemy->alliance = kEnemy;
+  enemy->kind = kAlien;
+  enemy->attack_radius = 30.f;
+  enemy->speed = 0.5f;
+  BB_SET(enemy->bb, kUnitBehavior, kUnitBehaviorAttackWhenDiscovered);
+}
+
+void
+ScenarioSpawnCrew(v2i tile_position, uint64_t ship_index)
+{
+  Unit* unit = UseIdUnit();
+  unit->ship_index = ship_index;
+  unit->transform.position = TilePosToWorld(tile_position);
+  unit->transform.scale = v3f(0.25f, 0.25f, 0.f);
+  unit->kind = kOperator;
+  unit->spacesuit = 1;
+  unit->speed = 1.0f;
+  unit->player_id = AssignPlayerId();
+}
+
+void
 ScenarioInitialize(bool reset_features = true)
 {
   int sid = kScenario.type;
@@ -168,7 +195,10 @@ ScenarioInitialize(bool reset_features = true)
         kScenario.missile = 0;
         kScenario.asteroid = 0;
       }
-      SpawnCrew(5);
+      ScenarioSpawnCrew(v2i(5, 23), 0);
+      ScenarioSpawnCrew(v2i(5, 7), 0);
+      ScenarioSpawnEnemy(v2i(20, 20), 0);
+      ScenarioSpawnEnemy(v2i(18, 11), 0);
       tilemap_type = kTilemapShip;
     } break;
     case Scenario::kCombatGroup: {
@@ -280,19 +310,7 @@ ScenarioReset(bool reset_features)
   ScenarioInitialize(reset_features);
 }
 
-void
-ScenarioSpawnEnemy(v2i tile_position, uint64_t ship_index)
-{
-  Unit* enemy = UseIdUnit();
-  enemy->ship_index = ship_index;
-  enemy->transform.position = TilePosToWorld(tile_position);
-  enemy->transform.scale = v3f(0.25f, 0.25f, 0.f);
-  enemy->alliance = kEnemy;
-  enemy->kind = kAlien;
-  enemy->attack_radius = 30.f;
-  enemy->speed = 0.5f;
-  BB_SET(enemy->bb, kUnitBehavior, kUnitBehaviorAttackWhenDiscovered);
-}
+
 
 void
 ScenarioTwoShipUpdate()

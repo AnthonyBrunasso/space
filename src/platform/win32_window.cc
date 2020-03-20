@@ -279,19 +279,21 @@ SetupWindow(HINSTANCE inst, const char* name, int width, int height,
     AdjustWindowRectEx(&rect, window_style, false, WS_EX_APPWINDOW);
   }
 
-  HWND window = CreateWindowExA(
-      WS_EX_APPWINDOW,
-      wc.lpszClassName,
-      name,
-      window_style,
-      0,
-      0,
-      rect.right - rect.left,
-      rect.bottom - rect.top,
-      0,
-      0,
-      inst,
-      0);
+  int x = 0;
+  int y = 0;
+  int nw = rect.right - rect.left;
+  int nh = rect.bottom - rect.top;
+
+  if (!fullscreen) {
+    // Center the window if the user is not in fullscreen.
+    RECT parent_rect;
+    GetClientRect(GetDesktopWindow(), &parent_rect);
+    x = (parent_rect.right / 2) - (nw / 2.f);
+    y = (parent_rect.bottom / 2) - (nh / 2.f);
+  }
+
+  HWND window = CreateWindowExA(WS_EX_APPWINDOW, wc.lpszClassName, name,
+                                window_style, x, y, nw, nh, 0, 0, inst, 0);
 
   if (!window) {
     assert("Failed to create window.");

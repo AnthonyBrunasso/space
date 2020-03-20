@@ -129,8 +129,8 @@ RenderCrew(uint64_t ship_index)
     }
 
     if (unit->control & (1 << kPlayerIndex)) {
-        rgg::RenderCircle(unit->transform.position, 12.f, 14.f,
-                          v4f(0.33f, 0.80f, 0.33f, 1.f));
+        rgg::RenderCircle(unit->transform.position + v3f(0.f, 0.f, 0.08f),
+                          12.f, 14.f, v4f(0.33f, 0.80f, 0.33f, 1.f));
     }
 
     for (int k = 0; k < kUsedModule; ++k) {

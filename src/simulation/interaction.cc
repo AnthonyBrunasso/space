@@ -402,14 +402,25 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
             }
           }
         } break;
-        case 'm': {
-          if (player->hud_mode == kHudModule) {
-            player->mod_placement += 1;
-          } else {
-            player->mod_placement = 0;
-          }
+        case '1': {
           player->hud_mode = kHudModule;
-          LOGFMT("Hud Module placement. [type %d]", player->mod_placement);
+          player->mod_placement = 0;
+        } break;
+        case '2': {
+          player->hud_mode = kHudModule;
+          player->mod_placement = 1;
+        } break;
+        case '3': {
+          player->hud_mode = kHudModule;
+          player->mod_placement = 2;
+        } break;
+        case '4': {
+          player->hud_mode = kHudModule;
+          player->mod_placement = 3;
+        } break;
+        case '5': {
+          player->hud_mode = kHudModule;
+          player->mod_placement = 4;
         } break;
         case 'h': {
           player->level = CLAMP(player->level - 1, 1, 10);

@@ -13,13 +13,10 @@ Delete items when they are done.
 ---------- TASKS ---------- 
 
 new scenario -
-  two units each players owns one
-  construction in progress feedback
-  operating module feedback
-  level 2: unlock pod module
-  pod transfer between ships
-  pod idle at dropoff
-  pod flyback
+  anthony: sync mouse cursor position to ui
+  anthony: buttons for module placement
+  alan: level 2: unlock pod module
+  module construction progression
   level 2: unlock ship for 2nd player
   implementation for player ownership of a ship
   level 3: enemy invasion hits one ship

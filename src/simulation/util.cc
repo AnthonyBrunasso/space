@@ -58,6 +58,19 @@ GetUnit(v3f world)
 }
 
 Unit*
+GetUnitTarget(uint64_t local_player, v3f world) {
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* unit = &kUnit[i];
+    if (FLAGGED(unit->control, local_player)) continue;
+    if (v3fDsq(unit->transform.position, world) < kDsqSelect) {
+      return unit;
+    }
+  }
+
+  return nullptr;
+}
+
+Unit*
 GetUnit(const math::Rectf& rect, int idx)
 {
   Unit* unit = &kUnit[idx];

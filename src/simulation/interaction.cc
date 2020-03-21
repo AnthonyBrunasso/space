@@ -118,7 +118,6 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec,
     }
     imui::Indent(-2);
   }
-  
 
   snprintf(buffer, BUFFER_SIZE, "Minerals: %lu", kResource[0].mineral);
   imui::Text(buffer);
@@ -267,28 +266,27 @@ Hud(v2f screen)
 }
 
 void
-ControlEvent(const PlatformEvent* event, Player* player)
+ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
 {
-  v3f world_pos = camera::ScreenToWorldSpace(&player->camera, event->position);
-  uint64_t player_index = player - kPlayer;
+  v3f world_pos = camera::ScreenToWorldSpace(&player->camera, event.position);
 
-  djb2_hash_more((const uint8_t*)event, sizeof(PlatformEvent), &kInputHash);
-  switch (event->type) {
+  djb2_hash_more((const uint8_t*)&event, sizeof(PlatformEvent), &kInputHash);
+  switch (event.type) {
     case MOUSE_POSITION: {
       player->world_mouse = world_pos;
     } break;
     case MOUSE_WHEEL: {
       // TODO(abrunasso): Why does this need to be negative?
-      player->camera.motion.z = -10.f * event->wheel_delta;
+      player->camera.motion.z = -10.f * event.wheel_delta;
     } break;
     case MOUSE_DOWN: {
-      imui::MouseClick(event->position, event->button);
+      imui::MouseClick(event.position, event.button);
 
-      if (event->button == BUTTON_MIDDLE) {
+      if (event.button == BUTTON_MIDDLE) {
         camera::Move(&player->camera, world_pos);
       }
 
-      if (event->button == BUTTON_LEFT) {
+      if (event.button == BUTTON_LEFT) {
         switch (player->hud_mode) {
           case kHudSelection: {
             player->selection_start = world_pos;
@@ -305,7 +303,7 @@ ControlEvent(const PlatformEvent* event, Player* player)
             if (grid == kInvalidIndex) break;
             TilemapSet(grid);
             const v2i tilepos = WorldToTilePos(world_pos);
-            if (event->button == BUTTON_LEFT) {
+            if (event.button == BUTTON_LEFT) {
               for (int i = 0; i < kUsedModule; ++i) {
                 Module* module = &kModule[i];
                 if (module->ship_index != grid) continue;
@@ -320,8 +318,8 @@ ControlEvent(const PlatformEvent* event, Player* player)
             }
           } break;
         }
-      } else if (event->button == BUTTON_RIGHT) {
-        Unit* target = GetUnit(world_pos);
+      } else if (event.button == BUTTON_RIGHT) {
+        Unit* target = GetUnitTarget(player_index, world_pos);
         if (target) {
           LOGFMT("Order attack [%lu]", target->id);
           PushCommand({kUaAttack, world_pos, kInvalidUnit,
@@ -336,7 +334,7 @@ ControlEvent(const PlatformEvent* event, Player* player)
       player->hud_mode = kHudDefault;
     } break;
     case MOUSE_UP: {
-      if (event->button == BUTTON_LEFT) {
+      if (event.button == BUTTON_LEFT) {
         // TODO(abrunasso): Unconvinced this is the best way to check if a
         // selection occurred. Also unconvined that it's not....
         Unit* unit = nullptr;
@@ -363,7 +361,7 @@ ControlEvent(const PlatformEvent* event, Player* player)
       }
     } break;
     case KEY_DOWN: {
-      switch (event->key) {
+      switch (event.key) {
         case 27 /* ESC */: {
           exit(1);
         } break;
@@ -422,7 +420,7 @@ ControlEvent(const PlatformEvent* event, Player* player)
       }
     } break;
     case KEY_UP: {
-      switch (event->key) {
+      switch (event.key) {
         case 'w': {
           player->camera.motion.y = 0.f;
         } break;
@@ -448,10 +446,9 @@ void
 ProcessSimulation(int player_index, uint64_t event_count,
                   const PlatformEvent* event)
 {
-  // Shared player control of the ship for now
+  Player* p = &kPlayer[player_index];
   for (int i = 0; i < event_count; ++i) {
-    Player* p = &kPlayer[player_index];
-    ControlEvent(&event[i], p);
+    ControlEvent(event[i], player_index, p);
   }
 }
 

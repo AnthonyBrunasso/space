@@ -12,7 +12,7 @@
 #define MIN(x, y) (y ^ ((x ^ y) & -(x < y)))
 #define MAX(x, y) (x ^ ((x ^ y) & -(x < y)))
 #define CLAMP(x, min, max) MIN(MAX(x, min), max)
-#define CLAMPF(x, low, high) ((x < low) ? low : (( x > high ) ? high : x))
+#define CLAMPF(x, low, high) ((x < low) ? low : ((x > high) ? high : x))
 
 #if _WIN32
 #define ALIGNAS(n) alignas(n)
@@ -27,7 +27,8 @@
 #define ARRAY_LENGTH(x) (sizeof(x) / sizeof(x[0]))
 #endif
 
-#define FLAG(x) (1<<x)
+#define FLAG(x) (1 << x)
+#define FLAGGED(value, bit) ((value & FLAG(bit)) != 0)
 
 // System memory block
 #define PAGE (4 * 1024)
@@ -35,4 +36,4 @@
 #define DJB2_CONST 5381
 
 // Non-branching equivalence to: (condition) ? a : b
-#define TERNARY(condition, a, b) (((condition) * a) + (!(condition) * b))
+#define TERNARY(condition, a, b) (((condition)*a) + (!(condition)*b))

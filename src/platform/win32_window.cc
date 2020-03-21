@@ -299,6 +299,7 @@ SetupWindow(HINSTANCE inst, const char* name, int width, int height,
     assert("Failed to create window.");
   }
 
+  
   return window;
 }
 
@@ -512,6 +513,13 @@ PollEvent(PlatformEvent* event)
     }
     return true;
   }
+
+  // Keep cursor in screen.
+  RECT crect;
+  GetClientRect(kWindow.hwnd, &crect);
+  ClientToScreen(kWindow.hwnd, (POINT*)(&crect.left));
+  ClientToScreen(kWindow.hwnd, (POINT*)(&crect.right));
+  ClipCursor(&crect);
 
   return false;
 }

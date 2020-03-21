@@ -460,7 +460,7 @@ RenderSpaceObjects()
 void
 Render(uint64_t player_index)
 {
-  rgg::kObserver.position = kPlayer[kPlayerIndex].camera.position;
+  rgg::kObserver.position = kPlayer[player_index].camera.position;
 
   for (int i = 0; i < kUsedShip; ++i) {
     if (kShip[i].level != kPlayer[player_index].level) continue;
@@ -476,7 +476,7 @@ Render(uint64_t player_index)
   //               math::Quatf(-90.f, v3f(1.f, 0.f, 0.f)), v4f(1.f, 1.f, 1.f, 1.f));
   
   // Ui
-  imui::Render();
+  imui::Render(player_index);
 }
 
 }  // namespace gfx

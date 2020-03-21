@@ -75,6 +75,7 @@ struct BeginMode {
   v2f pos;
   bool set = false;
   int text_calls = 0;
+  uint32_t tag = 0;
   Pane* pane;
 };
 
@@ -90,52 +91,43 @@ struct Box {
 
 static IMUI kIMUI;
 
-DECLARE_ARRAY(Text, 64);
-DECLARE_ARRAY(Button, 16);
-DECLARE_ARRAY(UIClick, 8);
-DECLARE_ARRAY(Pane, 8);
-DECLARE_ARRAY(Box, 1);
-DECLARE_QUEUE(UIClickRender, 8);
+constexpr uint32_t kMaxTags = 2;
 
-bool
-GetUIClick(v2f* pos, PlatformButton* b)
-{
-  if (!kUsedUIClick) return false;
-  *pos = kUIClick[0].pos;
-  *b = kUIClick[0].button;
-  return true;
-}
+DECLARE_ND_ARRAY(Text, kMaxTags, 64);
+DECLARE_ND_ARRAY(Button, kMaxTags, 16);
+DECLARE_ND_ARRAY(UIClick, kMaxTags, 8);
+DECLARE_ND_ARRAY(Pane, kMaxTags, 8);
+DECLARE_QUEUE(UIClickRender, 8);
 
 void
 Reset()
 {
-  kUsedText = 0;
-  kUsedButton = 0;
-  kUsedUIClick = 0;
-  kUsedPane = 0;
-  kUsedBox = 0;
+  ResetText();
+  ResetButton();
+  ResetPane();
+  ResetUIClick();
 }
 
 void
-Render()
+Render(uint32_t tag)
 {
   glDisable(GL_DEPTH_TEST);
   auto dims = window::GetWindowSize();
   rgg::ModifyObserver mod(math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f),
                           math::Identity());
 
-  for (int i = 0; i < kUsedPane; ++i) {
-    Pane* pane = &kPane[i];
+  for (int i = 0; i < kUsedPane[tag]; ++i) {
+    Pane* pane = &kPane[tag][i];
     rgg::RenderRectangle(pane->rect, kPaneColor);
   }
 
-  for (int i = 0; i < kUsedButton; ++i) {
-    Button* button = &kButton[i];
+  for (int i = 0; i < kUsedButton[tag]; ++i) {
+    Button* button = &kButton[tag][i];
     rgg::RenderButton("test", button->rect, button->color);
   }
 
-  for (int i = 0; i < kUsedText; ++i) {
-    Text* text = &kText[i];
+  for (int i = 0; i < kUsedText[tag]; ++i) {
+    Text* text = &kText[tag][i];
     rgg::RenderText(text->msg, text->pos, text->options.scale, text->color);
   }
 
@@ -149,12 +141,6 @@ Render()
       PopUIClickRender();
     }
   }
-
-  for (int i = 0; i < kUsedBox; ++i) {
-    Box* box = &kBox[i];
-    rgg::RenderRectangle(box->rect, box->color);
-    rgg::RenderLineRectangle(box->rect, box->outline_color);
-  }
   glEnable(GL_DEPTH_TEST);
 }
 
@@ -167,8 +153,9 @@ IsRectHighlighted(math::Rectf rect)
 bool
 IsRectClicked(math::Rectf rect)
 {
-  for (int i = 0; i < kUsedUIClick; ++i) {
-    UIClick* click = &kUIClick[i];
+  uint32_t tag = kIMUI.begin_mode.tag;
+  for (int i = 0; i < kUsedUIClick[tag]; ++i) {
+    UIClick* click = &kUIClick[tag][i];
     if (math::PointInRect(click->pos, rect)) return true;
   }
   return false;
@@ -211,23 +198,24 @@ UpdatePaneOnEnd(Pane* pane)
 {
   if (!pane) return;
   auto& begin_mode = kIMUI.begin_mode;
+  uint32_t tag = begin_mode.tag;
   assert(begin_mode.set);
   switch (pane->options.size_mode) {
     case PaneOptions::kAutoResize:
       break;
     case PaneOptions::kFixedSize: {
-      int start = kUsedText - 1;
-      int end = kUsedText - begin_mode.text_calls;
+      int start = kUsedText[tag] - 1;
+      int end = kUsedText[tag] - begin_mode.text_calls;
       assert(start < kMaxText);
       assert(end >= 0);
       int move_text = begin_mode.text_calls - 1;
       for (; start >= end; --start) {
-        struct Text* text = &kText[start];
+        struct Text* text = &kText[tag][start];
         text->pos.y += text->rect.height * move_text;
         v2f text_top_left = text->pos + v2f(0.f, text->rect.height);
         // Discard the text element if it is outside of the pane.
         if (!math::PointInRect(text_top_left, pane->rect)) {
-          CompressText(start);
+          CompressText(tag, start);
           continue;
         }
       }
@@ -240,8 +228,9 @@ UpdatePaneOnEnd(Pane* pane)
 Result
 Text(const char* msg, v2f pos, TextOptions options)
 {
+  uint32_t tag = kIMUI.begin_mode.tag;
   Result data;
-  struct Text* text = UseText();
+  struct Text* text = UseText(tag);
   if (!text) {
     imui_errno = 1;
     return data;
@@ -295,15 +284,17 @@ Text(const char* msg)
 }
 
 void
-Begin(v2f start, const PaneOptions& pane_options)
+Begin(v2f start, uint32_t tag, const PaneOptions& pane_options)
 {
+  assert(tag < kMaxTags);
   auto& begin_mode = kIMUI.begin_mode;
   // End must be called before Begin.
   assert(!begin_mode.set);
   begin_mode.pos = start;
   begin_mode.set = true;
   begin_mode.text_calls = 0;
-  begin_mode.pane = UsePane();
+  begin_mode.tag = tag;
+  begin_mode.pane = UsePane(tag);
   begin_mode.pane->rect.x = start.x;
   begin_mode.pane->rect.y = start.y;
   begin_mode.pane->rect.width = pane_options.width;
@@ -312,13 +303,15 @@ Begin(v2f start, const PaneOptions& pane_options)
 }
 
 void
-Begin(v2f start)
+Begin(v2f start, uint32_t tag)
 {
+  assert(tag < kMaxTags);
   auto& begin_mode = kIMUI.begin_mode;
   // End must be called before Begin.
   assert(!begin_mode.set);
   begin_mode.pos = start;
   begin_mode.set = true;
+  begin_mode.tag = tag;
   begin_mode.pane = nullptr;
 }
 
@@ -332,7 +325,8 @@ End()
 Result
 Button(const math::Rectf& rect, const v4f& color)
 {
-  struct Button* button = UseButton();
+  uint32_t tag = kIMUI.begin_mode.tag;
+  struct Button* button = UseButton(tag);
   Result result;
   if (!button) {
     imui_errno = 3;
@@ -347,9 +341,9 @@ Button(const math::Rectf& rect, const v4f& color)
 }
 
 void
-MouseClick(v2f pos, PlatformButton b)
+MouseClick(v2f pos, PlatformButton b, uint32_t tag)
 {
-  UIClick* click = UseUIClick();
+  UIClick* click = UseUIClick(tag);
   if (!click) {
     imui_errno = 4;
     return;
@@ -357,16 +351,6 @@ MouseClick(v2f pos, PlatformButton b)
   click->pos = pos;
   click->button = b;
   // PushUIClickRender({pos, kClickForFrames});
-}
-
-void
-Box(const math::Rectf& rect, const v4f& color, const v4f& outline_color)
-{
-  struct Box* box = UseBox();
-  if (!box) return;
-  box->rect = rect;
-  box->color = color;
-  box->outline_color = outline_color;
 }
 
 const char*

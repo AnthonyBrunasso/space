@@ -223,14 +223,17 @@ main(int argc, char** argv)
         // Game Mutation: continue simulation
         simulation::Update();
 #ifndef HEADLESS
-        // Misc debug/feedback
-        const v2f dims = window::GetWindowSize();
-        simulation::LogPanel(dims);
-        simulation::Hud(dims);
-        simulation::DebugPanel(kPlayer[kNetworkState.player_index], kGameStats,
-                               kGameState.frame_target_usec,
-                               kGameState.logic_updates,
-                               kGameState.game_clock.jerk);
+        for (int i = 0; i < kNetworkState.num_players; ++i) {
+          // Misc debug/feedback
+          const v2f dims =
+              v2f(kPlayer[i].camera.viewport.x, kPlayer[i].camera.viewport.y);
+          simulation::LogPanel(dims, i);
+          simulation::Hud(dims, i);
+          simulation::DebugPanel(kPlayer[i], i, kGameStats,
+                                 kGameState.frame_target_usec,
+                                 kGameState.logic_updates,
+                                 kGameState.game_clock.jerk);
+        }
 #endif
 
         // SetView for the local player's camera

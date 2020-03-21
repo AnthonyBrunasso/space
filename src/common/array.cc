@@ -57,6 +57,7 @@
     *t = {};                                       \
     return t;                                      \
   }                                                \
+                                                   \
   void Compress##type(uint64_t dim, int idx)       \
   {                                                \
     if (idx >= kMax##type) return;                 \
@@ -65,4 +66,11 @@
       k##type[dim][i] = k##type[dim][i + 1];       \
     }                                              \
     --kUsed##type[dim];                            \
+  }                                                \
+                                                   \
+  void Reset##type()                               \
+  {                                                \
+    for (int i = 0; i < kDim##type; ++i) {         \
+      kUsed##type[i] = 0;                          \
+    }                                              \
   }                                                \

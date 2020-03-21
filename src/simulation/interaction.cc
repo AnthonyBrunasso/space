@@ -25,15 +25,15 @@ CacheSyncHashes(bool update, uint64_t frame)
 }
 
 void
-DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec,
-           uint64_t frame, uint64_t jerk)
+DebugPanel(const Player& player, uint32_t tag, const Stats& stats,
+           uint64_t frame_target_usec, uint64_t frame, uint64_t jerk)
 {
-  auto sz = window::GetWindowSize();
+  auto sz = player.camera.viewport;
 #define BUFFER_SIZE 64
   char buffer[BUFFER_SIZE];
   static bool enable_debug = false;
   imui::PaneOptions options;
-  imui::Begin(v2f(3.f, sz.y - 30.f), options);
+  imui::Begin(v2f(3.f, sz.y - 30.f), tag, options);
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
@@ -133,14 +133,14 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec,
 }
 
 void
-LogPanel(v2f screen_dims)
+LogPanel(v2f screen_dims, uint32_t tag)
 {
   const float width = 300.0f;
   const float height = 100.0f;
   imui::PaneOptions pane_options(width, height);
   imui::TextOptions text_options;
   text_options.scale = 0.7f;
-  imui::Begin(v2f(screen_dims.x - width, 0.0f), pane_options);
+  imui::Begin(v2f(screen_dims.x - width, 0.0f), tag, pane_options);
   for (int i = 0, imax = LogCount(); i < imax; ++i) {
     const char* log_msg = ReadLog(i);
     if (!log_msg) continue;
@@ -258,9 +258,9 @@ DebugHudAI(v2f screen)
 }
 
 void
-Hud(v2f screen)
+Hud(v2f screen, uint32_t tag)
 {
-  imui::Begin(v2f(screen.x - 225.f, screen.y - 30.0f));
+  imui::Begin(v2f(screen.x - 225.f, screen.y - 30.0f), tag);
   HudSelection(screen);
   // TODO(abrunasso): Perhaps enable / disable this in Debug panel?
   DebugHudAI(screen);
@@ -282,7 +282,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
       player->camera.motion.z = -10.f * event.wheel_delta;
     } break;
     case MOUSE_DOWN: {
-      imui::MouseClick(event.position, event.button);
+      imui::MouseClick(event.position, event.button, player_index);
 
       if (event.button == BUTTON_MIDDLE) {
         camera::Move(&player->camera, world_pos);

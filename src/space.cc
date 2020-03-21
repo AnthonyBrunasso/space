@@ -225,7 +225,7 @@ main(int argc, char** argv)
 #ifndef HEADLESS
         // Misc debug/feedback
         const v2f dims = window::GetWindowSize();
-        simulation::LogPanel();
+        simulation::LogPanel(dims);
         simulation::Hud(dims);
         simulation::DebugPanel(kPlayer[kNetworkState.player_index], kGameStats,
                                kGameState.frame_target_usec,

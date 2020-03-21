@@ -133,12 +133,14 @@ DebugPanel(const Player& player, const Stats& stats, uint64_t frame_target_usec,
 }
 
 void
-LogPanel()
+LogPanel(v2f screen_dims)
 {
-  imui::PaneOptions pane_options(300.0f, 100.0f);
+  const float width = 300.0f;
+  const float height = 100.0f;
+  imui::PaneOptions pane_options(width, height);
   imui::TextOptions text_options;
   text_options.scale = 0.7f;
-  imui::Begin(v2f(0.f, 0.f), pane_options);
+  imui::Begin(v2f(screen_dims.x - width, 0.0f), pane_options);
   for (int i = 0, imax = LogCount(); i < imax; ++i) {
     const char* log_msg = ReadLog(i);
     if (!log_msg) continue;

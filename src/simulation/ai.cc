@@ -46,8 +46,29 @@ AISimpleBehavior(Unit* unit)
 }
 
 void
+AIAttackInterrupt(Unit* unit)
+{
+  if (unit->uaction != kUaAttack) return;
+
+  // If the AI discovers a nearer target than the one it is attacking it
+  // will change targets.
+  const uint32_t* current_target;
+  if (!BB_GET(unit->bb, kUnitTarget, current_target)) return;
+
+  Unit* nearest_target = GetNearestEnemyUnit(unit);
+  if (!nearest_target) return;
+
+  // Nearest target remains the one it is attacking.
+  if (nearest_target->id == *current_target) return;
+  // Otherwise switch to new nearest.
+  BB_SET(unit->bb, kUnitTarget, nearest_target->id);
+}
+
+void
 AIAttackWhenDiscovered(Unit* unit)
 {
+  AIAttackInterrupt(unit);
+
   // Non interrupting behavior.
   if (unit->uaction != kUaNone) return;
 

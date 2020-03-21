@@ -175,6 +175,7 @@ IsRectClicked(math::Rectf rect)
 void
 Indent(int spaces)
 {
+  assert(kIMUI.begin_mode.set);
   auto& font = rgg::kUI.font;
   FntMetadataRow* row = &font.metadata.rows[' '];
   if (!row || !row->id) return;
@@ -239,6 +240,7 @@ UpdatePaneOnEnd(Pane* pane)
 Result
 Text(const char* msg, v2f pos, TextOptions options)
 {
+  assert(kIMUI.begin_mode.set);
   uint32_t tag = kIMUI.begin_mode.tag;
   Result data;
   struct Text* text = UseText(tag);
@@ -273,12 +275,14 @@ Text(const char* msg, v2f pos, TextOptions options)
 Result
 Text(const char* msg, v2f pos)
 {
+  assert(kIMUI.begin_mode.set);
   return Text(msg, pos, {kWhite, kWhite});
 }
 
 Result
 Text(const char* msg, TextOptions options)
 {
+  assert(kIMUI.begin_mode.set);
   auto& begin_mode = kIMUI.begin_mode;
   // Call StartText before this.
   assert(kIMUI.begin_mode.set);
@@ -291,6 +295,7 @@ Text(const char* msg, TextOptions options)
 Result
 Text(const char* msg)
 {
+  assert(kIMUI.begin_mode.set);
   return Text(msg, {kWhite, kWhite});
 }
 
@@ -336,6 +341,8 @@ End()
 Result
 Button(const math::Rectf& rect, const v4f& color)
 {
+  // Call Begin() before imui elements.
+  assert(kIMUI.begin_mode.set);
   uint32_t tag = kIMUI.begin_mode.tag;
   struct Button* button = UseButton(tag);
   Result result;

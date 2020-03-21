@@ -445,6 +445,24 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
 }
 
 void
+GameUI(v2f screen, uint32_t tag, Player* player)
+{
+  imui::Begin(v2f(0.f, 100.f), tag);
+  imui::Result hud_result;
+  for (int i = 0; i < kModCount; ++i) {
+    v3f c = gfx::ModuleColor(i);
+    hud_result = imui::Button(math::Rectf(50 * i + 5.f * i, 50, 50, 50),
+                              v4f(c.x, c.y, c.z, .6f));
+
+    if (hud_result.clicked) {
+      player->hud_mode = kHudModule;
+      player->mod_placement = i;
+    }
+  }
+  imui::End();
+}
+
+void
 ProcessSimulation(int player_index, uint64_t event_count,
                   const PlatformEvent* event)
 {

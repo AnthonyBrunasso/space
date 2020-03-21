@@ -233,7 +233,8 @@ main(int argc, char** argv)
                                  kGameState.frame_target_usec,
                                  kGameState.logic_updates,
                                  kGameState.game_clock.jerk);
-        }
+          simulation::GameUI(dims, i, &kPlayer[i]);
+        } 
 #endif
 
         // SetView for the local player's camera

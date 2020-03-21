@@ -383,7 +383,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
           // This check has to happen, otherwise the cursor will go into attack
           // move with no units selected and you won't be able to select
           // units or attack without left clicking again.
-          if (CountUnitSelection(kPlayerIndex) > 0) {
+          if (CountUnitSelection(player_index) > 0) {
             player->hud_mode = kHudAttackMove;
           }
         } break;

@@ -296,17 +296,6 @@ DecideMissle(uint64_t ship_index)
 bool
 MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
 {
-  v2i end = WorldToTilePos(dest);
-  auto* path = PathTo(tilepos, end);
-  if (!path) {
-    unit->uaction = set_on_arrival;
-    BB_REM(unit->bb, kUnitDestination);
-    return true;
-  }
-
-  bool near_goal = (path->size == 1);
-  v3f move_dir = TileAvoidWalls(tilepos) * !near_goal;
-  move_dir *= kAvoidanceScaling;
   if (v3fDsq(unit->transform.position, dest) < 1.f) {
     unit->transform.position = dest;
     unit->uaction = set_on_arrival;
@@ -314,11 +303,29 @@ MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
     return true;
   }
 
-  v3f new_dest =
-      (dest * near_goal) + (TilePosToWorld(path->tile[1]) * !near_goal);
-  move_dir += math::Normalize(new_dest.xy() - unit->transform.position.xy()) *
-              unit->speed;
-  unit->transform.position += move_dir;
+  v3f incremental_dest = dest;
+  v3f avoidance_vec = {};
+  if (!unit->inspace) {
+    v2i end = WorldToTilePos(dest);
+    auto* path = PathTo(tilepos, end);
+    if (!path) {
+      unit->uaction = set_on_arrival;
+      BB_REM(unit->bb, kUnitDestination);
+      return true;
+    }
+
+    if (path->size > 1) {
+      incremental_dest = TilePosToWorld(path->tile[1]);
+      avoidance_vec = TileAvoidWalls(tilepos) * kAvoidanceScaling;
+    }
+  }
+
+  v3f move_vec =
+      math::Normalize(incremental_dest.xy() - unit->transform.position.xy()) *
+      unit->speed;
+
+  unit->transform.position += (move_vec + avoidance_vec);
+
   return false;
 }
 

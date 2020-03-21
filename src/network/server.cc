@@ -37,6 +37,8 @@ struct PlayerState {
   uint64_t cookie_mismatch;
   uint64_t latency_excess;
   uint64_t corrupted;
+  uint64_t window_width;
+  uint64_t window_height;
 };
 static PlayerState zero_player;
 static PlayerState player[MAX_PLAYER];
@@ -377,6 +379,8 @@ server_main(void* void_arg)
       player[player_index].pending_game_id = 0;
       player[player_index].last_active = realtime_usec;
       player[player_index].sequence = 0;
+      player[player_index].window_width = header->player_info.window_width;
+      player[player_index].window_height = header->player_info.window_height;
 
       int ready_players = 0;
       for (int i = 0; i < MAX_PLAYER; ++i) {
@@ -406,6 +410,10 @@ server_main(void* void_arg)
           response->player_count = num_players;
           response->game_id = next_game_id;
           response->cookie = player_cookie;
+          for (int i = 0; i < response->player_count; ++i) {
+            response->player_info[i].window_width = player[i].window_width;
+            response->player_info[i].window_height = player[i].window_height;
+          }
           udp::SendTo(location, player[i].peer, in_buffer, sizeof(NotifyGame));
           player[i].pending_game_id = next_game_id;
           player[i].player_id = player_id;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "math/vec.h"
+#include "network/network.cc"
 
 #include "entity.cc"
 #include "search.cc"
@@ -288,7 +289,12 @@ ScenarioInitialize(bool reset_features = true)
     } break;
   }
 
-  for (int i = 0; i < kPlayerCount; ++i) UsePlayer();
+  auto dims = window::GetWindowSize();
+  for (int i = 0; i < kPlayerCount; ++i) {
+    auto* player = UsePlayer();
+    player->camera.viewport.x = kNetworkState.player_info[i].window_width;
+    player->camera.viewport.y = kNetworkState.player_info[i].window_height;
+  }
   LOGFMT("Player count: %lu", kUsedPlayer);
 
   for (int i = 0; i < kUsedPlayer; ++i) {

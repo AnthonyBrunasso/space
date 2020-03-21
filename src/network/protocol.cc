@@ -8,9 +8,15 @@ const uint64_t greeting_size = 8;
 #define GREETING "spacehi"
 #define BEGINGAME "spacegame"
 
+struct PlayerInfo {
+  uint64_t window_width;
+  uint64_t window_height;
+};
+
 struct Handshake {
   const char greeting[greeting_size] = {GREETING};
   uint64_t num_players;
+  PlayerInfo player_info;
 };
 
 struct NotifyGame {
@@ -18,6 +24,8 @@ struct NotifyGame {
   uint64_t player_id;
   uint64_t player_count;
   uint64_t cookie;
+  // TODO: Alan halp. Not sure best way to return player info.
+  PlayerInfo player_info[MAX_PLAYER];
 };
 
 struct BeginGame {

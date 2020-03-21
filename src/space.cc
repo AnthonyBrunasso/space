@@ -33,6 +33,10 @@ static Stats kGameStats;
 const Camera*
 GetCamera(uint64_t player_index)
 {
+  kPlayer[player_index].camera.viewport.x =
+      kNetworkState.player_info[player_index].window_width;
+  kPlayer[player_index].camera.viewport.y =
+      kNetworkState.player_info[player_index].window_height;
   return &kPlayer[player_index].camera;
 }
 
@@ -132,13 +136,13 @@ main(int argc, char** argv)
     return 1;
   }
 
+
   // Game init
   kPlayerCount = kNetworkState.player_count;
   kPlayerIndex = kNetworkState.player_index;
   if (!simulation::Initialize(kNetworkState.game_id)) {
     return 1;
   }
-
   // Init view for local player's camera
   camera::SetView(GetCamera(kNetworkState.player_index),
                   &rgg::GetObserver()->view);

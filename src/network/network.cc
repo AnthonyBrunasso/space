@@ -58,6 +58,7 @@ struct NetworkState {
   // Range of packets sent last in NetworkEgress()
   uint64_t egress_min = UINT64_MAX;
   uint64_t egress_max = 0;
+  PlayerInfo player_info[MAX_PLAYER];
 };
 
 static NetworkState kNetworkState;
@@ -93,10 +94,15 @@ NetworkSetup()
   TscClock_t handshake_clock;
   const uint64_t usec = 50 * 1000;
   clock_init(usec, &handshake_clock);
-  Handshake h = {.num_players = kNetworkState.num_players};
+  v2f dims = window::GetWindowSize();
+  Handshake h;
+  h.num_players = kNetworkState.num_players;
+  h.player_info.window_width = (uint64_t)dims.x;
+  h.player_info.window_height = (uint64_t)dims.y;
 #if ALAN_DEBUG
-  printf("Client: send '%s' for %lu players\n", h.greeting,
-         kNetworkState.num_players);
+  printf("Client: send '%s' for %lu players client dims(%lu, %lu)\n",
+         h.greeting, kNetworkState.num_players, h.player_info.window_width,
+         h.player_info.window_height);
 #endif
   for (int send_count = 0; bytes_received <= 0 && send_count < 5000000;
        ++send_count) {
@@ -120,14 +126,21 @@ NetworkSetup()
 
   NotifyGame* ns = (NotifyGame*)kNetworkState.netbuffer;
 #if ALAN_DEBUG
-  printf("Handshake success [ player_id %zu ] [ player_count %zu ] \n",
+  printf("Handshake success [ player_id %zu ] [ player_count %zu ] [",
          (size_t)ns->player_id, (size_t)ns->player_count);
+  for (int i = 0; i < ns->player_count; ++i) {
+    printf(" %lu,%lu ", ns->player_info[i].window_width,
+           ns->player_info[i].window_height);
+  }
+  printf("]\n");
 #endif
-
   kNetworkState.game_id = ns->game_id;
   kNetworkState.player_index = ns->player_id;
   kNetworkState.player_count = ns->player_count;
   kNetworkState.player_cookie = ns->cookie;
+  for (int i = 0; i < ns->player_count; ++i) {
+    kNetworkState.player_info[i] = ns->player_info[i];
+  }
 
   BeginGame bg;
   bg.cookie = ns->cookie;

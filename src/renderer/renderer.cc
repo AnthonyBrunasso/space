@@ -545,12 +545,11 @@ RenderGrid(v2f grid, math::Rectf bounds, uint64_t color_count, v4f* color)
 }
 
 void
-RenderCube(const math::Cubef& cube, const v4f& color)
+Render3d(const v3f& pos, const v3f& scale, const v4f& color, GLuint vao,
+         int verts)
 {
   glUseProgram(kRGG.geometry_program_3d.reference);
-  glBindVertexArray(kRGG.cube_vao_reference);
-  v3f pos(cube.pos.x, cube.pos.y, cube.pos.z);
-  v3f scale(cube.width, cube.height, cube.depth);
+  glBindVertexArray(vao);
   math::Mat4f model = math::Model(pos, scale);
   glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
               color.w);
@@ -563,127 +562,74 @@ RenderCube(const math::Cubef& cube, const v4f& color)
   glUniform3f(kRGG.geometry_program_3d.light_position_world_uniform,
               kObserver.position.x, kObserver.position.y,
               kObserver.position.z);
-  glDrawArrays(GL_TRIANGLES, 0, kCubeVertCount);
+  glDrawArrays(GL_TRIANGLES, 0, verts);
+}
+
+void
+Render3dWithRotation(const v3f& pos, const v3f& scale, const math::Quatf& quat,
+                     const v4f& color, GLuint vao, int verts)
+{
+  glUseProgram(kRGG.geometry_program_3d.reference);
+  glBindVertexArray(vao);
+  math::Mat4f model = math::Model(pos, scale, quat);
+  glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
+              color.w);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.projection_uniform, 1, GL_FALSE,
+                     &kObserver.projection.data_[0]);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.view_uniform, 1, GL_FALSE,
+                     &kObserver.view.data_[0]);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.model_uniform, 1, GL_FALSE,
+                     &model.data_[0]);
+  glUniform3f(kRGG.geometry_program_3d.light_position_world_uniform,
+              kObserver.position.x, kObserver.position.y,
+              kObserver.position.z);
+  glDrawArrays(GL_TRIANGLES, 0, verts);
+}
+
+void
+RenderCube(const math::Cubef& cube, const v4f& color)
+{
+  Render3d(cube.pos, v3f(cube.width, cube.height, cube.depth), color,
+           kRGG.cube_vao_reference, kCubeVertCount);
 }
 
 void
 RenderCone(v3f pos, v3f scale, const v4f& color)
 {
-  glUseProgram(kRGG.geometry_program_3d.reference);
-  glBindVertexArray(kRGG.cone_vao_reference);
-  math::Mat4f model = math::Model(pos, scale);
-  glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
-              color.w);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.projection_uniform, 1, GL_FALSE,
-                     &kObserver.projection.data_[0]);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.view_uniform, 1, GL_FALSE,
-                     &kObserver.view.data_[0]);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.model_uniform, 1, GL_FALSE,
-                     &model.data_[0]);
-  glUniform3f(kRGG.geometry_program_3d.light_position_world_uniform,
-              kObserver.position.x, kObserver.position.y,
-              kObserver.position.z);
-  glDrawArrays(GL_TRIANGLES, 0, kConeVertCount);
+  Render3d(pos, scale, color, kRGG.cone_vao_reference, kConeVertCount);
 }
 
 void
 RenderGear(v3f pos, v3f scale, const v4f& color)
 {
-  glUseProgram(kRGG.geometry_program_3d.reference);
-  glBindVertexArray(kRGG.gear_vao_reference);
-  math::Mat4f model = math::Model(pos, scale);
-  glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
-              color.w);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.projection_uniform, 1, GL_FALSE,
-                     &kObserver.projection.data_[0]);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.view_uniform, 1, GL_FALSE,
-                     &kObserver.view.data_[0]);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.model_uniform, 1, GL_FALSE,
-                     &model.data_[0]);
-  glUniform3f(kRGG.geometry_program_3d.light_position_world_uniform,
-              kObserver.position.x, kObserver.position.y,
-              kObserver.position.z);
-  glDrawArrays(GL_TRIANGLES, 0, kGearVertCount);
+  Render3d(pos, scale, color, kRGG.gear_vao_reference, kGearVertCount);
 }
 
 void
 RenderGear(v3f pos, v3f scale, const math::Quatf& quat, const v4f& color)
 {
-  glUseProgram(kRGG.geometry_program_3d.reference);
-  glBindVertexArray(kRGG.gear_vao_reference);
-  math::Mat4f model = math::Model(pos, scale, quat);
-  glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
-              color.w);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.projection_uniform, 1, GL_FALSE,
-                     &kObserver.projection.data_[0]);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.view_uniform, 1, GL_FALSE,
-                     &kObserver.view.data_[0]);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.model_uniform, 1, GL_FALSE,
-                     &model.data_[0]);
-  glUniform3f(kRGG.geometry_program_3d.light_position_world_uniform,
-              kObserver.position.x, kObserver.position.y,
-              kObserver.position.z);
-  glDrawArrays(GL_TRIANGLES, 0, kGearVertCount);
+  Render3dWithRotation(pos, scale, quat, color, kRGG.gear_vao_reference,
+                       kGearVertCount);
 }
 
 void
 RenderPod(v3f pos, v3f scale, const math::Quatf& quat, const v4f& color)
 {
-  glUseProgram(kRGG.geometry_program_3d.reference);
-  glBindVertexArray(kRGG.pod_vao_reference);
-  math::Mat4f model = math::Model(pos, scale, quat);
-  glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
-              color.w);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.projection_uniform, 1, GL_FALSE,
-                     &kObserver.projection.data_[0]);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.view_uniform, 1, GL_FALSE,
-                     &kObserver.view.data_[0]);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.model_uniform, 1, GL_FALSE,
-                     &model.data_[0]);
-  glUniform3f(kRGG.geometry_program_3d.light_position_world_uniform,
-              kObserver.position.x, kObserver.position.y,
-              kObserver.position.z);
-  glDrawArrays(GL_TRIANGLES, 0, kPodVertCount);
+  Render3dWithRotation(pos, scale, quat, color, kRGG.pod_vao_reference,
+                       kPodVertCount);
 }
 
 void
 RenderSphere(v3f pos, v3f scale, const v4f& color)
 {
-  glUseProgram(kRGG.geometry_program_3d.reference);
-  glBindVertexArray(kRGG.sphere_vao_reference);
-  math::Mat4f model = math::Model(pos, scale);
-  glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
-              color.w);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.projection_uniform, 1, GL_FALSE,
-                     &kObserver.projection.data_[0]);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.view_uniform, 1, GL_FALSE,
-                     &kObserver.view.data_[0]);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.model_uniform, 1, GL_FALSE,
-                     &model.data_[0]);
-  glUniform3f(kRGG.geometry_program_3d.light_position_world_uniform,
-              kObserver.position.x, kObserver.position.y,
-              kObserver.position.z);
-  glDrawArrays(GL_TRIANGLES, 0, kSphereVertCount);
+  Render3d(pos, scale, color, kRGG.sphere_vao_reference, kSphereVertCount);
 }
 
 void
 RenderExhaust(v3f pos, v3f scale, const math::Quatf& quat, const v4f& color)
 {
-  glUseProgram(kRGG.geometry_program_3d.reference);
-  glBindVertexArray(kRGG.exhaust_vao_reference);
-  math::Mat4f model = math::Model(pos, scale, quat);
-  glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
-              color.w);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.projection_uniform, 1, GL_FALSE,
-                     &kObserver.projection.data_[0]);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.view_uniform, 1, GL_FALSE,
-                     &kObserver.view.data_[0]);
-  glUniformMatrix4fv(kRGG.geometry_program_3d.model_uniform, 1, GL_FALSE,
-                     &model.data_[0]);
-  glUniform3f(kRGG.geometry_program_3d.light_position_world_uniform,
-              kObserver.position.x, kObserver.position.y,
-              kObserver.position.z);
-  glDrawArrays(GL_TRIANGLES, 0, kExhaustVertCount);
+  Render3dWithRotation(pos, scale, quat, color, kRGG.exhaust_vao_reference,
+                       kExhaustVertCount);
 }
 
 void

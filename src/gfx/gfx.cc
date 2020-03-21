@@ -449,8 +449,9 @@ RenderSpaceObjects()
 
   for (int i = 0; i < kUsedPod; ++i) {
     Pod* pod = &kPod[i];
-    rgg::RenderTag(kGfx.pod_tag, pod->transform.position, pod->transform.scale,
-                   kDefaultRotation, kWhite);
+
+    rgg::RenderPod(pod->transform.position, v3f(20.f, 20.f, 20.f),
+                   math::Quatf(-90.f, v3f(1.f, 0.f, 0.f)), v4f(1.f, 1.f, 1.f, 1.f));
 
     if (pod->think_flags & FLAG(kPodAiUnmanned)) continue;
 

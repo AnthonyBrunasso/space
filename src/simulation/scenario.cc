@@ -18,6 +18,7 @@ struct Scenario {
     kGameScenario,
     kCombatGroup,
     kAI,
+    kPod,
     kEmptyScenario,
     kMaxScenario,
   };
@@ -42,7 +43,7 @@ struct TwoShipScenario {
 static TwoShipScenario kTwoShipScenario;
 
 constexpr const char* kScenarioNames[Scenario::kMaxScenario] = {
-    "TowShip", "Combat", "Solo", "Game", "CombatGroup", "AI", "Empty",
+    "TwoShip", "Combat", "Solo", "Game", "CombatGroup", "AI", "Pod", "Empty",
 };
 
 int
@@ -120,6 +121,7 @@ ScenarioInitialize(bool reset_features = true)
 {
   int sid = kScenario.type;
   TilemapType tilemap_type = kTilemapEmpty;
+  TilemapSet(0);
   switch (sid) {
     case Scenario::kGameScenario: {
       if (reset_features) {
@@ -252,6 +254,15 @@ ScenarioInitialize(bool reset_features = true)
       kUnit[1].attack_radius = 30.f;
       kUnit[1].speed = 0.5f;
       BB_SET(kUnit[1].bb, kUnitBehavior, kUnitBehaviorSimple);
+    } break;
+    case Scenario::kPod: {
+      if (reset_features) {
+        memset(&kScenario, 0xff, sizeof(kScenario));
+        kScenario.missile = 0;
+        kScenario.asteroid = 0;
+      }
+      ScenarioSpawnCrew(v2i(5, 23), 0);
+      tilemap_type = kTilemapShip;
     } break;
     default:
     case Scenario::kEmptyScenario: {

@@ -271,7 +271,7 @@ void
 ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
 {
   v3f world_pos = camera::ScreenToWorldSpace(&player->camera, event.position);
-
+  imui::MousePosition(event.position, player_index);
   djb2_hash_more((const uint8_t*)&event, sizeof(PlatformEvent), &kInputHash);
   switch (event.type) {
     case MOUSE_POSITION: {

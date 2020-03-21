@@ -61,6 +61,10 @@ struct UIClick {
   PlatformButton button;
 };
 
+struct MousePosition {
+  v2f pos;
+};
+
 struct UIClickRender {
   v2f pos;
   int render_frames;
@@ -96,6 +100,7 @@ constexpr uint32_t kMaxTags = 2;
 DECLARE_ND_ARRAY(Text, kMaxTags, 64);
 DECLARE_ND_ARRAY(Button, kMaxTags, 16);
 DECLARE_ND_ARRAY(UIClick, kMaxTags, 8);
+DECLARE_ND_ARRAY(MousePosition, kMaxTags, 8);
 DECLARE_ND_ARRAY(Pane, kMaxTags, 8);
 DECLARE_QUEUE(UIClickRender, 8);
 
@@ -106,6 +111,7 @@ Reset()
   ResetButton();
   ResetPane();
   ResetUIClick();
+  ResetMousePosition();
 }
 
 void
@@ -147,7 +153,12 @@ Render(uint32_t tag)
 bool
 IsRectHighlighted(math::Rectf rect)
 {
-  return math::PointInRect(window::GetCursorPosition(), rect);
+  uint32_t tag = kIMUI.begin_mode.tag;
+  for (int i = 0; i < kUsedMousePosition[tag]; ++i) {
+    MousePosition* mp = &kMousePosition[tag][i];
+    if (math::PointInRect(mp->pos, rect)) return true;
+  }
+  return false;
 }
 
 bool
@@ -350,7 +361,17 @@ MouseClick(v2f pos, PlatformButton b, uint32_t tag)
   }
   click->pos = pos;
   click->button = b;
-  // PushUIClickRender({pos, kClickForFrames});
+}
+
+void
+MousePosition(v2f pos, uint32_t tag)
+{
+  struct MousePosition* mp = UseMousePosition(tag);
+  if (!mp) {
+    imui_errno = 4;
+    return;
+  }
+  mp->pos = pos;
 }
 
 const char*

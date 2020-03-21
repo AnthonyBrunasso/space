@@ -76,13 +76,10 @@ ThinkShip(uint64_t ship_index)
   Ship* ship = &kShip[ship_index];
   uint64_t think_flags = 0;
 
-  if (!kUsedPod) {
-    // Ship mining is powererd
-    if (ship->sys[kModMine] >= 1.0f) {
-      if (ship->pod_capacity) {
-        think_flags |= FLAG(kShipAiSpawnPod);
-        ship->pod_capacity -= 1;
-      }
+  // Ship mining is powererd
+  if (ship->sys[kModMine] >= 1.0f) {
+    if (ship->pod_capacity) {
+      think_flags |= FLAG(kShipAiSpawnPod);
     }
   }
 
@@ -102,8 +99,7 @@ ThinkShip(uint64_t ship_index)
             LOGFMT("Unit %u prevented the power surge from damaging ship %i.",
                    unit->id, ship_index);
             break;
-          }
-          else {
+          } else {
             ship->danger += 1;
           }
         }
@@ -167,105 +163,6 @@ ThinkMissle(uint64_t ship_index)
 }
 
 void
-ThinkPod(uint64_t ship_index)
-{
-  if (!kScenario.pod) return;
-
-  for (int i = 0; i < kUsedPod; ++i) {
-    Pod* pod = &kPod[i];
-    if (pod->ship_index != ship_index) continue;
-    // Keep-state on AiReturn
-    constexpr uint64_t keep = (FLAG(kPodAiReturn) | FLAG(kPodAiUnmanned));
-    const uint64_t keep_state = pod->think_flags & keep;
-    v2f goal;
-    uint64_t think_flags = 0;
-
-    // Goal is to return home, unless overidden
-    for (int k = 0; k < kUsedModule; ++k) {
-      Module* mod = &kModule[k];
-      if (mod->mkind != kModMine) continue;
-      goal = TilePosToWorld(v2i(mod->cx, mod->cy));
-      break;
-    }
-
-    if (kShip[ship_index].sys[kModMine] < .5f) {
-      think_flags |= FLAG(kPodAiLostControl);
-    }
-
-    // Stateful return home
-    if (keep_state & FLAG(kPodAiUnmanned)) {
-      think_flags = keep_state;
-      // Waiting for spaceman in a spacesuit
-      for (int j = 0; j < kUsedUnit; ++j) {
-        if (!kUnit[j].spacesuit) continue;
-        if (v3fDsq(kUnit[j].transform.position, pod->transform.position) <
-            kDsqOperatePod) {
-          LOGFMT("Unit %d is now in space.", j);
-          think_flags = ANDN(FLAG(kPodAiUnmanned), think_flags);
-          kUnit[j].inspace = 1;
-          break;
-        }
-      }
-    } else if (keep_state & FLAG(kPodAiReturn)) {
-      // Pod has finished unloading
-      if (pod->mineral == 0) {
-        // derp
-        think_flags = ANDN(FLAG(kPodAiUnload), think_flags);
-      } else {
-        think_flags = keep_state;
-        // In range of the ship
-        if (v3fDsq(goal, pod->transform.position) < 300.f) {
-          // Unload the payload this tick!
-          think_flags |= FLAG(kPodAiUnload);
-        }
-      }
-    }
-    // Begin the journey home
-    else if (pod->mineral >= kPodMaxMineral) {
-      v2f home;
-      goal = home;
-      think_flags |= FLAG(kPodAiReturn);
-    } else {
-      float dsq;
-      uint64_t asteroid_index = v3fNearTransform(
-          pod->transform.position, GAME_ITER(Asteroid, transform), &dsq);
-
-      if (asteroid_index < kUsedAsteroid) {
-        Asteroid* asteroid = &kAsteroid[asteroid_index];
-        think_flags |= FLAG(kPodAiApproach);
-        goal = asteroid->transform.position.xy();
-        if (dsq < 900.f) {
-          think_flags |= FLAG(kPodAiGather);
-          asteroid->deplete = 1;
-        }
-      } else {
-        for (int i = 0; i < kUsedShip; ++i) {
-          if (i == ship_index) continue;
-          uint64_t grid_index = kShip[i].grid_index;
-          v3f midship =
-              kGrid[i].transform.position +
-              v2f(kTileWidth * kMapWidth * .5f, kTileHeight * kMapHeight * .5f);
-          dsq = v3fDsq(midship, pod->transform.position);
-          if (dsq > kDsqOperate) {
-            goal = midship.xy();
-            think_flags |= FLAG(kPodAiApproach);
-          } else {
-            think_flags |= FLAG(kPodAiDisembark);
-          }
-        }
-      }
-    }
-
-    pod->think_flags = think_flags;
-    pod->goal = goal;
-#if DEBUG_AI
-    printf("pod think 0x%lx keep_state 0x%lx minerals %lu \n", think_flags,
-           keep_state, pod->mineral);
-#endif
-  }
-}
-
-void
 Think()
 {
   ThinkAsteroid();
@@ -277,7 +174,6 @@ Think()
 
     ThinkShip(i);
     ThinkMissle(i);
-    ThinkPod(i);
   }
 }
 
@@ -293,11 +189,24 @@ DecideShip(uint64_t ship_index)
 
   Ship* ship = &kShip[ship_index];
   if (ship->think_flags & FLAG(kShipAiSpawnPod)) {
-    Pod* pod = UsePod();
-    pod->ship_index = ship_index;
-    LOGFMT("Ship %u constructed a new pod %u", ship_index, pod - kPod);
-    pod->transform = Transform{.position = v3f(520.f, 600.f, 0.f)};
-    pod->think_flags = FLAG(kPodAiUnmanned);
+    // Waiting for spaceman
+    for (int i = 0; i < kUsedModule; ++i) {
+      Module* module = &kModule[i];
+      if (!module->built) continue;
+      if (module->mkind != kModMine) continue;
+      v3f module_worldpos = TilePosToWorld(v2i(module->cx, module->cy));
+      for (int j = 0; j < kUsedUnit; ++j) {
+        Unit* unit = &kUnit[j];
+        if (unit->ship_index != ship_index) continue;
+        if (v3fDsq(unit->transform.position, module_worldpos) <
+            kDsqOperatePod) {
+          unit->inspace = 1;
+          ship->pod_capacity -= 1;
+          LOGFMT("Ship %u converted unit %d into a pod\n", ship_index, j);
+          break;
+        }
+      }
+    }
   }
 
   for (int i = 0; i < kModCount; ++i) {
@@ -384,68 +293,6 @@ DecideMissle(uint64_t ship_index)
   }
 }
 
-void
-DecidePod(uint64_t ship_index)
-{
-  if (!kScenario.pod) return;
-
-  for (int i = 0; i < kUsedPod; ++i) {
-    Pod* pod = &kPod[i];
-    if (pod->ship_index != ship_index) continue;
-
-    uint64_t action = TZCNT(pod->think_flags);
-    uint64_t mineral = 0;
-    v3f dir = v3f();
-    switch (action) {
-      case kPodAiLostControl:
-        dir = pod->last_heading;
-        break;
-      case kPodAiApproach:
-        dir = Normalize(pod->goal - pod->transform.position.xy());
-        break;
-      case kPodAiGather:
-        mineral = MIN(1, kPodMaxMineral - pod->mineral);
-        pod->mineral += mineral;
-        break;
-      case kPodAiReturn:
-        dir = Normalize(pod->goal - pod->transform.position.xy());
-        break;
-      case kPodAiUnload:
-        kResource[0].mineral += MIN(5, pod->mineral);
-        pod->mineral -= MIN(5, pod->mineral);
-        break;
-      case kPodAiUnmanned:
-        break;
-      case kPodAiDisembark:
-        for (int i = 0; i < kUsedUnit; ++i) {
-          if (kUnit[i].inspace) {
-            LOGFMT("%d disembarked onto ship %d", i, 1);
-            kUnit[i].transform.position = pod->transform.position;
-            kUnit[i].inspace = 0;
-            kUnit[i].ship_index = 1;
-            pod->think_flags = FLAG(kPodAiUnmanned);
-            break;
-          }
-        }
-        *kPod = kZeroPod;
-        continue;
-    };
-
-#ifdef DEBUG_AI
-    printf(" [ position %04.02fx %04.02fy ] ", pod->transform.position.x,
-           pod->transform.position.y);
-    printf(" [ goal %04.02fx %04.02fy ] ", pod->goal.x, pod->goal.y);
-    printf("pod ai [ action %lu ] [ think %lu ] [dir %f %f]\n", action,
-           pod->think_flags, dir.x, dir.y);
-#endif
-
-    if (!std::isnormal(dir.x)) dir.x = FP_ZERO;
-    if (!std::isnormal(dir.y)) dir.y = FP_ZERO;
-    pod->transform.position += dir * 2.0;
-    pod->last_heading = dir.xy();
-  }
-}
-
 bool
 MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
 {
@@ -478,7 +325,7 @@ MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
 void
 AttackTarget(Unit* unit, Unit* target)
 {
-  BB_SET(target->bb, kUnitAttacker, unit->id); 
+  BB_SET(target->bb, kUnitAttacker, unit->id);
 
   if (!ShouldAttack(unit, target)) {
     return;
@@ -556,8 +403,8 @@ UpdateModule(uint64_t ship_index)
       if (m->mkind != kModBarrack) continue;
       // Hack: Module 0 spawns kCrew, others spawn kEnemy
       if (i != reinforce_team) continue;
-      v2f random_dir = Normalize(
-          TileRandomPosition() - TilePosToWorld(v2i(m->cx, m->cy)));
+      v2f random_dir =
+          Normalize(TileRandomPosition() - TilePosToWorld(v2i(m->cx, m->cy)));
       Unit* unit = UseIdUnit();
       unit->transform.position =
           TilePosToWorld(v2i(m->cx, m->cy)) + (random_dir * kTileWidth);
@@ -744,7 +591,6 @@ Decide()
     TilemapSet(kShip[i].grid_index);
     DecideShip(i);
     DecideMissle(i);
-    DecidePod(i);
     UpdateModule(i);
     UpdateUnit(i);
     UpdateConsumable(i);

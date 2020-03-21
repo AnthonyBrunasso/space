@@ -152,17 +152,6 @@ struct Asteroid {
 };
 DECLARE_GAME_TYPE(Asteroid, 8);
 
-constexpr uint64_t kPodMaxMineral = 100;
-struct Pod {
-  Transform transform;
-  uint64_t think_flags = 0;
-  uint64_t ship_index = UINT64_MAX;
-  v2f goal;
-  v2f last_heading;
-  uint64_t mineral;
-};
-DECLARE_GAME_TYPE(Pod, 8);
-
 constexpr uint64_t kNonPlayerId = UINT64_MAX;
 constexpr unsigned kNotifyAgeBits = 5;
 

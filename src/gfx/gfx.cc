@@ -92,7 +92,12 @@ RenderCrew(uint64_t ship_index)
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     if (unit->ship_index != ship_index) continue;
-    if (unit->inspace) continue;
+    if (unit->inspace) {
+      rgg::RenderPod(unit->transform.position, v3f(20.f, 20.f, 20.f),
+          math::Quatf(-90.f, v3f(1.f, 0.f, 0.f)), v4f(1.f, 1.f, 1.f, 1.f));
+
+      continue;
+    }
     Tile* tile = TilePtr(WorldToTilePos(unit->transform.position));
     if (tile && tile->shroud) continue;
     if (unit->notify) {
@@ -439,22 +444,6 @@ RenderSpaceObjects()
         break;
     }
   }
-
-  for (int i = 0; i < kUsedPod; ++i) {
-    Pod* pod = &kPod[i];
-
-    rgg::RenderPod(pod->transform.position, v3f(20.f, 20.f, 20.f),
-                   math::Quatf(-90.f, v3f(1.f, 0.f, 0.f)), v4f(1.f, 1.f, 1.f, 1.f));
-
-    if (pod->think_flags & FLAG(kPodAiUnmanned)) continue;
-
-    rgg::RenderCube(
-        math::Cubef(pod->transform.position + v3f(0.f, 0.f, 15.f / 2.f), 15.f,
-                    15.f, 15.f),
-        v4f(0.99f, 0.33f, 0.33f, 1.f));
-    rgg::RenderCircle(pod->transform.position + v2f(15.f, 15.f), 12.f, 14.f,
-                      v4f(0.99f, 0.33f, 0.33f, 1.f));
-  }
 }
 
 void
@@ -471,9 +460,6 @@ Render(uint64_t player_index)
   }
 
   RenderSpaceObjects();
-
-  //rgg::RenderPod(v3f(0.f, 0.f, 0.f), v3f(20.f, 20.f, 20.f),
-  //               math::Quatf(-90.f, v3f(1.f, 0.f, 0.f)), v4f(1.f, 1.f, 1.f, 1.f));
   
   // Ui
   imui::Render(player_index);

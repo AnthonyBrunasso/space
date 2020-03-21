@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "common/constants.h"
 #include "platform/platform.cc"
 
 const uint64_t greeting_size = 8;

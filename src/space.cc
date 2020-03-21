@@ -33,10 +33,6 @@ static Stats kGameStats;
 const Camera*
 GetCamera(uint64_t player_index)
 {
-  kPlayer[player_index].camera.viewport.x =
-      kNetworkState.player_info[player_index].window_width;
-  kPlayer[player_index].camera.viewport.y =
-      kNetworkState.player_info[player_index].window_height;
   return &kPlayer[player_index].camera;
 }
 

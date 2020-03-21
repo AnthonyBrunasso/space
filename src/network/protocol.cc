@@ -24,7 +24,6 @@ struct NotifyGame {
   uint64_t player_id;
   uint64_t player_count;
   uint64_t cookie;
-  // TODO: Alan halp. Not sure best way to return player info.
   PlayerInfo player_info[MAX_PLAYER];
 };
 

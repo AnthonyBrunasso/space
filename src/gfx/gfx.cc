@@ -11,7 +11,6 @@ namespace gfx
 {
 struct Gfx {
   RenderTag asteroid_tag;
-  RenderTag pod_tag;
   RenderTag missile_tag;
   RenderTag cryo_tag;
   RenderTag exhaust_tag;
@@ -46,12 +45,8 @@ Initialize()
       -1.4f, 0.4f,   0.f,   -1.65f, 1.f,    0.f,   -1.6f, 1.3f,  0.f,   -1.6f,
       1.7f,  0.f,    -1.4f, 1.9f,   0.f,    -1.f,  2.05f, 0.f,   -0.7f, 2.07f,
       0.f,   -0.65f, 2.2f,  0.f,    -0.5f,  2.25f, 0.f};
-  constexpr int kPodVert = 6;
-  GLfloat pod[kPodVert*3] = 
-  {0.0f, 0.0f, 0.0f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-   1.5f, 1.0f, 0.0f, 0.5f, 2.0f, 0.0f, 0.0f, 1.0f, 0.0f};
   constexpr int kMissileVert = 4;
-  GLfloat missile[kPodVert*3] = 
+  GLfloat missile[kMissileVert*3] = 
   {0.0f, 0.0f, 0.0f, 2.0f, 0.0f, 0.0f,
    2.0f, 4.0f, 0.0f, 0.0f, 4.0f, 0.0f};
   constexpr int kCryoVert = 6;
@@ -76,13 +71,11 @@ Initialize()
     0.0f, 1.0f, 0.0f, ORIGIN};
   // clang-format on
   for (int i = 0; i < kFloatCount; ++i) asteroid[i] *= 15.f;      // HA
-  for (int i = 0; i < kPodVert * 3; ++i) pod[i] *= 22.f;          // HA
   for (int i = 0; i < kMissileVert * 3; ++i) missile[i] *= 15.f;  // HA
   for (int i = 0; i < kCryoVert * 3; ++i) cryo[i] *= 12.f;        // HA
   for (int i = 0; i < kExhaustVert * 3; ++i) exhaust[i] *= 15.f;  // HA
   for (int i = 0; i < kPlusVert * 3; ++i) plus[i] *= 15.f;        // HA
   kGfx.asteroid_tag = rgg::CreateRenderable(kVertCount, asteroid, GL_LINE_LOOP);
-  kGfx.pod_tag = rgg::CreateRenderable(kPodVert, pod, GL_LINE_LOOP);
   kGfx.missile_tag = rgg::CreateRenderable(kMissileVert, missile, GL_LINE_LOOP);
   kGfx.cryo_tag = rgg::CreateRenderable(kCryoVert, cryo, GL_LINE_LOOP);
   kGfx.exhaust_tag = rgg::CreateRenderable(kExhaustVert, exhaust, GL_LINE_LOOP);

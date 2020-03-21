@@ -477,6 +477,9 @@ Render(uint64_t player_index)
   }
 
   RenderSpaceObjects();
+
+  //rgg::RenderPod(v3f(0.f, 0.f, 0.f), v3f(20.f, 20.f, 20.f),
+  //               math::Quatf(-90.f, v3f(1.f, 0.f, 0.f)), v4f(1.f, 1.f, 1.f, 1.f));
   
   // Ui
   imui::Render();

@@ -17,12 +17,9 @@ AIWander(Unit* unit)
   unit->uaction = kUaMove;
 }
 
-// AI Will wander to adjacent tiles until it finds someone it can attack or
-// a unit attacks it - in which case it will attack back.
 void
-AISimpleBehavior(Unit* unit)
+AIReturnFire(Unit* unit)
 {
-  // Non interrupting behavior.
   if (unit->uaction != kUaNone) return;
 
   const uint32_t* attacker;
@@ -34,6 +31,15 @@ AISimpleBehavior(Unit* unit)
       return;
     }
   }
+}
+
+// AI Will wander to adjacent tiles until it finds someone it can attack or
+// a unit attacks it - in which case it will attack back.
+void
+AISimpleBehavior(Unit* unit)
+{
+  // Non interrupting behavior.
+  if (unit->uaction != kUaNone) return;
 
   Unit* nearby_target = FindUnitInRangeToAttack(unit);
   if (nearby_target) {
@@ -87,6 +93,10 @@ void
 AIThink(Unit* unit)
 {
   if (!unit) return;
+
+  // All unit should attack back if they are attacked and doing nothing.
+  AIReturnFire(unit);
+
   const int* behavior;
   if (!BB_GET(unit->bb, kUnitBehavior, behavior)) return;
   switch (*behavior) {

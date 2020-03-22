@@ -11,6 +11,7 @@
 #include "entity.cc"
 #include "ftl.cc"
 #include "mhitu.cc"
+#include "module.cc"
 #include "phitu.cc"
 #include "scenario.cc"
 #include "search.cc"
@@ -193,7 +194,7 @@ DecideShip(uint64_t ship_index)
     // Waiting for spaceman
     for (int i = 0; i < kUsedModule; ++i) {
       Module* module = &kModule[i];
-      if (!module->built) continue;
+      if (!ModuleBuilt(module)) continue;
       if (module->mkind != kModMine) continue;
       v3f module_worldpos = TilePosToWorld(v2i(module->cx, module->cy));
       for (int j = 0; j < kUsedUnit; ++j) {
@@ -419,6 +420,9 @@ ApplyCommand(Unit* unit, const Command& c)
       BB_SET(unit->bb, kUnitAttackDestination, c.destination);
       persistent_action = c.type;
     } break;
+    case kUaBuild: {
+      BB_SET(unit->bb, kUnitDestination, c.destination);
+    } break;
   }
 
   unit->persistent_uaction = c.type;
@@ -519,6 +523,14 @@ UpdateUnit(uint64_t ship_index)
 
     AIThink(unit);
 
+    for (int i = 0; i < kUsedModule; ++i) {
+      Module* m = &kModule[i];
+      if (ModuleBuilt(m)) continue;
+      if (ModuleNear(m, unit->transform.position)) {
+        m->frames_progress++;
+      }
+    }
+
     // Implementation of uaction should properly reset persistent_uaction
     // when they are completed. Otherwise units will never have their uaction
     // reset to kUaNone and will continue to execute an action until a player
@@ -573,8 +585,19 @@ UpdateUnit(uint64_t ship_index)
       }
 
       AttackTarget(unit, target_unit);
+    } else if (unit->uaction == kUaBuild) {
+      const v3f* dest = nullptr;
+      if (!BB_GET(unit->bb, kUnitDestination, dest)) {
+        continue;
+      }
+
+      if (MoveTowards(unit, tilepos, *dest, kUaNone)) {
+        unit->persistent_uaction = kUaBuild;
+      }
     }
   }
+
+  
 
   // Unit death logic happens here
   for (int i = 0; i < kUsedUnit; ++i) {
@@ -623,17 +646,24 @@ Decide()
   while (CountCommand()) {
     Command c = PopCommand();
     if (c.unit_id == kInvalidUnit) {
-      const unsigned player_control = (1 << kPlayerIndex);
-      TilemapSet(TilemapWorldToGrid(c.destination));
-      v2i start;
-      if (!WorldToTilePos(c.destination, &start)) continue;
-      BfsIterator iter = BfsStart(start);
-      for (int i = 0; i < kUsedUnit; ++i) {
-        // The issuer of a command must have a set bit
-        if (0 == (kUnit[i].control & c.control)) continue;
-        c.destination = TileToWorld(*iter.tile);
-        ApplyCommand(&kUnit[i], c);
-        BfsNext(&iter);
+      if (c.type == kUaBuild) {
+        for (int i = 0; i < kUsedUnit; ++i) {
+          Unit* u = &kUnit[i];
+          if (0 == (u->control & c.control)) continue;
+          ApplyCommand(u, c);
+        }
+      } else {
+        TilemapSet(TilemapWorldToGrid(c.destination));
+        v2i start;
+        if (!WorldToTilePos(c.destination, &start)) continue;
+        BfsIterator iter = BfsStart(start);
+        for (int i = 0; i < kUsedUnit; ++i) {
+          // The issuer of a command must have a set bit
+          if (0 == (kUnit[i].control & c.control)) continue;
+          c.destination = TileToWorld(*iter.tile);
+          ApplyCommand(&kUnit[i], c);
+          BfsNext(&iter);
+        }
       }
     } else {
       Unit* unit = FindUnit(c.unit_id);

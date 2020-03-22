@@ -58,6 +58,7 @@ enum UnitAction {
   kUaVacuum,
   kUaAttack,
   kUaAttackMove,
+  kUaBuild,
 };
 enum UnitKind {
   kOperator,
@@ -66,9 +67,10 @@ enum UnitKind {
 enum ModuleKind {
   kModPower = 0,
   kModEngine,
-  kModMine,
   kModTurret,
+  kModMine,
   kModBarrack,
+  kModMedbay,
   kModCount,
 };
 enum HudMode {
@@ -187,7 +189,7 @@ struct Unit {
   unsigned dead : 1;
   unsigned spacesuit : 1;
   unsigned inspace : 1;
-  unsigned uaction : 3;
+  unsigned uaction : 4;
   unsigned persistent_uaction : 3;
   unsigned mskill : kModBits;
   unsigned notify : kNotifyAgeBits;
@@ -240,12 +242,14 @@ DECLARE_GAME_TYPE(Projectile, 16 * 2);
 
 struct Module {
   uint64_t ship_index = UINT64_MAX;
-  // Bounds.
   v3f bounds = v3f(15.f, 15.f, 15.f);
+  // Modules must be constructed for frames_to_complete before they are considered
+  // 'built'. See ModuleBuilt and ModuleSetBuilt.
+  int frames_to_complete = 100;
+  int frames_progress = 0;
+  ModuleKind mkind;
   unsigned cx : 5;
   unsigned cy : 5;
-  unsigned mkind : kModBits;
-  unsigned built : 1;
   uint64_t PADDING : 50;
 };
 DECLARE_GAME_TYPE(Module, 32);
@@ -263,9 +267,9 @@ struct Player {
   Camera camera;  // Assumes fixed dimension window
   v3f selection_start;
   v3f world_mouse;
+  ModuleKind mod_placement;
   uint64_t level = 1;
   unsigned hud_mode : kHudModeBits;
-  unsigned mod_placement : kModBits;
   unsigned local : 1;
   uint64_t PADDING : 58;
 };

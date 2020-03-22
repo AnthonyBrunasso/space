@@ -128,8 +128,8 @@ ScenarioSpawnRandomModule(ModuleKind kind, uint64_t ship_index)
     Module* module = &kModule[i];
     if (module->mkind != kind) continue;
     if (module->ship_index != ship_index) continue;
-    if (module->built) continue;
-    module->built = 1;
+    if (ModuleBuilt(module)) continue;
+    ModuleSetBuilt(module);
     return;
   }
 }

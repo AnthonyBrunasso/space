@@ -303,28 +303,39 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
                          (unsigned)(1 << player_index)});
           } break;
           case kHudModule: {
-            const unsigned mkind = player->mod_placement;
+            ModuleKind mkind = player->mod_placement;
             uint64_t grid = TilemapWorldToGrid(world_pos);
             if (grid == kInvalidIndex) break;
             TilemapSet(grid);
             v2i tilepos;
             if (WorldToTilePos(world_pos, &tilepos) &&
                 event.button == BUTTON_LEFT) {
-              for (int i = 0; i < kUsedModule; ++i) {
-                Module* module = &kModule[i];
-                if (module->ship_index != grid) continue;
-                if (module->mkind != mkind) continue;
-                if (module->built) continue;
-                v2i module_tile(module->cx, module->cy);
-
-                if (module_tile != tilepos) continue;
-                module->built = 1;
-                break;
-              }
+              Module* m = UseModule();
+              m->ship_index = grid;
+              m->cx = tilepos.x;
+              m->cy = tilepos.y;
+              m->mkind = mkind;
+              m->bounds = ModuleBounds(mkind);
             }
+            LOGFMT("Order build [%i] [%i,%i]", mkind, tilepos.x, tilepos.y);
+            PushCommand({kUaBuild, world_pos, kInvalidUnit,
+                         (unsigned)(1 << player_index)});
           } break;
         }
       } else if (event.button == BUTTON_RIGHT) {
+        bool done = false;
+        // If an unbuilt module exists at the location go build it.
+        for (int i = 0; i < kUsedModule; ++i) {
+          Module* m = &kModule[i];
+          LOGFMT("Order build [%i] [%i,%i]", m->mkind, m->cx, m->cy);
+          PushCommand({kUaBuild, world_pos, kInvalidUnit,
+                       (unsigned)(1 << player_index)});
+          done = true;
+          break;
+        }
+
+        if (done) break;
+
         Unit* target = GetUnitTarget(player_index, world_pos);
         if (target) {
           LOGFMT("Order attack [%lu]", target->id);
@@ -406,25 +417,25 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
             }
           }
         } break;
+        //case '1': {
+        //  player->hud_mode = kHudModule;
+        //  player->mod_placement = 0;
+        //} break;
+        //case '2': {
+        //  player->hud_mode = kHudModule;
+        //  player->mod_placement = 1;
+        //} break;
         case '1': {
           player->hud_mode = kHudModule;
-          player->mod_placement = 0;
+          player->mod_placement = kModMine;
         } break;
         case '2': {
           player->hud_mode = kHudModule;
-          player->mod_placement = 1;
+          player->mod_placement = kModBarrack;
         } break;
         case '3': {
           player->hud_mode = kHudModule;
-          player->mod_placement = 2;
-        } break;
-        case '4': {
-          player->hud_mode = kHudModule;
-          player->mod_placement = 3;
-        } break;
-        case '5': {
-          player->hud_mode = kHudModule;
-          player->mod_placement = 4;
+          player->mod_placement = kModMedbay;
         } break;
         case 'h': {
           player->level = CLAMP(player->level - 1, 1, 10);
@@ -464,14 +475,15 @@ GameUI(v2f screen, uint32_t tag, Player* player)
 {
   imui::Begin(v2f(0.f, 100.f), tag);
   imui::Result hud_result;
-  for (int i = 0; i < kModCount; ++i) {
-    v3f c = gfx::ModuleColor(i);
-    hud_result = imui::Button(math::Rectf(50 * i + 5.f * i, 50, 50, 50),
+  v2f p(50.f, 10.f);
+  for (int i = 3; i < kModCount; ++i) {
+    v3f c = ModuleColor((ModuleKind)i);
+    hud_result = imui::Button(math::Rectf(p.x, p.y, 50, 50),
                               v4f(c.x, c.y, c.z, .6f));
-
+    p.x += 55.f;
     if (hud_result.clicked) {
       player->hud_mode = kHudModule;
-      player->mod_placement = i;
+      player->mod_placement = (ModuleKind)i;
     }
   }
   imui::End();

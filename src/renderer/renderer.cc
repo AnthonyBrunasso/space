@@ -676,13 +676,18 @@ RenderLineCube(const math::Cubef& cube, const v4f& color)
 }
 
 void
-RenderProgressBar(const math::Rectf& rect, float z, float progress,
-                  const v4f& fill_color, const v4f& outline_color)
+RenderProgressBar(const math::Rectf& rect, float z, float current_progress,
+                  float max_progress, const v4f& fill_color,
+                  const v4f& outline_color)
 {
   RenderLineRectangle(rect, z, outline_color);
-  math::Rectf fill_rect(rect.x, rect.y, rect.width * fmodf(progress, 1.f),
-                        rect.height);
-  RenderRectangle(fill_rect, z, fill_color);
+  if (current_progress > FLT_EPSILON) {
+    math::Rectf fill_rect(
+        rect.x, rect.y,
+        rect.width * fmodf(current_progress, max_progress) / max_progress,
+        rect.height);
+    RenderRectangle(fill_rect, z, fill_color);
+  }
 }
 
 }  // namespace rgg

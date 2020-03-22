@@ -22,6 +22,7 @@ static v4f kWhite = v4f(1.f, 1.f, 1.f, 1.f);
 static v4f kSelectionColor = v4f(0.19f, 0.803f, 0.19f, 0.40f);
 static v4f kSelectionOutlineColor = v4f(0.19f, 0.803f, 0.19f, 1.f);
 static v4f kRed = v4f(1.f, 0.f, 0.f, 1.f);
+static v4f kGreen = v4f(0.f, 1.f, 0.f, 1.f);
 static const math::Quatf kDefaultRotation = math::Quatf(0.f, 0.f, 0.f, 1.f);
 static v3f kDefaultScale = v3f(1.f, 1.f, 1.f);
 static v3f kTileScale = v3f(0.5f, 0.5f, 1.f);
@@ -221,25 +222,6 @@ RenderCrew(uint64_t ship_index)
   }
 }
 
-v3f
-ModuleColor(unsigned mkind)
-{
-  switch (mkind) {
-    case kModPower:
-      return v3f(0.0f, 0.0f, 0.75f);
-    case kModEngine:
-      return v3f(1.0f, 0.0f, 1.f);
-    case kModMine:
-      return v3f(0.0, 0.75f, 0.0f);
-    case kModTurret:
-      return v3f(1.f, 0.f, 0.f);
-    case kModBarrack:
-      return v3f(1.0, 1.0, 1.0);
-  }
-
-  return v3f();
-}
-
 void
 RenderShip(uint64_t ship_index)
 {
@@ -247,19 +229,30 @@ RenderShip(uint64_t ship_index)
 
   // Modules are always visible
   constexpr float min_visibility = .4f;
-
   for (int i = 0; i < kUsedModule; ++i) {
     Module* module = &kModule[i];
     if (module->ship_index != ship_index) continue;
-    if (!module->built) continue;
     v3f mcolor = ModuleColor(module->mkind);
     mcolor *=
         CLAMPF(min_visibility, kShip[ship_index].sys[module->mkind], 1.0f);
     v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
     v2f t = simulation::TilePosToWorld(v2i{(int)module->cx, (int)module->cy});
-    rgg::RenderCube(math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f),
-                                module->bounds),
-                    color);
+    if (ModuleBuilt(module)) {
+      rgg::RenderCube(math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f),
+                                  module->bounds),
+                      color);
+    } else {
+      rgg::RenderLineCube(
+          math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f),
+                      module->bounds), v4f(color.x, color.y, color.z, 1.f));
+      rgg::RenderProgressBar(
+          math::Rectf(
+              t.x - module->bounds.x / 2.f, t.y - module->bounds.y,
+              module->bounds.y, 5.f),
+          2.f, module->frames_progress,
+          module->frames_to_complete,
+          kGreen, kWhite);
+    }
   }
 
   {
@@ -268,7 +261,7 @@ RenderShip(uint64_t ship_index)
       Module* mod = &kModule[i];
       if (mod->ship_index != ship_index) continue;
       if (mod->mkind != kModEngine) continue;
-      if (!mod->built) continue;
+      if (!ModuleBuilt(mod)) continue;
       float engine_power = fminf(kShip[ship_index].sys[kModEngine],
                                  kShip[ship_index].sys[kModPower]);
       float visibility = fmaxf(min_visibility, engine_power);
@@ -362,10 +355,16 @@ RenderShip(uint64_t ship_index)
         }
       } break;
       case kHudModule: {
-        for (int j = 0; j < kUsedModule; ++j) {
-          Module *module = &kModule[j];
+        v3f mcolor = ModuleColor(p->mod_placement);
+        v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
+        v3f bounds = ModuleBounds(p->mod_placement);
+        rgg::RenderLineCube(
+            math::Cubef(TilePosToWorld(mouse_grid), bounds.x, bounds.y, bounds.z),
+            color);
+        //for (int j = 0; j < kUsedModule; ++j) {
+          /*Module *module = &kModule[j];
           if (module->mkind != p->mod_placement) continue;
-          if (module->built) continue;
+          if (ModuleBuilt(module)) continue;
           v2i tile(module->cx, module->cy);
 
           // Cursor hover matches a module location
@@ -380,8 +379,8 @@ RenderShip(uint64_t ship_index)
           rgg::RenderCube(
               math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f), 15.f,
                           15.f, 15.f),
-              color);
-        }
+              color);*/
+        //}
       } break;
       case kHudAttackMove: {
         glDisable(GL_DEPTH_TEST);

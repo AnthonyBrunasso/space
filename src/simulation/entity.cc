@@ -240,6 +240,8 @@ DECLARE_GAME_TYPE(Projectile, 16 * 2);
 
 struct Module {
   uint64_t ship_index = UINT64_MAX;
+  // Bounds.
+  v3f bounds = v3f(15.f, 15.f, 15.f);
   unsigned cx : 5;
   unsigned cy : 5;
   unsigned mkind : kModBits;

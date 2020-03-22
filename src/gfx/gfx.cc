@@ -258,7 +258,7 @@ RenderShip(uint64_t ship_index)
     v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
     v2f t = simulation::TilePosToWorld(v2i{(int)module->cx, (int)module->cy});
     rgg::RenderCube(math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f),
-                                15.f, 15.f, 15.f),
+                                module->bounds),
                     color);
   }
 

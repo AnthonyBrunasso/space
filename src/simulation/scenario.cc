@@ -128,6 +128,7 @@ ScenarioSpawnRandomModule(ModuleKind kind, uint64_t ship_index)
     Module* module = &kModule[i];
     if (module->mkind != kind) continue;
     if (module->ship_index != ship_index) continue;
+    if (module->built) continue;
     module->built = 1;
     return;
   }
@@ -318,6 +319,8 @@ ScenarioInitialize(bool reset_features = true)
       ScenarioSpawnRandomModule(kModPower, 1);
       ScenarioSpawnRandomModule(kModPower, 0);
       ScenarioSpawnRandomModule(kModEngine, 1);
+      ScenarioSpawnRandomModule(kModEngine, 1);
+      ScenarioSpawnRandomModule(kModEngine, 0);
       ScenarioSpawnRandomModule(kModEngine, 0);
     } break;
   }

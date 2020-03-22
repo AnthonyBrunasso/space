@@ -637,20 +637,22 @@ RenderLineCube(const math::Cubef& cube, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   math::Mat4f matrix = kObserver.projection * kObserver.view;
-  glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
-              color.w);
+  glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y,
+              color.z, color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
                      &matrix.data_[0]);
-  v3f back_top_left = cube.pos + v3f(0.f, cube.height, 0.f);
-  v3f back_top_right = cube.pos + v3f(cube.width, cube.height, 0.f);
-  v3f back_bottom_left = cube.pos;
-  v3f back_bottom_right = cube.pos + v3f(cube.width, 0.f, 0.f);
+  v3f pos =
+      cube.pos - v3f(cube.width / 2.f, cube.height / 2.f, cube.depth / 2.f);
+  v3f back_top_left = pos + v3f(0.f, cube.height, 0.f);
+  v3f back_top_right = pos + v3f(cube.width, cube.height, 0.f);
+  v3f back_bottom_left = pos;
+  v3f back_bottom_right = pos + v3f(cube.width, 0.f, 0.f);
 
 
-  v3f front_top_left = cube.pos + v3f(0.f, cube.height, cube.depth);
-  v3f front_top_right = cube.pos + v3f(cube.width, cube.height, cube.depth);
-  v3f front_bottom_left = cube.pos + v3f(0.f, 0.f, cube.depth);;
-  v3f front_bottom_right = cube.pos + v3f(cube.width, 0.f, cube.depth);
+  v3f front_top_left = pos + v3f(0.f, cube.height, cube.depth);
+  v3f front_top_right = pos + v3f(cube.width, cube.height, cube.depth);
+  v3f front_bottom_left = pos + v3f(0.f, 0.f, cube.depth);;
+  v3f front_bottom_right = pos + v3f(cube.width, 0.f, cube.depth);
 
   // TODO(abrunasso): Probably a cheapear way to do this.
 

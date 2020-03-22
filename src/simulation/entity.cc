@@ -243,8 +243,8 @@ DECLARE_GAME_TYPE(Projectile, 16 * 2);
 struct Module {
   uint64_t ship_index = UINT64_MAX;
   v3f bounds = v3f(15.f, 15.f, 15.f);
-  // Modules must be constructed for frames_to_complete before they are considered
-  // 'built'. See ModuleBuilt and ModuleSetBuilt.
+  // Module considered built when frames_progress >= frames_to_complete.
+  // See ModuleBuilt and ModuleSetBuilt.
   int frames_to_complete = 100;
   int frames_progress = 0;
   ModuleKind mkind;

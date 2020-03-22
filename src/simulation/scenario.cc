@@ -233,8 +233,7 @@ ScenarioInitialize(bool reset_features = true)
       Module* mod = UseModule();
       v2i tpos;
       WorldToTilePos(kUnit[0].transform.position, &tpos);
-      mod->cx = tpos.x;
-      mod->cy = tpos.y;
+      mod->tile = tpos;
       mod->mkind = kModBarrack;
       mod->ship_index = 0;
 
@@ -247,8 +246,7 @@ ScenarioInitialize(bool reset_features = true)
 
       mod = UseModule();
       WorldToTilePos(kUnit[1].transform.position, &tpos);
-      mod->cx = tpos.x;
-      mod->cy = tpos.y;
+      mod->tile = tpos;
       mod->mkind = kModBarrack;
       mod->ship_index = 0;
 

@@ -236,7 +236,7 @@ RenderShip(uint64_t ship_index)
     mcolor *=
         CLAMPF(min_visibility, kShip[ship_index].sys[module->mkind], 1.0f);
     v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
-    v2f t = simulation::TilePosToWorld(v2i{(int)module->cx, (int)module->cy});
+    v2f t = simulation::TilePosToWorld(module->tile);
     if (ModuleBuilt(module)) {
       rgg::RenderCube(math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f),
                                   module->bounds),
@@ -245,6 +245,7 @@ RenderShip(uint64_t ship_index)
       rgg::RenderLineCube(
           math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f),
                       module->bounds), v4f(color.x, color.y, color.z, 1.f));
+      glDisable(GL_DEPTH_TEST);
       rgg::RenderProgressBar(
           math::Rectf(
               t.x - module->bounds.x / 2.f, t.y - module->bounds.y,
@@ -252,6 +253,7 @@ RenderShip(uint64_t ship_index)
           2.f, module->frames_progress,
           module->frames_to_complete,
           kGreen, kWhite);
+      glEnable(GL_DEPTH_TEST);
     }
   }
 
@@ -268,7 +270,7 @@ RenderShip(uint64_t ship_index)
       v3f mcolor = ModuleColor(mod->mkind);
       mcolor *= visibility;
       v2i hack = {-1, 1};
-      world = TilePosToWorld(v2i(mod->cx, mod->cy) + hack);
+      world = TilePosToWorld(mod->tile + hack);
       v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
       float engine_scale = kShip[ship_index].engine_animation * .1f;
       rgg::RenderExhaust(world + v3f(-40.f, -20.f, 0.f), v3f(22.f, 22.f, 22.f),
@@ -361,26 +363,6 @@ RenderShip(uint64_t ship_index)
         rgg::RenderLineCube(
             math::Cubef(TilePosToWorld(mouse_grid), bounds.x, bounds.y, bounds.z),
             color);
-        //for (int j = 0; j < kUsedModule; ++j) {
-          /*Module *module = &kModule[j];
-          if (module->mkind != p->mod_placement) continue;
-          if (ModuleBuilt(module)) continue;
-          v2i tile(module->cx, module->cy);
-
-          // Cursor hover matches a module location
-          v3f mcolor = ModuleColor(module->mkind);
-          if (tile == mouse_grid)
-            mcolor *= 1.f;
-          else
-            mcolor *= .3f;
-
-          v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
-          v2f t = simulation::TilePosToWorld(tile);
-          rgg::RenderCube(
-              math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f), 15.f,
-                          15.f, 15.f),
-              color);*/
-        //}
       } break;
       case kHudAttackMove: {
         glDisable(GL_DEPTH_TEST);
@@ -423,7 +405,7 @@ RenderSpaceObjects()
     for (; j < kUsedModule; ++j) {
       Module* mod = &kModule[j];
       if (mod->mkind != kModTurret) continue;
-      v2f pos = TilePosToWorld(v2i(mod->cx, mod->cy));
+      v2f pos = TilePosToWorld(mod->tile);
       rgg::RenderLine(missile->transform.position, pos,
                       v4f(1.0f, 0.0, 0.0, 1.f));
     }

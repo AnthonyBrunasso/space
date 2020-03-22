@@ -196,7 +196,7 @@ DecideShip(uint64_t ship_index)
       Module* module = &kModule[i];
       if (!ModuleBuilt(module)) continue;
       if (module->mkind != kModMine) continue;
-      v3f module_worldpos = TilePosToWorld(v2i(module->cx, module->cy));
+      v3f module_worldpos = TilePosToWorld(module->tile);
       for (int j = 0; j < kUsedUnit; ++j) {
         Unit* unit = &kUnit[j];
         if (unit->ship_index != ship_index) continue;
@@ -436,8 +436,7 @@ UpdateModule(uint64_t ship_index)
     if (m->ship_index != ship_index) continue;
 
     if (m->mkind == kModPower) {
-      v2i tilepos(m->cx, m->cy);
-      v3f world = TilePosToWorld(tilepos);
+      v3f world = TilePosToWorld(m->tile);
       // Reveal the shroud
       Tile keep_bits;
       memset(&keep_bits, 0xff, sizeof(Tile));
@@ -467,10 +466,10 @@ UpdateModule(uint64_t ship_index)
       // Hack: Module 0 spawns kCrew, others spawn kEnemy
       if (i != reinforce_team) continue;
       v2f random_dir =
-          Normalize(TileRandomPosition() - TilePosToWorld(v2i(m->cx, m->cy)));
+          Normalize(TileRandomPosition() - TilePosToWorld(m->tile));
       Unit* unit = UseIdUnit();
       unit->transform.position =
-          TilePosToWorld(v2i(m->cx, m->cy)) + (random_dir * kTileWidth);
+          TilePosToWorld(m->tile) + (random_dir * kTileWidth);
       unit->transform.scale = v3f(0.25f, 0.25f, 0.f);
       uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
       memcpy(unit->acurrent, attrib, sizeof(attrib));
@@ -694,7 +693,6 @@ Update()
 {
   kSimulationOver = ScenarioOver();
   ++kResource[0].frame;
-  ++kResource[0].mineral;
 
   ScenarioUpdate();
 

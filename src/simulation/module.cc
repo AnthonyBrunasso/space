@@ -59,14 +59,14 @@ ModuleBounds(ModuleKind mkind)
 v3f
 ModulePosition(Module* mod)
 {
-  return TilePosToWorld(v2i(mod->cx, mod->cy));
+  return TilePosToWorld(mod->tile);
 }
 
 bool
 ModuleNear(Module* module, v3f loc)
 {
   // TODO: Take into consideration module bounds.
-  if (LengthSquared(loc - ModulePosition(module)) < 50.f * 35.f) return true;
+  if (LengthSquared(loc - ModulePosition(module)) < 50.f * 38.f) return true;
   return false;
 }
 

@@ -312,8 +312,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
                 event.button == BUTTON_LEFT) {
               Module* m = UseModule();
               m->ship_index = grid;
-              m->cx = tilepos.x;
-              m->cy = tilepos.y;
+              m->tile = tilepos;
               m->mkind = mkind;
               m->bounds = ModuleBounds(mkind);
             }
@@ -327,7 +326,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
         // If an unbuilt module exists at the location go build it.
         for (int i = 0; i < kUsedModule; ++i) {
           Module* m = &kModule[i];
-          LOGFMT("Order build [%i] [%i,%i]", m->mkind, m->cx, m->cy);
+          LOGFMT("Order build [%i] [%i,%i]", m->mkind, m->tile.x, m->tile.y);
           PushCommand({kUaBuild, world_pos, kInvalidUnit,
                        (unsigned)(1 << player_index)});
           done = true;

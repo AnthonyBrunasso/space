@@ -248,9 +248,7 @@ struct Module {
   int frames_to_complete = 100;
   int frames_progress = 0;
   ModuleKind mkind;
-  unsigned cx : 5;
-  unsigned cy : 5;
-  uint64_t PADDING : 50;
+  v2i tile;
 };
 DECLARE_GAME_TYPE(Module, 32);
 

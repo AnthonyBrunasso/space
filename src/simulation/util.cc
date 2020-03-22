@@ -13,7 +13,7 @@ constexpr float kDsqSelect = 25.f * 25.f;
 v3f
 v3fModule(Module* mod)
 {
-  return TilePosToWorld(v2i(mod->cx, mod->cy));
+  return TilePosToWorld(mod->tile);
 }
 
 float

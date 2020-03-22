@@ -333,8 +333,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
             case kTileTurret: {
               Module* t = UseModule();
               t->ship_index = grid_index;
-              t->cx = tile->cx;
-              t->cy = tile->cy;
+              t->tile = v2i(x, y);
               t->mkind = (ModuleKind)(kDefaultMap[y][x] - kTileModule);
             } break;
           };

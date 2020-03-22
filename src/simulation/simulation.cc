@@ -632,16 +632,15 @@ Decide()
     if (c.unit_id == kInvalidUnit) {
       const unsigned player_control = (1 << kPlayerIndex);
       TilemapSet(TilemapWorldToGrid(c.destination));
-      v2i start;
-      if (!WorldToTilePos(c.destination, &start)) continue;
-      BfsStart(start);
+      v2i start = WorldToTilePos(c.destination);
+      if (!TileOk(start)) continue;
+      BfsIterator iter = BfsStart(start);
       for (int i = 0; i < kUsedUnit; ++i) {
         // The issuer of a command must have a set bit
         if (0 == (kUnit[i].control & c.control)) continue;
-        v2i pos;
-        BfsNext(&pos);
-        c.destination = TilePosToWorld(pos);
+        c.destination = TileToWorld(*iter.tile);
         ApplyCommand(&kUnit[i], c);
+        BfsNext(&iter);
       }
     } else {
       Unit* unit = FindUnit(c.unit_id);

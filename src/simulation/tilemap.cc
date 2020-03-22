@@ -54,6 +54,7 @@ TileOR(Tile lhs, Tile rhs)
 #define INVALID_TILE v2i{0, 0};
 
 constexpr int kMaxNeighbor = 8;
+constexpr int kLastNeighbor = kMaxNeighbor - 1;
 static const v2i kNeighbor[kMaxNeighbor] = {
     v2i(-1, 0), v2i(1, 0),  v2i(0, 1),  v2i(0, -1),
     v2i(1, 1),  v2i(-1, 1), v2i(1, -1), v2i(-1, -1),

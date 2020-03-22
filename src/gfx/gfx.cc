@@ -472,7 +472,7 @@ Render(uint64_t player_index)
   }
 
   RenderSpaceObjects();
-  
+
   // Ui
   imui::Render(player_index);
 }

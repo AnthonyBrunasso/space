@@ -675,6 +675,14 @@ RenderLineCube(const math::Cubef& cube, const v4f& color)
   RenderLine(front_top_left, front_top_right, color);
 }
 
-
+void
+RenderProgressBar(const math::Rectf& rect, float z, float progress,
+                  const v4f& fill_color, const v4f& outline_color)
+{
+  RenderLineRectangle(rect, z, outline_color);
+  math::Rectf fill_rect(rect.x, rect.y, rect.width * fmodf(progress, 1.f),
+                        rect.height);
+  RenderRectangle(fill_rect, z, fill_color);
+}
 
 }  // namespace rgg

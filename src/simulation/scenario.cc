@@ -121,6 +121,20 @@ ScenarioSpawnCrew(v2i tile_position, uint64_t ship_index)
 }
 
 void
+ScenarioSpawnRandomModule(ModuleKind kind, uint64_t ship_index)
+{
+  TilemapModify tm(ship_index);
+  for (int i = 0; i < kUsedModule; ++i) {
+    Module* module = &kModule[i];
+    if (module->mkind != kind) continue;
+    if (module->ship_index != ship_index) continue;
+    module->built = 1;
+    return;
+  }
+}
+
+
+void
 ScenarioInitialize(bool reset_features = true)
 {
   int sid = kScenario.type;
@@ -301,6 +315,10 @@ ScenarioInitialize(bool reset_features = true)
       TilemapUnexplored(TilemapWorldCenter());
       ScenarioSpawnCrew(v2i(5, 23), 1);
       ScenarioSpawnCrew(v2i(5, 7), 0);
+      ScenarioSpawnRandomModule(kModPower, 1);
+      ScenarioSpawnRandomModule(kModPower, 0);
+      ScenarioSpawnRandomModule(kModEngine, 1);
+      ScenarioSpawnRandomModule(kModEngine, 0);
     } break;
   }
 

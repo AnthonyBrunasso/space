@@ -36,4 +36,4 @@
 #define DJB2_CONST 5381
 
 // Non-branching equivalence to: (condition) ? a : b
-#define TERNARY(condition, a, b) (((condition)*a) + (!(condition)*b))
+#define TERNARY(condition, a, b) (((a)*(condition)) + ((b)*!(condition)))

@@ -277,30 +277,23 @@ DecideInvasion()
     Invasion* v = &kInvasion[i];
     v2i tp;
     if (!v->docked && WorldToTilePos(v->transform.position, &tp)) {
-      BfsStart(tp);
-      for (int i = 0; i < 8; ++i) {
-        v2i pos;
-        Tile* tile;
-        if (!BfsNext(&pos, &tile)) continue;
-        // At the ship
-        if (tile->blocked) {
-          v->docked = true;
-          v->docked_tile = pos;
-        }
+      Tile* tile = TilePtr(tp);
+      if (tile->blocked) {
+        v->docked = true;
+        v->docked_tile = v2i(tile->cx, tile->cy);
       }
     }
     if (!v->docked) {
       v->transform.position.y += 1.f;
     } else if (v->unit_count == 0) {
       // Spawn the units from the invasion force!
-      BfsStart(v->docked_tile);
+      BfsIterator iter = BfsStart(v->docked_tile);
       while (v->unit_count != kMaxInvasionCount) {
-        v2i pos;
-        Tile* tile;
-        if (!BfsNext(&pos, &tile)) continue;
-        if (tile->blocked || tile->exterior) continue;
+        BfsNext(&iter);
+        if (iter.tile->exterior) continue;
         v->unit_id[v->unit_count++] =
-            ScenarioSpawnEnemy(pos, TilemapWorldToGrid(v->transform.position));
+            ScenarioSpawnEnemy(v2i(iter.tile->cx, iter.tile->cy),
+                               TilemapWorldToGrid(v->transform.position));
       }
     }
 
@@ -632,8 +625,8 @@ Decide()
     if (c.unit_id == kInvalidUnit) {
       const unsigned player_control = (1 << kPlayerIndex);
       TilemapSet(TilemapWorldToGrid(c.destination));
-      v2i start = WorldToTilePos(c.destination);
-      if (!TileOk(start)) continue;
+      v2i start;
+      if (!WorldToTilePos(c.destination, &start)) continue;
       BfsIterator iter = BfsStart(start);
       for (int i = 0; i < kUsedUnit; ++i) {
         // The issuer of a command must have a set bit

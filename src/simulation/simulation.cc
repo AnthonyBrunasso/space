@@ -146,7 +146,8 @@ ThinkMissle(uint64_t ship_index)
 
   for (int i = 0; i < kUsedMissile; ++i) {
     Missile* missile = &kMissile[i];
-    v2i tilepos = WorldToTilePos(missile->transform.position.xy());
+    v2i tilepos;
+    if (!WorldToTilePos(missile->transform.position.xy(), &tilepos)) continue;
     Tile* tile = TilePtr(tilepos);
     if (!tile) continue;
 
@@ -263,6 +264,49 @@ DecideAsteroid()
 }
 
 void
+DecideInvasion()
+{
+  if (!kScenario.invasion) return;
+
+  if (!kUsedInvasion) {
+    Invasion* invasion = UseInvasion();
+    invasion->transform.position = v3f(400.f, -400.f, 0.f);
+  }
+
+  for (int i = 0; i < kUsedInvasion; ++i) {
+    Invasion* v = &kInvasion[i];
+    v2i tp;
+    if (!v->docked && WorldToTilePos(v->transform.position, &tp)) {
+      BfsStart(tp);
+      for (int i = 0; i < 8; ++i) {
+        v2i pos;
+        Tile* tile;
+        if (!BfsNext(&pos, &tile)) continue;
+        // At the ship
+        if (tile->blocked) {
+          v->docked = true;
+          v->docked_tile = pos;
+        }
+      }
+    }
+    if (!v->docked) {
+      v->transform.position.y += 1.f;
+    } else if (v->unit_count == 0) {
+      // Spawn the units from the invasion force!
+      BfsStart(v->docked_tile);
+      while (v->unit_count != kMaxInvasionCount) {
+        v2i pos;
+        Tile* tile;
+        if (!BfsNext(&pos, &tile)) continue;
+        if (tile->blocked || tile->exterior) continue;
+        ScenarioSpawnEnemy(pos, 0);
+        ++v->unit_count;
+      }
+    }
+  }
+}
+
+void
 DecideMissle(uint64_t ship_index)
 {
   if (!kScenario.missile) return;
@@ -306,7 +350,8 @@ MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
   v3f incremental_dest = dest;
   v3f avoidance_vec = {};
   if (!unit->inspace) {
-    v2i end = WorldToTilePos(dest);
+    v2i end;
+    if (!WorldToTilePos(dest, &end)) return false;
     auto* path = PathTo(tilepos, end);
     if (!path) {
       unit->uaction = set_on_arrival;
@@ -433,7 +478,8 @@ UpdateUnit(uint64_t ship_index)
     Unit* unit = &kUnit[i];
     if (unit->ship_index != ship_index) continue;
     Transform* transform = &unit->transform;
-    v2i tilepos = WorldToTilePos(transform->position.xy());
+    v2i tilepos;
+    if (!WorldToTilePos(transform->position.xy(), &tilepos)) continue;
     Tile* tile = TilePtr(tilepos);
 
     if (unit->health < 0.f) {
@@ -572,7 +618,9 @@ Decide()
     if (c.unit_id == kInvalidUnit) {
       const unsigned player_control = (1 << kPlayerIndex);
       TilemapSet(TilemapWorldToGrid(c.destination));
-      BfsStart(WorldToTilePos(c.destination));
+      v2i start;
+      if (!WorldToTilePos(c.destination, &start)) continue;
+      BfsStart(start);
       for (int i = 0; i < kUsedUnit; ++i) {
         // The issuer of a command must have a set bit
         if (0 == (kUnit[i].control & c.control)) continue;
@@ -593,6 +641,7 @@ Decide()
   }
 
   DecideAsteroid();
+  DecideInvasion();
 
   for (uint64_t i = 0; i < kUsedShip; ++i) {
     TilemapSet(kShip[i].grid_index);

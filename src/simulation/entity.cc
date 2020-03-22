@@ -261,7 +261,6 @@ struct Player {
   Camera camera;  // Assumes fixed dimension window
   v3f selection_start;
   v3f world_mouse;
-  //math::Rectf world_selection;
   uint64_t level = 1;
   unsigned hud_mode : kHudModeBits;
   unsigned mod_placement : kModBits;
@@ -299,3 +298,15 @@ struct Grid {
 };
 DECLARE_GAME_TYPE(Grid, 2);
 
+constexpr int kMaxInvasionCount = 4;
+
+struct Invasion {
+  Transform transform;
+  // Units countained in the invasion.
+  uint32_t unit_id[kMaxInvasionCount];
+  int unit_count;
+
+  bool docked = false;
+  v2i docked_tile;
+};
+DECLARE_GAME_TYPE(Invasion, 2);

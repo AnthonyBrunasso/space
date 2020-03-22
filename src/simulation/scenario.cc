@@ -29,7 +29,7 @@ struct Scenario {
   unsigned asteroid : 1;
   unsigned missile : 1;
   unsigned pod : 1;
-  unsigned shroud : 1;
+  unsigned invasion : 1;
 };
 
 static Scenario kScenario;
@@ -92,6 +92,8 @@ TilemapUnexplored(v3f world_position)
 void
 ScenarioSpawnEnemy(v2i tile_position, uint64_t ship_index)
 {
+  // Uses raii to revert ship index back to whatever was set.
+  TilemapModify tm(ship_index);
   Unit* enemy = UseIdUnit();
   enemy->ship_index = ship_index;
   enemy->transform.position = TilePosToWorld(tile_position);
@@ -215,7 +217,8 @@ ScenarioInitialize(bool reset_features = true)
       kUnit[0].player_id = AssignPlayerId();
 
       Module* mod = UseModule();
-      v2i tpos = WorldToTilePos(kUnit[0].transform.position);
+      v2i tpos;
+      WorldToTilePos(kUnit[0].transform.position, &tpos);
       mod->cx = tpos.x;
       mod->cy = tpos.y;
       mod->mkind = kModBarrack;
@@ -229,7 +232,7 @@ ScenarioInitialize(bool reset_features = true)
       kUnit[1].alliance = kEnemy;
 
       mod = UseModule();
-      tpos = WorldToTilePos(kUnit[1].transform.position);
+      WorldToTilePos(kUnit[1].transform.position, &tpos);
       mod->cx = tpos.x;
       mod->cy = tpos.y;
       mod->mkind = kModBarrack;

@@ -57,10 +57,12 @@ DebugPanel(const Player& player, uint32_t tag, const Stats& stats,
     snprintf(buffer, BUFFER_SIZE, "Mouse Pos In World: (%.1f,%.1f,%.1f)",
              player.world_mouse.x, player.world_mouse.y, player.world_mouse.z);
     imui::Text(buffer);
-    v2i mouse_tile = WorldToTilePos(player.world_mouse);
-    snprintf(buffer, BUFFER_SIZE, "Mouse Pos To Tile: (%i,%i)", mouse_tile.x,
-             mouse_tile.y);
-    imui::Text(buffer);
+    v2i mouse_tile;
+    if (WorldToTilePos(player.world_mouse, &mouse_tile)) {
+      snprintf(buffer, BUFFER_SIZE, "Mouse Pos To Tile: (%i,%i)",
+               mouse_tile.x, mouse_tile.y);
+      imui::Text(buffer);
+    }
     snprintf(buffer, BUFFER_SIZE, "Input hash: 0x%lx", kDebugInputHash);
     imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE, "Sim hash: 0x%lx", kDebugSimulationHash);
@@ -111,6 +113,7 @@ DebugPanel(const Player& player, uint32_t tag, const Stats& stats,
       UI_TOGGLE_FEATURE(asteroid);
       UI_TOGGLE_FEATURE(missile);
       UI_TOGGLE_FEATURE(pod);
+      UI_TOGGLE_FEATURE(invasion);
       imui::Indent(-2);
     }
     if (imui::Text("Exit", debug_options).clicked) {
@@ -304,8 +307,9 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
             uint64_t grid = TilemapWorldToGrid(world_pos);
             if (grid == kInvalidIndex) break;
             TilemapSet(grid);
-            const v2i tilepos = WorldToTilePos(world_pos);
-            if (event.button == BUTTON_LEFT) {
+            v2i tilepos;
+            if (WorldToTilePos(world_pos, &tilepos) &&
+                event.button == BUTTON_LEFT) {
               for (int i = 0; i < kUsedModule; ++i) {
                 Module* module = &kModule[i];
                 if (module->ship_index != grid) continue;

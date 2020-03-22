@@ -176,7 +176,8 @@ BfsRemoveOxygen(v2i start, const uint64_t limit)
 void
 BfsMutate(v3f origin, Tile keep_bits, Tile set_bits, float tile_dsq)
 {
-  v2i start = WorldToTilePos(origin);
+  v2i start;
+  if (!WorldToTilePos(origin, &start)) return;
   {
     Tile* start_tile = TilePtr(start);
     if (!start_tile) return;

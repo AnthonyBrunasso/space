@@ -206,6 +206,23 @@ TilemapSet(uint64_t grid_idx)
   kTilemapWorldOffset = kCurrentGrid->transform.position.xy();
 }
 
+class TilemapModify {
+ public:
+  TilemapModify(uint64_t set) {
+    prev_grid = kCurrentGrid;
+    prev_offset = kTilemapWorldOffset;
+    TilemapSet(set);
+  }
+
+  ~TilemapModify() {
+    kCurrentGrid = prev_grid;
+    kTilemapWorldOffset = prev_offset;
+  }
+
+  Grid* prev_grid;
+  v2f prev_offset;
+};
+
 uint64_t
 TilemapWorldToGrid(v3f world)
 {
@@ -220,15 +237,16 @@ TilemapWorldToGrid(v3f world)
   return kInvalidIndex;
 }
 
-v2i
-WorldToTilePos(const v3f pos)
+bool
+WorldToTilePos(const v3f pos, v2i* t)
 {
   uint64_t tidx = TilemapWorldToGrid(pos);
+  if (tidx == kInvalidIndex) return false;
   v2f offset = kGrid[tidx].transform.position.xy();
   v2f relpos = pos.xy() - offset;
-  int x = (int)(relpos.x * kInverseTileWidth);
-  int y = (int)(relpos.y * kInverseTileHeight);
-  return {x, y};
+  *t = v2i((int)(relpos.x * kInverseTileWidth),
+           (int)(relpos.y * kInverseTileHeight));
+  return true;
 }
 
 uint64_t

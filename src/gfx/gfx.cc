@@ -98,7 +98,9 @@ RenderCrew(uint64_t ship_index)
 
       continue;
     }
-    Tile* tile = TilePtr(WorldToTilePos(unit->transform.position));
+    v2i p;
+    if (!WorldToTilePos(unit->transform.position, &p)) continue;
+    Tile* tile = TilePtr(p);
     if (tile && tile->shroud) continue;
     if (unit->notify) {
       const float radius = 50.f - (unit->notify * 1.f);
@@ -198,10 +200,12 @@ RenderCrew(uint64_t ship_index)
     if (unit->inspace) continue;
 
     // Show the path they are on if they have one.
-    v2i start = WorldToTilePos(unit->transform.position);
+    v2i start;
+    if (!WorldToTilePos(unit->transform.position, &start)) continue;
     const v3f* dest = nullptr;
     if (!BB_GET(unit->bb, kUnitDestination, dest)) continue;
-    v2i end = WorldToTilePos(*dest);
+    v2i end;
+    if (!WorldToTilePos(*dest, &end)) continue;
 
     auto* path = PathTo(start, end);
     if (!path || path->size <= 1) {
@@ -329,7 +333,8 @@ RenderShip(uint64_t ship_index)
 
   for (int i = 0; i < kUsedPlayer; ++i) {
     Player* p = &kPlayer[i];
-    v2i mouse_grid = WorldToTilePos(p->world_mouse);
+    v2i mouse_grid;
+    if (!WorldToTilePos(p->world_mouse, &mouse_grid)) continue;
 
     switch (p->hud_mode) {
       case kHudSelection: {
@@ -412,8 +417,8 @@ RenderSpaceObjects()
     Missile* missile = &kMissile[i];
     rgg::RenderTag(kGfx.missile_tag, missile->transform.position,
                    missile->transform.scale, kDefaultRotation, kWhite);
-
-    v2i tile = WorldToTilePos(missile->transform.position);
+    v2i tile;
+    if (!WorldToTilePos(missile->transform.position, &tile)) continue;
     if (!TileOk(tile)) continue;
 
     for (; j < kUsedModule; ++j) {
@@ -444,6 +449,12 @@ RenderSpaceObjects()
       case kWeaponCount:
         break;
     }
+  }
+
+  for (int i = 0; i < kUsedInvasion; ++i) {
+    Invasion* v = &kInvasion[i];
+    rgg::RenderCube(math::Cubef(v->transform.position + v3f(0.f, 0.f, 5.f),
+                                20.f, 20.f, 20.f), v4f(.7f, .1f, .1f, 1.f));
   }
 }
 

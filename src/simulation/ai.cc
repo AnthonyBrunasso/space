@@ -10,7 +10,10 @@ AIWander(Unit* unit)
   // Non interrupting behavior.
   if (unit->uaction != kUaNone) return;
 
-  v2i rpos = TileRandomNeighbor(WorldToTilePos(unit->transform.position));
+  v2i p;
+  if (!WorldToTilePos(unit->transform.position, &p)) return;
+
+  v2i rpos = TileRandomNeighbor(p);
   v2f wpos = TilePosToWorld(rpos);
   v3f destination( wpos.x, wpos.y, 0.f );
   BB_SET(unit->bb, kUnitDestination, destination);
@@ -78,7 +81,10 @@ AIAttackWhenDiscovered(Unit* unit)
   // Non interrupting behavior.
   if (unit->uaction != kUaNone) return;
 
-  Tile* tile = TilePtr(WorldToTilePos(unit->transform.position));
+  v2i tpos;
+  if (!WorldToTilePos(unit->transform.position, &tpos)) return;
+
+  Tile* tile = TilePtr(tpos);
   if (!tile) return;
   if (tile->shroud) return;
 

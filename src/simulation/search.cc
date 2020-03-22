@@ -41,12 +41,16 @@ BfsStart(v2i start)
   memset(kSearch.path_map, 0, sizeof(PathNode) * N);
   kSearch.queue_size = 0;
   kSearch.path.size = 0;
-  if (!TileOk(start)) return (BfsIterator){0, 0, nullptr};
+  BfsIterator itr;
+  itr.neighbor_index = 0;
+  itr.queue_index = 0;
+  itr.tile = nullptr;
+  if (!TileOk(start)) return itr;
   kSearch.queue[kSearch.queue_size++] = start;
   kSearch.path_map[start.y][start.x].from = start;
   kSearch.path_map[start.y][start.x].checked = true;
-
-  return (BfsIterator){0, 0, TilePtr(start)};
+  itr.tile = TilePtr(start);
+  return itr;
 }
 
 // Performs a single step of the bfs expansion.

@@ -302,6 +302,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
       kCurrentGrid->fog = false;
     } break;
     case kTilemapShip: {
+      kCurrentGrid->fog = false;
       for (int y = kMapHeight-1; y >= 0; --y) {
         for (int x = 0; x < kMapWidth; ++x) {
           Tile* tile = TilePtr(v2i(x, y));
@@ -311,6 +312,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
           tile->nooxygen = 0;
           tile->explored = 1;
           tile->exterior = 1;
+          tile->shroud = 0;
 
           // Consumables enabled: cryo chamber, gatherable resources
           if (kDefaultMap[y][x] == kTileConsumable) {

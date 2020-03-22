@@ -80,7 +80,7 @@ TilemapUnexplored(v3f world_position)
 {
   Tile keep_bits;
   memset(&keep_bits, 0xff, sizeof(Tile));
-  keep_bits.explored = 0;
+  keep_bits.explored = 1;
   keep_bits.exterior = 0;
   Tile set_bits;
   memset(&set_bits, 0x00, sizeof(Tile));
@@ -109,6 +109,7 @@ ScenarioSpawnEnemy(v2i tile_position, uint64_t ship_index)
 void
 ScenarioSpawnCrew(v2i tile_position, uint64_t ship_index)
 {
+  TilemapModify tm(ship_index);
   Unit* unit = UseIdUnit();
   unit->ship_index = ship_index;
   unit->transform.position = TilePosToWorld(tile_position);
@@ -200,11 +201,8 @@ ScenarioInitialize(bool reset_features = true)
         memset(&kScenario, 0xff, sizeof(kScenario));
         kScenario.missile = 0;
         kScenario.asteroid = 0;
+        kScenario.invasion = 0;
       }
-      ScenarioSpawnCrew(v2i(5, 23), 0);
-      ScenarioSpawnCrew(v2i(5, 7), 0);
-      ScenarioSpawnEnemy(v2i(20, 20), 0);
-      ScenarioSpawnEnemy(v2i(18, 11), 0);
       tilemap_type = kTilemapShip;
     } break;
     case Scenario::kCombatGroup: {
@@ -299,8 +297,10 @@ ScenarioInitialize(bool reset_features = true)
       kTwoShipScenario.ship_two_idx = TilemapInitialize(tilemap_type);
       s2->grid_index = kTwoShipScenario.ship_two_idx;
       s2->level = 1;
-      kGrid[kTwoShipScenario.ship_two_idx].transform.position = v2f(600.f, 800.f);
+      kGrid[kTwoShipScenario.ship_two_idx].transform.position = v2f(0.f, 800.f);
       TilemapUnexplored(TilemapWorldCenter());
+      ScenarioSpawnCrew(v2i(5, 23), 1);
+      ScenarioSpawnCrew(v2i(5, 7), 0);
     } break;
   }
 
@@ -313,7 +313,9 @@ ScenarioInitialize(bool reset_features = true)
   LOGFMT("Player count: %lu", kUsedPlayer);
 
   for (int i = 0; i < kUsedPlayer; ++i) {
+    TilemapSet(i);
     camera::InitialCamera(&kPlayer[i].camera);
+    camera::Move(&kPlayer[i].camera, TilemapWorldCenter());
   }
 }  // namespace simulation
 
@@ -338,20 +340,6 @@ ScenarioTwoShipUpdate()
 {
   // When a unit enters the second tilemap spawn enemies in the shroud.
   if (kTwoShipScenario.enemies_spawned) return;
-
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
-    if (TilemapWorldToGrid(unit->transform.position) ==
-        kTwoShipScenario.ship_two_idx) {
-      LOG("Enemies Spawning.");
-      TilemapSet(kTwoShipScenario.ship_two_idx);
-      ScenarioSpawnEnemy(v2i(21, 12), kTwoShipScenario.ship_two_idx);
-      ScenarioSpawnEnemy(v2i(19, 20), kTwoShipScenario.ship_two_idx);
-      ScenarioSpawnEnemy(v2i(9, 21), kTwoShipScenario.ship_two_idx);
-      kTwoShipScenario.enemies_spawned = true;
-      break;
-    }
-  }
 }
 
 void

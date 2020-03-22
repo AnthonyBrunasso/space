@@ -89,7 +89,7 @@ TilemapUnexplored(v3f world_position)
             tile_world_distance * tile_world_distance);
 }
 
-void
+uint32_t
 ScenarioSpawnEnemy(v2i tile_position, uint64_t ship_index)
 {
   // Uses raii to revert ship index back to whatever was set.
@@ -103,6 +103,7 @@ ScenarioSpawnEnemy(v2i tile_position, uint64_t ship_index)
   enemy->attack_radius = 30.f;
   enemy->speed = 0.5f;
   BB_SET(enemy->bb, kUnitBehavior, kUnitBehaviorAttackWhenDiscovered);
+  return enemy->id;
 }
 
 void

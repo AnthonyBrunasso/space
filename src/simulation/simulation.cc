@@ -299,10 +299,23 @@ DecideInvasion()
         Tile* tile;
         if (!BfsNext(&pos, &tile)) continue;
         if (tile->blocked || tile->exterior) continue;
-        ScenarioSpawnEnemy(pos, 0);
-        ++v->unit_count;
+        v->unit_id[v->unit_count++] = ScenarioSpawnEnemy(pos, 0);
       }
     }
+
+    if (!v->docked) continue;
+
+    // Invasion over when all units are dead.
+    bool all_dead = true;
+    for (int i = 0; i < v->unit_count; ++i) {
+      uint32_t id = v->unit_id[i];
+      if (FindUnit(id)) {
+        all_dead = false;
+        break;
+      }
+    }
+
+    if (all_dead) *v = kZeroInvasion;
   }
 }
 

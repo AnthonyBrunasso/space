@@ -299,7 +299,8 @@ DecideInvasion()
         Tile* tile;
         if (!BfsNext(&pos, &tile)) continue;
         if (tile->blocked || tile->exterior) continue;
-        v->unit_id[v->unit_count++] = ScenarioSpawnEnemy(pos, 0);
+        v->unit_id[v->unit_count++] =
+            ScenarioSpawnEnemy(pos, TilemapWorldToGrid(v->transform.position));
       }
     }
 

@@ -16,7 +16,7 @@ UI()
   char buffer[64];
   auto dims = window::GetWindowSize();
   imui::PaneOptions pane_options;
-  imui::Begin(v2f(20.f, dims.y - 50.f), pane_options);
+  imui::Begin(v2f(20.f, dims.y - 50.f), 0, pane_options);
   snprintf(buffer, 64, "Camera: (%.3f,%.3f,%.3f)", cpos.x, cpos.y, cpos.z);
   imui::Text(buffer);
   snprintf(buffer, 64, "Cube: (%.3f,%.3f,%.3f)", cubepos.x, cubepos.y, cubepos.z);
@@ -79,11 +79,10 @@ main(int argc, char** argv)
         } break;
         case MOUSE_DOWN: {
           if (event.button == BUTTON_LEFT) {
-            imui::MouseClick(event.position, event.button);
+            imui::MouseClick(event.position, event.button, 0);
           }
         } break;
         case MOUSE_WHEEL: {
-          printf("test\n");
           cpos.z += (-10.f * event.wheel_delta);
         } break;
         default: break;
@@ -92,36 +91,9 @@ main(int argc, char** argv)
 
     o->view = math::LookAt(cpos, ctgt, cup);
 
-    //math::Print4x4Matrix(o->view);
-    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-
-#if 0
-    rgg::RenderRectangle(math::Rectf(30.f, 0.f, 30.f, 30.f), v4f(1.f, 1.f, 1.f, 1.f));
-
-    rgg::RenderLineCube(math::Cubef(v3f(0.f, 0.f, 0.f), 30.f, 30.f, 30.f),
-                        v4f(1.f, 1.f, 1.f, 1.f));
-    rgg::RenderLine(-cpos, v3f(33.f, 33.f, 33.f),
-                    v4f(1.f, 0.f, 0.f, 1.f));
-
-    rgg::RenderLine(cpos + v3f(0.f, 0.f, -5.f), v3f(33.f, 0.f, 33.f),
-                    v4f(0.f, 1.f, 0.f, 1.f));
-
-    rgg::RenderLine(cpos + v3f(0.f, 0.f, -5.f), v3f(0.f, 33.f, 33.f),
-                    v4f(0.f, 0.f, 1.f, 1.f));
-
-    rgg::RenderLine(cpos + v3f(0.f, 0.f, -5.f), v3f(0.f, 0.f, 33.f),
-                    v4f(0.f, 4.f, 4.f, 1.f));
-#endif
     rgg::kObserver.position = cpos;
-
-    rgg::RenderLine(cpos - v3f(0.0f, 0.0f, 1.1f), v3f(0.0f, 0.0f, 0.0f),
-                    v4f(0.f, 4.f, 4.f, 1.f));
-
-    rgg::RenderLine(v3f(30.f, 0.f, 100.f), v3f(0.0f, 0.0f, 0.0f),
-                    v4f(1.f, 0.f, 0.f, 1.f));
 
     rgg::RenderCube(math::Cubef(cubepos, 30.f, 30.f, 30.f),
                         v4f(1.f, 1.f, 1.f, 1.f));
@@ -130,7 +102,7 @@ main(int argc, char** argv)
 
     UI();
 
-    imui::Render();
+    imui::Render(0);
     imui::Reset();
 
     window::SwapBuffers();

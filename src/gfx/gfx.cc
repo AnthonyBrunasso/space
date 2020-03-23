@@ -329,7 +329,7 @@ RenderShip(uint64_t ship_index)
 
   for (int i = 0; i < kUsedPlayer; ++i) {
     Player* p = &kPlayer[i];
-    TilemapModify mod(p->ship_index);
+    TilemapModify mod(TilemapWorldToGrid(p->world_mouse));
     v2i mouse_grid;
     if (!WorldToTilePos(p->world_mouse, &mouse_grid)) continue;
 

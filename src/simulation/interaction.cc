@@ -114,6 +114,7 @@ DebugPanel(const Player& player, uint32_t tag, const Stats& stats,
       UI_TOGGLE_FEATURE(missile);
       UI_TOGGLE_FEATURE(pod);
       UI_TOGGLE_FEATURE(invasion);
+      UI_TOGGLE_FEATURE(mine);
       imui::Indent(-2);
     }
     if (imui::Text("Exit", debug_options).clicked) {

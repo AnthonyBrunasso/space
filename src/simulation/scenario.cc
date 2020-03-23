@@ -30,6 +30,7 @@ struct Scenario {
   unsigned missile : 1;
   unsigned pod : 1;
   unsigned invasion : 1;
+  unsigned mine : 1;
 };
 
 static Scenario kScenario;
@@ -215,7 +216,6 @@ ScenarioInitialize(bool reset_features = true)
       if (reset_features) {
         memset(&kScenario, 0xff, sizeof(kScenario));
         kScenario.missile = 0;
-        kScenario.asteroid = 0;
         kScenario.invasion = 0;
       }
       tilemap_type = kTilemapShip;

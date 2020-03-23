@@ -196,18 +196,7 @@ DecideShip(uint64_t ship_index)
       Module* module = &kModule[i];
       if (!ModuleBuilt(module)) continue;
       if (module->mkind != kModMine) continue;
-      v3f module_worldpos = TilePosToWorld(module->tile);
-      for (int j = 0; j < kUsedUnit; ++j) {
-        Unit* unit = &kUnit[j];
-        if (unit->ship_index != ship_index) continue;
-        if (v3fDsq(unit->transform.position, module_worldpos) <
-            kDsqOperatePod) {
-          unit->inspace = 1;
-          ship->pod_capacity -= 1;
-          LOGFMT("Ship %u converted unit %d into a pod\n", ship_index, j);
-          break;
-        }
-      }
+      if (!kScenario.mine) continue;
     }
   }
 
@@ -237,12 +226,25 @@ DecideAsteroid()
 {
   if (!kScenario.asteroid) return;
 
-  if (!kUsedAsteroid) {
-    Asteroid* asteroid = UseAsteroid();
-    asteroid->transform = Transform{.position = v3f(800.f, 750.f, 0.f)};
-    asteroid->mineral_source = 200.f;
-    asteroid->deplete = 0;
-    asteroid->implode = 0;
+  if (kUsedAsteroid != kUsedPlayer) {
+    bool asteroid_spawned[kMaxGrid] = { false };
+    // Spawn an asteroid on each tilemap.
+    for (int i = 0; i < kUsedAsteroid; ++i) {
+      Asteroid* asteroid = &kAsteroid[i];
+      uint64_t grid = TilemapWorldToGrid(asteroid->transform.position);
+      asteroid_spawned[grid] = true;
+    }
+
+    for (int i = 0; i < kMaxGrid; ++i) {
+      if (asteroid_spawned[i]) continue;
+      Asteroid* asteroid = UseAsteroid();
+      TilemapModify mod(i);
+      asteroid->transform.position =
+          TilePosToWorld(v2i(kMapHeight - 1, kMapWidth - 1));
+      asteroid->mineral_source = 200.f;
+      asteroid->deplete = 0;
+      asteroid->implode = 0;
+    }
   }
 
   for (int i = 0; i < kUsedAsteroid; ++i) {
@@ -258,7 +260,7 @@ DecideAsteroid()
     asteroid->transform.scale =
         v3f(1.f, 1.f, 1.f) * (asteroid->mineral_source / 200.f);
     asteroid->transform.position.x -= 1.0f;
-    if (asteroid->transform.position.x < 0.f) {
+    if (asteroid->transform.position.x < 50.f) {
       asteroid->transform.position.x = 800.f;
     }
   }

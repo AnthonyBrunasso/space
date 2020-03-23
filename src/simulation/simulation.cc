@@ -596,8 +596,6 @@ UpdateUnit(uint64_t ship_index)
     }
   }
 
-  
-
   // Unit death logic happens here
   for (int i = 0; i < kUsedUnit; ++i) {
     if (kUnit[i].dead) {

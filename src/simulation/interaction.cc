@@ -322,21 +322,6 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
           } break;
         }
       } else if (event.button == BUTTON_RIGHT) {
-        bool done = false;
-        // If an unbuilt module exists at the location go build it.
-        for (int i = 0; i < kUsedModule; ++i) {
-          Module* m = &kModule[i];
-          if (ModuleNear(m, world_pos)) {
-            LOGFMT("Order build [%i] [%i,%i]", m->mkind, m->tile.x, m->tile.y);
-            PushCommand({kUaBuild, world_pos, kInvalidUnit,
-                         (unsigned)(1 << player_index)});
-            done = true;
-            break;
-          }
-        }
-
-        if (done) break;
-
         Unit* target = GetUnitTarget(player_index, world_pos);
         if (target) {
           LOGFMT("Order attack [%lu]", target->id);

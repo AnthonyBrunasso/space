@@ -357,6 +357,7 @@ RenderShip(uint64_t ship_index)
         }
       } break;
       case kHudModule: {
+        if (!TileOk(mouse_grid)) continue;
         v3f mcolor = ModuleColor(p->mod_placement);
         v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
         v3f bounds = ModuleBounds(p->mod_placement);

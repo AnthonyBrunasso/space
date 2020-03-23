@@ -312,8 +312,8 @@ ScenarioInitialize(bool reset_features = true)
       s2->level = 1;
       kGrid[kTwoShipScenario.ship_two_idx].transform.position = v2f(0.f, 800.f);
       TilemapUnexplored(TilemapWorldCenter());
-      ScenarioSpawnCrew(v2i(5, 23), 1);
-      ScenarioSpawnCrew(v2i(5, 7), 0);
+      ScenarioSpawnCrew(v2i(5, 23), 0);
+      ScenarioSpawnCrew(v2i(5, 7), 1);
       ScenarioSpawnRandomModule(kModPower, 1);
       ScenarioSpawnRandomModule(kModPower, 0);
       ScenarioSpawnRandomModule(kModEngine, 1);

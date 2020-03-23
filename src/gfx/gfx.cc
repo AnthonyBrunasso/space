@@ -197,6 +197,7 @@ RenderCrew(uint64_t ship_index)
 
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
+    TilemapModify mod(unit->ship_index);
     if (unit->uaction != kUaMove) continue;
     if (unit->inspace) continue;
 

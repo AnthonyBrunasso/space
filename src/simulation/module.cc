@@ -32,6 +32,10 @@ ModuleColor(ModuleKind mkind)
       return v3f(1.0, 0.0, 0.0);
     case kModMedbay:
       return v3f(1.0, 1.0, 1.0);
+    case kModCount:
+    default:
+      return v3f();
+
   }
   return v3f();
 }
@@ -52,6 +56,9 @@ ModuleBounds(ModuleKind mkind)
       return v3f(45.f, 45.f, 15.f);
     case kModMedbay:
       return v3f(45.f, 45.f, 15.f);
+    case kModCount:
+    default:
+      return v3f();
   }
   return v3f();
 }

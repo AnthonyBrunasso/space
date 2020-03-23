@@ -326,13 +326,14 @@ ScenarioInitialize(bool reset_features = true)
   auto dims = window::GetWindowSize();
   for (int i = 0; i < kPlayerCount; ++i) {
     auto* player = UsePlayer();
+    player->ship_index = i;
     player->camera.viewport.x = kNetworkState.player_info[i].window_width;
     player->camera.viewport.y = kNetworkState.player_info[i].window_height;
   }
   LOGFMT("Player count: %lu", kUsedPlayer);
 
   for (int i = 0; i < kUsedPlayer; ++i) {
-    TilemapSet(i);
+    TilemapSet(kPlayer[i].ship_index);
     camera::InitialCamera(&kPlayer[i].camera);
     camera::Move(&kPlayer[i].camera, TilemapWorldCenter());
   }

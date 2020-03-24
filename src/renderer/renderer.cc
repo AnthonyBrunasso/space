@@ -3,6 +3,7 @@
 #include "shader.h"
 #include "tga_loader.cc"
 
+#include "asset/asteroid.cc"
 #include "asset/cube.cc"
 #include "asset/cone.cc"
 #include "asset/crew.cc"
@@ -73,6 +74,7 @@ struct RGG {
   GLuint rectangle_vao_reference;
   GLuint line_vao_reference;
   GLuint line_vbo_reference;
+  GLuint asteroid_vao_reference;
   GLuint cube_vao_reference;
   GLuint cone_vao_reference;
   GLuint crew_vao_reference;
@@ -314,6 +316,9 @@ Initialize()
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, kRGG.line_vbo_reference);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+  kRGG.asteroid_vao_reference = gl::CreateGeometryVAOWithNormals(
+      kAsteroidVertCount * 3, kAsteroidVerts, kAsteroidVertNorms);
 
   kRGG.cube_vao_reference = gl::CreateGeometryVAOWithNormals(
       kCubeVertCount * 3, kCubeVerts, kCubeVertNorms);
@@ -589,6 +594,20 @@ Render3dWithRotation(const v3f& pos, const v3f& scale, const math::Quatf& quat,
               kObserver.position.x, kObserver.position.y,
               kObserver.position.z);
   glDrawArrays(GL_TRIANGLES, 0, verts);
+}
+
+void
+RenderAsteroid(v3f pos, v3f scale, const v4f& color)
+{
+  Render3d(pos, scale, color, kRGG.asteroid_vao_reference,
+           kAsteroidVertCount);
+}
+
+void
+RenderAsteroid(v3f pos, v3f scale, const math::Quatf& quat, const v4f& color)
+{
+  Render3dWithRotation(pos, scale, quat, color, kRGG.asteroid_vao_reference,
+                       kAsteroidVertCount);
 }
 
 void

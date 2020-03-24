@@ -392,8 +392,13 @@ RenderSpaceObjects()
   // Stuff
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
-    rgg::RenderTag(kGfx.asteroid_tag, asteroid->transform.position,
-                   asteroid->transform.scale, kDefaultRotation, kWhite);
+    static float r = 0.1f;
+    static float nr = .1f;
+    rgg::RenderAsteroid(asteroid->transform.position, v3f(20.f, 20.f, 20.f),
+                        math::Quatf(90.f + r, v3f(nr, 0.f, 1.f)),
+                        v4f(.4f, .4f, .4f, 1.f));
+    r += .3f;
+    nr += .05f;
   }
 
   for (int i = 0, j = 0; i < kUsedMissile; ++i) {

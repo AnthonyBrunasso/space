@@ -47,7 +47,7 @@ SetView(const Camera* cam, math::Mat4f* view)
 v3f
 ScreenToWorldSpace(const Camera* cam, const v3f screen)
 {
-  v2f dims = window::GetWindowSize();
+#if 1
   // Construct a ray taken into consideration camera's position in world space.
   v4f ray_clip(
       math::ScaleRange(screen.x, 0.f, (float)cam->viewport.x, -1.f, 1.f),
@@ -67,6 +67,26 @@ ScreenToWorldSpace(const Camera* cam, const v3f screen)
   float t = -(math::Dot(cam->position, n) + d) / math::Dot(ray_world, n);
   v3f res = cam->position + ray_world * t;
   return res;
+#endif
+#if 0
+  v3f begin = math::Unproject(
+      v3f(screen.x, screen.y, 0.f),
+      math::LookAt(cam->position, cam->target, v3f(0.f, 1.f, 0.f)),
+      math::Perspective(
+          67.f, (float)cam->viewport.x / cam->viewport.y, .1f, 1000.f),
+      v2f(cam->viewport.x, cam->viewport.y));
+  v3f end = math::Unproject(
+      v3f(screen.x, screen.y, 1.f),
+      math::LookAt(cam->position, cam->target, v3f(0.f, 1.f, 0.f)),
+      math::Perspective(
+          67.f, (float)cam->viewport.x / cam->viewport.y, .1f, 1000.f),
+      v2f(cam->viewport.x, cam->viewport.y));
+  v3f ray = math::Normalize(begin - end);
+  float d = 0;
+  v3f n(0.f, 0.f, 1.f);
+  float t = -(math::Dot(cam->position, n) + d) / math::Dot(ray, n);
+  return cam->position + ray * t;
+#endif
 }
 
 void

@@ -315,4 +315,19 @@ Model(const v3f& position, const v3f& scale) {
   return model;
 }
 
+v3f
+Unproject(const v3f& screen, const Mat4f& model, const Mat4f& proj,
+          v2f viewport)
+{
+  Mat4f inv = Inverse(proj * model);
+  v4f tmp(screen.x, screen.y, screen.z, 1.f);
+  tmp.x = (tmp.x) / (viewport.x);
+  tmp.y = (tmp.y) / (viewport.y);
+  tmp.x = tmp.x * 2.f - 1.f;
+  tmp.y = tmp.y * 2.f - 1.f;
+  v4f obj = inv * tmp;
+  obj /= obj.w;
+  return obj.xyz();
+}
+
 }  // namespace math

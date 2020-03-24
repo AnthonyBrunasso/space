@@ -148,10 +148,9 @@ const char* const crew_aname[] = {
 
 struct Asteroid {
   Transform transform;
-  uint64_t mineral_source;
-  unsigned implode : 1;
-  unsigned deplete : 1;
-  uint64_t PADDING : 62;
+  float mineral_source;
+  float deplete;
+  bool implode;
 };
 DECLARE_GAME_TYPE(Asteroid, 8);
 

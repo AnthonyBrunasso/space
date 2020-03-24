@@ -133,7 +133,7 @@ void
 ThinkAsteroid()
 {
   if (!kScenario.asteroid) return;
-
+  //printf("%i\n", kUsedAsteroid);
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
     asteroid->implode = (asteroid->mineral_source < .5f);
@@ -193,21 +193,30 @@ DecideShip(uint64_t ship_index)
   for (int i = 0; i < kUsedModule; ++i) {
     Module* module = &kModule[i];
     if (module->mkind != kModMine) continue;
+    if (module->ship_index != ship_index) continue;
     if (!ModuleBuilt(module)) continue;
     if (!kScenario.mine) continue;
     // Find the nearest asteroid
     float d = FLT_MAX;
     v3f p;
+    Asteroid* a = nullptr;
     for (int i = 0; i < kUsedAsteroid; ++i) {
       Asteroid* asteroid = &kAsteroid[i];
+      if (TilemapWorldToGrid(asteroid->transform.position) != ship_index) {
+        continue;
+      }
       float nd = math::LengthSquared(
             asteroid->transform.position - ModulePosition(module));
       if (nd < d) {
         d = nd;
         p = asteroid->transform.position;
+        a = asteroid;
       }
     }
-    ProjectileCreate(p, ModulePosition(module), 10.f, 2, kWeaponMiningLaser);
+    if (a) {
+      ProjectileCreate(p, ModulePosition(module), 15.f, 2,
+                       kWeaponMiningLaser);
+    }
   }
 
   for (int i = 0; i < kModCount; ++i) {
@@ -252,7 +261,6 @@ DecideAsteroid()
       asteroid->transform.position =
           TilePosToWorld(v2i(kMapHeight - 1, kMapWidth - 1));
       asteroid->mineral_source = 200.f;
-      asteroid->deplete = 0;
       asteroid->implode = 0;
     }
   }
@@ -260,7 +268,7 @@ DecideAsteroid()
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
 
-    if (asteroid->implode) {
+    if (asteroid->implode || asteroid->mineral_source == 0) {
       LOG("Asteroid imploded.");
       *asteroid = kZeroAsteroid;
       continue;

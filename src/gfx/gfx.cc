@@ -421,6 +421,10 @@ RenderSpaceObjects()
     float inverse_progress = 1.0 - progress;
 
     switch (p->wkind) {
+      case kWeaponMiningLaser: {
+        rgg::RenderLine(p->start, p->end,
+                        v4f(0.40f, 1.0f, 0.23f, 1.0));
+      } break;
       case kWeaponLaser: {
         rgg::RenderLine(p->start, p->end,
                         v4f(1.0f, 0.45f, 0.23f, inverse_progress));

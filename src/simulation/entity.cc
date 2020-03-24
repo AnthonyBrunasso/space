@@ -82,6 +82,7 @@ enum HudMode {
 enum WeaponKind {
   kWeaponLaser = 0,
   kWeaponBullet,
+  kWeaponMiningLaser,
   kWeaponCount,
 };
 constexpr unsigned kHudModeBits = 2;

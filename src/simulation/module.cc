@@ -66,6 +66,7 @@ ModuleBounds(ModuleKind mkind)
 v3f
 ModulePosition(Module* mod)
 {
+  TilemapModify modify(mod->ship_index);
   return TilePosToWorld(mod->tile);
 }
 

@@ -190,14 +190,24 @@ DecideShip(uint64_t ship_index)
   kShip[ship_index].ftl_frame += (kShip[ship_index].ftl_frame > 0);
 
   Ship* ship = &kShip[ship_index];
-  if (ship->think_flags & FLAG(kShipAiSpawnPod)) {
-    // Waiting for spaceman
-    for (int i = 0; i < kUsedModule; ++i) {
-      Module* module = &kModule[i];
-      if (!ModuleBuilt(module)) continue;
-      if (module->mkind != kModMine) continue;
-      if (!kScenario.mine) continue;
+  for (int i = 0; i < kUsedModule; ++i) {
+    Module* module = &kModule[i];
+    if (module->mkind != kModMine) continue;
+    if (!ModuleBuilt(module)) continue;
+    if (!kScenario.mine) continue;
+    // Find the nearest asteroid
+    float d = FLT_MAX;
+    v3f p;
+    for (int i = 0; i < kUsedAsteroid; ++i) {
+      Asteroid* asteroid = &kAsteroid[i];
+      float nd = math::LengthSquared(
+            asteroid->transform.position - ModulePosition(module));
+      if (nd < d) {
+        d = nd;
+        p = asteroid->transform.position;
+      }
     }
+    ProjectileCreate(p, ModulePosition(module), 10.f, 2, kWeaponMiningLaser);
   }
 
   for (int i = 0; i < kModCount; ++i) {

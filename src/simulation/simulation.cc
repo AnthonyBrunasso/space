@@ -454,7 +454,6 @@ UpdateModule(uint64_t ship_index)
   for (int i = 0; i < kUsedModule; ++i) {
     Module* m = &kModule[i];
     if (m->ship_index != ship_index) continue;
-
     if (m->mkind == kModPower) {
       v3f world = TilePosToWorld(m->tile);
       // Reveal the shroud
@@ -481,6 +480,7 @@ UpdateModule(uint64_t ship_index)
   if (kUsedUnit < kMaxUnit) {
     for (int i = 0; i < kUsedModule; ++i) {
       Module* m = &kModule[i];
+      if (!ModuleBuilt(m)) continue;
       if (m->ship_index != ship_index) continue;
       if (m->mkind != kModBarrack) continue;
       // Hack: Module 0 spawns kCrew, others spawn kEnemy
@@ -488,15 +488,8 @@ UpdateModule(uint64_t ship_index)
       v2f random_dir =
           Normalize(TileRandomPosition() - TilePosToWorld(m->tile));
       Unit* unit = UseIdUnit();
-      unit->transform.position =
-          TilePosToWorld(m->tile) + (random_dir * kTileWidth);
-      unit->transform.scale = v3f(0.25f, 0.25f, 0.f);
-      uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
-      memcpy(unit->acurrent, attrib, sizeof(attrib));
-      unit->ship_index = ship_index;
-      unit->kind = kOperator;
-      unit->alliance = reinforce_team;
-      unit->player_id = AssignPlayerId();
+      ScenarioSpawnCrew(TilePosToWorld(m->tile) + (random_dir * kTileWidth),
+                        ship_index);
     }
   }
 }
@@ -711,8 +704,6 @@ Update()
 {
   kSimulationOver = ScenarioOver();
   ++kResource[0].frame;
-
-  ScenarioUpdate();
 
   // Camera can move even when game is over
   for (int i = 0; i < kUsedPlayer; ++i) {

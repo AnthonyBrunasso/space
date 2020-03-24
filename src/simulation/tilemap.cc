@@ -297,15 +297,23 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
   // clang-format on
   switch (type) {
     case kTilemapEmpty: {
-      memset(kCurrentGrid->tilemap, 0,
-             sizeof(Tile) * sizeof(kMapHeight * kMapWidth));
       kCurrentGrid->fog = false;
+      for (int y = 0; y < kMapHeight; ++y) {
+        for (int x = 0; x < kMapWidth; ++x) {
+          Tile* tile = TilePtr(v2i(x, y));
+          *tile = {};
+          tile->cx = x;
+          tile->cy = y;
+          tile->explored = 1;
+        }
+      }
     } break;
     case kTilemapShip: {
       kCurrentGrid->fog = false;
       for (int y = kMapHeight-1; y >= 0; --y) {
         for (int x = 0; x < kMapWidth; ++x) {
           Tile* tile = TilePtr(v2i(x, y));
+          *tile = {};
           tile->cx = x;
           tile->cy = y;
           tile->blocked = (kDefaultMap[y][x] == kTileBlock);

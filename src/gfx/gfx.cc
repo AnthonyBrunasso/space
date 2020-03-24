@@ -152,9 +152,8 @@ RenderCrew(uint64_t ship_index)
       }
     }
 
-    rgg::RenderCube(math::Cubef(unit->transform.position +
-                                    v3f(0.f, 0.f, unit->bounds.z / 2.f),
-                                unit->bounds),
+    rgg::RenderCrew(unit->transform.position + v3f(0.f, 0.f, 20.f),
+                    v3f(10.f, 10.f, 10.f), math::Quatf(-90, v3f(0.f, 0.f, 1.f)), 
                     color);
 
     if (unit->spacesuit) {
@@ -460,6 +459,8 @@ Render(uint64_t player_index)
   }
 
   RenderSpaceObjects();
+
+  rgg::RenderCrew(v3f(0.f, 0.f, 0.f), v3f(25.f, 25.f, 25.f), kWhite);
 
   // Ui
   imui::Render(player_index);

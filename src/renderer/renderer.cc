@@ -5,6 +5,7 @@
 
 #include "asset/cube.cc"
 #include "asset/cone.cc"
+#include "asset/crew.cc"
 #include "asset/exhaust.cc"
 #include "asset/gear.cc"
 #include "asset/pod.cc"
@@ -74,6 +75,7 @@ struct RGG {
   GLuint line_vbo_reference;
   GLuint cube_vao_reference;
   GLuint cone_vao_reference;
+  GLuint crew_vao_reference;
   GLuint gear_vao_reference;
   GLuint pod_vao_reference;
   GLuint sphere_vao_reference;
@@ -318,6 +320,9 @@ Initialize()
 
   kRGG.cone_vao_reference = gl::CreateGeometryVAOWithNormals(
       kConeVertCount * 3, kConeVerts, kConeVertNorms);
+
+  kRGG.crew_vao_reference = gl::CreateGeometryVAOWithNormals(
+      kCrewVertCount * 3, kCrewVerts, kCrewVertNorms);
 
   kRGG.gear_vao_reference = gl::CreateGeometryVAOWithNormals(
       kGearVertCount * 3, kGearVerts, kGearVertNorms);
@@ -630,6 +635,19 @@ RenderExhaust(v3f pos, v3f scale, const math::Quatf& quat, const v4f& color)
 {
   Render3dWithRotation(pos, scale, quat, color, kRGG.exhaust_vao_reference,
                        kExhaustVertCount);
+}
+
+void
+RenderCrew(v3f pos, v3f scale, const v4f& color)
+{
+  Render3d(pos, scale, color, kRGG.crew_vao_reference, kCrewVertCount);
+}
+
+void
+RenderCrew(v3f pos, v3f scale, const math::Quatf& quat, const v4f& color)
+{
+  Render3dWithRotation(pos, scale, quat, color, kRGG.crew_vao_reference,
+                       kCrewVertCount);
 }
 
 void

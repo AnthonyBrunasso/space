@@ -10,7 +10,6 @@
 namespace gfx
 {
 struct Gfx {
-  RenderTag asteroid_tag;
   RenderTag missile_tag;
   RenderTag cryo_tag;
   RenderTag exhaust_tag;
@@ -36,16 +35,6 @@ Initialize()
   constexpr int kVertCount = 29;
   constexpr int kFloatCount = kVertCount * 3;
   // clang-format off
-  GLfloat asteroid[kFloatCount] = {
-      0.f,   1.6f,   0.f,   0.2f,   1.5f,   0.f,   0.4f,  1.6f,  0.f,   0.6f,
-      1.6f,  0.f,    0.68f, 1.9f,   0.f,    1.1f,  1.8f,  0.f,   1.6f,  1.7f,
-      0.f,   1.8f,   0.9f,  0.f,    2.3f,   0.3f,  0.f,   2.4f,  -0.5f, 0.f,
-      2.f,   -0.8f,  0.f,   1.5f,   -1.1f,  0.f,   0.7f,  -1.f,  0.f,   0.5f,
-      -1.1f, 0.f,    0.2f,  -1.3f,  0.f,    -0.3f, -1.4f, 0.f,   -1.1f, -1.1f,
-      0.f,   -1.3f,  -0.6f, 0.f,    -1.25f, -0.2f, 0.f,   -1.5f, 0.5f,  0.f,
-      -1.4f, 0.4f,   0.f,   -1.65f, 1.f,    0.f,   -1.6f, 1.3f,  0.f,   -1.6f,
-      1.7f,  0.f,    -1.4f, 1.9f,   0.f,    -1.f,  2.05f, 0.f,   -0.7f, 2.07f,
-      0.f,   -0.65f, 2.2f,  0.f,    -0.5f,  2.25f, 0.f};
   constexpr int kMissileVert = 4;
   GLfloat missile[kMissileVert*3] = 
   {0.0f, 0.0f, 0.0f, 2.0f, 0.0f, 0.0f,
@@ -71,12 +60,10 @@ Initialize()
     1.0f, 0.0f, 0.0f, ORIGIN, 
     0.0f, 1.0f, 0.0f, ORIGIN};
   // clang-format on
-  for (int i = 0; i < kFloatCount; ++i) asteroid[i] *= 15.f;      // HA
   for (int i = 0; i < kMissileVert * 3; ++i) missile[i] *= 15.f;  // HA
   for (int i = 0; i < kCryoVert * 3; ++i) cryo[i] *= 12.f;        // HA
   for (int i = 0; i < kExhaustVert * 3; ++i) exhaust[i] *= 15.f;  // HA
   for (int i = 0; i < kPlusVert * 3; ++i) plus[i] *= 15.f;        // HA
-  kGfx.asteroid_tag = rgg::CreateRenderable(kVertCount, asteroid, GL_LINE_LOOP);
   kGfx.missile_tag = rgg::CreateRenderable(kMissileVert, missile, GL_LINE_LOOP);
   kGfx.cryo_tag = rgg::CreateRenderable(kCryoVert, cryo, GL_LINE_LOOP);
   kGfx.exhaust_tag = rgg::CreateRenderable(kExhaustVert, exhaust, GL_LINE_LOOP);
@@ -395,7 +382,7 @@ RenderSpaceObjects()
     static float r = 0.1f;
     static float nr = .1f;
     rgg::RenderAsteroid(asteroid->transform.position, v3f(20.f, 20.f, 20.f),
-                        math::Quatf(90.f + r, v3f(nr, 0.f, 1.f)),
+                        math::Quatf(90.f + r, v3f(nr, 0.f, 1.f - nr)),
                         v4f(.4f, .4f, .4f, 1.f));
     r += .3f;
     nr += .05f;
@@ -464,8 +451,6 @@ Render(uint64_t player_index)
   }
 
   RenderSpaceObjects();
-
-  rgg::RenderCrew(v3f(0.f, 0.f, 0.f), v3f(25.f, 25.f, 25.f), kWhite);
 
   // Ui
   imui::Render(player_index);

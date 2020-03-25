@@ -134,7 +134,6 @@ ScenarioSpawnRandomModule(ModuleKind kind, uint64_t ship_index)
     if (module->ship_index != ship_index) continue;
     if (ModuleBuilt(module)) continue;
     // TODO: These correspond now - will they always?
-    module->player_id = ship_index;
     ModuleSetBuilt(module);
     return;
   }

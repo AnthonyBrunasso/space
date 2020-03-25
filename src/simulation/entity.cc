@@ -214,7 +214,7 @@ struct Ship {
 
 DECLARE_GAME_TYPE(Ship, 2);
 struct Resource {
-  uint64_t mineral = 0;
+  float mineral = 0;
   uint64_t frame = 0;
 };
 DECLARE_GAME_TYPE(Resource, 1);

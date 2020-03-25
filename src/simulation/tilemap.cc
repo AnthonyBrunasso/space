@@ -343,6 +343,9 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
               t->ship_index = grid_index;
               t->tile = v2i(x, y);
               t->mkind = (ModuleKind)(kDefaultMap[y][x] - kTileModule);
+              // TODO: Need to clean this up. Make it clear the indices match
+              // by their name.
+              t->player_id = grid_index;
             } break;
           };
         }

@@ -123,7 +123,7 @@ DebugPanel(const Player& player, uint32_t tag, const Stats& stats,
     imui::Indent(-2);
   }
 
-  snprintf(buffer, BUFFER_SIZE, "Minerals: %lu", player.resource.mineral);
+  snprintf(buffer, BUFFER_SIZE, "Minerals: %.1f", player.resource.mineral);
   imui::Text(buffer);
   snprintf(buffer, BUFFER_SIZE, "Level: %lu", player.level);
   imui::Text(buffer);

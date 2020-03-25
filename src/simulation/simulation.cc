@@ -216,6 +216,7 @@ DecideShip(uint64_t ship_index)
     if (a) {
       ProjectileCreate(p, ModulePosition(module), 15.f, 2,
                        kWeaponMiningLaser);
+      kPlayer[module->player_id].resource.mineral += .1f;
     }
   }
 

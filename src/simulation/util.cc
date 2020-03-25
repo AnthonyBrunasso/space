@@ -80,6 +80,21 @@ GetUnit(const math::Rectf& rect, int idx)
   return nullptr;
 }
 
+Module*
+GetModule(const math::Rectf& rect, int idx)
+{
+  Module* mod = &kModule[idx];
+  TilemapModify tm(mod->ship_index);
+  // TODO: Take into consideration module bounds and do a rect/rect intersect.
+  //v2f t = TilePosToWorld(mod->tile);
+  //printf("GetModule: %.2f,%.2f tile: %i,%i\n",
+  //       t.x, t.y, mod->tile.x, mod->tile.y);
+  if (PointInRect(TilePosToWorld(mod->tile), rect)) {
+    return mod;
+  }
+  return nullptr;
+}
+
 bool
 InRange(Unit* source_unit, Unit* target_unit)
 {

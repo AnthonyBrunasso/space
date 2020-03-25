@@ -242,6 +242,7 @@ DECLARE_GAME_TYPE(Projectile, 16 * 2);
 
 struct Module {
   uint64_t ship_index = UINT64_MAX;
+  uint64_t player_id = kNonPlayerId;
   v3f bounds = v3f(15.f, 15.f, 15.f);
   // Module considered built when frames_progress >= frames_to_complete.
   // See ModuleBuilt and ModuleSetBuilt.
@@ -249,6 +250,7 @@ struct Module {
   int frames_progress = 0;
   ModuleKind mkind;
   v2i tile;
+  uint8_t control;
 };
 DECLARE_GAME_TYPE(Module, 32);
 

@@ -16,6 +16,14 @@ SelectPlayerUnit(uint64_t player_index, Unit* unit)
   unit->control |= (1 << player_index);
 }
 
+void
+SelectPlayerModule(uint64_t player_index, Module* module)
+{
+  if (!module) return;
+  if (module->player_id != player_index) return;
+  module->control |= (1 << player_index);
+}
+
 uint64_t
 CountUnitSelection(uint64_t player_index)
 {

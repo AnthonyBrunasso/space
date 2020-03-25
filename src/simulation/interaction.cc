@@ -320,6 +320,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
               m->tile = tilepos;
               m->mkind = mkind;
               m->bounds = ModuleBounds(mkind);
+              m->player_id = player_index;
               player->resource.mineral -= ModuleCost(mkind);
             }
             LOGFMT("Order build [%i] [%i,%i]", mkind, tilepos.x, tilepos.y);
@@ -354,11 +355,22 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
           math::Rectf sbox(player->selection_start.x, player->selection_start.y,
                            diff.x, diff.y);
           sbox = math::OrientToAabb(sbox);
+          bool selected = false;
           for (int i = 0; i < kUsedUnit; ++i) {
             unit = GetUnit(sbox, i);
             if (!unit) continue;
             LOGFMT("Select unit: %i", unit->id);
             SelectPlayerUnit(player_index, unit);
+            selected = true;
+          }
+
+          // Prefer selecting units over modules.
+          for (int i = 0; i < kUsedModule && !selected; ++i) {
+            Module* mod = GetModule(sbox, i);
+            if (!mod) continue;
+            LOGFMT("Select Module: %i", i);
+            SelectPlayerModule(player_index, mod);
+            selected = true;
           }
         }
         player->selection_start = v3f(0.f, 0.f, 0.f);

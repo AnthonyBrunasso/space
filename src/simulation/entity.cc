@@ -250,6 +250,7 @@ struct Module {
   int frames_progress = 0;
   ModuleKind mkind;
   v2i tile;
+  bool enabled = true;
   uint8_t control;
 };
 DECLARE_GAME_TYPE(Module, 32);

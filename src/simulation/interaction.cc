@@ -494,10 +494,17 @@ GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
   for (int i = 0; i < kUsedModule; ++i) {
     Module* m = &kModule[i];
     unsigned player_control = (1 << player_index);
-    //printf("testing...%i %i\n", m->control, player_control);
     if (0 == (m->control & player_control)) continue;
-    snprintf(buffer, BUFFER_SIZE, "%s Selected", ModuleName(m->mkind));
-    imui::Text(buffer);
+    snprintf(buffer, BUFFER_SIZE, "%s %s", ModuleName(m->mkind),
+             m->enabled ? "Enabled" : "Disabled");
+    // TODO: This doesn't work because the imui state for it dissapears the
+    // the moment left click is pressed. The fix for this may be interesting.
+    // It is likely worth having some idea of imui bounds on the screen and
+    // to check against those bounds before letting the click work in world
+    // space.
+    if (imui::Text(buffer).clicked) {
+      m->enabled = !m->enabled;
+    }
   }
   imui::End();
 }

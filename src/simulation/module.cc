@@ -16,24 +16,19 @@ ModuleSetBuilt(Module* module)
   module->frames_progress = module->frames_to_complete;
 }
 
-
-
 uint64_t
 ModuleCost(ModuleKind mkind)
 {
   switch (mkind) {
-    case kModPower:
-      return 0;
-    case kModEngine:
-      return 0;
-    case kModTurret:
-      return 0;
     case kModMine:
       return 400;
     case kModBarrack:
       return 400;
     case kModMedbay:
       return 400;
+    case kModTurret:
+    case kModEngine:
+    case kModPower:
     case kModCount:
     default:
       return 0;

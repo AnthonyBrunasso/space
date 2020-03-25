@@ -1,14 +1,11 @@
 #pragma once
 
-// #include "asset/font.cc"
+#include "asset/font.cc"
 
 // HI! THIS IS IN THE rgg NAMESPACE.
 // DONT INCLUDE IT ANYWHERE OUTSIDE OF renderer.cc
 
 struct Font {
-  uint16_t texture_width;
-  uint16_t texture_height;
-  FntMetadata metadata;
   Texture texture;
   GLuint program;
   GLuint texture_uniform;
@@ -28,14 +25,7 @@ bool
 SetupUI()
 {
   Font& font = kUI.font;
-  uint8_t* image_data;
-  uint16_t texture_width, texture_height;
-  LoadTGA("example/gfx/characters_0.tga", &image_data, &font.texture_width,
-          &font.texture_height);
-  font.metadata = LoadFntMetadata("example/gfx/characters.fnt");
-  font.texture = CreateTexture2D(GL_RED, font.texture_width,
-                                 font.texture_height, image_data);
-  free(image_data); // GL has the texture data now. Free it from process.
+  font.texture = CreateTexture2D(GL_RED, kFontWidth, kFontHeight, kFontData);
   GLuint vert_shader, frag_shader;
   if (!gl::CompileShader(GL_VERTEX_SHADER, &kFontVertexShader,
                          &vert_shader)) {
@@ -71,10 +61,10 @@ int
 GetNextKerning(const char* msg, int msg_len, int first, int second)
 {
   if (first == msg_len - 1) return 0;
-  const FntMetadataRow* row = &kUI.font.metadata.rows[msg[first]];
-  for (int i = 0; i < row->kerning.count; ++i) {
-    if (row->kerning.second[i] == msg[second]) {
-      return row->kerning.amount[i];
+  const FontMetadataRow* row = &kFontMetadataRow[msg[first]];
+  for (int i = 0; i < row->kcount; ++i) {
+    if (row->kerning[i].second == msg[second]) {
+      return row->kerning[i].amount;
     }
   }
   return 0;
@@ -85,12 +75,12 @@ GetTextInfo(const char* msg, int msg_len, float* width, float* height,
             float* min_y_offset)
 {
   auto& font = kUI.font;
-  *height = font.metadata.line_height;
+  *height = kFontLineHeight;
   *width = 0.0f;
   *min_y_offset = 1000.0f;
   int kerning_offset = 0;
   for (int i = 0; i < msg_len; ++i) {
-    const FntMetadataRow* row = &font.metadata.rows[msg[i]];
+    const FontMetadataRow* row = &kFontMetadataRow[msg[i]];
     *width += (float)row->xadvance + kerning_offset;
     float y_offset = (float)row->yoffset;
     if (y_offset < *min_y_offset) *min_y_offset = y_offset;
@@ -144,7 +134,7 @@ RenderText(const char* msg, v2f pos, float scale, const v4f& color)
   int msg_len = strlen(msg);
   int kerning_offset = 0;
   for (int i = 0; i < msg_len; ++i) {
-    const FntMetadataRow* row = &font.metadata.rows[msg[i]];
+    const FontMetadataRow* row = &kFontMetadataRow[msg[i]];
     //printf("%i\n", msg[i]);
     // The character trying to render is invalid. This means the font sheet
     // has no corresponding entry for the ascii id msg[i].
@@ -152,10 +142,10 @@ RenderText(const char* msg, v2f pos, float scale, const v4f& color)
     assert(row->id != 0);
 
     // Scale to get uv coordinatoes.
-    float tex_x = (float)row->x / font.texture_width;
-    float tex_y = (float)row->y / font.texture_height;
-    float tex_w = (float)row->width / font.texture_width;
-    float tex_h = (float)row->height / font.texture_height;
+    float tex_x = (float)row->x / kFontWidth;
+    float tex_y = (float)row->y / kFontHeight;
+    float tex_w = (float)row->width / kFontWidth;
+    float tex_h = (float)row->height / kFontHeight;
 
     // Verts are subject to projection given by an orhthographic matrix
     // using the screen width and height.
@@ -165,7 +155,7 @@ RenderText(const char* msg, v2f pos, float scale, const v4f& color)
     float offset_start_x = pos.x + (float)row->xoffset * scale +
                                    (float)kerning_offset * scale;
     float offset_start_y = pos.y - (float)row->yoffset * scale +
-                                   (float)font.metadata.line_height * scale;
+                                   (float)kFontLineHeight * scale;
 
 #if 0
     printf("id=%i char=%c width=%i height=%i xoffset=%i yoffset=%i"

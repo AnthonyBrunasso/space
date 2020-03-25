@@ -1,5 +1,7 @@
 #pragma once
 
+int kFontLineHeight = 32;
+
 struct FontKerning {
   int second;
   int amount;
@@ -17,6 +19,7 @@ struct FontMetadataRow {
   int kcount;
   FontKerning* kerning;
 };
+
 static int kFontWidth = 256;
 
 static int kFontHeight = 256;
@@ -1661,15 +1664,17 @@ static uint8_t kFontData[65536] = {0,0,0,0,0,0,0,0,38,142,206,243,255,255,255,23
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
 
-static Kerning kFontKerning32[3] = {
+static FontKerning kFontKerning32[3] = {
   {65, -2},
   {84, -1},
   {89, -1},
 };
-static Kerning kFontKerning49[1] = {
+
+static FontKerning kFontKerning49[1] = {
   {49, -2},
 };
-static Kerning kFontKerning65[8] = {
+
+static FontKerning kFontKerning65[8] = {
   {32, -2},
   {84, -2},
   {86, -2},
@@ -1679,12 +1684,14 @@ static Kerning kFontKerning65[8] = {
   {119, -1},
   {121, -1},
 };
-static Kerning kFontKerning70[3] = {
+
+static FontKerning kFontKerning70[3] = {
   {44, -3},
   {46, -3},
   {65, -2},
 };
-static Kerning kFontKerning76[6] = {
+
+static FontKerning kFontKerning76[6] = {
   {32, -1},
   {84, -2},
   {86, -2},
@@ -1692,19 +1699,22 @@ static Kerning kFontKerning76[6] = {
   {89, -2},
   {121, -1},
 };
-static Kerning kFontKerning80[4] = {
+
+static FontKerning kFontKerning80[4] = {
   {32, -1},
   {44, -4},
   {46, -4},
   {65, -2},
 };
-static Kerning kFontKerning82[4] = {
+
+static FontKerning kFontKerning82[4] = {
   {84, -1},
   {86, -1},
   {87, -1},
   {89, -1},
 };
-static Kerning kFontKerning84[17] = {
+
+static FontKerning kFontKerning84[17] = {
   {32, -1},
   {44, -3},
   {45, -2},
@@ -1723,7 +1733,8 @@ static Kerning kFontKerning84[17] = {
   {119, -2},
   {121, -2},
 };
-static Kerning kFontKerning86[12] = {
+
+static FontKerning kFontKerning86[12] = {
   {44, -3},
   {45, -2},
   {46, -3},
@@ -1737,7 +1748,8 @@ static Kerning kFontKerning86[12] = {
   {117, -1},
   {121, -1},
 };
-static Kerning kFontKerning87[10] = {
+
+static FontKerning kFontKerning87[10] = {
   {44, -2},
   {45, -1},
   {46, -2},
@@ -1749,7 +1761,8 @@ static Kerning kFontKerning87[10] = {
   {114, -1},
   {117, -1},
 };
-static Kerning kFontKerning89[14] = {
+
+static FontKerning kFontKerning89[14] = {
   {118, -2},
   {117, -2},
   {113, -3},
@@ -1765,25 +1778,31 @@ static Kerning kFontKerning89[14] = {
   {97, -2},
   {101, -3},
 };
-static Kerning kFontKerning102[1] = {
+
+static FontKerning kFontKerning102[1] = {
   {102, -1},
 };
-static Kerning kFontKerning114[2] = {
+
+static FontKerning kFontKerning114[2] = {
   {46, -2},
   {44, -2},
 };
-static Kerning kFontKerning118[2] = {
+
+static FontKerning kFontKerning118[2] = {
   {46, -2},
   {44, -2},
 };
-static Kerning kFontKerning119[2] = {
+
+static FontKerning kFontKerning119[2] = {
   {46, -2},
   {44, -2},
 };
-static Kerning kFontKerning121[2] = {
+
+static FontKerning kFontKerning121[2] = {
   {46, -2},
   {44, -2},
 };
+
 
 static FontMetadataRow kFontMetadataRow[256] = {
   {0, 0, 0, 0, 0, 0, 0, 0, 0, nullptr},

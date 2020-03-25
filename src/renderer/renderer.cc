@@ -1,7 +1,6 @@
 #pragma once
 
 #include "shader.h"
-#include "tga_loader.cc"
 
 #include "asset/asteroid.cc"
 #include "asset/cube.cc"

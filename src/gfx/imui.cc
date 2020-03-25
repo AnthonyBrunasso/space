@@ -177,7 +177,7 @@ Indent(int spaces)
 {
   assert(kIMUI.begin_mode.set);
   auto& font = rgg::kUI.font;
-  FntMetadataRow* row = &font.metadata.rows[' '];
+  rgg::FontMetadataRow* row = &rgg::kFontMetadataRow[' '];
   if (!row || !row->id) return;
   kIMUI.begin_mode.pos.x += spaces * row->xadvance;
 }

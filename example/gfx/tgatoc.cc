@@ -179,6 +179,8 @@ main(int argc, char** argv)
   char* n = argv[4];
   fprintf(fout, "#pragma once\n\n");
 
+  fprintf(fout, "int k%sLineHeight = %i;\n\n", n, meta.line_height);
+
   fprintf(fout, "struct %sKerning {\n  int second;\n  int amount;\n};", n);
   fprintf(fout, "\n\n");
 
@@ -194,7 +196,7 @@ main(int argc, char** argv)
   int xadvance;
   int kcount;
 )");
-  fprintf(fout, "  %sKerning* kerning;\n};\n", n);
+  fprintf(fout, "  %sKerning* kerning;\n};\n\n", n);
 
   
   fprintf(fout, "static int k%sWidth = %i;\n\n", n, image_width);
@@ -210,11 +212,11 @@ main(int argc, char** argv)
   for (int i = 0; i < 256; ++i) {
     auto& m = meta.rows[i];
     if (!m.kerning.count) continue;
-    fprintf(fout, "static Kerning k%sKerning%i[%i] = {\n", n, i, m.kerning.count);
+    fprintf(fout, "static %sKerning k%sKerning%i[%i] = {\n", n, n, i, m.kerning.count);
     for (int j = 0; j < m.kerning.count; ++j) {
       fprintf(fout, "  {%i, %i},\n", m.kerning.second[j], m.kerning.amount[j]);
     }
-    fprintf(fout, "};\n");
+    fprintf(fout, "};\n\n");
   }
 
   fprintf(fout, "\n");

@@ -140,8 +140,7 @@ LoadTGA(const char* file, uint8_t** image_bytes, uint16_t* image_width,
   printf("TGA file: %s header\n", file);
   printf("header->id_length: %i\n", header->id_length);
   printf("header->color_map_type: %i\n", header->color_map_type);
-  printf("header->image_type: %i\n", header->image_type);
-
+  printf("header->image_type: %i\n", header->image_type); 
   printf("TGA file: %s Image Spec\n", file);
   printf("image_spec->x_origin: %i\n", image_spec->x_origin);
   printf("image_spec->y_origin: %i\n", image_spec->y_origin);
@@ -179,10 +178,13 @@ main(int argc, char** argv)
   FILE* fout = fopen(argv[3], "w");
   char* n = argv[4];
   fprintf(fout, "#pragma once\n\n");
-  fprintf(fout, "namespace rgg {\n\n");
-  fprintf(fout, R"(
-struct FontMetadataRow {
-  int id;
+
+  fprintf(fout, "struct %sKerning {\n  int second;\n  int amount;\n};", n);
+  fprintf(fout, "\n\n");
+
+
+  fprintf(fout, "struct %sMetadataRow {\n", n);
+  fprintf(fout, R"(  int id;
   int x;
   int y;
   int width;
@@ -190,27 +192,45 @@ struct FontMetadataRow {
   int xoffset;
   int yoffset;
   int xadvance;
-  Kerning kerning = {};
-};)");
+  int kcount;
+)");
+  fprintf(fout, "  %sKerning* kerning;\n};\n", n);
 
-  fprintf(fout, "\n\n");
-  fprintf(fout, "static int k%sWidth = %i\n\n", n, image_width);
-  fprintf(fout, "static int k%sHeight = %i\n\n", n, image_height);
+  
+  fprintf(fout, "static int k%sWidth = %i;\n\n", n, image_width);
+  fprintf(fout, "static int k%sHeight = %i;\n\n", n, image_height);
   fprintf(fout, "static uint8_t k%sData[%i] = {",
           n, image_width * image_height);
   for (int i = 0; i < image_width * image_height; ++i) {
     fprintf(fout, "%i,", data[i]);
+    if (i && !(i % 40)) fprintf(fout, "\n");
   }
   fprintf(fout, "};\n\n");
-  fprintf(fout, "static FontMetadataRow[256] = {\n");
+
   for (int i = 0; i < 256; ++i) {
     auto& m = meta.rows[i];
-    fprintf(fout, "  {%i, %i, %i, %i, %i, %i, %i, %i}\n",
-            m.id, m.x, m.y, m.width, m.height, m.xoffset, m.xadvance);
+    if (!m.kerning.count) continue;
+    fprintf(fout, "static Kerning k%sKerning%i[%i] = {\n", n, i, m.kerning.count);
+    for (int j = 0; j < m.kerning.count; ++j) {
+      fprintf(fout, "  {%i, %i},\n", m.kerning.second[j], m.kerning.amount[j]);
+    }
+    fprintf(fout, "};\n");
   }
-  fprintf(fout, "}\n\n");
-  fprintf(fout, "}  // namespace rgg");
 
+  fprintf(fout, "\n");
+
+  fprintf(fout, "static %sMetadataRow k%sMetadataRow[256] = {\n", n, n);
+  for (int i = 0; i < 256; ++i) {
+    auto& m = meta.rows[i];
+    if (!m.kerning.count) {
+      fprintf(fout, "  {%i, %i, %i, %i, %i, %i, %i, %i, %i, nullptr},\n",
+              m.id, m.x, m.y, m.width, m.height, m.xoffset, m.yoffset, m.xadvance, m.kerning.count);
+    } else {
+      fprintf(fout, "  {%i, %i, %i, %i, %i, %i, %i, %i, %i, &k%sKerning%i[0]},\n",
+              m.id, m.x, m.y, m.width, m.height, m.xoffset, m.yoffset, m.xadvance, m.kerning.count, n, i);
+    }
+  }
+  fprintf(fout, "};\n\n");
 
   return 0;
 }

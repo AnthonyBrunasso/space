@@ -63,7 +63,7 @@ inline constexpr const char* kFragmentShader3d = R"(
   vec3 surface_diffuse = vec3(0.7, 0.7, 0.8);
   vec3 surface_ambient = vec3(1.0, 1.0, 1.0);
 
-  float specular_exponent = 100.0; 
+  float specular_exponent = 5.0; 
   out vec4 frag_color;
 
   void main() {

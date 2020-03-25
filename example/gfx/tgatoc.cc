@@ -32,6 +32,20 @@ struct FntMetadata {
   int line_height;
 };
 
+/*
+static int arr[2] = {1, 2};
+
+struct Foo {
+  int x;
+  int n;
+  int* arr;
+};
+
+static Foo foo[3] = {
+  {1, 2, &arr[0]},
+};
+*/
+
 FntMetadata
 LoadFntMetadata(const char* file)
 {

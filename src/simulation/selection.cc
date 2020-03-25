@@ -38,11 +38,14 @@ CountUnitSelection(uint64_t player_index)
 }
 
 void
-UnselectPlayerUnits(uint64_t player_index)
+UnselectPlayerAll(uint64_t player_index)
 {
   unsigned player_control = (1 << player_index);
   for (int i = 0; i < kUsedUnit; ++i) {
     kUnit[i].control = ANDN(player_control, kUnit[i].control);
+  }
+  for (int i = 0; i < kUsedModule; ++i) {
+    kModule[i].control = ANDN(player_control, kModule[i].control);
   }
 }
 

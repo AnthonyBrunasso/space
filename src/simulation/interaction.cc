@@ -296,7 +296,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
         switch (player->hud_mode) {
           case kHudSelection: {
             player->selection_start = world_pos;
-            UnselectPlayerUnits(player_index);
+            UnselectPlayerAll(player_index);
           } break;
           case kHudAttackMove: {
             LOGFMT("Order attack move [%.0f,%.0f]", world_pos.x, world_pos.y);
@@ -475,8 +475,9 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
 }
 
 void
-GameUI(v2f screen, uint32_t tag, Player* player)
+GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
 {
+  char buffer[BUFFER_SIZE];
   imui::Begin(v2f(0.f, 100.f), tag);
   imui::Result hud_result;
   v2f p(50.f, 10.f);
@@ -489,6 +490,14 @@ GameUI(v2f screen, uint32_t tag, Player* player)
       player->hud_mode = kHudModule;
       player->mod_placement = (ModuleKind)i;
     }
+  }
+  for (int i = 0; i < kUsedModule; ++i) {
+    Module* m = &kModule[i];
+    unsigned player_control = (1 << player_index);
+    //printf("testing...%i %i\n", m->control, player_control);
+    if (0 == (m->control & player_control)) continue;
+    snprintf(buffer, BUFFER_SIZE, "%s Selected", ModuleName(m->mkind));
+    imui::Text(buffer);
   }
   imui::End();
 }

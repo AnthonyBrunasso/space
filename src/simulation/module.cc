@@ -36,6 +36,30 @@ ModuleCost(ModuleKind mkind)
   return 0;
 }
 
+char*
+ModuleName(ModuleKind mkind)
+{
+  switch (mkind) {
+    case kModMine:
+      return "Mining Drill";
+    case kModBarrack:
+      return "Barracks";
+    case kModMedbay:
+      return "Medbay";
+    case kModTurret:
+      return "Turret";
+    case kModEngine:
+      return "Engine";
+    case kModPower:
+      return "Power";
+    case kModCount:
+    default:
+      return "Unknown";
+  }
+  return "Unknown";
+
+}
+
 // TODO: Probably add some grid checking here.
 bool
 ModuleCanBuild(ModuleKind mkind, Player* player) {

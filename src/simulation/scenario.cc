@@ -30,6 +30,7 @@ struct Scenario {
 };
 
 static Scenario kScenario;
+static uint64_t kFrame;
 
 constexpr const char* kScenarioNames[Scenario::kMaxScenario] = {
     "TwoShip", "Combat", "Solo", "Empty",
@@ -224,8 +225,6 @@ ScenarioInitialize(bool reset_features = true)
 
     } break;
   }
-  // Global resource pool until deeper into multiplayer
-  UseResource();
   // Always set unexplored/interior of ship
   TilemapUnexplored(TilemapWorldCenter());
 
@@ -235,6 +234,8 @@ ScenarioInitialize(bool reset_features = true)
     player->ship_index = i;
     player->camera.viewport.x = kNetworkState.player_info[i].window_width;
     player->camera.viewport.y = kNetworkState.player_info[i].window_height;
+    player->resource.mineral = 400;
+    player->resource.frame = 400;
   }
   LOGFMT("Player count: %lu", kUsedPlayer);
 
@@ -248,6 +249,7 @@ ScenarioInitialize(bool reset_features = true)
 void
 ScenarioReset(bool reset_features)
 {
+  kFrame = 0;
   // TODO (AN): GAME_QUEUE not in the registry
   kReadCommand = 0;
   kWriteCommand = 0;

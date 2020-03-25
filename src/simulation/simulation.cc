@@ -32,7 +32,7 @@ static bool kSimulationOver = false;
 
 void
 Reset(uint64_t seed)
-{
+{ 
   srand(seed);
   ScenarioReset(true);
 }
@@ -412,12 +412,12 @@ AttackTarget(Unit* unit, Unit* target)
   }
 
   // Shoot at the target if weapon is off cooldown.
-  if (kResource[0].frame - unit->attack_frame < unit->attack_cooldown) {
+  if (kFrame - unit->attack_frame < unit->attack_cooldown) {
     return;
   }
 
   ProjectileCreate(target, unit, 7.5f, unit->weapon_kind);
-  unit->attack_frame = kResource[0].frame;
+  unit->attack_frame = kFrame;
 }
 
 void
@@ -643,7 +643,8 @@ UpdateConsumable(uint64_t ship_index)
 
         *c = kZeroConsumable;
       } else {
-        kResource[0].mineral += c->minerals;
+        // TODO: Fix this.
+        //kResource[0].mineral += c->minerals;
         *c = kZeroConsumable;
       }
     }
@@ -702,13 +703,15 @@ Decide()
 void
 Update()
 {
+  ++kFrame;
+
   kSimulationOver = ScenarioOver();
-  ++kResource[0].frame;
 
   // Camera can move even when game is over
   for (int i = 0; i < kUsedPlayer; ++i) {
     camera::Update(&kPlayer[i].camera);
     kPlayer[i].camera.motion.z = 0.f;
+    kPlayer[i].resource.frame++;
   }
 
   if (kSimulationOver) return;

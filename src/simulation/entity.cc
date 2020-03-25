@@ -267,6 +267,7 @@ struct Player {
   v3f world_mouse;
   ModuleKind mod_placement;
   uint64_t ship_index;
+  Resource resource;
   uint64_t level = 1;
   unsigned hud_mode : kHudModeBits;
   unsigned local : 1;

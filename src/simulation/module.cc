@@ -16,6 +16,38 @@ ModuleSetBuilt(Module* module)
   module->frames_progress = module->frames_to_complete;
 }
 
+
+
+uint64_t
+ModuleCost(ModuleKind mkind)
+{
+  switch (mkind) {
+    case kModPower:
+      return 0;
+    case kModEngine:
+      return 0;
+    case kModTurret:
+      return 0;
+    case kModMine:
+      return 400;
+    case kModBarrack:
+      return 400;
+    case kModMedbay:
+      return 400;
+    case kModCount:
+    default:
+      return 0;
+  }
+  return 0;
+}
+
+// TODO: Probably add some grid checking here.
+bool
+ModuleCanBuild(ModuleKind mkind, Player* player) {
+  if (!player) return false;
+  return player->resource.mineral >= ModuleCost(mkind);
+}
+
 v3f
 ModuleColor(ModuleKind mkind)
 {

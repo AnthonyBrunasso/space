@@ -195,7 +195,7 @@ struct Unit {
   unsigned notify : kNotifyAgeBits;
   uint64_t PADDING : 13;
 };
-DECLARE_GAME_TYPE_WITH_ID(Unit, 16);
+DECLARE_GAME_TYPE_WITH_ID(Unit, 64);
 
 struct Ship {
   uint64_t think_flags = 0;

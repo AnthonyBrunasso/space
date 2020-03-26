@@ -21,19 +21,15 @@ AIWander(Unit* unit)
 }
 
 void
-AIReturnFire(Unit* unit)
+AIDefend(Unit* unit)
 {
   if (unit->uaction != kUaNone) return;
 
-  const uint32_t* attacker;
-  if (BB_GET(unit->bb, kUnitAttacker, attacker)) {
-    Unit* target = FindUnit(*attacker);
-    if (target) {
-      BB_SET(unit->bb, kUnitTarget, target->id);
-      unit->uaction = kUaAttack;
-      return;
-    }
-  }
+  Unit* target = GetNearestEnemyUnit(unit);
+  if (!target) return;
+
+  BB_SET(unit->bb, kUnitTarget, target->id);
+  unit->uaction = kUaAttack;
 }
 
 // AI Will wander to adjacent tiles until it finds someone it can attack or
@@ -100,8 +96,8 @@ AIThink(Unit* unit)
 {
   if (!unit) return;
 
-  // All unit should attack back if they are attacked and doing nothing.
-  AIReturnFire(unit);
+  // Units should defend themselves when enemies are nearby.
+  AIDefend(unit);
 
   const int* behavior;
   if (!BB_GET(unit->bb, kUnitBehavior, behavior)) return;

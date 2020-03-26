@@ -214,6 +214,4 @@ ScenarioOver()
   return false;
 }
 
-
-
 }  // namespace simulation

@@ -672,6 +672,11 @@ Update()
     kPlayer[i].resource.frame++;
   }
 
+  if (kFrame == 1500) {
+    kScenario.invasion = true;
+    LOG("Invasions beginning!");
+  }
+
   if (kSimulationOver) return;
 
   for (int i = 0; i < kUsedShip; ++i) {

@@ -238,7 +238,7 @@ struct Projectile {
   int duration;
   uint32_t target_id;
 };
-DECLARE_GAME_TYPE(Projectile, 16 * 2);
+DECLARE_GAME_TYPE(Projectile, 128);
 
 constexpr int kTrainIdle = -1;
 

@@ -36,7 +36,7 @@ ModuleCost(ModuleKind mkind)
   return 0;
 }
 
-char*
+const char*
 ModuleName(ModuleKind mkind)
 {
   switch (mkind) {

@@ -56,6 +56,7 @@ ProjectileCreate(const Unit* target, const Unit* source, float proximity,
       p->duration = distance.x / dir.x;
     } break;
     case kWeaponCount:
+    case kWeaponMiningLaser:
     case kWeaponLaser: {
       p->duration = kLaserDuration;
     } break;

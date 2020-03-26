@@ -108,7 +108,7 @@ ScenarioInitialize(bool reset_features = true)
     case Scenario::kTwoShip: {
       grid_index = TilemapInitialize(kTilemapShip);
       // At least one ship
-      kScenario.ship = 2;
+      kScenario.ship = 1;
       Ship* ship = UseShip();
       ship->grid_index = grid_index;
       ship->pod_capacity = 1;

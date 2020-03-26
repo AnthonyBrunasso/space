@@ -10,6 +10,14 @@
 namespace simulation
 {
 constexpr float kDsqSelect = 25.f * 25.f;
+
+int
+AssignPlayerId()
+{
+  static int id = 0;
+  return (id++ % kPlayerCount);
+}
+
 v3f
 v3fModule(Module* mod)
 {
@@ -155,6 +163,51 @@ GetNearestEnemyUnit(Unit* unit)
     }
   }
   return target;
+}
+
+uint32_t
+ScenarioSpawnEnemy(v2i tile_position, uint64_t ship_index)
+{
+  // Uses raii to revert ship index back to whatever was set.
+  TilemapModify tm(ship_index);
+  Unit* enemy = UseIdUnit();
+  enemy->ship_index = ship_index;
+  enemy->transform.position = TilePosToWorld(tile_position);
+  enemy->transform.scale = v3f(0.25f, 0.25f, 0.f);
+  enemy->alliance = kEnemy;
+  enemy->kind = kAlien;
+  enemy->attack_radius = 30.f;
+  enemy->speed = 0.5f;
+  BB_SET(enemy->bb, kUnitBehavior, kUnitBehaviorAttackWhenDiscovered);
+  return enemy->id;
+}
+
+void
+ScenarioSpawnCrew(v3f world_position, uint64_t ship_index)
+{
+  TilemapModify tm(ship_index);
+  Unit* unit = UseIdUnit();
+  unit->ship_index = ship_index;
+  unit->transform.position = world_position;
+  unit->transform.scale = v3f(0.25f, 0.25f, 0.f);
+  unit->kind = kOperator;
+  unit->spacesuit = 1;
+  unit->speed = 1.0f;
+  unit->player_id = AssignPlayerId();
+}
+
+void
+ScenarioSpawnCrew(v2i tile_position, uint64_t ship_index)
+{
+  TilemapModify tm(ship_index);
+  Unit* unit = UseIdUnit();
+  unit->ship_index = ship_index;
+  unit->transform.position = TilePosToWorld(tile_position);
+  unit->transform.scale = v3f(0.25f, 0.25f, 0.f);
+  unit->kind = kOperator;
+  unit->spacesuit = 1;
+  unit->speed = 1.0f;
+  unit->player_id = AssignPlayerId();
 }
 
 }  // namespace simulation

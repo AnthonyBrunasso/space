@@ -26,7 +26,6 @@ struct Scenario {
   unsigned missile : 1;
   unsigned pod : 1;
   unsigned invasion : 1;
-  unsigned mine : 1;
 };
 
 static Scenario kScenario;
@@ -36,11 +35,19 @@ constexpr const char* kScenarioNames[Scenario::kMaxScenario] = {
     "TwoShip", "Combat", "Solo", "Empty",
 };
 
-int
-AssignPlayerId()
+void
+ScenarioSpawnRandomModule(ModuleKind kind, uint64_t ship_index)
 {
-  static int id = 0;
-  return (id++ % kPlayerCount);
+  TilemapModify tm(ship_index);
+  for (int i = 0; i < kUsedModule; ++i) {
+    Module* module = &kModule[i];
+    if (module->mkind != kind) continue;
+    if (module->ship_index != ship_index) continue;
+    if (ModuleBuilt(module)) continue;
+    // TODO: These correspond now - will they always?
+    ModuleSetBuilt(module);
+    return;
+  }
 }
 
 void
@@ -78,67 +85,6 @@ TilemapUnexplored(v3f world_position)
   BfsMutate(world_position, keep_bits, set_bits,
             tile_world_distance * tile_world_distance);
 }
-
-uint32_t
-ScenarioSpawnEnemy(v2i tile_position, uint64_t ship_index)
-{
-  // Uses raii to revert ship index back to whatever was set.
-  TilemapModify tm(ship_index);
-  Unit* enemy = UseIdUnit();
-  enemy->ship_index = ship_index;
-  enemy->transform.position = TilePosToWorld(tile_position);
-  enemy->transform.scale = v3f(0.25f, 0.25f, 0.f);
-  enemy->alliance = kEnemy;
-  enemy->kind = kAlien;
-  enemy->attack_radius = 30.f;
-  enemy->speed = 0.5f;
-  BB_SET(enemy->bb, kUnitBehavior, kUnitBehaviorAttackWhenDiscovered);
-  return enemy->id;
-}
-
-void
-ScenarioSpawnCrew(v3f world_position, uint64_t ship_index)
-{
-  TilemapModify tm(ship_index);
-  Unit* unit = UseIdUnit();
-  unit->ship_index = ship_index;
-  unit->transform.position = world_position;
-  unit->transform.scale = v3f(0.25f, 0.25f, 0.f);
-  unit->kind = kOperator;
-  unit->spacesuit = 1;
-  unit->speed = 1.0f;
-  unit->player_id = AssignPlayerId();
-}
-
-void
-ScenarioSpawnCrew(v2i tile_position, uint64_t ship_index)
-{
-  TilemapModify tm(ship_index);
-  Unit* unit = UseIdUnit();
-  unit->ship_index = ship_index;
-  unit->transform.position = TilePosToWorld(tile_position);
-  unit->transform.scale = v3f(0.25f, 0.25f, 0.f);
-  unit->kind = kOperator;
-  unit->spacesuit = 1;
-  unit->speed = 1.0f;
-  unit->player_id = AssignPlayerId();
-}
-
-void
-ScenarioSpawnRandomModule(ModuleKind kind, uint64_t ship_index)
-{
-  TilemapModify tm(ship_index);
-  for (int i = 0; i < kUsedModule; ++i) {
-    Module* module = &kModule[i];
-    if (module->mkind != kind) continue;
-    if (module->ship_index != ship_index) continue;
-    if (ModuleBuilt(module)) continue;
-    // TODO: These correspond now - will they always?
-    ModuleSetBuilt(module);
-    return;
-  }
-}
-
 
 void
 ScenarioInitialize(bool reset_features = true)
@@ -267,5 +213,7 @@ ScenarioOver()
 {
   return false;
 }
+
+
 
 }  // namespace simulation

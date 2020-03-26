@@ -240,14 +240,16 @@ struct Projectile {
 };
 DECLARE_GAME_TYPE(Projectile, 16 * 2);
 
+constexpr int kTrainIdle = -1;
+
 struct Module {
   uint64_t ship_index = UINT64_MAX;
   uint64_t player_id = kNonPlayerId;
   v3f bounds = v3f(15.f, 15.f, 15.f);
-  // Module considered built when frames_progress >= frames_to_complete.
-  // See ModuleBuilt and ModuleSetBuilt.
-  int frames_to_complete = 100;
-  int frames_progress = 0;
+  int frames_to_build = 100;
+  int frames_building = 0;
+  int frames_to_train = 700;
+  int frames_training = kTrainIdle;
   ModuleKind mkind;
   v2i tile;
   bool enabled = true;

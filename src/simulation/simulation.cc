@@ -11,14 +11,17 @@
 #include "entity.cc"
 #include "ftl.cc"
 #include "mhitu.cc"
-#include "module.cc"
 #include "phitu.cc"
+
+#include "module.cc"
+
 #include "scenario.cc"
 #include "search.cc"
 #include "selection.cc"
 #include "util.cc"
 
 #include "platform/macro.h"
+
 
 #include "ai.cc"
 namespace simulation
@@ -192,32 +195,9 @@ DecideShip(uint64_t ship_index)
   Ship* ship = &kShip[ship_index];
   for (int i = 0; i < kUsedModule; ++i) {
     Module* module = &kModule[i];
-    if (module->mkind != kModMine) continue;
     if (module->ship_index != ship_index) continue;
     if (!ModuleBuilt(module)) continue;
-    if (!kScenario.mine) continue;
-    // Find the nearest asteroid
-    float d = FLT_MAX;
-    v3f p;
-    Asteroid* a = nullptr;
-    for (int i = 0; i < kUsedAsteroid; ++i) {
-      Asteroid* asteroid = &kAsteroid[i];
-      if (TilemapWorldToGrid(asteroid->transform.position) != ship_index) {
-        continue;
-      }
-      float nd = math::LengthSquared(
-            asteroid->transform.position - ModulePosition(module));
-      if (nd < d) {
-        d = nd;
-        p = asteroid->transform.position;
-        a = asteroid;
-      }
-    }
-    if (a) {
-      ProjectileCreate(p, ModulePosition(module), 15.f, 2,
-                       kWeaponMiningLaser);
-      kPlayer[module->player_id].resource.mineral += .1f;
-    }
+    ModuleUpdate(module);
   }
 
   for (int i = 0; i < kModCount; ++i) {
@@ -470,29 +450,6 @@ UpdateModule(uint64_t ship_index)
                 tile_world_distance * tile_world_distance);
     }
   }
-
-  // Two at a time (one crew, one enemy)
-  int team_count[kAllianceCount] = {};
-  for (int i = 0; i < kUsedUnit; ++i) {
-    team_count[kUnit[i].alliance]++;
-  }
-  Alliance reinforce_team =
-      team_count[kCrew] < team_count[kEnemy] ? kCrew : kEnemy;
-  if (kUsedUnit < kMaxUnit) {
-    for (int i = 0; i < kUsedModule; ++i) {
-      Module* m = &kModule[i];
-      if (!ModuleBuilt(m)) continue;
-      if (m->ship_index != ship_index) continue;
-      if (m->mkind != kModBarrack) continue;
-      // Hack: Module 0 spawns kCrew, others spawn kEnemy
-      if (i != reinforce_team) continue;
-      v2f random_dir =
-          Normalize(TileRandomPosition() - TilePosToWorld(m->tile));
-      Unit* unit = UseIdUnit();
-      ScenarioSpawnCrew(TilePosToWorld(m->tile) + (random_dir * kTileWidth),
-                        ship_index);
-    }
-  }
 }
 
 void
@@ -540,7 +497,7 @@ UpdateUnit(uint64_t ship_index)
       Module* m = &kModule[i];
       if (ModuleBuilt(m)) continue;
       if (ModuleNear(m, unit->transform.position)) {
-        m->frames_progress++;
+        m->frames_building++;
       }
     }
 

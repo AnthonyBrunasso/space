@@ -237,11 +237,23 @@ RenderShip(uint64_t ship_index)
           math::Rectf(
               t.x - module->bounds.x / 2.f, t.y - module->bounds.y,
               module->bounds.y, 5.f),
-          2.f, module->frames_progress,
-          module->frames_to_complete,
+          2.f, module->frames_building,
+          module->frames_to_build,
           kGreen, kWhite);
       glEnable(GL_DEPTH_TEST);
     }
+
+    if (module->frames_training == kTrainIdle) continue;
+
+    glDisable(GL_DEPTH_TEST);
+    rgg::RenderProgressBar(
+        math::Rectf(
+            t.x - module->bounds.x / 2.f, t.y - module->bounds.y,
+            module->bounds.y, 5.f),
+        2.f, module->frames_training,
+        module->frames_to_train,
+        kRed, kWhite);
+    glEnable(GL_DEPTH_TEST);
   }
 
   {

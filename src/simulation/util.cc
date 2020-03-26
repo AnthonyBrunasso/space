@@ -166,7 +166,7 @@ GetNearestEnemyUnit(Unit* unit)
 }
 
 uint32_t
-ScenarioSpawnEnemy(v2i tile_position, uint64_t ship_index)
+SpawnEnemy(v2i tile_position, uint64_t ship_index)
 {
   // Uses raii to revert ship index back to whatever was set.
   TilemapModify tm(ship_index);
@@ -183,7 +183,7 @@ ScenarioSpawnEnemy(v2i tile_position, uint64_t ship_index)
 }
 
 void
-ScenarioSpawnCrew(v3f world_position, uint64_t ship_index)
+SpawnCrew(v3f world_position, uint64_t ship_index)
 {
   TilemapModify tm(ship_index);
   Unit* unit = UseIdUnit();
@@ -197,7 +197,7 @@ ScenarioSpawnCrew(v3f world_position, uint64_t ship_index)
 }
 
 void
-ScenarioSpawnCrew(v2i tile_position, uint64_t ship_index)
+SpawnCrew(v2i tile_position, uint64_t ship_index)
 {
   TilemapModify tm(ship_index);
   Unit* unit = UseIdUnit();

@@ -294,8 +294,8 @@ DecideInvasion()
         BfsNext(&iter);
         if (iter.tile->exterior) continue;
         v->unit_id[v->unit_count++] =
-            ScenarioSpawnEnemy(v2i(iter.tile->cx, iter.tile->cy),
-                               TilemapWorldToGrid(v->transform.position));
+            SpawnEnemy(v2i(iter.tile->cx, iter.tile->cy),
+                       TilemapWorldToGrid(v->transform.position));
       }
     }
 

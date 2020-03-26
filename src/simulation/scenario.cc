@@ -136,17 +136,17 @@ ScenarioInitialize(bool reset_features = true)
       if (reset_features) {
         memset(&kScenario, 0, sizeof(kScenario));
       }
-      ScenarioSpawnCrew(v2i(5, 12), 0);
-      ScenarioSpawnEnemy(v2i(10, 12), 0);
+      SpawnCrew(v2i(5, 12), 0);
+      SpawnEnemy(v2i(10, 12), 0);
     } break;
     case Scenario::kSoloMission: {
       if (reset_features) {
         memset(&kScenario, 0, sizeof(kScenario));
       }
-      ScenarioSpawnCrew(v2i(8, 12), 0);
-      ScenarioSpawnEnemy(v2i(10, 15), 0);
-      ScenarioSpawnEnemy(v2i(10, 20), 0);
-      ScenarioSpawnEnemy(v2i(4, 20), 0);
+      SpawnCrew(v2i(8, 12), 0);
+      SpawnEnemy(v2i(10, 15), 0);
+      SpawnEnemy(v2i(10, 20), 0);
+      SpawnEnemy(v2i(4, 20), 0);
     } break;
     case Scenario::kTwoShip: {
       if (reset_features) {
@@ -155,8 +155,8 @@ ScenarioInitialize(bool reset_features = true)
         kScenario.invasion = 0;
       }
       TilemapUnexplored(TilemapWorldCenter());
-      ScenarioSpawnCrew(v2i(5, 23), 0);
-      ScenarioSpawnCrew(v2i(5, 7), 1);
+      SpawnCrew(v2i(5, 23), 0);
+      SpawnCrew(v2i(5, 7), 1);
       ScenarioSpawnRandomModule(kModPower, 1);
       ScenarioSpawnRandomModule(kModPower, 0);
       ScenarioSpawnRandomModule(kModEngine, 1);

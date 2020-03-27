@@ -28,6 +28,8 @@ AIDefend(Unit* unit)
   Unit* target = GetNearestEnemyUnit(unit);
   if (!target) return;
 
+  if (!CanPathTo(unit, target)) return;
+
   BB_SET(unit->bb, kUnitTarget, target->id);
   unit->uaction = kUaAttack;
 }

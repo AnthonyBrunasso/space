@@ -210,4 +210,17 @@ SpawnCrew(v2i tile_position, uint64_t ship_index)
   unit->player_id = AssignPlayerId();
 }
 
+bool
+CanPathTo(Unit* unit, Unit* target)
+{
+  if (!unit || !target) return false;
+  if (unit->ship_index != target->ship_index) return false;
+  TilemapModify tm(unit->ship_index);
+  v2i ut;
+  if (!WorldToTilePos(unit->transform.position, &ut)) return false;
+  v2i tt;
+  if (!WorldToTilePos(target->transform.position, &tt)) return false;
+  return PathTo(ut, tt) != nullptr;
+}
+
 }  // namespace simulation

@@ -176,6 +176,13 @@ Create(const char* name, int width, int height, bool fullscreen)
   return 1;
 }
 
+int
+Create(const char* name, const CreateInfo& create_info)
+{
+  return Create(name, create_info.window_width, create_info.window_height,
+                create_info.fullscreen);
+}
+
 void
 SetEventPosition(NSEvent* nsevent, PlatformEvent* event)
 {

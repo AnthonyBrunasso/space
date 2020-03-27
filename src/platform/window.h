@@ -41,7 +41,19 @@ struct PlatformEvent {
 
 namespace window
 {
+
+struct CreateInfo {
+  uint64_t window_width = 1920;
+  uint64_t window_height = 1080;
+  // If left as UINT64_MAX let the platform decide where the window should go.
+  uint64_t window_pos_x = UINT64_MAX;
+  uint64_t window_pos_y = UINT64_MAX;
+  bool fullscreen = false;
+};
+
 int Create(const char* name, int width, int height, bool fullscreen);
+
+int Create(const char* name, const CreateInfo& create_info);
 
 // Returns true if an event existed. False otherwise.
 // Fully poll this queue at the top of each game loop.

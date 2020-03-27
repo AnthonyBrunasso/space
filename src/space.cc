@@ -24,6 +24,8 @@ struct State {
   // Number of times the game has been updated.
   uint64_t game_updates = 0;
   uint64_t logic_updates = 0;
+  // Parameters window::Create will be called with.
+  window::CreateInfo window_create_info;
 };
 
 static State kGameState;
@@ -96,7 +98,7 @@ int
 main(int argc, char** argv)
 {
   while (1) {
-    int opt = platform_getopt(argc, argv, "i:p:n:f:s:");
+    int opt = platform_getopt(argc, argv, "i:p:n:f:s:w:h:x:y:");
     if (opt == -1) break;
 
     switch (opt) {
@@ -115,6 +117,18 @@ main(int argc, char** argv)
       case 's':
         simulation::kScenario.type =
             (simulation::Scenario::Type)strtol(platform_optarg, NULL, 10);
+      case 'w':
+        kGameState.window_create_info.window_width =
+            strtol(platform_optarg, NULL, 10);
+      case 'h':
+        kGameState.window_create_info.window_height =
+            strtol(platform_optarg, NULL, 10);
+      case 'x':
+        kGameState.window_create_info.window_pos_x =
+            strtol(platform_optarg, NULL, 10);
+      case 'y':
+        kGameState.window_create_info.window_pos_y =
+            strtol(platform_optarg, NULL, 10);
     }
   }
   printf("Client will connect to game at %s:%s\n", kNetworkState.server_ip,
@@ -122,7 +136,7 @@ main(int argc, char** argv)
 
 #ifndef HEADLESS
   // Platform & Gfx init
-  if (!gfx::Initialize()) {
+  if (!gfx::Initialize(kGameState.window_create_info)) {
     return 1;
   }
 #endif

@@ -243,8 +243,7 @@ WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
 }
 
 HWND
-SetupWindow(HINSTANCE inst, const char* name, int width, int height,
-            bool fullscreen)
+SetupWindow(HINSTANCE inst, const char* name, const CreateInfo& create_info)
 {
   WNDCLASSA wc = {};
   wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -261,16 +260,16 @@ SetupWindow(HINSTANCE inst, const char* name, int width, int height,
   DWORD window_style = WS_POPUP;
   DWORD window_extended_style = WS_EX_APPWINDOW;
   RECT rect = {};
-  rect.right = width;
-  rect.bottom = height;
+  rect.right = create_info.window_width;
+  rect.bottom = create_info.window_height;
 
-  if (fullscreen) {
+  if (create_info.fullscreen) {
     DEVMODE screen_settings = {};
     // TODO(abrunasso): This doesn't look nice when it's not the users native
     // resolution. Is there a solution to that?
     screen_settings.dmSize = sizeof(DEVMODE);
-    screen_settings.dmPelsWidth = width;
-    screen_settings.dmPelsHeight = height;
+    screen_settings.dmPelsWidth = create_info.window_width;
+    screen_settings.dmPelsHeight = create_info.window_height;
     screen_settings.dmBitsPerPel = 32;
     screen_settings.dmFields = DM_BITSPERPEL| DM_PELSWIDTH| DM_PELSHEIGHT;
     ChangeDisplaySettings(&screen_settings, CDS_FULLSCREEN);
@@ -284,12 +283,16 @@ SetupWindow(HINSTANCE inst, const char* name, int width, int height,
   int nw = rect.right - rect.left;
   int nh = rect.bottom - rect.top;
 
-  if (!fullscreen) {
+  if (!create_info.fullscreen && create_info.window_pos_x == UINT64_MAX &&
+      create_info.window_pos_y == UINT64_MAX) {
     // Center the window if the user is not in fullscreen.
     RECT parent_rect;
     GetClientRect(GetDesktopWindow(), &parent_rect);
     x = (parent_rect.right / 2) - (nw / 2.f);
     y = (parent_rect.bottom / 2) - (nh / 2.f);
+  } else if (!create_info.fullscreen) {
+    if (create_info.window_pos_x != UINT64_MAX) x = create_info.window_pos_x;
+    if (create_info.window_pos_y != UINT64_MAX) y = create_info.window_pos_y;
   }
 
   HWND window = CreateWindowExA(WS_EX_APPWINDOW, wc.lpszClassName, name,
@@ -481,9 +484,27 @@ SetupGLFunctions() {
 
 int
 Create(const char* name, int width, int height, bool fullscreen)
+{ 
+  // TODO: Remove this implementation when other platforms move to new api.
+  CreateInfo info;
+  info.window_width = width;
+  info.window_height = height;
+  info.fullscreen = fullscreen;
+  kWindow.hwnd = SetupWindow(GetModuleHandle(0), name, info);
+  kWindow.hdc = GetDC(kWindow.hwnd);
+  kWindow.hglrc = InitOpenGL(kWindow.hdc);
+  SetupGLFunctions();
+
+  ShowWindow(kWindow.hwnd, 1);
+  UpdateWindow(kWindow.hwnd);
+  return 1;
+}
+
+int
+Create(const char* name, const CreateInfo& create_info)
 {
-  kWindow.hwnd =
-      SetupWindow(GetModuleHandle(0), name, width, height, fullscreen);
+  printf("Create %lu %lu\n", create_info.window_width, create_info.window_height);
+  kWindow.hwnd = SetupWindow(GetModuleHandle(0), name, create_info);
   kWindow.hdc = GetDC(kWindow.hwnd);
   kWindow.hglrc = InitOpenGL(kWindow.hdc);
   SetupGLFunctions();
@@ -514,12 +535,14 @@ PollEvent(PlatformEvent* event)
     return true;
   }
 
+#if 0
   // Keep cursor in screen.
   RECT crect;
   GetClientRect(kWindow.hwnd, &crect);
   ClientToScreen(kWindow.hwnd, (POINT*)(&crect.left));
   ClientToScreen(kWindow.hwnd, (POINT*)(&crect.right));
   ClipCursor(&crect);
+#endif
 
   return false;
 }

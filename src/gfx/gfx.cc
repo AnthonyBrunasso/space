@@ -27,9 +27,9 @@ static v3f kDefaultScale = v3f(1.f, 1.f, 1.f);
 static v3f kTileScale = v3f(0.5f, 0.5f, 1.f);
 
 bool
-Initialize()
+Initialize(const window::CreateInfo& window_create_info)
 {
-  int window_result = window::Create("Space", 1920, 1080, false);
+  int window_result = window::Create("Space", window_create_info);
   printf("Window create result: %i\n", window_result);
   auto status = rgg::Initialize();
   constexpr int kVertCount = 29;

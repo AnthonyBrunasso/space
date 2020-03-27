@@ -246,9 +246,9 @@ struct Module {
   uint64_t ship_index = UINT64_MAX;
   uint64_t player_id = kNonPlayerId;
   v3f bounds = v3f(15.f, 15.f, 15.f);
-  int frames_to_build = 100;
+  int frames_to_build = 200;
   int frames_building = 0;
-  int frames_to_train = 700;
+  int frames_to_train = 800;
   int frames_training = kTrainIdle;
   ModuleKind mkind;
   v2i tile;
@@ -309,7 +309,11 @@ struct Grid {
 };
 DECLARE_GAME_TYPE(Grid, 2);
 
-constexpr int kMaxInvasionCount = 4;
+constexpr int kMaxInvasionCount = 10;
+
+// TODO: Find a better place for this. Controls the max units allowed in an
+// invasion and increments up to kMaxInvasionCount.
+static int kMaxThisInvasion = 2;
 
 struct Invasion {
   Transform transform;

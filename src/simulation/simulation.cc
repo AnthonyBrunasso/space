@@ -290,12 +290,16 @@ DecideInvasion()
     } else if (v->unit_count == 0) {
       // Spawn the units from the invasion force!
       BfsIterator iter = BfsStart(v->docked_tile);
-      while (v->unit_count != kMaxInvasionCount) {
+      int count = rand() % kMaxThisInvasion + 1;
+      while (v->unit_count != count) {
         BfsNext(&iter);
         if (iter.tile->exterior) continue;
         v->unit_id[v->unit_count++] =
             SpawnEnemy(v2i(iter.tile->cx, iter.tile->cy),
                        TilemapWorldToGrid(v->transform.position));
+      }
+      if (kMaxThisInvasion < kMaxInvasionCount) {
+        ++kMaxThisInvasion;
       }
     }
 

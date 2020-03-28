@@ -97,11 +97,11 @@ static IMUI kIMUI;
 
 constexpr uint32_t kMaxTags = 2;
 
-DECLARE_ND_ARRAY(Text, kMaxTags, 64);
-DECLARE_ND_ARRAY(Button, kMaxTags, 16);
-DECLARE_ND_ARRAY(UIClick, kMaxTags, 8);
-DECLARE_ND_ARRAY(MousePosition, kMaxTags, 8);
-DECLARE_ND_ARRAY(Pane, kMaxTags, 8);
+DECLARE_2D_ARRAY(Text, kMaxTags, 64);
+DECLARE_2D_ARRAY(Button, kMaxTags, 16);
+DECLARE_2D_ARRAY(UIClick, kMaxTags, 8);
+DECLARE_2D_ARRAY(MousePosition, kMaxTags, 8);
+DECLARE_2D_ARRAY(Pane, kMaxTags, 8);
 DECLARE_QUEUE(UIClickRender, 8);
 
 void

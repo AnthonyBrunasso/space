@@ -38,7 +38,7 @@
     --kUsed##type;                                 \
   }                                                \
 
-#define DECLARE_ND_ARRAY(type, n, max_count)       \
+#define DECLARE_2D_ARRAY(type, n, max_count)       \
   constexpr uint64_t kMax##type = max_count;       \
   constexpr uint64_t kDim##type = n;               \
   static type k##type[n][max_count];               \

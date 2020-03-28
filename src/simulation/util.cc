@@ -199,7 +199,7 @@ SpawnEnemy(v2i tile_position, uint64_t ship_index)
 }
 
 void
-SpawnCrew(v3f world_position, uint64_t ship_index)
+SpawnCrew(v3f world_position, uint64_t player_index, uint64_t ship_index)
 {
   TilemapModify tm(ship_index);
   Unit* unit = UseIdUnit();
@@ -209,11 +209,11 @@ SpawnCrew(v3f world_position, uint64_t ship_index)
   unit->kind = kOperator;
   unit->spacesuit = 1;
   unit->speed = 1.0f;
-  unit->player_id = AssignPlayerId();
+  unit->player_id = player_index;
 }
 
 void
-SpawnCrew(v2i tile_position, uint64_t ship_index)
+SpawnCrew(v2i tile_position, uint64_t player_index, uint64_t ship_index)
 {
   TilemapModify tm(ship_index);
   Unit* unit = UseIdUnit();
@@ -223,7 +223,19 @@ SpawnCrew(v2i tile_position, uint64_t ship_index)
   unit->kind = kOperator;
   unit->spacesuit = 1;
   unit->speed = 1.0f;
-  unit->player_id = AssignPlayerId();
+  unit->player_id = player_index;
+}
+
+void
+SpawnCrew(v3f world_position, uint64_t ship_index)
+{
+  SpawnCrew(world_position, AssignPlayerId(), ship_index);
+}
+
+void
+SpawnCrew(v2i tile_position, uint64_t ship_index)
+{
+  SpawnCrew(tile_position, AssignPlayerId(), ship_index);
 }
 
 bool

@@ -176,7 +176,7 @@ ModuleBarrackUpdate(Module* module)
   }
 
   if (module->frames_training >= module->frames_to_train) {
-    SpawnCrew(module->tile, module->ship_index);
+    SpawnCrew(module->tile, module->player_id, module->ship_index);
     module->frames_training = kTrainIdle;
   }
 

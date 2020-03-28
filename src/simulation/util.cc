@@ -165,6 +165,22 @@ GetNearestEnemyUnit(Unit* unit)
   return target;
 }
 
+Unit*
+GetNearestUnit(const v3f& pos)
+{
+  float d = FLT_MAX;
+  Unit* target = nullptr;
+  for (int i = 0; i < kUsedUnit; ++i) {
+    Unit* new_target = &kUnit[i];
+    float nd = v3fDsq(pos, new_target->transform.position);
+    if (nd < d) {
+      target = new_target;
+      d = nd;
+    }
+  }
+  return target;
+}
+
 uint32_t
 SpawnEnemy(v2i tile_position, uint64_t ship_index)
 {

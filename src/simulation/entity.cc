@@ -71,6 +71,7 @@ enum ModuleKind {
   kModMine,
   kModBarrack,
   kModMedbay,
+  kModWarp,
   kModCount,
 };
 enum HudMode {

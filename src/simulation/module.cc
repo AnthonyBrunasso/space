@@ -26,6 +26,8 @@ ModuleCost(ModuleKind mkind)
       return 400;
     case kModMedbay:
       return 400;
+    case kModWarp:
+      return 30;
     case kModTurret:
     case kModEngine:
     case kModPower:
@@ -52,6 +54,8 @@ ModuleName(ModuleKind mkind)
       return "Engine";
     case kModPower:
       return "Power";
+    case kModWarp:
+      return "Warp";
     case kModCount:
     default:
       return "Unknown";
@@ -83,6 +87,8 @@ ModuleColor(ModuleKind mkind)
       return v3f(1.0, 0.0, 0.0);
     case kModMedbay:
       return v3f(1.0, 1.0, 1.0);
+    case kModWarp:
+      return v3f(0.6, 1.0, 1.0);
     case kModCount:
     default:
       return v3f();
@@ -107,6 +113,8 @@ ModuleBounds(ModuleKind mkind)
       return v3f(45.f, 45.f, 15.f);
     case kModMedbay:
       return v3f(45.f, 45.f, 15.f);
+    case kModWarp:
+      return v3f(15.f, 15.f, 15.f);
     case kModCount:
     default:
       return v3f();
@@ -182,6 +190,48 @@ ModuleBarrackUpdate(Module* module)
 }
 
 void
+ModuleWarpUpdate(Module* module)
+{
+  Unit* unit = GetNearestUnit(TilePosToWorld(module->tile));
+  if (!unit) return;
+  v2i ut;
+  if (!WorldToTilePos(unit->transform.position, &ut)) return;
+  if (ut != module->tile) return;
+  // Find the nearest warp on a seperate tilemap from this one.
+  Module* tm = nullptr;
+  float d = FLT_MAX;
+  for (int i = 0; i < kUsedModule; ++i) {
+    Module* nm = &kModule[i];
+    if (nm == module) continue;
+    if (!ModuleBuilt(nm)) continue;
+    if (nm->ship_index == module->ship_index) continue;
+    if (nm->mkind != kModWarp) continue;
+    // Target warp must be idle.
+    if (nm->frames_training != kTrainIdle) continue;
+    float nd = LengthSquared(nm->tile - module->tile);
+    if (nd < d) {
+      tm = nm;
+      d = nd;
+    }
+  }
+  if (!tm) return;
+
+  if (module->frames_training == kTrainIdle) {
+    module->frames_training = 0;
+  } else {
+    ++module->frames_training;
+  }
+
+  if (module->frames_training >= module->frames_to_train) {
+    LOGFMT("Warping crew to ship %i", tm->ship_index);
+    module->frames_training = kTrainIdle;
+    TilemapModify mod(tm->ship_index);
+    unit->transform.position = TilePosToWorld(tm->tile);
+    unit->ship_index = tm->ship_index;
+  }
+}
+
+void
 ModuleUpdate(Module* module)
 {
   switch (module->mkind) {
@@ -190,6 +240,9 @@ ModuleUpdate(Module* module)
     } break;
     case kModBarrack: {
       ModuleBarrackUpdate(module);
+    } break;
+    case kModWarp: {
+      ModuleWarpUpdate(module);
     } break;
     default: break;
   }

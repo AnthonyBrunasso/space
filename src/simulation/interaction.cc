@@ -440,6 +440,10 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
           player->hud_mode = kHudModule;
           player->mod_placement = kModMedbay;
         } break;
+        case '4': {
+          player->hud_mode = kHudModule;
+          player->mod_placement = kModWarp;
+        } break;
         case 'h': {
           player->level = CLAMP(player->level - 1, 1, 10);
         } break;

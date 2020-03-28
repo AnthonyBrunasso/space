@@ -22,10 +22,12 @@ typedef struct {
   unsigned genuine_intel;
   unsigned authentic_amd;
   unsigned family, model, stepping;
+  unsigned amd_boost;
   unsigned long long tsc_hz;
 } cpu_t;
 
 #include "intel_cpuid.c"
+#include "amd_cpuid.c"
 
 #include <stdio.h>
 
@@ -67,9 +69,13 @@ int main() {
   }
   printf("%s %s\n", ecx_flags & (1 << 4) ? "TSC" : "",
          ext_edx_flags & (1 << 8) ? "Invariant" : "Variant");
+  cpu.amd_boost = ext_edx_flags & (1<<9);
 
   if (cpu.genuine_intel) {
     intel_main(cpu, &cpu.tsc_hz);
+  }
+  else if (cpu.authentic_amd) {
+    amd_main(cpu);
   }
 
   return 0;

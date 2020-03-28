@@ -211,13 +211,7 @@ struct Ship {
   unsigned engine_animation : 4;
   uint64_t PADDING : 22;
 };
-
 DECLARE_GAME_TYPE(Ship, 2);
-struct Resource {
-  float mineral = 0;
-  uint64_t frame = 0;
-};
-DECLARE_GAME_TYPE(Resource, 1);
 
 struct Missile {
   Transform transform;
@@ -265,6 +259,11 @@ struct Command {
   uint64_t PADDING : 30;
 };
 DECLARE_GAME_QUEUE(Command, 16);
+
+struct Resource {
+  float mineral = 0;
+  uint64_t frame = 0;
+};
 
 struct Player {
   Camera camera;  // Assumes fixed dimension window

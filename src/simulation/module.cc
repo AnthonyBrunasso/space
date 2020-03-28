@@ -193,10 +193,12 @@ void
 ModuleWarpUpdate(Module* module)
 {
   Unit* unit = GetNearestUnit(TilePosToWorld(module->tile));
-  if (!unit) return;
   v2i ut;
   if (!WorldToTilePos(unit->transform.position, &ut)) return;
-  if (ut != module->tile) return;
+  if (ut != module->tile) {
+    module->frames_training = kTrainIdle;
+    return;
+  }
   // Find the nearest warp on a seperate tilemap from this one.
   Module* tm = nullptr;
   float d = FLT_MAX;

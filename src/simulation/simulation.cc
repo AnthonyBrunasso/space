@@ -287,7 +287,7 @@ DecideInvasion()
 {
   if (!kScenario.invasion) return;
 
-  if (!kUsedInvasion) {
+  if (kUsedInvasion != kMaxPlayer) {
     // Find min and max bounds of all grids.
     v2f min = TilePosToWorldMin({0, 0});
     v2f max = TilePosToWorldMin({kMapWidth, kMapHeight});

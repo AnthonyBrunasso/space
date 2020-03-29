@@ -75,8 +75,9 @@ __init_tsc_per_usec()
   if (median_tsc_per_usec)
     return;
 
-  FILE *f = fopen("/sys/devices/system/cpu/cpu0/tsc_freq_khz", "r");
   int kernel_tsc_khz = 0;
+#ifndef __APPLE__
+  FILE *f = fopen("/sys/devices/system/cpu/cpu0/tsc_freq_khz", "r");
   if (f) {
     const int MAX_BUF = 12;
     char buf[MAX_BUF];
@@ -88,6 +89,7 @@ __init_tsc_per_usec()
       printf("using tsc_freq_khz %d\n", kernel_tsc_khz);
     }
   }
+#endif
 
   if (kernel_tsc_khz) {
     median_tsc_per_usec = kernel_tsc_khz;

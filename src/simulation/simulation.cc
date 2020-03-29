@@ -265,14 +265,52 @@ DecideAsteroid()
   }
 }
 
+v2f
+InvasionDirection(v3f invasion_pos)
+{
+  v3f c = TilemapWorldCenter();
+  float d = FLT_MAX;
+  for (int i = 0; i < kUsedGrid; ++i) {
+    TilemapModify mod(i);
+    v3f nc = TilemapWorldCenter();
+    float nd = math::LengthSquared(nc - invasion_pos);
+    if (nd < d) {
+      c = nc;
+      d = nd;
+    }
+  }
+  return math::Normalize(c.xy() - invasion_pos.xy());
+}
+
 void
 DecideInvasion()
 {
   if (!kScenario.invasion) return;
 
   if (!kUsedInvasion) {
+    // Find min and max bounds of all grids.
+    v2f min = TilePosToWorldMin({0, 0});
+    v2f max = TilePosToWorldMin({kMapWidth, kMapHeight});
+    for (int i = 0; i < kUsedGrid; ++i) {
+      TilemapModify mod(i);
+      v2f nmin = TilePosToWorldMin({0, 0});
+      v2f nmax = TilePosToWorldMin({kMapWidth, kMapHeight});
+      if (math::LengthSquared(nmin) < math::LengthSquared(min)) {
+        min = nmin;
+      }
+      if (math::LengthSquared(nmax) > math::LengthSquared(max)) {
+        max = nmax;
+      }
+    }
+    math::Rectf r(min.x, min.y, max.x - min.x, max.y - min.y);
+    // Spawn the invasion at a random point on the exterior of a rect
+    // consuming all the grids pushed out by a vector from the midpoint
+    // of the nearest grid to it.
+    v2f rp = math::RandomPointOnRect(r);
+    v2f dir = InvasionDirection(v3f(rp.x, rp.y, 0.f));
     Invasion* invasion = UseInvasion();
-    invasion->transform.position = v3f(400.f, -400.f, 0.f);
+    invasion->transform.position =
+        v3f(rp.x, rp.y, 0.f) - v3f(dir.x, dir.y, 0.f) * 350.f;
   }
 
   for (int i = 0; i < kUsedInvasion; ++i) {
@@ -286,7 +324,7 @@ DecideInvasion()
       }
     }
     if (!v->docked) {
-      v->transform.position.y += 1.f;
+      v->transform.position += InvasionDirection(v->transform.position);
     } else if (v->unit_count == 0) {
       // Spawn the units from the invasion force!
       BfsIterator iter = BfsStart(v->docked_tile);

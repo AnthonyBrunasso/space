@@ -23,9 +23,19 @@ typedef struct {
 #define CLOCKS_PER_MS (CLOCKS_PER_SEC / 1000)
 #define MAX_SAMPLES 10
 
+// clock() will accumulate per thread, thus restricted to one
 static uint64_t
-__tsc_per_usec()
+__estimate_tsc_per_usec()
 {
+  static volatile uint64_t lock_in ALIGNAS(sizeof(uint64_t));
+  static volatile uint64_t lock_out ALIGNAS(sizeof(uint64_t));
+  uint64_t thread_id = lock_in++;
+  while (thread_id) {
+    if (lock_out) {
+      return;
+    }
+  }
+
   clock_t c = clock();
   clock_t p;
   uint64_t rc = rdtsc();
@@ -55,27 +65,38 @@ __tsc_per_usec()
     }
   }
 
+  ++lock_out;
   return tsc_per_usec[MAX_SAMPLES / 2];
 }
 
-// clock() will accumulate per thread
-// thus restricted to one thread at a time
-// TODO (AN): Find a better cross-platform baseline?
 void
-__threadsafe_tsc_per_usec()
+__init_tsc_per_usec()
 {
-  static volatile uint64_t lock_in ALIGNAS(sizeof(uint64_t));
-  static volatile uint64_t lock_out ALIGNAS(sizeof(uint64_t));
-  uint64_t thread_id = lock_in++;
-  while (thread_id) {
-    if (lock_out) {
-      return;
+  if (median_tsc_per_usec)
+    return;
+
+  FILE *f = fopen("/sys/devices/system/cpu/cpu0/tsc_freq_khz", "r");
+  int kernel_tsc_khz = 0;
+  if (f) {
+    const int MAX_BUF = 12;
+    char buf[MAX_BUF];
+    size_t bytes = fread(buf, 1, MAX_BUF - 1, f);
+    if (bytes) {
+      buf[bytes] = 0;
+      fclose(f);
+      kernel_tsc_khz = atoi(buf) / 1000;
+      printf("using tsc_freq_khz %d\n", kernel_tsc_khz);
     }
   }
 
-  median_tsc_per_usec = __tsc_per_usec();
+  if (kernel_tsc_khz) {
+    median_tsc_per_usec = kernel_tsc_khz;
+  } else {
+    // kernel tsc not available - perform dynamic calculation
+    median_tsc_per_usec = __estimate_tsc_per_usec();
+  }
+  // inverse
   median_usec_per_tsc = ((uint64_t)1 << 33) / median_tsc_per_usec;
-  ++lock_out;
 }
 
 static uint64_t
@@ -87,7 +108,7 @@ __tscdelta_to_usec(uint64_t delta_tsc)
 void
 clock_init(uint64_t frame_goal_usec, TscClock_t *out_clock)
 {
-  __threadsafe_tsc_per_usec();
+  __init_tsc_per_usec();
 
   // Calculate the step
   out_clock->tsc_step = frame_goal_usec * median_tsc_per_usec;

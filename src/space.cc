@@ -117,18 +117,23 @@ main(int argc, char** argv)
       case 's':
         simulation::kScenario.type =
             (simulation::Scenario::Type)strtol(platform_optarg, NULL, 10);
+        break;
       case 'w':
         kGameState.window_create_info.window_width =
             strtol(platform_optarg, NULL, 10);
+        break;
       case 'h':
         kGameState.window_create_info.window_height =
             strtol(platform_optarg, NULL, 10);
+        break;
       case 'x':
         kGameState.window_create_info.window_pos_x =
             strtol(platform_optarg, NULL, 10);
+        break;
       case 'y':
         kGameState.window_create_info.window_pos_y =
             strtol(platform_optarg, NULL, 10);
+        break;
     }
   }
   printf("Client will connect to game at %s:%s\n", kNetworkState.server_ip,

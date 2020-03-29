@@ -82,6 +82,9 @@ RandomPointOnRect(const math::Rectf& rect)
   v2f nr = Project(nv, v2f(0.f, -r.height));
   v2f nkeep =
       math::LengthSquared(nt - nv) < math::LengthSquared(nr - nv) ? nt : nr;
+  // Return min distance vector. This part doesn't really matter. I'm sure you
+  // could return the max or generate another random number between 0 and 3
+  // and pick a random projection.
   if (math::LengthSquared(nkeep - nv) < math::LengthSquared(pkeep - pv)) {
     return nkeep + v2f(r.width, r.height) + t;
   }

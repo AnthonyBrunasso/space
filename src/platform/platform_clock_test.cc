@@ -42,7 +42,7 @@ main(int argc, char** argv)
   clock_init(target_usec, &clock);
 
   while (frame < framerate * runtime_seconds) {
-    delta[frame] = platform::delta_usec(&clock);
+    delta[frame] = clock_delta_usec(&clock);
 
     uint64_t sleep_count = yield_on_idle;
     while (!clock_sync(&clock, &sleep_usec)) {

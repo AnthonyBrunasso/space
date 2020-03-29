@@ -3,12 +3,15 @@
 #include "renderer/renderer.cc"
 #include "simulation/camera.cc"
 #include "gfx/gfx.cc"
+#include "math/math.cc"
 
 v3f cpos(0.f, 0.f, 100.f);
 v3f ctgt(0.f, 0.f, 0.f);
 v3f cup(0.f, 1.f, 0.f);
 float speed = 10.f;
 v3f cubepos(0.f, 0.f, 0.f);
+v3f cubedim(15.f, 15.f, 15.f);
+v2f rp;
 
 void
 UI()
@@ -79,6 +82,8 @@ main(int argc, char** argv)
               cubepos.x += speed;
             } break;
           }
+          rp = math::RandomPointInRect(math::Rectf(
+              cubepos.x, cubepos.y, cubedim.x, cubedim.y));
         } break;
         case MOUSE_DOWN: {
           if (event.button == BUTTON_LEFT) {
@@ -98,8 +103,13 @@ main(int argc, char** argv)
 
     rgg::kObserver.position = cpos;
 
-    rgg::RenderRectangle(math::Rectf(cubepos.x, cubepos.y, 10.f, 10.f),
-                         cubepos.z, v4f(1.f, 1.f, 1.f, 1.f));
+    rgg::RenderRectangle(
+        math::Rectf(cubepos.x, cubepos.y, cubedim.x, cubedim.y),
+        cubepos.z, v4f(1.f, 1.f, 1.f, 1.f));
+
+    rgg::RenderLine(
+        v3f(0.f, 0.f, cubepos.z + 0.1f), v3f(rp.x, rp.y, cubepos.z),
+        v4f(1.f, 0.f, 0.f, 1.f));
 
     RenderAxis();
 

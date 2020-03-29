@@ -35,4 +35,15 @@ OrientToAabb(const math::Rectf& rect)
   return r;
 }
 
+v2f
+RandomPointInRect(const math::Rectf& rect)
+{
+  float min_x = rect.x;
+  float max_x = rect.x + rect.width;
+  float min_y = rect.y;
+  float max_y = rect.y + rect.height;
+  return v2f(ScaleRange((float)rand() / RAND_MAX, 0.f, 1.f, min_x, max_x),
+             ScaleRange((float)rand() / RAND_MAX, 0.f, 1.f, min_y, max_y));
+}
+
 }

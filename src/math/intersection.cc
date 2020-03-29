@@ -4,8 +4,6 @@
 
 #include <cfloat>
 
-#include "rect.h"
-#include "vec.h"
 
 namespace math
 {

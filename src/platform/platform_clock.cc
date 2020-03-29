@@ -24,7 +24,7 @@ typedef struct {
 #define MAX_SAMPLES 10
 
 // clock() will accumulate per thread, thus restricted to one
-static uint64_t
+static void
 __estimate_tsc_per_usec()
 {
   static volatile uint64_t lock_in ALIGNAS(sizeof(uint64_t));
@@ -66,7 +66,7 @@ __estimate_tsc_per_usec()
   }
 
   ++lock_out;
-  return tsc_per_usec[MAX_SAMPLES / 2];
+  median_tsc_per_usec = tsc_per_usec[MAX_SAMPLES / 2];
 }
 
 void
@@ -93,7 +93,7 @@ __init_tsc_per_usec()
     median_tsc_per_usec = kernel_tsc_khz;
   } else {
     // kernel tsc not available - perform dynamic calculation
-    median_tsc_per_usec = __estimate_tsc_per_usec();
+    __estimate_tsc_per_usec();
   }
   // inverse
   median_usec_per_tsc = ((uint64_t)1 << 33) / median_tsc_per_usec;

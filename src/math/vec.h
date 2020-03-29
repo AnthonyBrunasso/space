@@ -163,6 +163,13 @@ Normalize(const Vec2<T>& v)
   return v / Length(v);
 }
 
+template <class T>
+Vec2<T>
+Project(const Vec2<T>& a, const Vec2<T>& onto_b)
+{
+  return onto_b * (Dot(a, onto_b) / Dot(onto_b, onto_b));
+}
+
 template <typename T>
 struct Vec3 {
   Vec3()
@@ -323,6 +330,13 @@ Vec3<T>
 Normalize(const Vec3<T>& v)
 {
   return v / Length(v);
+}
+
+template <class T>
+Vec3<T>
+Project(const Vec3<T>& a, const Vec3<T>& onto_b)
+{
+  return onto_b * (Dot(a, onto_b) / Dot(onto_b, onto_b));
 }
 
 //       i j k
@@ -511,6 +525,13 @@ Vec4<T>
 Normalize(const Vec4<T>& v)
 {
   return v / Length(v);
+}
+
+template <class T>
+Vec4<T>
+Project(const Vec4<T>& a, const Vec4<T>& onto_b)
+{
+  return onto_b * (Dot(a, onto_b) / Dot(onto_b, onto_b));
 }
 
 }  // namespace math

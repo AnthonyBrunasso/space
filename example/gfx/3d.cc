@@ -37,7 +37,7 @@ main(int argc, char** argv)
 {
   window::CreateInfo create_info;
   create_info.window_width = 1920;
-  create_info.window_height = 1920;
+  create_info.window_height = 1080;
   gfx::Initialize(create_info);
 
   v2f size = window::GetWindowSize();
@@ -98,8 +98,8 @@ main(int argc, char** argv)
 
     rgg::kObserver.position = cpos;
 
-    rgg::RenderCube(math::Cubef(cubepos, 30.f, 30.f, 30.f),
-                        v4f(1.f, 1.f, 1.f, 1.f));
+    rgg::RenderRectangle(math::Rectf(cubepos.x, cubepos.y, 10.f, 10.f),
+                         cubepos.z, v4f(1.f, 1.f, 1.f, 1.f));
 
     RenderAxis();
 

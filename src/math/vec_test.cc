@@ -19,8 +19,8 @@ VectorAddition()
   a += b;
   ASSERT_TRUE(a.x == 12);
   ASSERT_TRUE(a.y == 6);
-  math::Vec3i aa(3, 4, 9);
-  math::Vec3i bb(9, 2, 5);
+  v3i aa(3, 4, 9);
+  v3i bb(9, 2, 5);
   ASSERT_TRUE(aa.x == 3);
   ASSERT_TRUE(aa.y == 4);
   ASSERT_TRUE(aa.z == 9);
@@ -106,25 +106,28 @@ VectorZeroInitialization()
 {
   v2i a;
   v2f b;
-  math::Vec2d c;
   ASSERT_TRUE(a.x == 0);
   ASSERT_TRUE(a.y == 0);
   ASSERT_TRUE(b.x == 0.0f);
   ASSERT_TRUE(b.y == 0.0f);
-  ASSERT_TRUE(c.x == 0.0);
-  ASSERT_TRUE(c.y == 0.0);
 }
 
 int
 main(int argc, char** argv)
 {
-  VectorAddition();
+  /*VectorAddition();
   VectorSubtraction();
   VectorScalarMultiplication();
   VectorScalarDivision();
   VectorDotProduct();
   VectorNormalization();
   VectorSquaredLength();
-  VectorZeroInitialization();
+  VectorZeroInitialization();*/
+  v2f a(3.f, 4.f);
+  v2f b(7.f, 0.f);
+
+  v2f c = Project(a, b);
+  printf("%.3f,%.3f\n", c.x, c.y);
+
   return 0;
 }

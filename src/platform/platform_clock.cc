@@ -76,7 +76,7 @@ __init_tsc_per_usec()
     return;
 
   int kernel_tsc_khz = 0;
-#ifndef __APPLE__
+#ifdef __linux__
   FILE *f = fopen("/sys/devices/system/cpu/cpu0/tsc_freq_khz", "r");
   if (f) {
     const int MAX_BUF = 12;

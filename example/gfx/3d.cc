@@ -35,7 +35,10 @@ RenderAxis()
 int
 main(int argc, char** argv)
 {
-  gfx::Initialize();
+  window::CreateInfo create_info;
+  create_info.window_width = 1920;
+  create_info.window_height = 1920;
+  gfx::Initialize(create_info);
 
   v2f size = window::GetWindowSize();
   auto* o = rgg::GetObserver();

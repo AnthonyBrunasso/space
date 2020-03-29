@@ -68,7 +68,7 @@ ModuleName(ModuleKind mkind)
 bool
 ModuleCanBuild(ModuleKind mkind, Player* player) {
   if (!player) return false;
-  return player->resource.mineral >= ModuleCost(mkind);
+  return player->mineral >= ModuleCost(mkind);
 }
 
 v3f
@@ -163,7 +163,7 @@ ModuleMineUpdate(Module* module)
 
   ProjectileCreate(p, ModulePosition(module), 15.f, 2,
                    kWeaponMiningLaser);
-  kPlayer[module->player_id].resource.mineral += .1f;
+  kPlayer[module->player_id].mineral += .1f;
 }
 
 void
@@ -183,9 +183,9 @@ ModuleBarrackUpdate(Module* module)
   // Barracks automatically trains a unit if it has enough minerals, it's
   // enabled and it's training state is not idle.
   if (module->frames_training != kTrainIdle || !module->enabled ||
-      player->resource.mineral < 50.f) return;
+      player->mineral < 50.f) return;
 
-  player->resource.mineral -= 50.f;
+  player->mineral -= 50.f;
   module->frames_training = 0;
 }
 

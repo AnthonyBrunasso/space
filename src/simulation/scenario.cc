@@ -181,8 +181,7 @@ ScenarioInitialize(bool reset_features = true)
     player->ship_index = i % kUsedShip;
     player->camera.viewport.x = kNetworkState.player_info[i].window_width;
     player->camera.viewport.y = kNetworkState.player_info[i].window_height;
-    player->resource.mineral = 400;
-    player->resource.frame = 400;
+    player->mineral = 400;
   }
   LOGFMT("Player count: %lu", kUsedPlayer);
 

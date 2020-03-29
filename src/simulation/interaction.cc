@@ -122,7 +122,7 @@ DebugPanel(const Player& player, uint32_t tag, const Stats& stats,
     imui::Indent(-2);
   }
 
-  snprintf(buffer, BUFFER_SIZE, "Minerals: %.1f", player.resource.mineral);
+  snprintf(buffer, BUFFER_SIZE, "Minerals: %.1f", player.mineral);
   imui::Text(buffer);
   snprintf(buffer, BUFFER_SIZE, "Level: %lu", player.level);
   imui::Text(buffer);
@@ -320,7 +320,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
               m->mkind = mkind;
               m->bounds = ModuleBounds(mkind);
               m->player_id = player_index;
-              player->resource.mineral -= ModuleCost(mkind);
+              player->mineral -= ModuleCost(mkind);
             }
             LOGFMT("Order build [%i] [%i,%i]", mkind, tilepos.x, tilepos.y);
             PushCommand({kUaBuild, world_pos, kInvalidUnit,
@@ -411,10 +411,10 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
             bool ftl_ready = kShip[i].sys[kModEngine] > .5f;
             if (!ftl_ready) {
               LOG("Faster Than Light engine is offline!");
-            } else if (player->resource.mineral >= kFtlCost) {
+            } else if (player->mineral >= kFtlCost) {
               LOG("Faster Than Light engine activated!");
               kShip[i].ftl_frame = 1;
-              player->resource.mineral -= kFtlCost;
+              player->mineral -= kFtlCost;
             } else {
               LOGFMT("Ftl requires minerals [%d]!", kFtlCost);
             }

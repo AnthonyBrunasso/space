@@ -673,7 +673,6 @@ Update()
   for (int i = 0; i < kUsedPlayer; ++i) {
     camera::Update(&kPlayer[i].camera);
     kPlayer[i].camera.motion.z = 0.f;
-    kPlayer[i].resource.frame++;
   }
 
   if (kFrame == 1500) {

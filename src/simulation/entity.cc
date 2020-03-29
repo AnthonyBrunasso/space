@@ -261,18 +261,13 @@ struct Command {
 };
 DECLARE_GAME_QUEUE(Command, 16);
 
-struct Resource {
-  float mineral = 0;
-  uint64_t frame = 0;
-};
-
 struct Player {
   Camera camera;  // Assumes fixed dimension window
   v3f selection_start;
   v3f world_mouse;
   ModuleKind mod_placement;
   uint64_t ship_index;
-  Resource resource;
+  float mineral = 0;
   uint64_t level = 1;
   unsigned hud_mode : kHudModeBits;
   unsigned local : 1;

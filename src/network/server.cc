@@ -369,7 +369,9 @@ server_main(void* void_arg)
                          &peer)) {
       if (udp_errno) running = false;
       if (udp_errno) SERVER_LOGFMT("Server udp_errno %d\n", udp_errno);
+#ifndef WIN32
       platform::sleep_usec(sleep_usec);
+#endif
       continue;
     }
 

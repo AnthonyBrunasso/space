@@ -24,6 +24,16 @@ static ServerParam thread_param;
 #define GAME_TICK_USEC (16333)
 #define SERVER_TICK_USEC (8333)
 
+constexpr bool ALAN = false;
+
+#ifndef NSLOG
+#define SERVER_LOG(x) 
+#define SERVER_LOGFMT(fmt, ...) 
+#else
+#define SERVER_LOG(x) (puts(x))
+#define SERVER_LOGFMT(fmt, ...) (printf(fmt, __VA_ARGS__))
+#endif
+
 struct PlayerState {
   Udp4 peer;
   uint64_t num_players;
@@ -133,22 +143,24 @@ prune_players(uint64_t rt_usec)
   for (int i = 0; i < MAX_PLAYER; ++i) {
     if (memcmp(&player[i], &zero_player, sizeof(PlayerState)) == 0) continue;
     if (rt_usec - player[i].last_active > TIMEOUT_USEC) {
-      printf(
+      SERVER_LOGFMT(
           "Server dropped packet flow. [ index %d ] [ game_index %lu ] [ "
           "realtime_usec %lu ] [ last_active %lu ]\n",
           i, player[i].game_index, rt_usec, player[i].last_active);
       player[i] = {};
     }
     if (player[i].cookie_mismatch > 3) {
-      printf("Server closed packet flow: cookie_mismatch. [index %d]\n", i);
+      SERVER_LOGFMT("Server closed packet flow: cookie_mismatch. [index %d]\n",
+                    i);
       player[i] = {};
     }
     if (player[i].latency_excess > 3) {
-      puts("Server closed packet flow: ack_frame latency gap is excessive");
+      SERVER_LOG(
+          "Server closed packet flow: ack_frame latency gap is excessive");
       player[i] = {};
     }
     if (player[i].corrupted) {
-      puts("Server closed packet flow: corrupted");
+      SERVER_LOG("Server closed packet flow: corrupted");
       player[i] = {};
     }
   }
@@ -169,8 +181,8 @@ prune_games()
     if (active_game[gidx]) continue;
     uint64_t game_id = game[gidx].game_id;
     if (!game_id) continue;
-    printf("Server removed game [ game_index %d ] [ game_id %lu ]\n", gidx,
-           game_id);
+    SERVER_LOGFMT("Server removed game [ game_index %d ] [ game_id %lu ]\n",
+                  gidx, game_id);
     game[gidx] = {};
   }
 }
@@ -231,10 +243,10 @@ game_transmit(Udp4 location, uint64_t game_index)
       update->ack_sequence = player[pidx].sequence;
       udp::SendTo(location, player[pidx].peer, out_buffer, offset - out_buffer);
     }
-#if ALAN_DEBUG
-    printf("Server transmit [ start_frame %lu ] [ last_frame %lu ]\n",
-           start_frame, send_frame - 1);
-#endif
+    if (ALAN) {
+      SERVER_LOGFMT("Server transmit [ start_frame %lu ] [ last_frame %lu ]\n",
+                    start_frame, send_frame - 1);
+    }
   }
 }
 
@@ -250,17 +262,17 @@ game_update(uint64_t realtime_usec, uint64_t game_index, uint64_t jerk)
   int64_t realtime_delta = realtime_usec - next_tick;
   if (realtime_delta < 0) return false;
 
-#if ALAN_DEBUG
-  printf(
-      "Update game "
-      "[ game_id %lu ] "
-      "[ num_players %lu ] "
-      "[ realtime_usec %lu ] "
-      "[ next_tick %lu ] "
-      "[ realtime_delta %ld ] "
-      "\n",
-      g->game_id, g->num_players, realtime_usec, next_tick, realtime_delta);
-#endif
+  if (ALAN) {
+    SERVER_LOGFMT(
+        "Update game "
+        "[ game_id %lu ] "
+        "[ num_players %lu ] "
+        "[ realtime_usec %lu ] "
+        "[ next_tick %lu ] "
+        "[ realtime_delta %ld ] "
+        "\n",
+        g->game_id, g->num_players, realtime_usec, next_tick, realtime_delta);
+  }
 
   uint64_t sidx = GAMEQUEUE_SLOT(next_frame);
   for (uint64_t i = 0; i < g->num_players; ++i) {
@@ -281,10 +293,12 @@ game_update(uint64_t realtime_usec, uint64_t game_index, uint64_t jerk)
     }
   }
 
-#if ALAN_DEBUG
-  printf("Server game [ frame %lu ] [ ack_frame %lu ] [ new_ack_frame %lu ] [ jerk %lu ]\n",
-         next_frame, g->ack_frame, new_ack_frame, jerk);
-#endif
+  if (ALAN) {
+    SERVER_LOGFMT(
+        "Server game [ frame %lu ] [ ack_frame %lu ] [ new_ack_frame %lu ] [ "
+        "jerk %lu ]\n",
+        next_frame, g->ack_frame, new_ack_frame, jerk);
+  }
 
   g->last_frame = next_frame;
   g->ack_frame = new_ack_frame;
@@ -300,27 +314,27 @@ server_main(void* void_arg)
   // network thread affinity set to anything but core 0
   if (platform::thread_affinity_count() > 1) {
     platform::thread_affinity_avoidcore(0);
-    printf("Server thread may run on %d cores\n",
-           platform::thread_affinity_count());
+    SERVER_LOGFMT("Server thread may run on %d cores\n",
+                  platform::thread_affinity_count());
   }
 
   uint8_t in_buffer[MAX_PACKET_IN];
   if (!udp::Init()) {
-    puts("server: fail init");
+    SERVER_LOG("server: fail init");
     return 1;
   }
 
   Udp4 location;
   if (!udp::GetAddr4(arg->ip, arg->port, &location)) {
-    puts("server: fail GetAddr4");
-    puts(arg->ip);
-    puts(arg->port);
+    SERVER_LOG("server: fail GetAddr4");
+    SERVER_LOG(arg->ip);
+    SERVER_LOG(arg->port);
     return 2;
   }
 
-  printf("Server binding %s:%s\n", arg->ip, arg->port);
+  SERVER_LOGFMT("Server binding %s:%s\n", arg->ip, arg->port);
   if (!udp::Bind(location)) {
-    puts("server: fail Bind");
+    SERVER_LOG("server: fail Bind");
     return 3;
   }
 
@@ -354,7 +368,7 @@ server_main(void* void_arg)
     if (!udp::ReceiveAny(location, MAX_PACKET_IN, in_buffer, &received_bytes,
                          &peer)) {
       if (udp_errno) running = false;
-      if (udp_errno) printf("Server udp_errno %d\n", udp_errno);
+      if (udp_errno) SERVER_LOGFMT("Server udp_errno %d\n", udp_errno);
       platform::sleep_usec(sleep_usec);
       continue;
     }
@@ -372,7 +386,7 @@ server_main(void* void_arg)
 
       Handshake* header = (Handshake*)(in_buffer);
       uint64_t num_players = header->num_players;
-      printf("Server Accepted Handshake [index %d]\n", player_index);
+      SERVER_LOGFMT("Server Accepted Handshake [index %d]\n", player_index);
       player[player_index].peer = peer;
       player[player_index].num_players = num_players;
       player[player_index].game_index = UINT64_MAX;
@@ -398,11 +412,11 @@ server_main(void* void_arg)
           if (player[i].num_players != num_players) continue;
           unsigned long long player_cookie;
           if (!RDRND(&player_cookie)) {
-            puts("Server crypto rng failure");
+            SERVER_LOG("Server crypto rng failure");
             return 4;
           }
 
-          printf(
+          SERVER_LOGFMT(
               "Server Greeting [index %d] [player_id %d] [player_count %d] "
               "[next_game_id %d] [cookie 0x%llx]\n",
               i, player_id, num_players, next_game_id, player_cookie);
@@ -439,14 +453,14 @@ server_main(void* void_arg)
         BeginGame* bgPacket = (BeginGame*)(in_buffer);
         if (player[pidx].cookie != bgPacket->cookie) {
           player[pidx].cookie_mismatch += 1;
-          puts("cookie mismatch");
+          SERVER_LOG("cookie mismatch");
           continue;
         }
         // two-way interest is agreed, copy pending_game_id to game_id
         uint64_t game_id = player[pidx].pending_game_id;
         gidx = GetGameIndex(game_id);
         if (gidx == -1) {
-          puts("Server is out of space for Space");
+          SERVER_LOG("Server is out of space for Space");
           continue;
         }
         player[pidx].game_index = gidx;
@@ -455,44 +469,44 @@ server_main(void* void_arg)
         game[gidx].last_frame = 0;
         game[gidx].ack_frame = 0;
         game[gidx].start_usec = realtime_usec;
-        printf("Server created Game [ game_index %lu ]\n", gidx);
+        SERVER_LOGFMT("Server created Game [ game_index %lu ]\n", gidx);
         continue;
       }
 
-#if 0
-      puts("Unknown message during pending state");
-#endif
+      if (ALAN) {
+        SERVER_LOG("Unknown message during pending state");
+      }
       continue;
     }
 
     // Require address stability
     if (memcmp(&player[pidx].peer, &peer, sizeof(Udp4)) != 0) {
-      puts("unhandled: player address changed");
+      SERVER_LOG("unhandled: player address changed");
       continue;
     }
 
     const Update* packet = (Update*)in_buffer;
-#if 0
-    printf(
-        "SvrRcv Precheck "
-        "[ %lu received_bytes ] "
-        "[ %lu packet_sequence ] "
-        "[ %lu packet_ack_frame ] "
-        "\n",
-        received_bytes, packet->sequence, packet->ack_frame);
-#endif
+    if (ALAN) {
+      SERVER_LOGFMT(
+          "SvrRcv Precheck "
+          "[ %lu received_bytes ] "
+          "[ %lu packet_sequence ] "
+          "[ %lu packet_ack_frame ] "
+          "\n",
+          received_bytes, packet->sequence, packet->ack_frame);
+    }
 
     // Require stream integrity
     int64_t player_delta = packet->sequence - player[pidx].sequence;
     if (player_delta >= MAX_GAMEQUEUE) {
-      // puts("packet sequence not relevant to player");
+      // SERVER_LOG("packet sequence not relevant to player");
       continue;
     }
 
     // Verify relevance to game state
     int64_t game_delta = packet->sequence - game[gidx].last_frame;
     if (game_delta >= MAX_GAMEQUEUE) {
-      // puts("packet seqeuence not relevant to game");
+      // SERVER_LOG("packet seqeuence not relevant to game");
       continue;
     }
 
@@ -501,7 +515,7 @@ server_main(void* void_arg)
     uint64_t pid = player[pidx].player_id;
     int64_t sync_delta = packet->sequence - game[gidx].ack_frame;
     if (sync_delta < 1) {
-      printf(
+      SERVER_LOGFMT(
           "Latency Excess [ %lu player_index ] [ %lu packet_sequence ] [ %lu "
           "ack_frame ] [ %lu clock_jerk ]\n",
           pidx, packet->sequence, game[gidx].ack_frame, server_clock.jerk);
@@ -516,15 +530,15 @@ server_main(void* void_arg)
     uint64_t sequence = packet->sequence;
     uint64_t ack_sidx = GAMEQUEUE_SLOT(game[gidx].ack_frame);
 
-#if 0
-    printf(
-        "Server processing "
-        "[ %ld bytes ] "
-        "[ %p read ] "
-        "[ %p end ] "
-        "\n",
-        received_bytes, read_offset, end_buffer);
-#endif
+    if (ALAN) {
+      SERVER_LOGFMT(
+          "Server processing "
+          "[ %ld bytes ] "
+          "[ %p read ] "
+          "[ %p end ] "
+          "\n",
+          received_bytes, read_offset, end_buffer);
+    }
 
     while (read_offset < end_buffer) {
       uint64_t sidx = GAMEQUEUE_SLOT(sequence);
@@ -538,14 +552,14 @@ server_main(void* void_arg)
       const uint8_t* event = read_offset + sizeof(Turn);
       uint64_t event_bytes = turn->event_bytes;
 
-#if 0
-      printf(
-          "Server Apply "
-          "[ sequence %lu ] "
-          "[ event_bytes %lu ] "
-          "\n",
-          sequence, event_bytes);
-#endif
+      if (ALAN) {
+        SERVER_LOGFMT(
+            "Server Apply "
+            "[ sequence %lu ] "
+            "[ event_bytes %lu ] "
+            "\n",
+            sequence, event_bytes);
+      }
 
       if (!game[gidx].used_slot[sidx][pid]) {
         // Apply turn data
@@ -567,17 +581,18 @@ server_main(void* void_arg)
       player[pidx].corrupted = 1;
     }
 
-#if ALAN_DEBUG
-    printf(
-        "SvrRcv "
-        "[ %d player_index ] "
-        "[ %d bytes ] "
-        "[ %lu packet_sequence ] "
-        "[ %lu player_sequence ] "
-        "[ %lu game_id ] "
-        "\n",
-        pidx, received_bytes, packet->sequence, player[pidx].sequence, game_id);
-#endif
+    if (ALAN) {
+      SERVER_LOGFMT(
+          "SvrRcv "
+          "[ %d player_index ] "
+          "[ %d bytes ] "
+          "[ %lu packet_sequence ] "
+          "[ %lu player_sequence ] "
+          "[ %lu game_id ] "
+          "\n",
+          pidx, received_bytes, packet->sequence, player[pidx].sequence,
+          game_id);
+    }
   }
 
   return 0;

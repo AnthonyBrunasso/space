@@ -21,7 +21,7 @@ typedef struct {
 
 #define USEC_PER_CLOCK (1000.f / 1000.f / CLOCKS_PER_SEC)
 #define CLOCKS_PER_MS (CLOCKS_PER_SEC / 1000)
-#define MAX_SAMPLES 10
+#define MAX_SAMPLES 50
 
 // clock() will accumulate per thread, thus restricted to one
 static void

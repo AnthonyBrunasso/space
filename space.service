@@ -4,7 +4,7 @@ Description=Space Dedicated Server
 [Service]
 User=ec2-user
 Group=ec2-user
-Type=exec
+Type=simple
 ExecStart=/usr/bin/space_server
 Restart=on-failure
 

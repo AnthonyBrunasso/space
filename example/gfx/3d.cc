@@ -82,7 +82,7 @@ main(int argc, char** argv)
               cubepos.x += speed;
             } break;
           }
-          rp = math::RandomPointInRect(math::Rectf(
+          rp = math::RandomPointOnRect(math::Rectf(
               cubepos.x, cubepos.y, cubedim.x, cubedim.y));
         } break;
         case MOUSE_DOWN: {

@@ -46,4 +46,46 @@ RandomPointInRect(const math::Rectf& rect)
              ScaleRange((float)rand() / RAND_MAX, 0.f, 1.f, min_y, max_y));
 }
 
+// The Anthony-especial algorithm for calculating a random point on exterior
+// of a rectangle.
+//
+// 1. Root rect at origin.
+// 2. Calculate a random point in the rect.
+// 3. Project that point to bottom and left vectors made by rect.
+// 4. Save vector with min projection distance.
+// 5. Root rect s.t top right is now origin.
+// 6. Calculate a random point in the rect.
+// 7. Project that point to top and right vectors made by rect.
+// 8. Save vector with min projection distance.
+// 9. Return the min of distances from 4, 8 and retranslate to exterior.
+v2f
+RandomPointOnRect(const math::Rectf& rect)
+{
+  Rectf r = OrientToAabb(rect);
+  v2f t(r.x, r.y);
+  // Orient rect to origin.
+  r.x -= r.x;
+  r.y -= r.y;
+  // Random point in rect rooted at origin.
+  v2f pv = RandomPointInRect(r);
+  // Project to left and bottom exteriors.
+  v2f pl = Project(pv, v2f(0.f, r.height));
+  v2f pb = Project(pv, v2f(r.width, 0.f));
+  v2f pkeep =
+      math::LengthSquared(pl - pv) < math::LengthSquared(pb - pv) ? pl : pb;
+  // Orient rect s.t. top right is now origin.
+  r.x -= r.width;
+  r.y -= r.height; 
+  v2f nv = RandomPointInRect(r);
+  // Project to top and right exteriors.
+  v2f nt = Project(nv, v2f(-r.width, 0.f));
+  v2f nr = Project(nv, v2f(0.f, -r.height));
+  v2f nkeep =
+      math::LengthSquared(nt - nv) < math::LengthSquared(nr - nv) ? nt : nr;
+  if (math::LengthSquared(nkeep - nv) < math::LengthSquared(pkeep - pv)) {
+    return nkeep + v2f(r.width, r.height) + t;
+  }
+  return pkeep + t;
+}
+
 }

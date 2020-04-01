@@ -285,8 +285,8 @@ struct Consumable {
 };
 DECLARE_GAME_TYPE(Consumable, 32);
 
-constexpr int kMapWidth = 32;
-constexpr int kMapHeight = 32;
+constexpr int kMapWidth = 64;
+constexpr int kMapHeight = 64;
 struct Tile {
   unsigned cx : 8;
   unsigned cy : 8;

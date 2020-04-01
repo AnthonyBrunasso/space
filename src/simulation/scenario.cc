@@ -36,9 +36,10 @@ constexpr const char* kScenarioNames[Scenario::kMaxScenario] = {
 };
 
 void
-ScenarioSpawnRandomModule(ModuleKind kind, uint64_t ship_index)
+ScenarioSpawnRandomModule(ModuleKind kind, uint64_t ship_index, int num = 0)
 {
   TilemapModify tm(ship_index);
+  int made = 0;
   for (int i = 0; i < kUsedModule; ++i) {
     Module* module = &kModule[i];
     if (module->mkind != kind) continue;
@@ -46,7 +47,8 @@ ScenarioSpawnRandomModule(ModuleKind kind, uint64_t ship_index)
     if (ModuleBuilt(module)) continue;
     // TODO: These correspond now - will they always?
     ModuleSetBuilt(module);
-    return;
+    ++made;
+    if (made == num) break;
   }
 }
 
@@ -117,7 +119,7 @@ ScenarioInitialize(bool reset_features = true)
       grid_index = TilemapInitialize(kTilemapShip);
       s2->grid_index = grid_index;
       s2->level = 1;
-      kGrid[grid_index].transform.position = v2f(0.f, 800.f);
+      kGrid[grid_index].transform.position = v2f(0.f, 1600.f);
     } break;
     case Scenario::kSoloMission: {
       grid_index = TilemapInitialize(kTilemapShip);
@@ -129,6 +131,8 @@ ScenarioInitialize(bool reset_features = true)
       ship->level = 1;
     } break;
   }
+
+  v2i crew_pos[2] = { v2i(5, 23), v2i(5, 7) };
 
   // Spawn units / modules.
   switch (sid) {
@@ -155,14 +159,12 @@ ScenarioInitialize(bool reset_features = true)
         kScenario.invasion = 0;
       }
       TilemapUnexplored(TilemapWorldCenter());
-      SpawnCrew(v2i(5, 23), 0);
-      SpawnCrew(v2i(5, 7), 1);
+      SpawnCrew(crew_pos[0], 0);
+      SpawnCrew(crew_pos[1], 1);
       ScenarioSpawnRandomModule(kModPower, 1);
       ScenarioSpawnRandomModule(kModPower, 0);
-      ScenarioSpawnRandomModule(kModEngine, 1);
-      ScenarioSpawnRandomModule(kModEngine, 1);
-      ScenarioSpawnRandomModule(kModEngine, 0);
-      ScenarioSpawnRandomModule(kModEngine, 0);
+      ScenarioSpawnRandomModule(kModEngine, 1, 5);
+      ScenarioSpawnRandomModule(kModEngine, 0, 5);
     } break;
     default:
     case Scenario::kEmptyScenario: {
@@ -188,7 +190,7 @@ ScenarioInitialize(bool reset_features = true)
   for (int i = 0; i < kUsedPlayer; ++i) {
     TilemapSet(kPlayer[i].ship_index);
     camera::InitialCamera(&kPlayer[i].camera);
-    camera::Move(&kPlayer[i].camera, TilemapWorldCenter());
+    camera::Move(&kPlayer[i].camera, TilePosToWorld(crew_pos[i]));
   }
 }  // namespace simulation
 

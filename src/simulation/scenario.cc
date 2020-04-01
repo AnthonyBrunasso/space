@@ -178,7 +178,6 @@ ScenarioInitialize(bool reset_features = true)
       if (reset_features) {
         memset(&kScenario, 0, sizeof(kScenario));
       }
-
     } break;
   }
   // Always set unexplored/interior of ship

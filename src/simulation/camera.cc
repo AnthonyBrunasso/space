@@ -54,7 +54,7 @@ ScreenToWorldSpace(const Camera* cam, const v3f screen)
       math::ScaleRange(screen.y, 0.f, (float)cam->viewport.y, -1.f, 1.f),
       -1.f, 1.f);
   v4f ray_eye = math::Inverse(math::Perspective(
-      67.f, (float)cam->viewport.x / cam->viewport.y, .1f, 1000.f)) * ray_clip;
+      67.f, (float)cam->viewport.x / cam->viewport.y, .1f, 2000.f)) * ray_clip;
   ray_eye = v4f(ray_eye.x, ray_eye.y, -1.f, 0.f);
   v3f ray_world = math::Normalize((math::Inverse(
       math::LookAt(cam->position, cam->target, v3f(0.f, 1.f, 0.f)))

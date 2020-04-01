@@ -91,7 +91,7 @@ SetProjection()
   v2f size = window::GetWindowSize();
 #endif
   rgg::GetObserver()->projection =
-      math::Perspective(67.f, size.x / size.y, .1f, 1000.f);
+      math::Perspective(67.f, size.x / size.y, .1f, 2000.f);
 }
 
 int

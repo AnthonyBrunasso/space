@@ -128,6 +128,15 @@ ScenarioInitialize(bool reset_features = true)
       ship->pod_capacity = 1;
       ship->level = 1;
     } break;
+    case Scenario::kEmptyScenario: {
+      grid_index = TilemapInitialize(kTilemapEmpty);
+      // At least one ship
+      kScenario.ship = 1;
+      Ship* ship = UseShip();
+      ship->grid_index = grid_index;
+      ship->pod_capacity = 1;
+      ship->level = 1;
+    } break;
   }
 
   v2i crew_pos[2] = { v2i(5, 23), v2i(5, 7) };

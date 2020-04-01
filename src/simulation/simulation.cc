@@ -235,7 +235,7 @@ DecideAsteroid()
       asteroid_spawned[grid] = true;
     }
 
-    for (int i = 0; i < kMaxGrid; ++i) {
+    for (int i = 0; i < kPlayerCount; ++i) {
       if (asteroid_spawned[i]) continue;
       Asteroid* asteroid = UseAsteroid();
       TilemapModify mod(i);

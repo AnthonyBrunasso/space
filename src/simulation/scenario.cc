@@ -108,18 +108,16 @@ ScenarioInitialize(bool reset_features = true)
       ship->level = 1;
     } break;
     case Scenario::kTwoShip: {
-      grid_index = TilemapInitialize(kTilemapShip);
-      // At least one ship
-      kScenario.ship = 1;
-      Ship* ship = UseShip();
-      ship->grid_index = grid_index;
-      ship->pod_capacity = 1;
-      ship->level = 1;
-      Ship* s2 = UseShip();
-      grid_index = TilemapInitialize(kTilemapShip);
-      s2->grid_index = grid_index;
-      s2->level = 1;
-      kGrid[grid_index].transform.position = v2f(0.f, 1600.f);
+      for (int i = 0; i < kPlayerCount; ++i) {
+        grid_index = TilemapInitialize(kTilemapShip);
+        // At least one ship
+        kScenario.ship = i;
+        Ship* ship = UseShip();
+        ship->grid_index = grid_index;
+        ship->pod_capacity = i;
+        ship->level = 1;
+        kGrid[i].transform.position = v2f(0.f, i * 1600.f);
+      }
     } break;
     case Scenario::kSoloMission: {
       grid_index = TilemapInitialize(kTilemapShip);

@@ -7,6 +7,8 @@ Group=ec2-user
 Type=simple
 ExecStart=/usr/bin/space_server
 Restart=on-failure
+CPUSchedulingPolicy=rr
+CPUSchedulingPriority=49
 
 [Install]
 WantedBy=multi-user.target

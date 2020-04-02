@@ -67,12 +67,12 @@ BfsStep(v2i from, BfsIterator* iter)
   return true;
 }
 
-// Performs many steps of BFS, looking for a node that has not been seen.
+// Find a tile that has not been seen, respecting the "blocked" tile flag.
 //
 // Returns true when more nodes may be searched.
 // Returns false when all nodes have been searched.
 INLINE bool
-BfsNext(BfsIterator* iter)
+BfsNextTile(BfsIterator* iter)
 {
   auto& queue = kSearch.queue;
   auto& path_map = kSearch.path_map;
@@ -92,6 +92,29 @@ BfsNext(BfsIterator* iter)
   return iter->queue_index < qsz;
 }
 
+// Find any node that has not been seen.
+//
+// Returns true when more nodes may be searched.
+// Returns false when all nodes have been searched.
+INLINE bool
+BfsNext(BfsIterator* iter)
+{
+  auto& queue = kSearch.queue;
+  auto& path_map = kSearch.path_map;
+  int& qsz = kSearch.queue_size;
+
+  while (iter->queue_index < qsz) {
+    v2i from = queue[iter->queue_index];
+    if (BfsStep(from, iter)) {
+      path_map[iter->tile->cy][iter->tile->cx] = from;
+      queue[qsz++] = v2i(iter->tile->cx, iter->tile->cy);
+      break;
+    }
+  }
+
+  return iter->queue_index < qsz;
+}
+
 Path*
 PathTo(const v2i& start, const v2i& end)
 {
@@ -101,7 +124,7 @@ PathTo(const v2i& start, const v2i& end)
 
   auto& path_map = kSearch.path_map;
   BfsIterator iter = BfsStart(start);
-  while (BfsNext(&iter)) {
+  while (BfsNextTile(&iter)) {
     if (path_map[end.y][end.x] != INVALID_TILE) {
       break;
     }

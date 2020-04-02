@@ -329,12 +329,13 @@ DecideInvasion()
       // Spawn the units from the invasion force!
       BfsIterator iter = BfsStart(v->docked_tile);
       int count = rand() % kMaxThisInvasion + 1;
-      while (v->unit_count != count) {
-        BfsNext(&iter);
-        if (iter.tile->exterior) continue;
+      while (BfsNext(&iter)) {
+        if (iter.tile->exterior || iter.tile->blocked) continue;
         v->unit_id[v->unit_count++] =
             SpawnEnemy(v2i(iter.tile->cx, iter.tile->cy),
                        TilemapWorldToGrid(v->transform.position));
+
+        if (v->unit_count == count) break;
       }
       if (kMaxThisInvasion < kMaxInvasionCount) {
         ++kMaxThisInvasion;
@@ -673,7 +674,7 @@ Decide()
           if (0 == (kUnit[i].control & c.control)) continue;
           c.destination = TileToWorld(*iter.tile);
           ApplyCommand(&kUnit[i], c);
-          BfsNext(&iter);
+          if (!BfsNextTile(&iter)) break;
         }
       }
     } else {

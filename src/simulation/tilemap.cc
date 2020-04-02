@@ -49,7 +49,7 @@ TileOR(Tile lhs, Tile rhs)
   return *(Tile*)&res;
 }
 
-#define INVALID_TILE v2i{0, 0};
+#define INVALID_TILE v2i(0, 0)
 
 constexpr int kMaxNeighbor = 8;
 constexpr int kLastNeighbor = kMaxNeighbor - 1;

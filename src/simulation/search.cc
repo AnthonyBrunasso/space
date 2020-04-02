@@ -6,11 +6,6 @@
 
 namespace simulation
 {
-struct PathNode {
-  v2i from;
-  bool checked;
-};
-
 struct Path {
   v2i tile[kMapHeight * kMapWidth];
   int size;
@@ -18,7 +13,7 @@ struct Path {
 
 struct Search {
   // Visited Nodes
-  PathNode path_map[kMapHeight][kMapWidth];
+  v2i path_map[kMapHeight][kMapWidth];
   // BFS queue.
   v2i queue[kMapHeight * kMapWidth];
   int queue_size;
@@ -38,7 +33,7 @@ BfsIterator
 BfsStart(v2i start)
 {
   constexpr int N = kMapHeight * kMapWidth;
-  memset(kSearch.path_map, 0, sizeof(PathNode) * N);
+  memset(kSearch.path_map, 0, sizeof(v2i) * N);
   kSearch.queue_size = 0;
   kSearch.path.size = 0;
   BfsIterator itr;
@@ -47,8 +42,7 @@ BfsStart(v2i start)
   itr.tile = nullptr;
   if (!TileOk(start)) return itr;
   kSearch.queue[kSearch.queue_size++] = start;
-  kSearch.path_map[start.y][start.x].from = start;
-  kSearch.path_map[start.y][start.x].checked = true;
+  kSearch.path_map[start.y][start.x] = start;
   itr.tile = TilePtr(start);
   return itr;
 }
@@ -70,9 +64,8 @@ BfsStep(const Search* search, BfsIterator* iter)
   iter->tile = tile;
 
   if (!tile || tile->blocked) return false;
-  if (path_map[neighbor.y][neighbor.x].checked == true) return false;
-  path_map[neighbor.y][neighbor.x].checked = true;
-  path_map[neighbor.y][neighbor.x].from = from;
+  if (path_map[neighbor.y][neighbor.x] != INVALID_TILE) return false;
+  path_map[neighbor.y][neighbor.x] = from;
   return true;
 }
 
@@ -106,19 +99,19 @@ PathTo(const v2i& start, const v2i& end)
   auto& path_map = kSearch.path_map;
   BfsIterator iter = BfsStart(start);
   while (BfsNext(&iter)) {
-    if (path_map[end.y][end.x].checked) {
+    if (path_map[end.y][end.x] != INVALID_TILE) {
       break;
     }
   }
 
-  if (!path_map[end.y][end.x].checked) return nullptr;
+  if (path_map[end.y][end.x] == INVALID_TILE) return nullptr;
 
   auto& path = kSearch.path;
   auto& psz = kSearch.path.size;
   path.tile[psz++] = end;
   while (path.tile[psz - 1] != start) {
     auto& prev = path.tile[psz - 1];
-    path.tile[psz++] = kSearch.path_map[prev.y][prev.x].from;
+    path.tile[psz++] = kSearch.path_map[prev.y][prev.x];
   }
   // Reverse it
   for (int i = 0, last = psz - 1; i < last; ++i, --last) {

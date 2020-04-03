@@ -62,11 +62,14 @@ struct NetworkState {
 };
 
 static NetworkState kNetworkState;
+static Stats kNetworkStats;
 
 bool
 NetworkSetup()
 {
-  // No player takes action on frame 0
+  StatsInit(&kNetworkStats);
+
+  // Player takes no action on frame 0
   // Initialize with frame 0 "ready" for update
   for (int i = 0; i < MAX_NETQUEUE; ++i) {
     Slot val = Slot(TERNARY(i == 0, kSlotReceived, kSlotSimulated));
@@ -305,6 +308,10 @@ NetworkEgress()
   kNetworkState.egress_min = MIN(kNetworkState.egress_min, min_value);
   kNetworkState.egress_max = MAX(kNetworkState.egress_max, max_value);
 
+  if (received_ack) {
+    StatsAdd(count, &kNetworkStats);
+  }
+
   return count;
 }
 
@@ -389,6 +396,6 @@ NetworkQueueGoal()
   // No ack data yet, allow unbuffered play
   if (kNetworkState.egress_min == UINT64_MAX) return 1;
 
-  return MAX(kNetworkState.egress_max - kNetworkState.egress_min, 1);
+  return roundf(StatsMean(&kNetworkStats)) - kNetworkState.egress_min + 1;
 }
 

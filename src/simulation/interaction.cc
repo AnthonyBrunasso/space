@@ -26,7 +26,7 @@ CacheSyncHashes(bool update, uint64_t frame)
 
 void
 DebugPanel(const Player& player, uint32_t tag, const Stats& stats,
-           uint64_t frame_target_usec, uint64_t frame, uint64_t jerk)
+           uint64_t frame_target_usec, uint64_t frame, uint64_t jerk, uint64_t frame_queue)
 {
   auto sz = player.camera.viewport;
 #define BUFFER_SIZE 64
@@ -50,7 +50,12 @@ DebugPanel(const Player& player, uint32_t tag, const Stats& stats,
              "Network Rtt: [%06lu us to %06lu us] [%lu/%lu queue]",
              kNetworkState.egress_min * frame_target_usec,
              kNetworkState.egress_max * frame_target_usec,
-             NetworkContiguousSlotReady(frame), MAX_NETQUEUE);
+             frame_queue, MAX_NETQUEUE);
+    imui::Text(buffer);
+    snprintf(buffer, BUFFER_SIZE, "Network Smoothing: %04.02f us [%02.02f%%] [%lu goal]",
+             StatsMean(&kNetworkStats) - kNetworkState.egress_min,
+             100.f * StatsUnbiasedRsDev(&kNetworkStats),
+             NetworkQueueGoal());
     imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE, "Window Size: %ix%i", (int)sz.x, (int)sz.y);
     imui::Text(buffer);
@@ -59,8 +64,8 @@ DebugPanel(const Player& player, uint32_t tag, const Stats& stats,
     imui::Text(buffer);
     v2i mouse_tile;
     if (WorldToTilePos(player.world_mouse, &mouse_tile)) {
-      snprintf(buffer, BUFFER_SIZE, "Mouse Pos To Tile: (%i,%i)",
-               mouse_tile.x, mouse_tile.y);
+      snprintf(buffer, BUFFER_SIZE, "Mouse Pos To Tile: (%i,%i)", mouse_tile.x,
+               mouse_tile.y);
       imui::Text(buffer);
     }
     snprintf(buffer, BUFFER_SIZE, "Input hash: 0x%lx", kDebugInputHash);
@@ -420,11 +425,11 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
             }
           }
         } break;
-        //case '1': {
+        // case '1': {
         //  player->hud_mode = kHudModule;
         //  player->mod_placement = 0;
         //} break;
-        //case '2': {
+        // case '2': {
         //  player->hud_mode = kHudModule;
         //  player->mod_placement = 1;
         //} break;
@@ -486,8 +491,8 @@ GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
   v2f p(50.f, 10.f);
   for (int i = 3; i < kModCount; ++i) {
     v3f c = ModuleColor((ModuleKind)i);
-    hud_result = imui::Button(math::Rectf(p.x, p.y, 50, 50),
-                              v4f(c.x, c.y, c.z, .6f));
+    hud_result =
+        imui::Button(math::Rectf(p.x, p.y, 50, 50), v4f(c.x, c.y, c.z, .6f));
     p.x += 55.f;
     if (hud_result.clicked) {
       player->hud_mode = kHudModule;

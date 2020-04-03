@@ -210,8 +210,9 @@ main(int argc, char** argv)
     NetworkEgress();
     NetworkIngress(kGameState.logic_updates);
 
+    const int frame_queue = NetworkContiguousSlotReady(kGameState.logic_updates);
     const int advance =
-        1 + (NetworkContiguousSlotReady(kGameState.logic_updates) > 1);
+        1 + (frame_queue > NetworkQueueGoal());
     for (int frame = 0; frame < advance; ++frame) {
       uint64_t slot = NETQUEUE_SLOT(kGameState.logic_updates);
 #if DEBUG_NETWORK
@@ -251,7 +252,8 @@ main(int argc, char** argv)
           simulation::DebugPanel(kPlayer[i], i, kGameStats,
                                  kGameState.frame_target_usec,
                                  kGameState.logic_updates,
-                                 kGameState.game_clock.jerk);
+                                 kGameState.game_clock.jerk,
+                                 frame_queue);
           simulation::GameUI(dims, i, i, &kPlayer[i]);
         } 
 #endif

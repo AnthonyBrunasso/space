@@ -58,6 +58,7 @@ struct NotifyFrame {
 };
 
 struct NotifyUpdate {
+  uint64_t server_jerk;
   uint64_t ack_sequence;
 #ifndef _WIN32
   NotifyFrame turn[];

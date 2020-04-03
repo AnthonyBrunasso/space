@@ -73,6 +73,7 @@ static Game game[MAX_GAME];
 
 static bool running = true;
 static uint64_t next_game_id = time(0);
+static TscClock_t server_clock;
 
 int
 GetPlayerIndexFromPeer(Udp4* peer)
@@ -228,6 +229,7 @@ game_transmit(Udp4 location, uint64_t game_index)
   uint64_t last_frame = g->last_frame;
   for (int i = 0; i < MAX_UPDATE; ++i) {
     NotifyUpdate* update = (NotifyUpdate*)out_buffer;
+    update->server_jerk = server_clock.jerk;
     uint8_t* offset = out_buffer + sizeof(NotifyUpdate);
 
     const uint64_t start_frame = send_frame;
@@ -251,7 +253,7 @@ game_transmit(Udp4 location, uint64_t game_index)
 }
 
 bool
-game_update(uint64_t realtime_usec, uint64_t game_index, uint64_t jerk)
+game_update(uint64_t realtime_usec, uint64_t game_index)
 {
   Game* g = &game[game_index];
   const uint64_t game_id = g->game_id;
@@ -294,10 +296,13 @@ game_update(uint64_t realtime_usec, uint64_t game_index, uint64_t jerk)
   }
 
   if (ALAN) {
-    SERVER_LOGFMT(
-        "Server game [ frame %lu ] [ ack_frame %lu ] [ new_ack_frame %lu ] [ "
-        "jerk %lu ]\n",
-        next_frame, g->ack_frame, new_ack_frame, jerk);
+    SERVER_LOGFMT("Server game "
+	" [ next_frame %lu ] "
+	" [ ack_frame %lu ] "
+	" [ new_ack_frame %lu ] "
+	" [ jerk %lu ] "
+	"\n",
+        next_frame, g->ack_frame, new_ack_frame, server_clock.jerk);
   }
 
   g->last_frame = next_frame;
@@ -339,7 +344,6 @@ server_main(void* void_arg)
   }
 
   uint64_t realtime_usec = 0;
-  TscClock_t server_clock;
   clock_init(SERVER_TICK_USEC, &server_clock);
   while (running) {
     uint16_t received_bytes;
@@ -354,7 +358,7 @@ server_main(void* void_arg)
 
       bool ready[MAX_GAME] = {};
       for (int i = 0; i < MAX_GAME; ++i) {
-        while (game_update(realtime_usec, i, server_clock.jerk)) {
+        while (game_update(realtime_usec, i)) {
           ready[i] = true;
         }
       }

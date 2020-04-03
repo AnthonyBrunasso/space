@@ -103,6 +103,16 @@ ReceiveAny(Udp4 location, uint16_t buffer_len, uint8_t* buffer,
   return true;
 }
 
+#define IPTOS_LOWDELAY 0x10
+
+bool
+SetLowDelay(Udp4 location)
+{
+  int low_delay = IPTOS_LOWDELAY;
+  return (setsockopt(location.socket, IPPROTO_IP, IP_TOS, (const char*)&low_delay,
+                     sizeof(low_delay)) < 0);
+}
+
 bool
 GetAddr4(const char* host, const char* service_or_port, Udp4* out)
 {
@@ -134,6 +144,8 @@ GetAddr4(const char* host, const char* service_or_port, Udp4* out)
     udp_errno = errno;
     return false;
   }
+
+  SetLowDelay(*out);
 
   if (result->ai_addrlen > sizeof(struct sockaddr_in)) return false;
 

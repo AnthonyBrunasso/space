@@ -61,6 +61,8 @@ struct NetworkState {
   PlayerInfo player_info[MAX_PLAYER];
   // 1.0: 84th percentile, 2.0: 97th percentile, 3.0: 99th percentile
   const float rsdev_const = 3.0f;
+  // Server state
+  uint64_t server_jerk;
 };
 
 static NetworkState kNetworkState;
@@ -339,6 +341,7 @@ NetworkIngress(uint64_t next_simulation_frame)
     if (ack_delta < 0) continue;
     if (ack_sequence - kNetworkState.ack_sequence >= MAX_NETQUEUE) continue;
     kNetworkState.ack_sequence = ack_sequence;
+    kNetworkState.server_jerk = update->server_jerk;
 
     const uint8_t* offset = (kNetworkState.netbuffer + sizeof(NotifyUpdate));
     const uint8_t* end_buffer = kNetworkState.netbuffer + bytes_received;

@@ -42,8 +42,8 @@ DebugPanel(const Player& player, uint32_t tag, const Stats& stats,
   }
 
   if (enable_debug) {
-    snprintf(buffer, BUFFER_SIZE, "Frame Time: %04.02f us [%02.02f%%] [%lu jerk]",
-             StatsMean(&stats), 100.f * StatsUnbiasedRsDev(&stats), jerk);
+    snprintf(buffer, BUFFER_SIZE, "Frame Time: %04.02f us [%02.02f%%] [%lu jerk] [%lu server_jerk]",
+             StatsMean(&stats), 100.f * StatsUnbiasedRsDev(&stats), jerk, kNetworkState.server_jerk);
     imui::Indent(2);
     imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE,

@@ -224,7 +224,10 @@ HudSelection(v2f screen)
     break;
   }
 
-  if (!unit) return;
+  if (!unit) {
+    imui::Text("No selected Unit");
+    return;
+  }
 
   constexpr int MAX_SELECTED_TEXT = CREWA_MAX + 3;
   char selected_text[MAX_SELECTED_TEXT][64];
@@ -277,9 +280,24 @@ void
 Hud(v2f screen, uint32_t tag)
 {
   imui::Begin(v2f(screen.x - 225.f, screen.y - 30.0f), tag);
-  HudSelection(screen);
-  // TODO(abrunasso): Perhaps enable / disable this in Debug panel?
-  DebugHudAI(screen);
+
+  static bool enable_unit_details = false;
+  imui::TextOptions options;
+  options.color = gfx::kWhite;
+  options.highlight_color = gfx::kRed;
+  if (enable_unit_details) {
+    if (imui::Text("Hide Unit Details", options).clicked) {
+      enable_unit_details = !enable_unit_details;
+    }
+
+    HudSelection(screen);
+    DebugHudAI(screen);
+  } else {
+    if (imui::Text("Unit Details", options).clicked) {
+      enable_unit_details = !enable_unit_details;
+    }
+  }
+
   imui::End();
 }
 

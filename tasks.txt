@@ -73,5 +73,6 @@ network -
   retransmission clock OR consider modifying ack_frame and ack_sequence to use latest value w/ packet history
   server turn injection/reordering
   server retransmission of NotifyGame
-  client tune netqueue for smooth simulation under network variance
+  do we ever need to choke client sending input? (only necessary if server time slip is occurring)
+  
 

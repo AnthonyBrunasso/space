@@ -294,6 +294,18 @@ main(int argc, char** argv)
 #endif
 
     if (ALAN) {
+      if (kNetworkState.ack_sequence + .5f*StatsMean(&kNetworkStats) > kGameState.game_updates) {
+        printf("CONSIDER CHOKE "
+            "[ ack_sequence %lu ] "
+            "[ net_ftt %02.0f ] "
+            "[ frame %lu] "
+            "\n",
+            kNetworkState.ack_sequence,
+            StatsMean(&kNetworkStats),
+            kGameState.game_updates);
+      }
+    }
+    if (ALAN) {
       printf(
           "Update "
           "[ frame %lu ] "

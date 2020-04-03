@@ -151,7 +151,6 @@ main(int argc, char** argv)
     return 1;
   }
 
-
   // Game init
   kPlayerCount = kNetworkState.player_count;
   kPlayerIndex = kNetworkState.player_index;
@@ -210,29 +209,33 @@ main(int argc, char** argv)
     NetworkEgress();
     NetworkIngress(kGameState.logic_updates);
 
-    const int frame_queue = NetworkContiguousSlotReady(kGameState.logic_updates);
-    const int advance =
-        1 + (frame_queue > NetworkQueueGoal());
+    const int frame_queue =
+        NetworkContiguousSlotReady(kGameState.logic_updates);
+    const int advance = 1 + (frame_queue > NetworkQueueGoal());
     for (int frame = 0; frame < advance; ++frame) {
       uint64_t slot = NETQUEUE_SLOT(kGameState.logic_updates);
-#if DEBUG_NETWORK
-      printf(
-          "[egress_min %lu] [egress_max %lu] [queue_goal %lu] [ready_count %d] "
-          "[advance %d]\n",
-          kNetworkState.egress_min, kNetworkState.egress_max,
-          NetworkQueueGoal(),
-          NetworkContiguousSlotReady(kGameState.logic_updates), advance);
-#endif
+      if (ALAN) {
+        printf(
+            "[egress_min %lu] [egress_max %lu] [queue_goal %lu] [ready_count "
+            "%d] "
+            "[advance %d]\n",
+            kNetworkState.egress_min, kNetworkState.egress_max,
+            NetworkQueueGoal(),
+            NetworkContiguousSlotReady(kGameState.logic_updates), advance);
+      }
       if (SlotReady(slot)) {
         imui::Reset();
         simulation::Hash();
         simulation::CacheSyncHashes(slot == 0, kGameState.logic_updates);
 
         // Game Mutation: Apply player commands for turn N
-#if ALAN_DEBUG
-        printf("Simulation [ %lu slot ] [ %lu frame ] [ %lu jerk ] [ %lu median_tsc ]\n", slot,
-               kGameState.logic_updates, kGameState.game_clock.jerk);
-#endif
+        if (ALAN) {
+          printf(
+              "Simulation [ %lu slot ] [ %lu frame ] [ %lu jerk ] [ %lu "
+              "server_jerk ] \n",
+              slot, kGameState.logic_updates, kGameState.game_clock.jerk,
+              kNetworkState.server_jerk);
+        }
         InputBuffer* game_turn = GetSlot(slot);
         for (int i = 0; i < MAX_PLAYER; ++i) {
           InputBuffer* player_turn = &game_turn[i];
@@ -252,10 +255,9 @@ main(int argc, char** argv)
           simulation::DebugPanel(kPlayer[i], i, kGameStats,
                                  kGameState.frame_target_usec,
                                  kGameState.logic_updates,
-                                 kGameState.game_clock.jerk,
-                                 frame_queue);
+                                 kGameState.game_clock.jerk, frame_queue);
           simulation::GameUI(dims, i, i, &kPlayer[i]);
-        } 
+        }
 #endif
 
         // SetView for the local player's camera
@@ -282,9 +284,9 @@ main(int argc, char** argv)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #endif
 
-#if DEBUG_NETWORK
-    printf("[frame %lu]\n", kGameState.game_updates);
-#endif
+    if (ALAN) {
+      printf("[frame %lu]\n", kGameState.game_updates);
+    }
     ++kGameState.game_updates;
 
     uint64_t sleep_usec = 0;

@@ -24,7 +24,9 @@ static ServerParam thread_param;
 #define GAME_TICK_USEC (16333)
 #define SERVER_TICK_USEC (8333)
 
+#ifndef ALAN
 constexpr bool ALAN = false;
+#endif
 
 #ifndef NSLOG
 #define SERVER_LOG(x)

@@ -106,11 +106,11 @@ NetworkSetup()
   h.num_players = kNetworkState.num_players;
   h.player_info.window_width = (uint64_t)dims.x;
   h.player_info.window_height = (uint64_t)dims.y;
-#if ALAN_DEBUG
-  printf("Client: send '%s' for %lu players client dims(%lu, %lu)\n",
-         h.greeting, kNetworkState.num_players, h.player_info.window_width,
-         h.player_info.window_height);
-#endif
+  if (ALAN) {
+    printf("Client: send '%s' for %lu players client dims(%lu, %lu)\n",
+           h.greeting, kNetworkState.num_players, h.player_info.window_width,
+           h.player_info.window_height);
+  }
   for (int send_count = 0; bytes_received <= 0 && send_count < 5000000;
        ++send_count) {
     if (!udp::Send(kNetworkState.socket, &h, sizeof(h))) exit(1);
@@ -126,21 +126,21 @@ NetworkSetup()
     }
   }
 
-#if ALAN_DEBUG
-  printf("Client Handshake [bytes_received %d]\n", bytes_received);
-#endif
+  if (ALAN) {
+    printf("Client Handshake [bytes_received %d]\n", bytes_received);
+  }
   if (bytes_received != sizeof(NotifyGame)) exit(3);
 
   NotifyGame* ns = (NotifyGame*)kNetworkState.netbuffer;
-#if ALAN_DEBUG
-  printf("Handshake success [ player_id %zu ] [ player_count %zu ] [",
-         (size_t)ns->player_id, (size_t)ns->player_count);
-  for (int i = 0; i < ns->player_count; ++i) {
-    printf(" %lu,%lu ", ns->player_info[i].window_width,
-           ns->player_info[i].window_height);
+  if (ALAN) {
+    printf("Handshake success [ player_id %zu ] [ player_count %zu ] [",
+           (size_t)ns->player_id, (size_t)ns->player_count);
+    for (int i = 0; i < ns->player_count; ++i) {
+      printf(" %lu,%lu ", ns->player_info[i].window_width,
+             ns->player_info[i].window_height);
+    }
+    printf("]\n");
   }
-  printf("]\n");
-#endif
   kNetworkState.game_id = ns->game_id;
   kNetworkState.player_index = ns->player_id;
   kNetworkState.player_count = ns->player_count;
@@ -164,10 +164,10 @@ GetNextInputBuffer()
 {
   uint64_t slot = NETQUEUE_SLOT(kNetworkState.outgoing_sequence);
 
-#if ALAN_DEBUG
-  printf("--ProcessInput [ %lu seq ][ %lu slot ]\n",
-         kNetworkState.outgoing_sequence, slot);
-#endif
+  if (ALAN) {
+    printf("--ProcessInput [ %lu seq ][ %lu slot ]\n",
+           kNetworkState.outgoing_sequence, slot);
+  }
 
   // If unacknowledged packets exceed the queue, give up
   if (kNetworkState.outgoing_sequence - kNetworkState.ack_sequence >=
@@ -234,14 +234,14 @@ NetworkAppend(uint64_t player_index, const uint8_t* end_buffer,
   // Full packet
   if (end_buffer - netbuffer < event_bytes) return false;
 
-#if ALAN_DEBUG
-  printf(
-      "Client NetworkAppend "
-      "[ event_bytes %lu ] "
-      "[ sequence %lu ] "
-      "\n",
-      event_bytes, *seq_ref);
-#endif
+  if (ALAN) {
+    printf(
+        "Client NetworkAppend "
+        "[ event_bytes %lu ] "
+        "[ sequence %lu ] "
+        "\n",
+        event_bytes, *seq_ref);
+  }
 
   turn->event_bytes = event_bytes;
   memcpy(event, ibuf->input_event, event_bytes);
@@ -286,19 +286,19 @@ NetworkEgress()
       if (!NetworkAppend(player_index, end_buffer, &write_buffer, &seq)) break;
     }
 
-#if ALAN_DEBUG
-    printf(
-        "CliSnd "
-        "[ %lu player_index ] "
-        "[ %lu header_sequence ] "
-        "[ %lu ack_sequence ] "
-        "[ %lu ack_frame ] "
-        "[ %ld written ] "
-        "\n",
-        kNetworkState.player_index, header->sequence,
-        kNetworkState.ack_sequence, kNetworkState.ack_frame,
-        write_buffer - kNetworkState.netbuffer);
-#endif
+    if (ALAN) {
+      printf(
+          "CliSnd "
+          "[ %lu player_index ] "
+          "[ %lu header_sequence ] "
+          "[ %lu ack_sequence ] "
+          "[ %lu ack_frame ] "
+          "[ %ld written ] "
+          "\n",
+          kNetworkState.player_index, header->sequence,
+          kNetworkState.ack_sequence, kNetworkState.ack_frame,
+          write_buffer - kNetworkState.netbuffer);
+    }
 
     udp::Send(kNetworkState.socket, kNetworkState.netbuffer,
               write_buffer - kNetworkState.netbuffer);
@@ -329,14 +329,14 @@ NetworkIngress(uint64_t next_simulation_frame)
     const uint64_t ack_sequence = update->ack_sequence;
     const int64_t ack_delta = ack_sequence - update->ack_sequence;
 
-#if ALAN_DEBUG
-    printf(
-        "CliRcv "
-        "[ %lu ack_seq ] "
-        "[ %ld ack_delta ] "
-        "\n",
-        ack_sequence, ack_delta);
-#endif
+    if (ALAN) {
+      printf(
+          "CliRcv "
+          "[ %lu ack_seq ] "
+          "[ %ld ack_delta ] "
+          "\n",
+          ack_sequence, ack_delta);
+    }
 
     if (ack_delta < 0) continue;
     if (ack_sequence - kNetworkState.ack_sequence >= MAX_NETQUEUE) continue;
@@ -352,14 +352,14 @@ NetworkIngress(uint64_t next_simulation_frame)
       const uint64_t frame = nf->frame;
       const uint64_t slot = NETQUEUE_SLOT(frame);
 
-#if ALAN_DEBUG
-      printf(
-          "CliRcvFrame "
-          "[ %lu slot ] "
-          "[ %lu frame ] "
-          "\n",
-          slot, frame);
-#endif
+      if (ALAN) {
+        printf(
+            "CliRcvFrame "
+            "[ %lu slot ] "
+            "[ %lu frame ] "
+            "\n",
+            slot, frame);
+      }
 
       for (int i = 0; i < num_players; ++i) {
         if (offset + sizeof(Turn) >= end_buffer) {
@@ -403,6 +403,6 @@ NetworkQueueGoal()
 
   // roundf may result in values less than rsdev_const
   // Add one because measure is done before current frame processing
-  return roundf(StatsRsDev(&kNetworkStats)*kNetworkState.rsdev_const) + 1;
+  return roundf(StatsRsDev(&kNetworkStats) * kNetworkState.rsdev_const) + 1;
 }
 

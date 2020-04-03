@@ -27,8 +27,8 @@ static ServerParam thread_param;
 constexpr bool ALAN = false;
 
 #ifndef NSLOG
-#define SERVER_LOG(x) 
-#define SERVER_LOGFMT(fmt, ...) 
+#define SERVER_LOG(x)
+#define SERVER_LOGFMT(fmt, ...)
 #else
 #define SERVER_LOG(x) (puts(x))
 #define SERVER_LOGFMT(fmt, ...) (printf(fmt, __VA_ARGS__))
@@ -362,16 +362,16 @@ server_main(void* void_arg)
         if (!ready[i]) continue;
         game_transmit(location, i);
       }
-      continue;
+    } else {
+#ifndef WIN32
+      udp::PollUsec(location, sleep_usec);
+#endif
     }
 
     if (!udp::ReceiveAny(location, MAX_PACKET_IN, in_buffer, &received_bytes,
                          &peer)) {
       if (udp_errno) running = false;
       if (udp_errno) SERVER_LOGFMT("Server udp_errno %d\n", udp_errno);
-#ifndef WIN32
-      platform::sleep_usec(sleep_usec);
-#endif
       continue;
     }
 

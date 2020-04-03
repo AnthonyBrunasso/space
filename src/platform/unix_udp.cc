@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <netdb.h>
+#include <poll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -142,6 +143,13 @@ ReceiveAny(Udp4 location, uint16_t buffer_len, uint8_t* buffer,
   memcpy(from_peer->socket_address, &remote_addr, sizeof(struct sockaddr_in));
 
   return true;
+}
+
+void
+PollUsec(Udp4 location, uint64_t usec)
+{
+  struct pollfd fd = { .fd = location.socket, .events = POLLIN };
+  poll(&fd, 1, usec/1000);
 }
 
 bool

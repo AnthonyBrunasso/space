@@ -59,6 +59,8 @@ struct NetworkState {
   uint64_t egress_min = UINT64_MAX;
   uint64_t egress_max = 0;
   PlayerInfo player_info[MAX_PLAYER];
+  // 1.0: 84th percentile, 2.0: 97th percentile, 3.0: 99th percentile
+  const float rsdev_const = 3.0f;
 };
 
 static NetworkState kNetworkState;
@@ -396,6 +398,8 @@ NetworkQueueGoal()
   // No ack data yet, allow unbuffered play
   if (kNetworkState.egress_min == UINT64_MAX) return 1;
 
-  return roundf(StatsMean(&kNetworkStats)) - kNetworkState.egress_min + 1;
+  // roundf may result in values less than rsdev_const
+  // Add one because measure is done before current frame processing
+  return roundf(StatsRsDev(&kNetworkStats)*kNetworkState.rsdev_const) + 1;
 }
 

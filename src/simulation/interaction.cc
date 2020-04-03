@@ -52,10 +52,18 @@ DebugPanel(const Player& player, uint32_t tag, const Stats& stats,
              kNetworkState.egress_max * frame_target_usec,
              frame_queue, MAX_NETQUEUE);
     imui::Text(buffer);
-    snprintf(buffer, BUFFER_SIZE, "Network Smoothing: %04.02f us [%02.02f%%] [%lu goal]",
-             StatsMean(&kNetworkStats) - kNetworkState.egress_min,
-             100.f * StatsUnbiasedRsDev(&kNetworkStats),
-             NetworkQueueGoal());
+    snprintf(buffer, BUFFER_SIZE, "Network ft: %04.02f mean [%02.02f%%]",
+             StatsMean(&kNetworkStats),
+             100.f * StatsUnbiasedRsDev(&kNetworkStats));
+    imui::Text(buffer);
+    snprintf(buffer, BUFFER_SIZE, "Network rsdev: [%04.02f 84th] [%04.02f 97th ] [%04.02f 99th]",
+             StatsRsDev(&kNetworkStats)*1,
+             StatsRsDev(&kNetworkStats)*2,
+             StatsRsDev(&kNetworkStats)*3);
+    imui::Text(buffer);
+    snprintf(buffer, BUFFER_SIZE, "Network Queue: %lu [%1.0fx rsdev]",
+             NetworkQueueGoal(),
+             kNetworkState.rsdev_const);
     imui::Text(buffer);
     snprintf(buffer, BUFFER_SIZE, "Window Size: %ix%i", (int)sz.x, (int)sz.y);
     imui::Text(buffer);

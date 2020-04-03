@@ -27,6 +27,12 @@ StatsVariance(const Stats *accum)
 }
 
 float
+StatsRsDev(const Stats* accum)
+{
+  return sqrtf(accum->moments[2] / (accum->moments[0] - 1));
+}
+
+float
 StatsUnbiasedRsDev(const Stats *accum)
 {
   return sqrtf(accum->moments[2] / (accum->moments[1] * accum->moments[1] *

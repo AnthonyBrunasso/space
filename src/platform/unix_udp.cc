@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <netdb.h>
+#include <netinet/ip.h>
 #include <poll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -148,8 +149,16 @@ ReceiveAny(Udp4 location, uint16_t buffer_len, uint8_t* buffer,
 void
 PollUsec(Udp4 location, uint64_t usec)
 {
-  struct pollfd fd = { .fd = location.socket, .events = POLLIN };
-  poll(&fd, 1, usec/1000);
+  struct pollfd fd = {.fd = location.socket, .events = POLLIN};
+  poll(&fd, 1, usec / 1000);
+}
+
+bool
+SetLowDelay(Udp4 location)
+{
+  int low_delay = IPTOS_LOWDELAY;
+  return (setsockopt(location.socket, IPPROTO_IP, IP_TOS, &low_delay,
+                     sizeof(low_delay)) < 0);
 }
 
 bool
@@ -177,6 +186,8 @@ GetAddr4(const char* host, const char* service_or_port, Udp4* out)
     udp_errno = errno;
     return false;
   }
+
+  SetLowDelay(*out);
 
   assert(result->ai_addrlen == sizeof(struct sockaddr_in));
 

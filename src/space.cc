@@ -24,6 +24,8 @@ struct State {
   // Number of times the game has been updated.
   uint64_t game_updates = 0;
   uint64_t logic_updates = 0;
+  // Most recent frame that was unable to advance due to input loss
+  uint64_t choke_frame = 0;
   // Parameters window::Create will be called with.
   window::CreateInfo window_create_info;
 };
@@ -211,63 +213,70 @@ main(int argc, char** argv)
 
     const int frame_queue =
         NetworkContiguousSlotReady(kGameState.logic_updates);
-    const int advance = 1 + (frame_queue > NetworkQueueGoal());
+    const bool recent_starvation =
+        (frame - kGameState.choke_frame) < (kGameState.framerate * 5);
+    const int advance = (frame_queue > 0) +
+                        (!recent_starvation * (frame_queue > NetworkQueueGoal()));
+    const bool is_starvation = (frame_queue == 0);
+    kGameState.choke_frame =
+        MAX(recent_starvation * kGameState.choke_frame, is_starvation * frame);
     for (int frame = 0; frame < advance; ++frame) {
       uint64_t slot = NETQUEUE_SLOT(kGameState.logic_updates);
       if (ALAN) {
+        assert(SlotReady(slot));
         printf(
-            "[egress_min %lu] [egress_max %lu] [queue_goal %lu] [ready_count "
-            "%d] "
-            "[advance %d]\n",
-            kNetworkState.egress_min, kNetworkState.egress_max,
-            NetworkQueueGoal(),
+            "Simulation "
+            "[ frame %lu ] "
+            "[ slot %lu ] "
+            "[ jerk %lu ] "
+            "[ server_jerk %lu ] "
+            "[ egress_min %lu ] "
+            "[ egress_max %lu ] "
+            "[ queue_goal %lu ] "
+            "[ ready_count %d ] "
+            "[ advance %d ] "
+            "\n",
+            kGameState.logic_updates, slot, kGameState.game_clock.jerk,
+            kNetworkState.server_jerk, kNetworkState.egress_min,
+            kNetworkState.egress_max, NetworkQueueGoal(),
             NetworkContiguousSlotReady(kGameState.logic_updates), advance);
       }
-      if (SlotReady(slot)) {
-        imui::Reset();
-        simulation::Hash();
-        simulation::CacheSyncHashes(slot == 0, kGameState.logic_updates);
 
-        // Game Mutation: Apply player commands for turn N
-        if (ALAN) {
-          printf(
-              "Simulation [ %lu slot ] [ %lu frame ] [ %lu jerk ] [ %lu "
-              "server_jerk ] \n",
-              slot, kGameState.logic_updates, kGameState.game_clock.jerk,
-              kNetworkState.server_jerk);
-        }
-        InputBuffer* game_turn = GetSlot(slot);
-        for (int i = 0; i < MAX_PLAYER; ++i) {
-          InputBuffer* player_turn = &game_turn[i];
-          simulation::ProcessSimulation(i, player_turn->used_input_event,
-                                        player_turn->input_event);
-        }
+      imui::Reset();
+      simulation::Hash();
+      simulation::CacheSyncHashes(slot == 0, kGameState.logic_updates);
 
-        // Game Mutation: continue simulation
-        simulation::Update();
+      // Game Mutation: Apply player commands for turn N
+      InputBuffer* game_turn = GetSlot(slot);
+      for (int i = 0; i < MAX_PLAYER; ++i) {
+        InputBuffer* player_turn = &game_turn[i];
+        simulation::ProcessSimulation(i, player_turn->used_input_event,
+                                      player_turn->input_event);
+      }
+
+      // Game Mutation: continue simulation
+      simulation::Update();
 #ifndef HEADLESS
-        for (int i = 0; i < kNetworkState.num_players; ++i) {
-          // Misc debug/feedback
-          const v2f dims =
-              v2f(kPlayer[i].camera.viewport.x, kPlayer[i].camera.viewport.y);
-          simulation::LogPanel(dims, i);
-          simulation::Hud(dims, i);
-          simulation::DebugPanel(kPlayer[i], i, kGameStats,
-                                 kGameState.frame_target_usec,
-                                 kGameState.logic_updates,
-                                 kGameState.game_clock.jerk, frame_queue);
-          simulation::GameUI(dims, i, i, &kPlayer[i]);
-        }
+      for (int i = 0; i < kNetworkState.num_players; ++i) {
+        // Misc debug/feedback
+        const v2f dims =
+            v2f(kPlayer[i].camera.viewport.x, kPlayer[i].camera.viewport.y);
+        simulation::LogPanel(dims, i);
+        simulation::Hud(dims, i);
+        simulation::DebugPanel(
+            kPlayer[i], i, kGameStats, kGameState.frame_target_usec,
+            kGameState.logic_updates, kGameState.game_clock.jerk, frame_queue);
+        simulation::GameUI(dims, i, i, &kPlayer[i]);
+      }
 #endif
 
-        // SetView for the local player's camera
-        camera::SetView(GetCamera(kNetworkState.player_index),
-                        &rgg::GetObserver()->view);
+      // SetView for the local player's camera
+      camera::SetView(GetCamera(kNetworkState.player_index),
+                      &rgg::GetObserver()->view);
 
-        // Give the user an update tick. The engine runs with
-        // a fixed delta so no need to provide a delta time.
-        ++kGameState.logic_updates;
-      }
+      // Give the user an update tick. The engine runs with
+      // a fixed delta so no need to provide a delta time.
+      ++kGameState.logic_updates;
     }
 
 #ifndef HEADLESS
@@ -285,7 +294,15 @@ main(int argc, char** argv)
 #endif
 
     if (ALAN) {
-      printf("[frame %lu]\n", kGameState.game_updates);
+      printf(
+          "Update "
+          "[ frame %lu ] "
+          "[ choke_frame %lu ] "
+          "[ recent_starvation %lu ] "
+          "[ advance %lu ] "
+          "\n",
+          kGameState.game_updates, kGameState.choke_frame, recent_starvation,
+          advance);
     }
     ++kGameState.game_updates;
 

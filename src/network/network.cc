@@ -268,7 +268,7 @@ NetworkEgress()
   uint64_t begin_seq = kNetworkState.ack_sequence + 1;
   uint64_t end_seq = kNetworkState.outgoing_sequence;
 
-  LoopbackCopy(end_seq - 1);
+  if (ALAN) LoopbackCopy(end_seq - 1);
 
   // Re-send input history
   uint64_t seq = begin_seq;

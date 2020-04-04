@@ -62,12 +62,20 @@ GatherWindowInput(InputBuffer* input_buffer)
         ++event_count;
         break;
     }
+    switch (type) {
+      case MOUSE_DOWN:
+        imui::MouseClick(pevent.position, pevent.button, imui::kEveryoneTag);
+        break;
+    }
   }
 
   // Always append an estimate of the the local mouse cursor
+  const v2f cursor = window::GetCursorPosition();
   input_buffer->input_event[event_count].type = MOUSE_POSITION;
-  input_buffer->input_event[event_count].position = window::GetCursorPosition();
+  input_buffer->input_event[event_count].position = cursor;
   event_count += 1;
+
+  imui::MousePosition(cursor, imui::kEveryoneTag);
 
   input_buffer->used_input_event = event_count;
 }
@@ -207,6 +215,7 @@ main(int argc, char** argv)
   uint64_t frame = 0;
   for (; frame <= frame_limit; ++frame) {
     if (window::ShouldClose()) break;
+    imui::ResetTag(imui::kEveryoneTag);
 
     GatherInput();
     NetworkEgress();
@@ -244,13 +253,13 @@ main(int argc, char** argv)
             NetworkContiguousSlotReady(kGameState.logic_updates));
       }
 
-      imui::Reset();
       simulation::Hash();
       simulation::CacheSyncHashes(slot == 0, kGameState.logic_updates);
 
       // Game Mutation: Apply player commands for turn N
       InputBuffer* game_turn = GetSlot(slot);
       for (int i = 0; i < MAX_PLAYER; ++i) {
+        imui::ResetTag(i);
         InputBuffer* player_turn = &game_turn[i];
         simulation::ProcessSimulation(i, player_turn->used_input_event,
                                       player_turn->input_event);
@@ -265,9 +274,7 @@ main(int argc, char** argv)
             v2f(kPlayer[i].camera.viewport.x, kPlayer[i].camera.viewport.y);
         simulation::LogPanel(dims, i);
         simulation::Hud(dims, i);
-        simulation::DebugPanel(
-            kPlayer[i], i, kGameStats, kGameState.frame_target_usec,
-            kGameState.logic_updates, kGameState.game_clock.jerk, frame_queue);
+        simulation::AdminPanel(i, &kPlayer[i]);
         simulation::GameUI(dims, i, i, &kPlayer[i]);
       }
 #endif
@@ -280,6 +287,10 @@ main(int argc, char** argv)
       // a fixed delta so no need to provide a delta time.
       ++kGameState.logic_updates;
     }
+
+    simulation::ReadOnlyPanel(
+        imui::kEveryoneTag, kGameStats, kGameState.frame_target_usec,
+        kGameState.logic_updates, kGameState.game_clock.jerk, frame_queue);
 
 #ifndef HEADLESS
     gfx::Render(kNetworkState.player_index);

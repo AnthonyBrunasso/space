@@ -7,6 +7,8 @@
 
 namespace simulation
 {
+#define UIBUFFER_SIZE 64
+static char ui_buffer[UIBUFFER_SIZE];
 static uint64_t kInputHash = DJB2_CONST;
 static uint64_t kDebugInputHash;
 static uint64_t kDebugSimulationHash;
@@ -25,13 +27,12 @@ CacheSyncHashes(bool update, uint64_t frame)
 }
 
 void
-DebugPanel(const Player& player, uint32_t tag, const Stats& stats,
-           uint64_t frame_target_usec, uint64_t frame, uint64_t jerk, uint64_t frame_queue)
+ReadOnlyPanel(uint32_t tag, const Stats& stats, uint64_t frame_target_usec,
+              uint64_t frame, uint64_t jerk, uint64_t frame_queue)
 {
-  auto sz = player.camera.viewport;
-#define BUFFER_SIZE 64
-  char buffer[BUFFER_SIZE];
   static bool enable_debug = false;
+  const Player& player = kPlayer[kPlayerIndex];
+  const v2i sz = player.camera.viewport;
   imui::PaneOptions options;
   imui::Begin(v2f(3.f, sz.y - 30.f), tag, options);
   imui::TextOptions debug_options;
@@ -42,89 +43,104 @@ DebugPanel(const Player& player, uint32_t tag, const Stats& stats,
   }
 
   if (enable_debug) {
-    snprintf(buffer, BUFFER_SIZE, "Frame Time: %04.02f us [%02.02f%%] [%lu jerk] [%lu server_jerk]",
-             StatsMean(&stats), 100.f * StatsUnbiasedRsDev(&stats), jerk, kNetworkState.server_jerk);
     imui::Indent(2);
-    imui::Text(buffer);
-    snprintf(buffer, BUFFER_SIZE,
+    snprintf(ui_buffer, sizeof(ui_buffer),
+             "Frame Time: %04.02f us [%02.02f%%] [%lu jerk] [%lu server_jerk]",
+             StatsMean(&stats), 100.f * StatsUnbiasedRsDev(&stats), jerk,
+             kNetworkState.server_jerk);
+    imui::Text(ui_buffer);
+    snprintf(ui_buffer, sizeof(ui_buffer),
              "Network Rtt: [%06lu us to %06lu us] [%lu/%lu queue]",
              kNetworkState.egress_min * frame_target_usec,
-             kNetworkState.egress_max * frame_target_usec,
-             frame_queue, MAX_NETQUEUE);
-    imui::Text(buffer);
-    snprintf(buffer, BUFFER_SIZE, "Network ft: %04.02f mean [%02.02f%%]",
-             StatsMean(&kNetworkStats),
+             kNetworkState.egress_max * frame_target_usec, frame_queue,
+             MAX_NETQUEUE);
+    imui::Text(ui_buffer);
+    snprintf(ui_buffer, sizeof(ui_buffer),
+             "Network ft: %04.02f mean [%02.02f%%]", StatsMean(&kNetworkStats),
              100.f * StatsUnbiasedRsDev(&kNetworkStats));
-    imui::Text(buffer);
-    snprintf(buffer, BUFFER_SIZE, "Network rsdev: [%04.02f 84th] [%04.02f 97th ] [%04.02f 99th]",
-             StatsRsDev(&kNetworkStats)*1,
-             StatsRsDev(&kNetworkStats)*2,
-             StatsRsDev(&kNetworkStats)*3);
-    imui::Text(buffer);
-    snprintf(buffer, BUFFER_SIZE, "Network Queue: %lu [%1.0fx rsdev]",
-             NetworkQueueGoal(),
-             kNetworkState.rsdev_const);
-    imui::Text(buffer);
-    snprintf(buffer, BUFFER_SIZE, "Window Size: %ix%i", (int)sz.x, (int)sz.y);
-    imui::Text(buffer);
-    snprintf(buffer, BUFFER_SIZE, "Mouse Pos In World: (%.1f,%.1f,%.1f)",
-             player.world_mouse.x, player.world_mouse.y, player.world_mouse.z);
-    imui::Text(buffer);
+    imui::Text(ui_buffer);
+    snprintf(ui_buffer, sizeof(ui_buffer),
+             "Network rsdev: [%04.02f 84th] [%04.02f 97th ] [%04.02f 99th]",
+             StatsRsDev(&kNetworkStats) * 1, StatsRsDev(&kNetworkStats) * 2,
+             StatsRsDev(&kNetworkStats) * 3);
+    imui::Text(ui_buffer);
+    snprintf(ui_buffer, sizeof(ui_buffer), "Network Queue: %lu [%1.0fx rsdev]",
+             NetworkQueueGoal(), kNetworkState.rsdev_const);
+    imui::Text(ui_buffer);
+    snprintf(ui_buffer, sizeof(ui_buffer), "Window Size: %ix%i", (int)sz.x,
+             (int)sz.y);
+    imui::Text(ui_buffer);
+    snprintf(ui_buffer, sizeof(ui_buffer),
+             "Mouse Pos In World: (%.1f,%.1f,%.1f)", player.world_mouse.x,
+             player.world_mouse.y, player.world_mouse.z);
+    imui::Text(ui_buffer);
     v2i mouse_tile;
     if (WorldToTilePos(player.world_mouse, &mouse_tile)) {
-      snprintf(buffer, BUFFER_SIZE, "Mouse Pos To Tile: (%i,%i)", mouse_tile.x,
-               mouse_tile.y);
-      imui::Text(buffer);
+      snprintf(ui_buffer, sizeof(ui_buffer), "Mouse Pos To Tile: (%i,%i)",
+               mouse_tile.x, mouse_tile.y);
+      imui::Text(ui_buffer);
     }
-    snprintf(buffer, BUFFER_SIZE, "Input hash: 0x%lx", kDebugInputHash);
-    imui::Text(buffer);
-    snprintf(buffer, BUFFER_SIZE, "Sim hash: 0x%lx", kDebugSimulationHash);
-    imui::Text(buffer);
+    snprintf(ui_buffer, sizeof(ui_buffer), "Input hash: 0x%lx",
+             kDebugInputHash);
+    imui::Text(ui_buffer);
+    snprintf(ui_buffer, sizeof(ui_buffer), "Sim hash: 0x%lx",
+             kDebugSimulationHash);
+    imui::Text(ui_buffer);
     const char* ui_err = imui::LastErrorString();
     if (ui_err) imui::Text(ui_err);
-    snprintf(buffer, BUFFER_SIZE, "Render Grid: %s",
-             gfx::kRenderGrid ? "Enabled" : "Disabled");
-    if (imui::Text(buffer, debug_options).clicked) {
-      gfx::kRenderGrid = !gfx::kRenderGrid;
-    }
     imui::Indent(-2);
   }
 
-  static bool enable_game_menu = false;
-  if (imui::Text("Game Menu", debug_options).clicked) {
-    enable_game_menu = !enable_game_menu;
+  imui::End();
+}
+
+void
+AdminPanel(uint32_t tag, Player* player)
+{
+  imui::PaneOptions options;
+  imui::Begin(v2f(3.f, player->camera.viewport.y - 400.f), tag, options);
+
+  imui::TextOptions text_options;
+  text_options.color = gfx::kWhite;
+  text_options.highlight_color = gfx::kRed;
+
+  if (imui::Text("Admin Menu", text_options).clicked) {
+    player->admin_menu = !player->admin_menu;
   }
 
-  if (enable_game_menu) {
+  if (player->admin_menu) {
     imui::Indent(2);
-    if (imui::Text("Reset Game", debug_options).clicked) {
+    snprintf(ui_buffer, sizeof(ui_buffer), "Render Grid: %s",
+             gfx::kRenderGrid ? "Enabled" : "Disabled");
+    if (imui::Text(ui_buffer, text_options).clicked) {
+      gfx::kRenderGrid = !gfx::kRenderGrid;
+    }
+    if (imui::Text("Reset Game", text_options).clicked) {
       Reset(kNetworkState.game_id);
     }
-    static bool scenario_menu = false;
-    if (imui::Text("Scenario", debug_options).clicked) {
-      scenario_menu = !scenario_menu;
+    if (imui::Text("Scenario", text_options).clicked) {
+      player->scenario_menu = !player->scenario_menu;
     }
-    if (scenario_menu) {
+    if (player->scenario_menu) {
       imui::Indent(2);
       for (int i = 0; i < Scenario::kMaxScenario; ++i) {
-        if (imui::Text(kScenarioNames[i], debug_options).clicked) {
+        if (imui::Text(kScenarioNames[i], text_options).clicked) {
           kScenario.type = (Scenario::Type)i;
           Reset(kNetworkState.game_id);
         }
       }
       imui::Indent(-2);
     }
-    static bool features_menu = false;
-    if (imui::Text("Features", debug_options).clicked) {
-      features_menu = !features_menu;
+    if (imui::Text("Feature", text_options).clicked) {
+      player->feature_menu = !player->feature_menu;
     }
-    if (features_menu) {
-#define UI_TOGGLE_FEATURE(name)                      \
-  snprintf(buffer, BUFFER_SIZE, "%s: %s", #name,     \
-           kScenario.name ? "enabled" : "disabled"); \
-  if (imui::Text(buffer, debug_options).clicked) {   \
-    kScenario.name = !kScenario.name;                \
-    ScenarioReset(false);                            \
+    if (player->feature_menu) {
+#define UI_TOGGLE_FEATURE(name)                           \
+  snprintf(ui_buffer, sizeof(ui_buffer), "%s: %s", #name, \
+           kScenario.name ? "enabled" : "disabled");      \
+  if (imui::Text(ui_buffer, text_options).clicked) {      \
+    kScenario.name = !kScenario.name;                     \
+    ScenarioReset(false);                                 \
   }
       imui::Indent(2);
       UI_TOGGLE_FEATURE(ship);
@@ -134,20 +150,20 @@ DebugPanel(const Player& player, uint32_t tag, const Stats& stats,
       UI_TOGGLE_FEATURE(invasion);
       imui::Indent(-2);
     }
-    if (imui::Text("Exit", debug_options).clicked) {
+    if (imui::Text("Exit", text_options).clicked) {
       exit(1);
     }
     imui::Indent(-2);
   }
 
-  snprintf(buffer, BUFFER_SIZE, "Minerals: %.1f", player.mineral);
-  imui::Text(buffer);
-  snprintf(buffer, BUFFER_SIZE, "Level: %lu", player.level);
-  imui::Text(buffer);
+  snprintf(ui_buffer, sizeof(ui_buffer), "Minerals: %.1f", player->mineral);
+  imui::Text(ui_buffer);
+  snprintf(ui_buffer, sizeof(ui_buffer), "Level: %lu", player->level);
+  imui::Text(ui_buffer);
 
   if (simulation::kSimulationOver) {
-    snprintf(buffer, BUFFER_SIZE, "Game Over");
-    imui::Text(buffer);
+    snprintf(ui_buffer, sizeof(ui_buffer), "Game Over");
+    imui::Text(ui_buffer);
   }
 
   imui::End();
@@ -516,7 +532,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
 void
 GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
 {
-  char buffer[BUFFER_SIZE];
+  char ui_buffer[sizeof(ui_buffer)];
   imui::Begin(v2f(0.f, 100.f), tag);
   imui::Result hud_result;
   v2f p(50.f, 10.f);
@@ -534,14 +550,14 @@ GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
     Module* m = &kModule[i];
     unsigned player_control = (1 << player_index);
     if (0 == (m->control & player_control)) continue;
-    snprintf(buffer, BUFFER_SIZE, "%s %s", ModuleName(m->mkind),
+    snprintf(ui_buffer, sizeof(ui_buffer), "%s %s", ModuleName(m->mkind),
              m->enabled ? "Enabled" : "Disabled");
     // TODO: This doesn't work because the imui state for it dissapears the
     // the moment left click is pressed. The fix for this may be interesting.
     // It is likely worth having some idea of imui bounds on the screen and
     // to check against those bounds before letting the click work in world
     // space.
-    if (imui::Text(buffer).clicked) {
+    if (imui::Text(ui_buffer).clicked) {
       m->enabled = !m->enabled;
     }
   }

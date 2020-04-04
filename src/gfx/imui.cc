@@ -2,8 +2,7 @@
 
 #include "renderer/renderer.cc"
 
-#include "../common/array.cc"
-#include "../common/queue.cc"
+#include "../common/common.cc"
 
 EXTERN(unsigned imui_errno);
 
@@ -95,23 +94,35 @@ struct Box {
 
 static IMUI kIMUI;
 
-constexpr uint32_t kMaxTags = 2;
+constexpr uint32_t kMaxTags = MAX_PLAYER + 1;
+constexpr uint32_t kEveryoneTag = MAX_PLAYER;
 
 DECLARE_2D_ARRAY(Text, kMaxTags, 64);
 DECLARE_2D_ARRAY(Button, kMaxTags, 16);
 DECLARE_2D_ARRAY(UIClick, kMaxTags, 8);
-DECLARE_2D_ARRAY(MousePosition, kMaxTags, 1);
+DECLARE_2D_ARRAY(MousePosition, kMaxTags, MAX_PLAYER);
 DECLARE_2D_ARRAY(Pane, kMaxTags, 8);
 DECLARE_QUEUE(UIClickRender, 8);
 
 void
-Reset()
+ResetAll()
 {
-  ResetText();
-  ResetButton();
-  ResetPane();
-  ResetUIClick();
-  ResetMousePosition();
+  memset(kUsedText, 0, sizeof(kUsedText));
+  memset(kUsedButton, 0, sizeof(kUsedButton));
+  memset(kUsedUIClick, 0, sizeof(kUsedUIClick));
+  memset(kUsedMousePosition, 0, sizeof(kUsedMousePosition));
+  memset(kUsedPane, 0, sizeof(kUsedPane));
+}
+
+void
+ResetTag(uint32_t tag)
+{
+  assert(tag < kMaxTags);
+  kUsedText[tag] = 0;
+  kUsedButton[tag] = 0;
+  kUsedPane[tag] = 0;
+  kUsedUIClick[tag] = 0;
+  kUsedMousePosition[tag] = 0;
 }
 
 void

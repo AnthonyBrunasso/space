@@ -469,6 +469,7 @@ Render(uint64_t player_index)
 
   // Ui
   imui::Render(player_index);
+  imui::Render(imui::kEveryoneTag);
 }
 
 }  // namespace gfx

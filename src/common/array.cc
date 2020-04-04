@@ -67,10 +67,3 @@
     }                                              \
     --kUsed##type[dim];                            \
   }                                                \
-                                                   \
-  void Reset##type()                               \
-  {                                                \
-    for (int i = 0; i < kDim##type; ++i) {         \
-      kUsed##type[i] = 0;                          \
-    }                                              \
-  }                                                \

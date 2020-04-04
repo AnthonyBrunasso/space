@@ -334,7 +334,7 @@ main(int argc, char** argv)
       "[ frame %d ] "
       "[ kNetworkExit %lu ] "
       "\n",
-      frame);
+      frame, kNetworkExit);
 
   return 0;
 }

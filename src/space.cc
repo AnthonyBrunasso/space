@@ -293,6 +293,9 @@ main(int argc, char** argv)
         window::GetWindowSize(),
         imui::kEveryoneTag, kGameStats, kGameState.frame_target_usec,
         kGameState.logic_updates, kGameState.game_clock.jerk, frame_queue);
+    simulation::ReadOnlyUnits(
+        window::GetWindowSize(),
+        imui::kEveryoneTag);
 
     gfx::Render(kNetworkState.player_index);
 #endif

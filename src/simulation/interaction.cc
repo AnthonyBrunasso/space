@@ -27,6 +27,52 @@ CacheSyncHashes(bool update, uint64_t frame)
 }
 
 void
+RenderBlackboard(const Unit* unit)
+{
+  for (int i = 0; i < kUnitBbEntryMax; ++i) {
+    UnitBbEntry bb_entry = (UnitBbEntry)i;
+    switch (bb_entry) {
+      case kUnitDestination: {
+        const v3f* d = nullptr;
+        if (!BB_GET(unit->bb, kUnitDestination, d)) continue;
+        snprintf(ui_buffer, sizeof(ui_buffer), "dest: %.0f,%.0f", d->x, d->y);
+        imui::Text(ui_buffer);
+      } break;
+      case kUnitAttackDestination: {
+        const v3f* d = nullptr;
+        if (!BB_GET(unit->bb, kUnitAttackDestination, d)) continue;
+        snprintf(ui_buffer, sizeof(ui_buffer), "adest: %.0f,%.0f", d->x, d->y);
+        imui::Text(ui_buffer);
+      } break;
+      case kUnitTarget: {
+        const int* t = nullptr;
+        if (!BB_GET(unit->bb, kUnitTarget, t)) continue;
+        snprintf(ui_buffer, sizeof(ui_buffer), "target: %i", *t);
+        imui::Text(ui_buffer);
+      } break;
+      case kUnitBehavior: {
+        const int* b = nullptr;
+        if (!BB_GET(unit->bb, kUnitBehavior, b)) continue;
+        snprintf(ui_buffer, sizeof(ui_buffer), "behavior: %i", *b);
+        imui::Text(ui_buffer);
+      } break;
+      case kUnitAttacker: {
+        const int* t = nullptr;
+        if (!BB_GET(unit->bb, kUnitAttacker, t)) continue;
+        snprintf(ui_buffer, sizeof(ui_buffer), "attacker: %i", *t);
+        imui::Text(ui_buffer);
+      } break;
+      default: {
+        snprintf(ui_buffer, sizeof(ui_buffer), "set: %i", i);
+        if (BB_EXI(unit->bb, i)) {
+          imui::Text(ui_buffer);
+        }
+      }
+    }
+  }
+}
+
+void
 ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
               uint64_t frame_target_usec, uint64_t frame, uint64_t jerk,
               uint64_t frame_queue)
@@ -77,6 +123,37 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
     imui::Text(ui_buffer);
     const char* ui_err = imui::LastErrorString();
     if (ui_err) imui::Text(ui_err);
+    imui::Indent(-2);
+  }
+
+  imui::End();
+}
+
+void
+ReadOnlyUnits(v2f screen, uint32_t tag)
+{
+  static uint64_t unit_debug = 0;
+  imui::PaneOptions options;
+  options.width = 300.f;
+  imui::Begin(v2f(screen.x - 300.f, screen.y - 30.f), tag, options);
+  imui::TextOptions debug_options;
+  debug_options.color = gfx::kWhite;
+  debug_options.highlight_color = gfx::kRed;
+  snprintf(ui_buffer, sizeof(ui_buffer), "Unit Debug [%d]", unit_debug);
+  if (imui::Text(ui_buffer, debug_options).clicked) {
+    unit_debug = (unit_debug+1)%3;
+  }
+
+  if (unit_debug) {
+    imui::Indent(2);
+    for (int i = 0; i < kUsedUnit; ++i) {
+      snprintf(ui_buffer, sizeof(ui_buffer), "Unit %d", kUnit[i].id);
+      if (imui::Text(ui_buffer, debug_options).highlighted || kUnit[i].control || unit_debug >= 2) {
+        imui::Indent(2);
+        RenderBlackboard(&kUnit[i]);
+        imui::Indent(-2);
+      }
+    }
     imui::Indent(-2);
   }
 
@@ -173,91 +250,6 @@ LogPanel(v2f screen_dims, uint32_t tag)
     imui::Text(log_msg, text_options);
   }
   imui::End();
-}
-
-void
-RenderBlackboard(const Unit* unit)
-{
-  char txt[64];
-  for (int i = 0; i < kUnitBbEntryMax; ++i) {
-    UnitBbEntry bb_entry = (UnitBbEntry)i;
-    switch (bb_entry) {
-      case kUnitDestination: {
-        const v3f* d = nullptr;
-        if (!BB_GET(unit->bb, kUnitDestination, d)) continue;
-        snprintf(txt, 64, "dest: %.0f,%.0f", d->x, d->y);
-        imui::Text(txt);
-      } break;
-      case kUnitAttackDestination: {
-        const v3f* d = nullptr;
-        if (!BB_GET(unit->bb, kUnitAttackDestination, d)) continue;
-        snprintf(txt, 64, "adest: %.0f,%.0f", d->x, d->y);
-        imui::Text(txt);
-      } break;
-      case kUnitTarget: {
-        const int* t = nullptr;
-        if (!BB_GET(unit->bb, kUnitTarget, t)) continue;
-        snprintf(txt, 64, "target: %i", *t);
-        imui::Text(txt);
-      } break;
-      case kUnitBehavior: {
-        const int* b = nullptr;
-        if (!BB_GET(unit->bb, kUnitBehavior, b)) continue;
-        snprintf(txt, 64, "behavior: %i", *b);
-        imui::Text(txt);
-      } break;
-      case kUnitAttacker: {
-        const int* t = nullptr;
-        if (!BB_GET(unit->bb, kUnitAttacker, t)) continue;
-        snprintf(txt, 64, "attacker: %i", *t);
-        imui::Text(txt);
-      } break;
-      default: {
-        snprintf(txt, 64, "set: %i", i);
-        if (BB_EXI(unit->bb, i)) {
-          imui::Text(txt);
-        }
-      }
-    }
-  }
-}
-
-void
-HudSelection(v2f screen)
-{
-  // selected Unit text
-  uint64_t player_control = (1 << kPlayerIndex);
-  const Unit* unit = nullptr;
-  for (int i = 0; i < kUsedUnit; ++i) {
-    if (0 == (kUnit[i].control & player_control)) continue;
-    unit = &kUnit[i];
-    break;
-  }
-
-  if (!unit) {
-    imui::Text("No selected Unit");
-    return;
-  }
-
-  constexpr int MAX_SELECTED_TEXT = CREWA_MAX + 3;
-  char selected_text[MAX_SELECTED_TEXT][64];
-  {
-    int t = 0;
-    for (; t < CREWA_MAX; ++t) {
-      snprintf(selected_text[t], 64, "[%u,%u] %s", unit->aknown_min[t],
-               unit->aknown_max[t], crew_aname[t]);
-    }
-    snprintf(selected_text[t++], 64, "(%04.02f,%04.02f)",
-             unit->transform.position.x, unit->transform.position.y);
-    snprintf(selected_text[t++], 64, "uaction: %d", unit->uaction);
-    snprintf(selected_text[t++], 64, "id: %i", unit->id);
-  }
-
-  for (int i = 0; i < MAX_SELECTED_TEXT; ++i) {
-    imui::Text(selected_text[i]);
-  }
-  imui::Text("Blackboard");
-  RenderBlackboard(unit);
 }
 
 void

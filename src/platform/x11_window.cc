@@ -34,7 +34,7 @@ x11_ioerror_handler(Display*)
 }
 
 int
-Create(const char*, int width, int height, bool fullscreen)
+Create(const char* name, int width, int height, bool fullscreen)
 {
   if (window_id) return 0;
 
@@ -152,22 +152,47 @@ Create(const char*, int width, int height, bool fullscreen)
   }
 
   XMapWindow(display, window_id);
-  XStoreName(display, window_id, "Space");
+  XStoreName(display, window_id, name);
 
-  Atom WM_HINTS = XInternAtom(display, "_MOTIF_WM_HINTS", True);
-  /* Hints used by Motif compliant window managers */
-  const int border = 0;
-  struct {
-    unsigned long flags;
-    unsigned long functions;
-    unsigned long decorations;
-    long input_mode;
-    unsigned long status;
-  } MWMHints = {(1L << 1), 0, border ? 1 : 0, 0, 0};
+  if (fullscreen) {
+    XSizeHints* sizehints = XAllocSizeHints();
+    long flags = 0;
+    XGetWMNormalHints(display, window_id, sizehints, &flags);
+    sizehints->flags &= ~(PMinSize | PMaxSize);
+    XSetWMNormalHints(display, window_id, sizehints);
+    XFree(sizehints);
 
-  XChangeProperty(display, window_id, WM_HINTS, WM_HINTS, 32, PropModeReplace,
-                      (unsigned char*)&MWMHints,
-                      sizeof(MWMHints) / sizeof(long));
+#define _NET_WM_STATE_ADD 1l
+#define GET_ATOM(X) Atom X = XInternAtom(display, #X, False)
+    GET_ATOM(_NET_WM_STATE);
+    GET_ATOM(_NET_WM_STATE_FULLSCREEN);
+
+    XEvent e = {};
+    e.xany.type = ClientMessage;
+    e.xclient.message_type = _NET_WM_STATE;
+    e.xclient.format = 32;
+    e.xclient.window = window_id;
+    e.xclient.data.l[0] = _NET_WM_STATE_ADD;
+    e.xclient.data.l[1] = _NET_WM_STATE_FULLSCREEN;
+    e.xclient.data.l[3] = 0l;
+
+    XSendEvent(display, RootWindow(display, screen), 0,
+               SubstructureNotifyMask | SubstructureRedirectMask, &e);
+  } else {
+    GET_ATOM(_MOTIF_WM_HINTS);
+    const int border = 0;
+    struct {
+      unsigned long flags;
+      unsigned long functions;
+      unsigned long decorations;
+      long input_mode;
+      unsigned long status;
+    } MWMHints = {(1L << 1), 0, border ? 1 : 0, 0, 0};
+
+    XChangeProperty(display, window_id, _MOTIF_WM_HINTS, _MOTIF_WM_HINTS, 32,
+                    PropModeReplace, (unsigned char*)&MWMHints,
+                    sizeof(MWMHints) / sizeof(long));
+  }
 
   attrib[0] = EGL_NONE;
   attrib[1] = EGL_NONE;

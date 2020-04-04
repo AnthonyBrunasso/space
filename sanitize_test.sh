@@ -5,5 +5,5 @@ DEV_FLAGS="-DHEADLESS -fsanitize=address -g -flto -Wl,-as-needed" ./cxx.sh src/s
 # Run
 FRAMERATE=60
 SECONDS=60
-bin/space -f $((FRAMERATE*SECONDS)) -i 127.0.0.1
+bin/space -l $((FRAMERATE*SECONDS)) -i 127.0.0.1
 echo "space exited with code $?"

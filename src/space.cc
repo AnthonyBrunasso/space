@@ -18,7 +18,7 @@ struct State {
   // Time it took to run a frame.
   uint64_t frame_time_usec = 0;
   // (optional) limit the simulation frames (UINT64_MAX will loop infinitely)
-  uint64_t frame_limit = UINT64_MAX;
+  uint64_t limit_frame = UINT64_MAX;
   // (optional) yield unused cpu time to the system
   bool sleep_on_loop = true;
   // Number of times the game has been updated.
@@ -109,7 +109,7 @@ int
 main(int argc, char** argv)
 {
   while (1) {
-    int opt = platform_getopt(argc, argv, "i:p:n:f:s:w:h:x:y:");
+    int opt = platform_getopt(argc, argv, "i:p:n:l:s:w:h:x:y:f");
     if (opt == -1) break;
 
     switch (opt) {
@@ -122,8 +122,8 @@ main(int argc, char** argv)
       case 'n':
         kNetworkState.num_players = strtol(platform_optarg, NULL, 10);
         break;
-      case 'f':
-        kGameState.frame_limit = strtol(platform_optarg, NULL, 10);
+      case 'l':
+        kGameState.limit_frame = strtol(platform_optarg, NULL, 10);
         break;
       case 's':
         simulation::kScenario.type =
@@ -144,6 +144,9 @@ main(int argc, char** argv)
       case 'y':
         kGameState.window_create_info.window_pos_y =
             strtol(platform_optarg, NULL, 10);
+        break;
+      case 'f':
+        kGameState.window_create_info.fullscreen = true;
         break;
     }
   }
@@ -224,9 +227,9 @@ main(int argc, char** argv)
   // Reset the clock for simulation
   clock_init(kGameState.frame_target_usec, &kGameState.game_clock);
   printf("median_tsc_per_usec %lu\n", median_tsc_per_usec);
-  const uint64_t frame_limit = kGameState.frame_limit;
+  const uint64_t limit_frame = kGameState.limit_frame;
   uint64_t frame = 0;
-  for (; frame <= frame_limit; ++frame) {
+  for (; frame <= limit_frame; ++frame) {
     if (window::ShouldClose()) break;
     imui::ResetTag(imui::kEveryoneTag);
 

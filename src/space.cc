@@ -76,6 +76,7 @@ void
 GatherInput()
 {
   InputBuffer* buffer = GetNextInputBuffer();
+
 #ifndef HEADLESS
   GatherWindowInput(buffer);
 #else

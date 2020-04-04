@@ -191,11 +191,15 @@ GetNextInputBuffer()
   if (kNetworkState.outgoing_sequence - kNetworkState.ack_sequence >=
       MAX_NETQUEUE) {
     kNetworkExit = kNeExcessLatency;
-    return NULL;
   }
 
+  // Slot transition from kSlotSimulated to kSlotInFlight
   for (int i = 0; i < kNetworkState.num_players; ++i) {
-    assert(kNetworkState.network_slot[slot][i] == kSlotSimulated);
+    if (kNetworkState.network_slot[slot][i] != kSlotSimulated) {
+      kNetworkExit = kNeExcessLatency;
+    }
+  }
+  for (int i = 0; i < kNetworkState.num_players; ++i) {
     kNetworkState.network_slot[slot][i] = kSlotInFlight;
   }
   kNetworkState.outgoing_sequence += 1;
@@ -208,6 +212,8 @@ GetSlot(uint64_t slot)
 {
   for (int i = 0; i < kNetworkState.num_players; ++i) {
     assert(kNetworkState.network_slot[slot][i] == kSlotReceived);
+  }
+  for (int i = 0; i < kNetworkState.num_players; ++i) {
     kNetworkState.network_slot[slot][i] = kSlotSimulated;
   }
   return kNetworkState.player_input[slot];
@@ -401,8 +407,6 @@ NetworkIngress(uint64_t next_simulation_frame)
           InputBuffer* ibuf = &kNetworkState.player_input[slot][i];
           memcpy(ibuf->input_event, event, event_bytes);
           ibuf->used_input_event = event_bytes / sizeof(PlatformEvent);
-          static_assert(sizeof(PlatformEvent) % 2 == 0,
-                        "Prefer a power of 2 for fast division.");
           kNetworkState.network_slot[slot][i] = kSlotReceived;
         }
         offset += event_bytes + sizeof(Turn);

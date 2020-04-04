@@ -210,17 +210,18 @@ main(int argc, char** argv)
     GatherInput();
     NetworkEgress();
     NetworkIngress(kGameState.logic_updates);
+    if (kNetworkExit) break;
 
     const int frame_queue =
         NetworkContiguousSlotReady(kGameState.logic_updates);
     const bool recent_starvation =
         (frame - kGameState.choke_frame) < (kGameState.framerate * 5);
-    const int advance = (frame_queue > 0) +
-                        (!recent_starvation * (frame_queue > NetworkQueueGoal()));
+    int advance = (frame_queue > 0) +
+                  (!recent_starvation * (frame_queue > NetworkQueueGoal()));
     const bool is_starvation = (frame_queue == 0);
     kGameState.choke_frame =
         MAX(recent_starvation * kGameState.choke_frame, is_starvation * frame);
-    for (int frame = 0; frame < advance; ++frame) {
+    for (; advance > 0; --advance) {
       uint64_t slot = NETQUEUE_SLOT(kGameState.logic_updates);
       if (ALAN) {
         assert(SlotReady(slot));
@@ -228,18 +229,18 @@ main(int argc, char** argv)
             "Simulation "
             "[ frame %lu ] "
             "[ slot %lu ] "
+            "[ advance %d ] "
             "[ jerk %lu ] "
             "[ server_jerk %lu ] "
             "[ egress_min %lu ] "
             "[ egress_max %lu ] "
             "[ queue_goal %lu ] "
             "[ ready_count %d ] "
-            "[ advance %d ] "
             "\n",
-            kGameState.logic_updates, slot, kGameState.game_clock.jerk,
+            kGameState.logic_updates, slot, advance, kGameState.game_clock.jerk,
             kNetworkState.server_jerk, kNetworkState.egress_min,
             kNetworkState.egress_max, NetworkQueueGoal(),
-            NetworkContiguousSlotReady(kGameState.logic_updates), advance);
+            NetworkContiguousSlotReady(kGameState.logic_updates));
       }
 
       imui::Reset();
@@ -294,14 +295,15 @@ main(int argc, char** argv)
 #endif
 
     if (ALAN) {
-      if (kNetworkState.ack_sequence + .5f*StatsMean(&kNetworkStats) > kGameState.game_updates) {
-        printf("CONSIDER CHOKE "
+      if (kNetworkState.ack_sequence + .5f * StatsMean(&kNetworkStats) >
+          kGameState.game_updates) {
+        printf(
+            "CONSIDER CHOKE "
             "[ ack_sequence %lu ] "
             "[ net_ftt %02.0f ] "
             "[ frame %lu] "
             "\n",
-            kNetworkState.ack_sequence,
-            StatsMean(&kNetworkStats),
+            kNetworkState.ack_sequence, StatsMean(&kNetworkStats),
             kGameState.game_updates);
       }
     }
@@ -327,7 +329,12 @@ main(int argc, char** argv)
       };
     }
   }
-  printf("[ last_frame %d ] \n", frame);
+  printf(
+      "Exiting "
+      "[ frame %d ] "
+      "[ kNetworkExit %lu ] "
+      "\n",
+      frame);
 
   return 0;
 }

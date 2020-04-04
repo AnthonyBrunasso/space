@@ -13,9 +13,7 @@
 #include "macro.h"
 #include "udp.h"
 
-extern "C" {
-int udp_errno;
-}
+EXTERN(int udp_errno);
 
 static_assert(sizeof(Udp4::socket_address) >= sizeof(struct sockaddr_in),
               "Udp4::socket_address cannot contain struct sockaddr_in");

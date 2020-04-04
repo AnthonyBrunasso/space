@@ -65,8 +65,17 @@ struct NetworkState {
   uint64_t server_jerk;
 };
 
+enum
+{
+  kNeNone = 0,
+  kNeSendFail,
+  kNeCorrupt,
+  kNeExcessLatency,
+};
+
 static NetworkState kNetworkState;
 static Stats kNetworkStats;
+EXTERN(uint64_t kNetworkExit);
 
 bool
 NetworkSetup()
@@ -113,7 +122,10 @@ NetworkSetup()
   }
   for (int send_count = 0; bytes_received <= 0 && send_count < 5000000;
        ++send_count) {
-    if (!udp::Send(kNetworkState.socket, &h, sizeof(h))) exit(1);
+    if (!udp::Send(kNetworkState.socket, &h, sizeof(h))) {
+      kNetworkExit = kNeSendFail;
+      return false;
+    }
 
     for (int per_send = 0; per_send < 10; ++per_send) {
       if (udp::ReceiveFrom(kNetworkState.socket,
@@ -129,7 +141,10 @@ NetworkSetup()
   if (ALAN) {
     printf("Client Handshake [bytes_received %d]\n", bytes_received);
   }
-  if (bytes_received != sizeof(NotifyGame)) exit(3);
+  if (bytes_received != sizeof(NotifyGame)) {
+    kNetworkExit = kNeCorrupt;
+    return false;
+  }
 
   NotifyGame* ns = (NotifyGame*)kNetworkState.netbuffer;
   if (ALAN) {
@@ -152,7 +167,10 @@ NetworkSetup()
   BeginGame bg;
   bg.cookie = ns->cookie;
   bg.game_id = ns->game_id;
-  if (!udp::Send(kNetworkState.socket, &bg, sizeof(bg))) exit(1);
+  if (!udp::Send(kNetworkState.socket, &bg, sizeof(bg))) {
+    kNetworkExit = kNeSendFail;
+    return false;
+  }
   printf("Network request BeginGame [ game_id %zu ] [ cookie 0x%llx ]\n",
          bg.game_id, bg.cookie);
 
@@ -171,8 +189,10 @@ GetNextInputBuffer()
 
   // If unacknowledged packets exceed the queue, give up
   if (kNetworkState.outgoing_sequence - kNetworkState.ack_sequence >=
-      MAX_NETQUEUE)
-    exit(2);
+      MAX_NETQUEUE) {
+    kNetworkExit = kNeExcessLatency;
+    return NULL;
+  }
 
   for (int i = 0; i < kNetworkState.num_players; ++i) {
     assert(kNetworkState.network_slot[slot][i] == kSlotSimulated);
@@ -363,18 +383,18 @@ NetworkIngress(uint64_t next_simulation_frame)
 
       for (int i = 0; i < num_players; ++i) {
         if (offset + sizeof(Turn) >= end_buffer) {
-          puts("Corrupt packet");
-          exit(3);
+          kNetworkExit = kNeCorrupt;
+          return;
         }
         Turn* turn = (Turn*)offset;
         const uint64_t event_bytes = turn->event_bytes;
         if (offset + event_bytes + sizeof(Turn) > end_buffer) {
-          puts("Corrupt packet");
-          exit(3);
+          kNetworkExit = kNeCorrupt;
+          return;
         }
         if (event_bytes > sizeof(PlatformEvent) * MAX_TICK_EVENTS) {
-          puts("Overflow packet");
-          exit(3);
+          kNetworkExit = kNeCorrupt;
+          return;
         }
         if (kNetworkState.network_slot[slot][i] == kSlotInFlight) {
           const uint8_t* event = offset + sizeof(Turn);

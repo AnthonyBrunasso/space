@@ -25,6 +25,7 @@ static v4f kGreen = v4f(0.f, 1.f, 0.f, 1.f);
 static const math::Quatf kDefaultRotation = math::Quatf(0.f, 0.f, 0.f, 1.f);
 static v3f kDefaultScale = v3f(1.f, 1.f, 1.f);
 static v3f kTileScale = v3f(0.5f, 0.5f, 1.f);
+static bool kRenderGrid = false;
 
 bool
 Initialize(const window::CreateInfo& window_create_info)
@@ -374,13 +375,15 @@ RenderShip(uint64_t ship_index)
     };
   }
 
-  const v2f grid_dims(kTileWidth, kTileHeight);
-  v4f colors[] = {
-      v4f(0.207f, 0.317f, 0.360f, 0.60f),
-      v4f(0.050f, 0.215f, 0.050f, 0.45f),
-  };
-  rgg::RenderGrid(grid_dims, TilemapWorldBounds(), ARRAY_LENGTH(colors),
-                  colors);
+  if (kRenderGrid) {
+    const v2f grid_dims(kTileWidth, kTileHeight);
+    v4f colors[] = {
+        v4f(0.207f, 0.317f, 0.360f, 0.60f),
+        v4f(0.050f, 0.215f, 0.050f, 0.45f),
+    };
+    rgg::RenderGrid(grid_dims, TilemapWorldBounds(), ARRAY_LENGTH(colors),
+                    colors);
+  }
 }
 
 void

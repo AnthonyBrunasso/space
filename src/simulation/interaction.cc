@@ -82,6 +82,11 @@ DebugPanel(const Player& player, uint32_t tag, const Stats& stats,
     imui::Text(buffer);
     const char* ui_err = imui::LastErrorString();
     if (ui_err) imui::Text(ui_err);
+    snprintf(buffer, BUFFER_SIZE, "Render Grid: %s",
+             gfx::kRenderGrid ? "Enabled" : "Disabled");
+    if (imui::Text(buffer, debug_options).clicked) {
+      gfx::kRenderGrid = !gfx::kRenderGrid;
+    }
     imui::Indent(-2);
   }
 

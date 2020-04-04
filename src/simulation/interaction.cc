@@ -27,14 +27,13 @@ CacheSyncHashes(bool update, uint64_t frame)
 }
 
 void
-ReadOnlyPanel(uint32_t tag, const Stats& stats, uint64_t frame_target_usec,
-              uint64_t frame, uint64_t jerk, uint64_t frame_queue)
+ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
+              uint64_t frame_target_usec, uint64_t frame, uint64_t jerk,
+              uint64_t frame_queue)
 {
   static bool enable_debug = false;
-  const Player& player = kPlayer[kPlayerIndex];
-  const v2i sz = player.camera.viewport;
   imui::PaneOptions options;
-  imui::Begin(v2f(3.f, sz.y - 30.f), tag, options);
+  imui::Begin(v2f(3.f, screen.y - 30.f), tag, options);
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
@@ -67,19 +66,9 @@ ReadOnlyPanel(uint32_t tag, const Stats& stats, uint64_t frame_target_usec,
     snprintf(ui_buffer, sizeof(ui_buffer), "Network Queue: %lu [%1.0fx rsdev]",
              NetworkQueueGoal(), kNetworkState.rsdev_const);
     imui::Text(ui_buffer);
-    snprintf(ui_buffer, sizeof(ui_buffer), "Window Size: %ix%i", (int)sz.x,
-             (int)sz.y);
+    snprintf(ui_buffer, sizeof(ui_buffer), "Window Size: %04.0fx%04.0f",
+             screen.x, screen.y);
     imui::Text(ui_buffer);
-    snprintf(ui_buffer, sizeof(ui_buffer),
-             "Mouse Pos In World: (%.1f,%.1f,%.1f)", player.world_mouse.x,
-             player.world_mouse.y, player.world_mouse.z);
-    imui::Text(ui_buffer);
-    v2i mouse_tile;
-    if (WorldToTilePos(player.world_mouse, &mouse_tile)) {
-      snprintf(ui_buffer, sizeof(ui_buffer), "Mouse Pos To Tile: (%i,%i)",
-               mouse_tile.x, mouse_tile.y);
-      imui::Text(ui_buffer);
-    }
     snprintf(ui_buffer, sizeof(ui_buffer), "Input hash: 0x%lx",
              kDebugInputHash);
     imui::Text(ui_buffer);
@@ -95,10 +84,10 @@ ReadOnlyPanel(uint32_t tag, const Stats& stats, uint64_t frame_target_usec,
 }
 
 void
-AdminPanel(uint32_t tag, Player* player)
+AdminPanel(v2f screen, uint32_t tag, Player* player)
 {
   imui::PaneOptions options;
-  imui::Begin(v2f(3.f, player->camera.viewport.y - 400.f), tag, options);
+  imui::Begin(v2f(3.f, screen.y - 300.f), tag, options);
 
   imui::TextOptions text_options;
   text_options.color = gfx::kWhite;
@@ -269,57 +258,6 @@ HudSelection(v2f screen)
   }
   imui::Text("Blackboard");
   RenderBlackboard(unit);
-}
-
-void
-DebugHudAI(v2f screen)
-{
-  char txt[64];
-  static bool render_all_ai_data = false;
-  int unit_ai_count = 0;
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
-    const int* behavior;
-    if (!BB_GET(unit->bb, kUnitBehavior, behavior)) continue;
-    snprintf(txt, 64, "AI Unit %i", unit->id);
-    if (imui::Text(txt).highlighted || render_all_ai_data) {
-      imui::Indent(1);
-      RenderBlackboard(unit);
-      imui::Indent(-1);
-    }
-    unit_ai_count++;
-  }
-  if (!unit_ai_count) return;
-  imui::TextOptions options;
-  options.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
-  if (imui::Text("Render All", options).clicked) {
-    render_all_ai_data = !render_all_ai_data;
-  }
-}
-
-void
-Hud(v2f screen, uint32_t tag)
-{
-  imui::Begin(v2f(screen.x - 225.f, screen.y - 30.0f), tag);
-
-  static bool enable_unit_details = false;
-  imui::TextOptions options;
-  options.color = gfx::kWhite;
-  options.highlight_color = gfx::kRed;
-  if (enable_unit_details) {
-    if (imui::Text("Hide Unit Details", options).clicked) {
-      enable_unit_details = !enable_unit_details;
-    }
-
-    HudSelection(screen);
-    DebugHudAI(screen);
-  } else {
-    if (imui::Text("Unit Details", options).clicked) {
-      enable_unit_details = !enable_unit_details;
-    }
-  }
-
-  imui::End();
 }
 
 void
@@ -532,8 +470,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
 void
 GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
 {
-  char ui_buffer[sizeof(ui_buffer)];
-  imui::Begin(v2f(0.f, 100.f), tag);
+  imui::Begin(v2f(0.f, 300.f), tag);
   imui::Result hud_result;
   v2f p(50.f, 10.f);
   for (int i = 3; i < kModCount; ++i) {
@@ -544,21 +481,6 @@ GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
     if (hud_result.clicked) {
       player->hud_mode = kHudModule;
       player->mod_placement = (ModuleKind)i;
-    }
-  }
-  for (int i = 0; i < kUsedModule; ++i) {
-    Module* m = &kModule[i];
-    unsigned player_control = (1 << player_index);
-    if (0 == (m->control & player_control)) continue;
-    snprintf(ui_buffer, sizeof(ui_buffer), "%s %s", ModuleName(m->mkind),
-             m->enabled ? "Enabled" : "Disabled");
-    // TODO: This doesn't work because the imui state for it dissapears the
-    // the moment left click is pressed. The fix for this may be interesting.
-    // It is likely worth having some idea of imui bounds on the screen and
-    // to check against those bounds before letting the click work in world
-    // space.
-    if (imui::Text(ui_buffer).clicked) {
-      m->enabled = !m->enabled;
     }
   }
   imui::End();

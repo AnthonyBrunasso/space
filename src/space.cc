@@ -272,10 +272,10 @@ main(int argc, char** argv)
         // Misc debug/feedback
         const v2f dims =
             v2f(kPlayer[i].camera.viewport.x, kPlayer[i].camera.viewport.y);
+        Player* player = &kPlayer[i];
         simulation::LogPanel(dims, i);
-        simulation::Hud(dims, i);
-        simulation::AdminPanel(i, &kPlayer[i]);
-        simulation::GameUI(dims, i, i, &kPlayer[i]);
+        simulation::AdminPanel(dims, i, player);
+        simulation::GameUI(dims, i, i, player);
       }
 #endif
 
@@ -288,11 +288,12 @@ main(int argc, char** argv)
       ++kGameState.logic_updates;
     }
 
+#ifndef HEADLESS
     simulation::ReadOnlyPanel(
+        window::GetWindowSize(),
         imui::kEveryoneTag, kGameStats, kGameState.frame_target_usec,
         kGameState.logic_updates, kGameState.game_clock.jerk, frame_queue);
 
-#ifndef HEADLESS
     gfx::Render(kNetworkState.player_index);
 #endif
 

@@ -224,7 +224,7 @@ NetworkAppend(uint64_t player_index, const uint8_t* end_buffer,
   uint8_t* netbuffer = *write_ref;
 
   if (kNetworkState.network_slot[slot][player_index] >= kSlotReceived)
-    return true;
+    return false;
 
   InputBuffer* ibuf = &kNetworkState.input[slot];
   Turn* turn = (Turn*)netbuffer;

@@ -186,15 +186,28 @@ main(int argc, char** argv)
   uint64_t min_ptr = UINT64_MAX;
   uint64_t max_ptr = 0;
   for (int i = 0; i < kUsedRegistry; ++i) {
-    printf("[%d] Registry ptr %p [%lu size] [%lu count]\n", i, kRegistry[i].ptr,
-           kRegistry[i].memb_size, kRegistry[i].memb_max);
+    printf(
+        "[ index %d ] "
+        "[ ptr %p ] "
+        "[ memb_size %lu ] "
+        "[ memb_max %lu ] "
+        "\n",
+        i, kRegistry[i].ptr, kRegistry[i].memb_size, kRegistry[i].memb_max);
     bytes += kRegistry[i].memb_max * kRegistry[i].memb_size;
     max_ptr = MAX((uint64_t)kRegistry[i].ptr, max_ptr);
     min_ptr = MIN((uint64_t)kRegistry[i].ptr, min_ptr);
   }
-  printf("EntityRegistry [min page 0x%lx] [max page 0x%lx] [page_count %lu]\n",
-         ANDN(PAGE - 1, min_ptr), ANDN(PAGE - 1, max_ptr),
-         1 + ((ANDN(PAGE - 1, max_ptr) - ANDN(PAGE - 1, min_ptr)) / PAGE));
+  const uint64_t min_page_addr = ANDN(PAGE - 1, min_ptr);
+  const uint64_t max_page_addr = ANDN(PAGE - 1, max_ptr);
+  const uint64_t page_count = (max_page_addr - min_page_addr) / PAGE + 1;
+  printf(
+      "EntityRegistry "
+      "[ min_page_addr 0x%lx ] "
+      "[ max_page_addr 0x%lx ] "
+      "[ page_count %lu ] "
+      "[ bytes %lu ] "
+      "\n",
+      min_page_addr, max_page_addr, page_count, page_count * PAGE);
 
   // Reset State
   StatsInit(&kGameStats);
@@ -289,13 +302,11 @@ main(int argc, char** argv)
     }
 
 #ifndef HEADLESS
-    simulation::ReadOnlyPanel(
-        window::GetWindowSize(),
-        imui::kEveryoneTag, kGameStats, kGameState.frame_target_usec,
-        kGameState.logic_updates, kGameState.game_clock.jerk, frame_queue);
-    simulation::ReadOnlyUnits(
-        window::GetWindowSize(),
-        imui::kEveryoneTag);
+    simulation::ReadOnlyPanel(window::GetWindowSize(), imui::kEveryoneTag,
+                              kGameStats, kGameState.frame_target_usec,
+                              kGameState.logic_updates,
+                              kGameState.game_clock.jerk, frame_queue);
+    simulation::ReadOnlyUnits(window::GetWindowSize(), imui::kEveryoneTag);
 
     gfx::Render(kNetworkState.player_index);
 #endif

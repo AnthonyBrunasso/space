@@ -14,9 +14,9 @@
                                     max_count, sizeof(type));
 
 // id == -1 is reserved for invalid references
-#define DECLARE_GAME_TYPE_WITH_ID(type, max_count)                            \
-  DECLARE_ID_ARRAY(type, max_count)                                           \
-  static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type,      \
+#define DECLARE_GAME_TYPE_WITH_ID(type, max_count)                       \
+  DECLARE_ID_ARRAY(type, max_count)                                      \
+  static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type, \
                                     max_count, sizeof(type));
 
 #define DECLARE_GAME_QUEUE(type, count) DECLARE_QUEUE(type, count)
@@ -40,10 +40,6 @@ enum UnitAction {
   kUaAttack,
   kUaAttackMove,
   kUaBuild,
-};
-enum UnitKind {
-  kOperator,
-  kAlien,
 };
 enum ModuleKind {
   kModPower = 0,
@@ -160,13 +156,24 @@ struct Projectile {
 };
 DECLARE_GAME_TYPE(Projectile, 128);
 
-struct Unit {
-  Transform transform;
-  Blackboard bb;
-  uint64_t ship_index = UINT64_MAX;
+#define COMMON_MEMBER_DECL \
+  v3f position;            \
+  v3f scale;               \
+  v3f bounds;              \
+  uint32_t id;             \
+  uint64_t control;        \
+  uint64_t ship_index;     \
+  uint64_t player_id;      \
+  int type
 
-  uint32_t id;
-  UnitKind kind;
+enum EntityEnum {
+  kEeUnit = 0,
+  kEeModule = 1,
+};
+
+struct Unit {
+  COMMON_MEMBER_DECL = kEeUnit;
+  Blackboard bb;
   Alliance alliance = kCrew;
 
   // Maybe need a weapon type?
@@ -178,13 +185,8 @@ struct Unit {
   float health = 5.0f;
   float max_health = 5.0f;
   float speed = 1.f;
-  uint64_t player_id = kNonPlayerId;
-
-  // Width, height, depth of unit.
-  v3f bounds = v3f(15.f, 15.f, 15.f);
 
   // Bit Fields
-  unsigned control : MAX_PLAYER;
   unsigned dead : 1;
   unsigned spacesuit : 1;
   unsigned inspace : 1;
@@ -194,14 +196,11 @@ struct Unit {
   unsigned notify : kNotifyAgeBits;
   uint64_t PADDING : 13;
 };
-DECLARE_GAME_TYPE_WITH_ID(Unit, 64);
 
 constexpr int kTrainIdle = -1;
 
 struct Module {
-  uint64_t ship_index = UINT64_MAX;
-  uint64_t player_id = kNonPlayerId;
-  v3f bounds = v3f(15.f, 15.f, 15.f);
+  COMMON_MEMBER_DECL = kEeModule;
   int frames_to_build = 200;
   int frames_building = 0;
   int frames_to_train = 800;
@@ -209,9 +208,23 @@ struct Module {
   ModuleKind mkind;
   v2i tile;
   bool enabled = true;
-  uint8_t control;
 };
-DECLARE_GAME_TYPE(Module, 32);
+
+union Entity {
+  struct {
+    COMMON_MEMBER_DECL;
+  };
+  Unit unit;
+  Module module;
+
+  Entity() : type(UINT32_MAX) {}
+};
+DECLARE_GAME_TYPE(Entity, 128);
+
+Unit& kUnit = *(Unit*)&kEntity;
+uint64_t &kUsedUnit = kUsedEntity;
+Module& kModule = *(Module*)kEntity;
+uint64_t &kUsedModule = kUsedEntity;
 
 struct Command {
   UnitAction type;

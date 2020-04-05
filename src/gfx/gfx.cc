@@ -82,18 +82,19 @@ RenderCrew(uint64_t ship_index)
     Unit* unit = &kUnit[i];
     if (unit->ship_index != ship_index) continue;
     if (unit->inspace) {
-      rgg::RenderPod(unit->transform.position, v3f(20.f, 20.f, 20.f),
-          math::Quatf(-90.f, v3f(1.f, 0.f, 0.f)), v4f(1.f, 1.f, 1.f, 1.f));
+      rgg::RenderPod(unit->position, v3f(20.f, 20.f, 20.f),
+                     math::Quatf(-90.f, v3f(1.f, 0.f, 0.f)),
+                     v4f(1.f, 1.f, 1.f, 1.f));
 
       continue;
     }
     v2i p;
-    if (!WorldToTilePos(unit->transform.position, &p)) continue;
+    if (!WorldToTilePos(unit->position, &p)) continue;
     Tile* tile = TilePtr(p);
     if (tile && tile->shroud) continue;
     if (unit->notify) {
       const float radius = 50.f - (unit->notify * 1.f);
-      rgg::RenderCircle(unit->transform.position, radius - 10.f, radius, kWhite);
+      rgg::RenderCircle(unit->position, radius - 10.f, radius, kWhite);
     }
 
     v4f color;
@@ -122,37 +123,36 @@ RenderCrew(uint64_t ship_index)
     }
 
     if (unit->control & (1 << kPlayerIndex)) {
-        rgg::RenderCircle(unit->transform.position + v3f(0.f, 0.f, 0.08f),
-                          12.f, 14.f, v4f(0.33f, 0.80f, 0.33f, 1.f));
+      rgg::RenderCircle(unit->position + v3f(0.f, 0.f, 0.08f), 12.f, 14.f,
+                        v4f(0.33f, 0.80f, 0.33f, 1.f));
     }
 
     for (int k = 0; k < kUsedModule; ++k) {
       Module* mod = &kModule[k];
-      if (v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperate) {
-        // TODO(abrunasso): This should be the graphic when working on something.
+      if (v3fDsq(unit->position, v3fModule(mod)) < kDsqOperate) {
+        // TODO(abrunasso): This should be the graphic when working on
+        // something.
         static float r = 0.f;
         rgg::RenderGear(
-            unit->transform.position +
-                v3f(-unit->bounds.x - 6.f, unit->bounds.y + 2.f, unit->bounds.z + .1f),
-            v3f(8.f, 8.f, 8.f),
-            math::Quatf(r, v3f(0.f, 0.f, 1.f)), v4f(0.7f, 0.7f, 0.7f, 1.f));
+            unit->position + v3f(-unit->bounds.x - 6.f, unit->bounds.y + 2.f,
+                                 unit->bounds.z + .1f),
+            v3f(8.f, 8.f, 8.f), math::Quatf(r, v3f(0.f, 0.f, 1.f)),
+            v4f(0.7f, 0.7f, 0.7f, 1.f));
         r += 0.3f;
       }
     }
 
-    rgg::RenderCrew(unit->transform.position + v3f(0.f, 0.f, 20.f),
-                    v3f(10.f, 10.f, 10.f), math::Quatf(-90, v3f(0.f, 0.f, 1.f)), 
-                    color);
+    rgg::RenderCrew(unit->position + v3f(0.f, 0.f, 20.f), v3f(10.f, 10.f, 10.f),
+                    math::Quatf(-90, v3f(0.f, 0.f, 1.f)), color);
 
     if (unit->spacesuit) {
-      //rgg::RenderSphere(unit->transform.position + v3f(0.f, 0.f, 7.5f),
+      // rgg::RenderSphere(unit->position + v3f(0.f, 0.f, 7.5f),
       //                  v3f(15.f, 15.f, 15.f), v4f(1.f, 1.f, 1.f, 0.3f));
     }
 
-
     // Render unit health bars.
     static const float kHealthSz = 5.f;
-    v3f hstart = unit->transform.position + v3f(-13.0f, 15.5f, 0.0f);
+    v3f hstart = unit->position + v3f(-13.0f, 15.5f, 0.0f);
     float hratio = unit->health / unit->max_health;
     v4f hcolor = v4f(0.0f, 1.0f, 0.0f, 1.0f);
     if (hratio > 0.35f && hratio < 0.75f) {
@@ -190,7 +190,7 @@ RenderCrew(uint64_t ship_index)
 
     // Show the path they are on if they have one.
     v2i start;
-    if (!WorldToTilePos(unit->transform.position, &start)) continue;
+    if (!WorldToTilePos(unit->position, &start)) continue;
     const v3f* dest = nullptr;
     if (!BB_GET(unit->bb, kUnitDestination, dest)) continue;
     v2i end;
@@ -226,21 +226,21 @@ RenderShip(uint64_t ship_index)
     v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
     v2f t = simulation::TilePosToWorld(module->tile);
     if (ModuleBuilt(module)) {
-      rgg::RenderCube(math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f),
-                                  module->bounds),
-                      color);
+      rgg::RenderCube(
+          math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f),
+                      module->bounds),
+          color);
     } else {
       rgg::RenderLineCube(
           math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f),
-                      module->bounds), v4f(color.x, color.y, color.z, 1.f));
+                      module->bounds),
+          v4f(color.x, color.y, color.z, 1.f));
       glDisable(GL_DEPTH_TEST);
       rgg::RenderProgressBar(
-          math::Rectf(
-              t.x - module->bounds.x / 2.f, t.y - module->bounds.y,
-              module->bounds.y, 5.f),
-          2.f, module->frames_building,
-          module->frames_to_build,
-          kGreen, kWhite);
+          math::Rectf(t.x - module->bounds.x / 2.f, t.y - module->bounds.y,
+                      module->bounds.y, 5.f),
+          2.f, module->frames_building, module->frames_to_build, kGreen,
+          kWhite);
       glEnable(GL_DEPTH_TEST);
     }
 
@@ -248,12 +248,9 @@ RenderShip(uint64_t ship_index)
 
     glDisable(GL_DEPTH_TEST);
     rgg::RenderProgressBar(
-        math::Rectf(
-            t.x - module->bounds.x / 2.f, t.y - module->bounds.y,
-            module->bounds.y, 5.f),
-        2.f, module->frames_training,
-        module->frames_to_train,
-        kRed, kWhite);
+        math::Rectf(t.x - module->bounds.x / 2.f, t.y - module->bounds.y,
+                    module->bounds.y, 5.f),
+        2.f, module->frames_training, module->frames_to_train, kRed, kWhite);
     glEnable(GL_DEPTH_TEST);
   }
 
@@ -274,8 +271,8 @@ RenderShip(uint64_t ship_index)
       v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
       float engine_scale = kShip[ship_index].engine_animation * .1f;
       rgg::RenderExhaust(world + v3f(-40.f, -20.f, 0.f), v3f(22.f, 22.f, 22.f),
-                        math::Quatf(180, v3f(0.f, 0.f, 1.f)),
-                        v4f(0.4f, 0.4f, 0.4f, 1.f));
+                         math::Quatf(180, v3f(0.f, 0.f, 1.f)),
+                         v4f(0.4f, 0.4f, 0.4f, 1.f));
       rgg::RenderTag(kGfx.exhaust_tag, world + v3f(-50.f, 3.f, 0.f),
                      v3f(engine_scale, 1.f, 1.f), kDefaultRotation, color);
       rgg::RenderTag(kGfx.exhaust_tag, world + v3f(-50.f, 3.f, 0.f),
@@ -349,8 +346,8 @@ RenderShip(uint64_t ship_index)
 
         if (!TileOk(mouse_grid)) continue;
 
-        float dsq;
-        v3fNearTransform(p->world_mouse, GAME_ITER(Unit, transform), &dsq);
+        Unit* unit = GetNearestUnit(p->world_mouse);
+        float dsq = v3fDsq(p->world_mouse, unit->position);
         if (dsq < kDsqSelect) {
           // Highlight the unit that would be selected on mouse click
           rgg::RenderRectangle(TilePosToWorld(mouse_grid), kTileScale,
@@ -362,9 +359,9 @@ RenderShip(uint64_t ship_index)
         v3f mcolor = ModuleColor(p->mod_placement);
         v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
         v3f bounds = ModuleBounds(p->mod_placement);
-        rgg::RenderLineCube(
-            math::Cubef(TilePosToWorld(mouse_grid), bounds.x, bounds.y, bounds.z),
-            color);
+        rgg::RenderLineCube(math::Cubef(TilePosToWorld(mouse_grid), bounds.x,
+                                        bounds.y, bounds.z),
+                            color);
       } break;
       case kHudAttackMove: {
         glDisable(GL_DEPTH_TEST);
@@ -428,8 +425,7 @@ RenderSpaceObjects()
 
     switch (p->wkind) {
       case kWeaponMiningLaser: {
-        rgg::RenderLine(p->start, p->end,
-                        v4f(0.40f, 1.0f, 0.23f, 1.0));
+        rgg::RenderLine(p->start, p->end, v4f(0.40f, 1.0f, 0.23f, 1.0));
       } break;
       case kWeaponLaser: {
         rgg::RenderLine(p->start, p->end,
@@ -448,7 +444,8 @@ RenderSpaceObjects()
   for (int i = 0; i < kUsedInvasion; ++i) {
     Invasion* v = &kInvasion[i];
     rgg::RenderCube(math::Cubef(v->transform.position + v3f(0.f, 0.f, 5.f),
-                                20.f, 20.f, 20.f), v4f(.7f, .1f, .1f, 1.f));
+                                20.f, 20.f, 20.f),
+                    v4f(.7f, .1f, .1f, 1.f));
   }
 }
 

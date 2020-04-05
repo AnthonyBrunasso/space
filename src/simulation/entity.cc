@@ -51,6 +51,10 @@ enum ModuleKind {
   kModWarp,
   kModCount,
 };
+enum UnitKind {
+  kOperator,
+  kAlien,
+};
 enum HudMode {
   kHudSelection = 0,
   kHudModule,
@@ -174,6 +178,7 @@ enum EntityEnum {
 struct Unit {
   COMMON_MEMBER_DECL = kEeUnit;
   Blackboard bb;
+  UnitKind kind;
   Alliance alliance = kCrew;
 
   // Maybe need a weapon type?
@@ -217,14 +222,19 @@ union Entity {
   Unit unit;
   Module module;
 
-  Entity() : type(UINT32_MAX) {}
+  Entity() : type(UINT32_MAX)
+  {
+  }
 };
-DECLARE_GAME_TYPE(Entity, 128);
+#define MAX_ENTITY 128
+DECLARE_GAME_TYPE_WITH_ID(Entity, MAX_ENTITY);
 
-Unit& kUnit = *(Unit*)&kEntity;
-uint64_t &kUsedUnit = kUsedEntity;
-Module& kModule = *(Module*)kEntity;
-uint64_t &kUsedModule = kUsedEntity;
+Unit* kUnit = (Unit*)&kEntity;
+uint64_t& kUsedUnit = kUsedEntity;
+#define FindUnit(x) ((Unit*)FindEntity(x))
+Module* kModule = (Module*)kEntity;
+uint64_t& kUsedModule = kUsedEntity;
+#define ZeroEntity(x) (*(Entity*)x = kZeroEntity)
 
 struct Command {
   UnitAction type;

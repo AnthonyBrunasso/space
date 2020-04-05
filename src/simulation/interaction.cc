@@ -287,7 +287,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
           } break;
           case kHudAttackMove: {
             LOGFMT("Order attack move [%.0f,%.0f]", world_pos.x, world_pos.y);
-            PushCommand({kUaAttackMove, world_pos, kInvalidUnit,
+            PushCommand({kUaAttackMove, world_pos, kInvalidEntity,
                          (unsigned)(1 << player_index)});
           } break;
           case kHudModule: {
@@ -302,20 +302,20 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
                 LOGFMT("Player can't afford module %i", mkind);
                 break;
               }
-              Module* m = UseModule();
-              m->ship_index = grid;
-              m->tile = tilepos;
-              m->mkind = mkind;
+              Entity* m = UseIdEntity();
               m->bounds = ModuleBounds(mkind);
+              m->ship_index = grid;
               m->player_id = player_index;
+              m->module.tile = tilepos;
+              m->module.mkind = mkind;
               if (player->god_mode) {
-                ModuleSetBuilt(m);
+                ModuleSetBuilt(&m->module);
               } else {
                 player->mineral -= ModuleCost(mkind);
               }
             }
             LOGFMT("Order build [%i] [%i,%i]", mkind, tilepos.x, tilepos.y);
-            PushCommand({kUaBuild, world_pos, kInvalidUnit,
+            PushCommand({kUaBuild, world_pos, kInvalidEntity,
                          (unsigned)(1 << player_index)});
           } break;
         }
@@ -323,11 +323,11 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
         Unit* target = GetUnitTarget(player_index, world_pos);
         if (target) {
           LOGFMT("Order attack [%lu]", target->id);
-          PushCommand({kUaAttack, world_pos, kInvalidUnit,
+          PushCommand({kUaAttack, world_pos, kInvalidEntity,
                        (unsigned)(1 << player_index)});
         } else {
           LOGFMT("Order move [%.0f,%.0f]", world_pos.x, world_pos.y);
-          PushCommand({kUaMove, world_pos, kInvalidUnit,
+          PushCommand({kUaMove, world_pos, kInvalidEntity,
                        (unsigned)(1 << player_index)});
         }
       }

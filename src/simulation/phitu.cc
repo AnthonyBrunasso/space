@@ -42,8 +42,8 @@ ProjectileCreate(const Unit* target, const Unit* source, float proximity,
 {
   float radian = (float)(rand() % 360) * PI / 180.0f;
   Projectile* p = UseProjectile();
-  p->start = source->transform.position;
-  p->end = target->transform.position;
+  p->start = source->position;
+  p->end = target->position;
   p->target_id = target->id;
   p->end += v3f(proximity * cos(radian), proximity * sin(radian), 0.0f);
   p->wkind = kind;
@@ -69,7 +69,7 @@ ProjectileSimulation()
   for (int i = 0; i < kUsedProjectile; ++i) {
     Projectile* p = &kProjectile[i];
     if (p->wkind != kWeaponLaser) continue;
-    Unit* target = FindEntity(p->target_id);
+    Unit* target = FindUnit(p->target_id);
     if (!target) continue;
     if (p->frame > kLaserDuration / 2) continue;
     target->health -= kLaserDamage;
@@ -78,12 +78,12 @@ ProjectileSimulation()
   for (int i = 0; i < kUsedProjectile; ++i) {
     Projectile* p = &kProjectile[i];
     if (p->wkind != kWeaponBullet) continue;
-    Unit* target = FindEntity(p->target_id);
+    Unit* target = FindUnit(p->target_id);
     if (!target) continue;
 
     v3f dir = Normalize(p->end - p->start);
     v3f position = p->start + dir * p->frame;
-    float dsq = v3fDsq(position, target->transform.position);
+    float dsq = v3fDsq(position, target->position);
     if (dsq < kHitDsq) {
       target->health -= kBulletDamage;
       *p = kZeroProjectile;

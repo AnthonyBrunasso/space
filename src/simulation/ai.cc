@@ -11,7 +11,7 @@ AIWander(Unit* unit)
   if (unit->uaction != kUaNone) return;
 
   v2i p;
-  if (!WorldToTilePos(unit->transform.position, &p)) return;
+  if (!WorldToTilePos(unit->position, &p)) return;
 
   v2i rpos = TileRandomNeighbor(p);
   v2f wpos = TilePosToWorld(rpos);
@@ -80,7 +80,7 @@ AIAttackWhenDiscovered(Unit* unit)
   if (unit->uaction != kUaNone) return;
 
   v2i tpos;
-  if (!WorldToTilePos(unit->transform.position, &tpos)) return;
+  if (!WorldToTilePos(unit->position, &tpos)) return;
 
   Tile* tile = TilePtr(tpos);
   if (!tile) return;

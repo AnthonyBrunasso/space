@@ -193,7 +193,7 @@ ModuleWarpUpdate(Module* module)
 {
   Unit* unit = GetNearestUnit(TilePosToWorld(module->tile));
   v2i ut;
-  if (!WorldToTilePos(unit->transform.position, &ut)) return;
+  if (!WorldToTilePos(unit->position, &ut)) return;
   if (ut != module->tile) {
     return;
   }
@@ -223,12 +223,12 @@ ModuleWarpUpdate(Module* module)
     for (; i < kUsedUnit; ++i) {
       v2i tile;
       if (kUnit[i].ship_index != target_module->ship_index) continue;
-      if (!WorldToTilePos(kUnit[i].transform.position, &tile)) continue;
+      if (!WorldToTilePos(kUnit[i].position, &tile)) continue;
 
       if (tile == v2i(iter.tile->cx, iter.tile->cy)) break;
     }
     if (i != kUsedUnit) continue;
-    unit->transform.position = TileToWorld(*iter.tile);
+    unit->position = TileToWorld(*iter.tile);
     unit->ship_index = target_module->ship_index;
     unit->player_id = target_module->player_id;
     unit->persistent_uaction = unit->uaction = kUaNone;

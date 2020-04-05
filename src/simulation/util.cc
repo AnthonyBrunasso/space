@@ -31,33 +31,12 @@ v3fDsq(const v3f& dst, const v3f& src)
   return LengthSquared(delta);
 }
 
-// Call using GAME_ITER macro in entity.cc
-uint64_t
-v3fNearTransform(v3f pos, uint64_t step, const uint8_t* start,
-                 const uint8_t* end, float* dsq)
-{
-  uint64_t index = UINT64_MAX;
-  float nearest = FLT_MAX;
-  int i = 0;
-  for (const uint8_t* iter = start; iter < end; iter += step, i += 1) {
-    const Transform* t = (const Transform*)iter;
-    float distance = v3fDsq(pos, t->position);
-    if (distance < nearest) {
-      nearest = distance;
-      index = i;
-    }
-  }
-
-  *dsq = nearest;
-  return index;
-}
-
 Unit*
 GetUnit(v3f world)
 {
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
-    if (v3fDsq(unit->transform.position, world) < kDsqSelect) {
+    if (v3fDsq(unit->position, world) < kDsqSelect) {
       return unit;
     }
   }
@@ -70,7 +49,7 @@ GetUnitTarget(uint64_t local_player, v3f world) {
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     if (FLAGGED(unit->control, local_player)) continue;
-    if (v3fDsq(unit->transform.position, world) < kDsqSelect) {
+    if (v3fDsq(unit->position, world) < kDsqSelect) {
       return unit;
     }
   }
@@ -82,7 +61,7 @@ Unit*
 GetUnit(const math::Rectf& rect, int idx)
 {
   Unit* unit = &kUnit[idx];
-  if (PointInRect(unit->transform.position.xy(), rect)) {
+  if (PointInRect(unit->position.xy(), rect)) {
     return unit;
   }
   return nullptr;
@@ -107,7 +86,7 @@ bool
 InRange(Unit* source_unit, Unit* target_unit)
 {
   float dsq =
-      v3fDsq(source_unit->transform.position, target_unit->transform.position);
+      v3fDsq(source_unit->position, target_unit->position);
   float rsq = source_unit->attack_radius * source_unit->attack_radius;
   return dsq < rsq;
 }
@@ -115,9 +94,9 @@ InRange(Unit* source_unit, Unit* target_unit)
 bool
 InRange(uint64_t unit_id, uint64_t target_id)
 {
-  if (unit_id == kInvalidUnit || target_id == kInvalidUnit) return false;
-  Unit* source_unit = FindEntity(unit_id);
-  Unit* target_unit = FindEntity(target_id);
+  if (unit_id == kInvalidEntity || target_id == kInvalidEntity) return false;
+  Unit* source_unit = FindUnit(unit_id);
+  Unit* target_unit = FindUnit(target_id);
   return InRange(source_unit, target_unit);
 }
 
@@ -132,8 +111,8 @@ ShouldAttack(Unit* unit, Unit* target)
 bool
 ShouldAttack(uint64_t unit, uint64_t target)
 {
-  if (unit == kInvalidUnit || target == kInvalidUnit) return false;
-  return ShouldAttack(FindEntity(unit), FindEntity(target));
+  if (unit == kInvalidEntity || target == kInvalidEntity) return false;
+  return ShouldAttack(FindUnit(unit), FindUnit(target));
 }
 
 Unit*
@@ -155,8 +134,8 @@ GetNearestEnemyUnit(Unit* unit)
   Unit* target = nullptr;
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* new_target = &kUnit[i];
-    float nd = v3fDsq(unit->transform.position,
-                      new_target->transform.position);
+    float nd = v3fDsq(unit->position,
+                      new_target->position);
     if (nd < d && ShouldAttack(unit, new_target)) {
       target = new_target;
       d = nd;
@@ -172,7 +151,7 @@ GetNearestUnit(const v3f& pos)
   Unit* target = nullptr;
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* new_target = &kUnit[i];
-    float nd = v3fDsq(pos, new_target->transform.position);
+    float nd = v3fDsq(pos, new_target->position);
     if (nd < d) {
       target = new_target;
       d = nd;
@@ -186,15 +165,16 @@ SpawnEnemy(v2i tile_position, uint64_t ship_index)
 {
   // Uses raii to revert ship index back to whatever was set.
   TilemapModify tm(ship_index);
-  Unit* enemy = UseIdUnit();
+  Entity* enemy = UseIdEntity();
+  enemy->position = TilePosToWorld(tile_position);
+  enemy->scale = v3f(0.25f, 0.25f, 0.f);
   enemy->ship_index = ship_index;
-  enemy->transform.position = TilePosToWorld(tile_position);
-  enemy->transform.scale = v3f(0.25f, 0.25f, 0.f);
-  enemy->alliance = kEnemy;
-  enemy->kind = kAlien;
-  enemy->attack_radius = 30.f;
-  enemy->speed = 0.5f;
-  BB_SET(enemy->bb, kUnitBehavior, kUnitBehaviorAttackWhenDiscovered);
+  enemy->player_id = kInvalidIndex;
+  enemy->unit.alliance = kEnemy;
+  enemy->unit.kind = kAlien;
+  enemy->unit.attack_radius = 30.f;
+  enemy->unit.speed = 0.5f;
+  BB_SET(enemy->unit.bb, kUnitBehavior, kUnitBehaviorAttackWhenDiscovered);
   return enemy->id;
 }
 
@@ -202,28 +182,28 @@ void
 SpawnCrew(v3f world_position, uint64_t player_index, uint64_t ship_index)
 {
   TilemapModify tm(ship_index);
-  Unit* unit = UseIdUnit();
+  Entity* unit = UseIdEntity();
+  unit->position = world_position;
+  unit->scale = v3f(0.25f, 0.25f, 0.f);
   unit->ship_index = ship_index;
-  unit->transform.position = world_position;
-  unit->transform.scale = v3f(0.25f, 0.25f, 0.f);
-  unit->kind = kOperator;
-  unit->spacesuit = 1;
-  unit->speed = 1.0f;
   unit->player_id = player_index;
+  unit->unit.kind = kOperator;
+  unit->unit.spacesuit = 1;
+  unit->unit.speed = 1.0f;
 }
 
 void
 SpawnCrew(v2i tile_position, uint64_t player_index, uint64_t ship_index)
 {
   TilemapModify tm(ship_index);
-  Unit* unit = UseIdUnit();
+  Entity* unit = UseIdEntity();
+  unit->position = TilePosToWorld(tile_position);
+  unit->scale = v3f(0.25f, 0.25f, 0.f);
   unit->ship_index = ship_index;
-  unit->transform.position = TilePosToWorld(tile_position);
-  unit->transform.scale = v3f(0.25f, 0.25f, 0.f);
-  unit->kind = kOperator;
-  unit->spacesuit = 1;
-  unit->speed = 1.0f;
   unit->player_id = player_index;
+  unit->unit.kind = kOperator;
+  unit->unit.spacesuit = 1;
+  unit->unit.speed = 1.0f;
 }
 
 void
@@ -245,9 +225,9 @@ CanPathTo(Unit* unit, Unit* target)
   if (unit->ship_index != target->ship_index) return false;
   TilemapModify tm(unit->ship_index);
   v2i ut;
-  if (!WorldToTilePos(unit->transform.position, &ut)) return false;
+  if (!WorldToTilePos(unit->position, &ut)) return false;
   v2i tt;
-  if (!WorldToTilePos(target->transform.position, &tt)) return false;
+  if (!WorldToTilePos(target->position, &tt)) return false;
   return PathTo(ut, tt) != nullptr;
 }
 

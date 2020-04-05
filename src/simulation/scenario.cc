@@ -53,26 +53,6 @@ ScenarioSpawnRandomModule(ModuleKind kind, uint64_t ship_index, int num = 0)
 }
 
 void
-SpawnCrew(int count)
-{
-  v3f pos[] = {v3f(300.f, 300.f, 0.f), v3f(100.f, 130.f, 0),
-               v3f(300.f, 400.f, 0), v3f(650.f, 460.f, 0),
-               v3f(100.f, 577.f, 0.f)};
-  const v3f scale = v3f(0.25f, 0.25f, 0.f);
-  for (int i = 0; i < ARRAY_LENGTH(pos) && i < count; ++i) {
-    Unit* unit = UseIdUnit();
-    unit->ship_index = 0;
-    unit->transform.position = pos[i];
-    unit->transform.scale = scale;
-    unit->kind = kOperator;
-    unit->spacesuit = 1;
-    // Everybody is unique!
-    unit->mskill = i;
-    unit->player_id = AssignPlayerId();
-  }
-}
-
-void
 TilemapUnexplored(v3f world_position)
 {
   Tile keep_bits;
@@ -205,7 +185,7 @@ ScenarioReset(bool reset_features)
   // TODO (AN): GAME_QUEUE not in the registry
   kReadCommand = 0;
   kWriteCommand = 0;
-  kAutoIncrementIdUnit = kInvalidUnit + 1;
+  kAutoIncrementIdEntity = kInvalidEntity + 1;
 
   for (int i = 0; i < kUsedRegistry; ++i) {
     *kRegistry[i].memb_count = 0;

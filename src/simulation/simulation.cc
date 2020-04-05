@@ -91,7 +91,7 @@ ThinkShip(uint64_t ship_index)
       Module* mod = &kModule[k];
       if (mod->mkind != kModPower && ship->sys[kModPower] < 1.0f) continue;
 
-      if (v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperate) {
+      if (v3fDsq(unit->position, v3fModule(mod)) < kDsqOperate) {
         satisfied |= FLAG(mod->mkind);
       }
     }
@@ -360,8 +360,8 @@ DecideMissle(uint64_t ship_index)
 bool
 MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
 {
-  if (v3fDsq(unit->transform.position, dest) < 1.f) {
-    unit->transform.position = dest;
+  if (v3fDsq(unit->position, dest) < 1.f) {
+    unit->position = dest;
     unit->uaction = set_on_arrival;
     BB_REM(unit->bb, kUnitDestination);
     return true;
@@ -386,10 +386,10 @@ MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
   }
 
   v3f move_vec =
-      math::Normalize(incremental_dest.xy() - unit->transform.position.xy()) *
+      math::Normalize(incremental_dest.xy() - unit->position.xy()) *
       unit->speed;
 
-  unit->transform.position += (move_vec + avoidance_vec);
+  unit->position += (move_vec + avoidance_vec);
 
   return false;
 }
@@ -469,9 +469,8 @@ UpdateUnit(uint64_t ship_index)
   for (int i = 0; i < kUsedUnit; ++i) {
     Unit* unit = &kUnit[i];
     if (unit->ship_index != ship_index) continue;
-    Transform* transform = &unit->transform;
     v2i tilepos;
-    if (!WorldToTilePos(transform->position.xy(), &tilepos)) continue;
+    if (!WorldToTilePos(unit->position.xy(), &tilepos)) continue;
     Tile* tile = TilePtr(tilepos);
 
     if (unit->health < 0.f) {
@@ -480,7 +479,7 @@ UpdateUnit(uint64_t ship_index)
     }
 
     if (!tile) {
-      *unit = kZeroUnit;
+      ZeroEntity(unit);
       continue;
     }
 
@@ -493,7 +492,7 @@ UpdateUnit(uint64_t ship_index)
       memset(&set_bits, 0x00, sizeof(Tile));
       set_bits.explored = 1;
       float tile_world_distance = kTileWidth * 2.0f;
-      BfsMutate(unit->transform.position, keep_bits, set_bits,
+      BfsMutate(unit->position, keep_bits, set_bits,
                 3.f * tile_world_distance * tile_world_distance);
     }
 
@@ -507,7 +506,7 @@ UpdateUnit(uint64_t ship_index)
     for (int i = 0; i < kUsedModule; ++i) {
       Module* m = &kModule[i];
       if (ModuleBuilt(m)) continue;
-      if (ModuleNear(m, unit->transform.position)) {
+      if (ModuleNear(m, unit->position)) {
         m->frames_building++;
       }
     }
@@ -519,7 +518,7 @@ UpdateUnit(uint64_t ship_index)
     if (unit->uaction == kUaNone) {
       unit->uaction = unit->persistent_uaction;
     } else if (unit->uaction == kUaVacuum) {
-      transform->position += TileVacuum(tilepos) * 3.0f;
+      unit->position += TileVacuum(tilepos) * 3.0f;
     } else if (unit->uaction == kUaMove) {
       const v3f* dest = nullptr;
       if (!BB_GET(unit->bb, kUnitDestination, dest)) {
@@ -535,7 +534,7 @@ UpdateUnit(uint64_t ship_index)
         continue;
       }
 
-      Unit* target_unit = FindEntity(*target);
+      Unit* target_unit = FindUnit(*target);
       if (!target_unit || target_unit->dead) {
         BB_REM(unit->bb, kUnitTarget);
         unit->uaction = kUaNone;
@@ -545,8 +544,8 @@ UpdateUnit(uint64_t ship_index)
 
       if (!InRange(unit->id, *target)) {
         // Go to your target.
-        BB_SET(unit->bb, kUnitDestination, target_unit->transform.position);
-        MoveTowards(unit, tilepos, target_unit->transform.position, kUaAttack);
+        BB_SET(unit->bb, kUnitDestination, target_unit->position);
+        MoveTowards(unit, tilepos, target_unit->position, kUaAttack);
         continue;
       }
 
@@ -583,37 +582,7 @@ UpdateUnit(uint64_t ship_index)
     if (kUnit[i].dead) {
       uint32_t death_id = kUnit[i].id;
       LOGFMT("Unit died [id %d]", death_id);
-      kUnit[i] = kZeroUnit;
-    }
-  }
-}
-
-void
-UpdateConsumable(uint64_t ship_index)
-{
-  for (int i = 0; i < kUsedConsumable; ++i) {
-    Consumable* c = &kConsumable[i];
-    v3f cw = TilePosToWorld(v2i(c->cx, c->cy));
-    float dsq;
-    uint64_t near_unit = v3fNearTransform(cw, GAME_ITER(Unit, transform), &dsq);
-    if (dsq < kDsqGather) {
-      if (c->cryo_chamber) {
-        const v3f scale = v3f(0.25f, 0.25f, 0.f);
-        Unit* new_unit = UseIdUnit();
-        new_unit->ship_index = ship_index;
-        new_unit->transform.position = cw;
-        new_unit->transform.scale = scale;
-        new_unit->kind = kOperator;
-        // Everybody is unique!
-        new_unit->mskill = rand() % kModCount;
-        new_unit->player_id = AssignPlayerId();
-
-        *c = kZeroConsumable;
-      } else {
-        // TODO: Fix this.
-        //kResource[0].mineral += c->minerals;
-        *c = kZeroConsumable;
-      }
+      ZeroEntity(&kUnit[i]);
     }
   }
 }
@@ -623,7 +592,7 @@ Decide()
 {
   while (CountCommand()) {
     Command c = PopCommand();
-    if (c.unit_id == kInvalidUnit) {
+    if (c.unit_id == kInvalidEntity) {
       if (c.type == kUaBuild) {
         for (int i = 0; i < kUsedUnit; ++i) {
           Unit* u = &kUnit[i];
@@ -644,7 +613,7 @@ Decide()
         }
       }
     } else {
-      Unit* unit = FindEntity(c.unit_id);
+      Unit* unit = FindUnit(c.unit_id);
       if (!unit) continue;
       // Unit specific commands must exactly match the original control bits
       if (unit->control != c.control) continue;
@@ -663,7 +632,6 @@ Decide()
     DecideMissle(i);
     UpdateModule(i);
     UpdateUnit(i);
-    UpdateConsumable(i);
   }
 }
 

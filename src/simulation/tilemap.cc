@@ -369,10 +369,11 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
             case kTileEngine:
             case kTileMine:
             case kTileTurret: {
-              Module* t = UseModule();
+              Entity* t = UseIdEntity();
+              t->type = kEeModule;
               t->ship_index = grid_index;
-              t->tile = v2i(x, y);
-              t->mkind = (ModuleKind)(kDefaultMap[y][x] - kTileModule);
+              t->module.tile = v2i(x, y);
+              t->module.mkind = (ModuleKind)(kDefaultMap[y][x] - kTileModule);
               // TODO: Need to clean this up. Make it clear the indices match
               // by their name.
               t->player_id = grid_index;

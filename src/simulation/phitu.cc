@@ -69,7 +69,7 @@ ProjectileSimulation()
   for (int i = 0; i < kUsedProjectile; ++i) {
     Projectile* p = &kProjectile[i];
     if (p->wkind != kWeaponLaser) continue;
-    Unit* target = FindUnit(p->target_id);
+    Unit* target = FindEntity(p->target_id);
     if (!target) continue;
     if (p->frame > kLaserDuration / 2) continue;
     target->health -= kLaserDamage;
@@ -78,7 +78,7 @@ ProjectileSimulation()
   for (int i = 0; i < kUsedProjectile; ++i) {
     Projectile* p = &kProjectile[i];
     if (p->wkind != kWeaponBullet) continue;
-    Unit* target = FindUnit(p->target_id);
+    Unit* target = FindEntity(p->target_id);
     if (!target) continue;
 
     v3f dir = Normalize(p->end - p->start);

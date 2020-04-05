@@ -316,7 +316,7 @@ DecideInvasion()
     bool all_dead = true;
     for (int i = 0; i < v->unit_count; ++i) {
       uint32_t id = v->unit_id[i];
-      if (FindUnit(id)) {
+      if (FindEntity(id)) {
         all_dead = false;
         break;
       }
@@ -535,7 +535,7 @@ UpdateUnit(uint64_t ship_index)
         continue;
       }
 
-      Unit* target_unit = FindUnit(*target);
+      Unit* target_unit = FindEntity(*target);
       if (!target_unit || target_unit->dead) {
         BB_REM(unit->bb, kUnitTarget);
         unit->uaction = kUaNone;
@@ -644,7 +644,7 @@ Decide()
         }
       }
     } else {
-      Unit* unit = FindUnit(c.unit_id);
+      Unit* unit = FindEntity(c.unit_id);
       if (!unit) continue;
       // Unit specific commands must exactly match the original control bits
       if (unit->control != c.control) continue;

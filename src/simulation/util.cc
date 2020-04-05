@@ -116,8 +116,8 @@ bool
 InRange(uint64_t unit_id, uint64_t target_id)
 {
   if (unit_id == kInvalidUnit || target_id == kInvalidUnit) return false;
-  Unit* source_unit = FindUnit(unit_id);
-  Unit* target_unit = FindUnit(target_id);
+  Unit* source_unit = FindEntity(unit_id);
+  Unit* target_unit = FindEntity(target_id);
   return InRange(source_unit, target_unit);
 }
 
@@ -133,7 +133,7 @@ bool
 ShouldAttack(uint64_t unit, uint64_t target)
 {
   if (unit == kInvalidUnit || target == kInvalidUnit) return false;
-  return ShouldAttack(FindUnit(unit), FindUnit(target));
+  return ShouldAttack(FindEntity(unit), FindEntity(target));
 }
 
 Unit*

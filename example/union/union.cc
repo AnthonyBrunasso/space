@@ -2,8 +2,8 @@
 #include <cstdio>
 
 #define COMMON_MEMBER_DECL                                                     \
-  int x = 0;                                                                   \
-  int y = 0;                                                                   \
+  int x;                                                                   \
+  int y;                                                                   \
   int type
 
 enum EntityEnum {

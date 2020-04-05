@@ -38,5 +38,3 @@ network -
   server turn injection/reordering
   server retransmission of NotifyGame
   do we ever need to choke client sending input? (only necessary if server time slip is occurring)
-  
-

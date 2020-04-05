@@ -23,7 +23,7 @@ struct Alien {
 
 union Entity {
   struct {
-    COMMON_MEMBER_DECL = 500;
+    COMMON_MEMBER_DECL;
   };
   Unit unit;
   Alien alien;

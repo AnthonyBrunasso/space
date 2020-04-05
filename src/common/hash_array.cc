@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 
 #define HASH_STRUCT()  \
@@ -60,7 +61,7 @@ struct HashEntry {
     HashEntry* hash_entry =                                         \
         FindEmptyHashEntry##type(hash, &u->hash_idx);               \
     hash_entry->id = u->id;                                         \
-    hash_entry->array_idx = kUsedUnit - 1;                          \
+    hash_entry->array_idx = kUsed##type - 1;                        \
     return u;                                                       \
   }                                                                 \
                                                                     \

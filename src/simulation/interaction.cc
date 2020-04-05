@@ -141,14 +141,15 @@ ReadOnlyUnits(v2f screen, uint32_t tag)
   debug_options.highlight_color = gfx::kRed;
   snprintf(ui_buffer, sizeof(ui_buffer), "Unit Debug [%d]", unit_debug);
   if (imui::Text(ui_buffer, debug_options).clicked) {
-    unit_debug = (unit_debug+1)%3;
+    unit_debug = (unit_debug + 1) % 3;
   }
 
   if (unit_debug) {
     imui::Indent(2);
     for (int i = 0; i < kUsedUnit; ++i) {
       snprintf(ui_buffer, sizeof(ui_buffer), "Unit %d", kUnit[i].id);
-      if (imui::Text(ui_buffer, debug_options).highlighted || kUnit[i].control || unit_debug >= 2) {
+      if (imui::Text(ui_buffer, debug_options).highlighted ||
+          kUnit[i].control || unit_debug >= 2) {
         imui::Indent(2);
         RenderBlackboard(&kUnit[i]);
         imui::Indent(-2);
@@ -432,6 +433,18 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
         case 'l': {
           player->level = CLAMP(player->level + 1, 1, 10);
         } break;
+        case 'j': {
+          if (player->ship_index < kUsedShip) {
+            Ship* ship = &kShip[player->ship_index];
+            ship->deck -= (ship->deck > 0);
+          }
+        } break;
+        case 'k': {
+          if (player->ship_index < kUsedShip) {
+            Ship* ship = &kShip[player->ship_index];
+            ship->deck += (ship->deck < kLastDeck);
+          }
+        } break;
         default:
           break;
       }
@@ -462,7 +475,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
 void
 GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
 {
-  imui::Begin(v2f(0.f, 300.f), tag);
+  imui::Begin(v2f(0.f, 100.f), tag);
   imui::Result hud_result;
   v2f p(50.f, 10.f);
   for (int i = 3; i < kModCount; ++i) {
@@ -474,6 +487,11 @@ GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
       player->hud_mode = kHudModule;
       player->mod_placement = (ModuleKind)i;
     }
+  }
+  if (player->ship_index < kUsedShip) {
+    Ship* ship = &kShip[player->ship_index];
+    snprintf(ui_buffer, sizeof(ui_buffer), "%.12s Deck", deck_name[ship->deck]);
+    imui::Text(ui_buffer);
   }
   imui::End();
 }

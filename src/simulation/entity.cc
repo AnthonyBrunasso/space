@@ -131,6 +131,13 @@ enum CrewAttrib {
   CREWA_MAX,
 };
 
+const char* const deck_name[] = {
+    "Cargo",
+    "Bridge",
+    "Observation",
+};
+constexpr uint64_t kMaxDeck = ARRAY_LENGTH(deck_name);
+constexpr uint64_t kLastDeck = kMaxDeck - 1;
 const char* const crew_aname[] = {
     "strength",
     "intelligence",
@@ -204,6 +211,7 @@ struct Ship {
   uint64_t danger = 0;
   uint64_t grid_index = UINT64_MAX;
   uint64_t level;
+  uint64_t deck = 1;
   uint64_t pod_capacity;
   float sys[kModCount];
   float used_power;

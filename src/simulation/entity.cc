@@ -15,26 +15,7 @@
 
 // id == -1 is reserved for invalid references
 #define DECLARE_GAME_TYPE_WITH_ID(type, max_count)                            \
-  DECLARE_ARRAY(type, max_count)                                              \
-  static uint32_t kInvalid##type = 0;                                         \
-  static uint32_t kAutoIncrementId##type = 1;                                 \
-                                                                              \
-  type* UseId##type()                                                         \
-  {                                                                           \
-    type* t = Use##type();                                                    \
-    if (!t) return nullptr;                                                   \
-    t->id = kAutoIncrementId##type;                                           \
-    kAutoIncrementId##type += (kAutoIncrementId##type == kInvalid##type) + 1; \
-    return t;                                                                 \
-  }                                                                           \
-                                                                              \
-  type* Find##type(uint32_t id)                                               \
-  {                                                                           \
-    for (int i = 0; i < kUsed##type; ++i) {                                   \
-      if (k##type[i].id == id) return &k##type[i];                            \
-    }                                                                         \
-    return nullptr;                                                           \
-  }                                                                           \
+  DECLARE_ID_ARRAY(type, max_count)                                           \
   static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type,      \
                                     max_count, sizeof(type));
 

@@ -1,12 +1,13 @@
 #include <cstdio>
 
 #include "common\hash_array.cc"
+#include "math\vec.h"
 
-struct Unit {
+struct UnitH {
   HASH_STRUCT()
 };
 
-DECLARE_HASH_ARRAY(Unit, 10);
+DECLARE_HASH_ARRAY(UnitH, 1000);
 
 void
 DebugPrint()

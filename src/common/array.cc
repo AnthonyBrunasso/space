@@ -38,6 +38,29 @@
     --kUsed##type;                                 \
   }                                                \
 
+#define DECLARE_ID_ARRAY(type, max_count)                                     \
+  DECLARE_ARRAY(type, max_count)                                              \
+  static uint32_t kInvalid##type = 0;                                         \
+  static uint32_t kAutoIncrementId##type = 1;                                 \
+                                                                              \
+  type* UseId##type()                                                         \
+  {                                                                           \
+    type* t = Use##type();                                                    \
+    if (!t) return nullptr;                                                   \
+    t->id = kAutoIncrementId##type;                                           \
+    kAutoIncrementId##type += (kAutoIncrementId##type == kInvalid##type) + 1; \
+    return t;                                                                 \
+  }                                                                           \
+                                                                              \
+  type* Find##type(uint32_t id)                                               \
+  {                                                                           \
+    for (int i = 0; i < kUsed##type; ++i) {                                   \
+      if (k##type[i].id == id) return &k##type[i];                            \
+    }                                                                         \
+    return nullptr;                                                           \
+  }                                                                           \
+
+
 #define DECLARE_2D_ARRAY(type, n, max_count)       \
   constexpr uint64_t kMax##type = max_count;       \
   constexpr uint64_t kDim##type = n;               \

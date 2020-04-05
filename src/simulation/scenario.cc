@@ -59,13 +59,11 @@ SpawnCrew(int count)
                v3f(300.f, 400.f, 0), v3f(650.f, 460.f, 0),
                v3f(100.f, 577.f, 0.f)};
   const v3f scale = v3f(0.25f, 0.25f, 0.f);
-  uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
   for (int i = 0; i < ARRAY_LENGTH(pos) && i < count; ++i) {
     Unit* unit = UseIdUnit();
     unit->ship_index = 0;
     unit->transform.position = pos[i];
     unit->transform.scale = scale;
-    memcpy(unit->acurrent, attrib, sizeof(attrib));
     unit->kind = kOperator;
     unit->spacesuit = 1;
     // Everybody is unique!

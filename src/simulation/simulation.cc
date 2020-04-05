@@ -59,19 +59,6 @@ Hash()
   }
 }
 
-bool
-operator_save_power(Unit* unit, float power_delta)
-{
-  uint8_t int_check = power_delta / 5.0;
-  bool success = (unit->acurrent[CREWA_INT] > int_check);
-  LOGFMT("%u intelligence check on power utilization %04.02f [%d]", int_check,
-         power_delta, success);
-  // On success, update the known crew intelligence
-  unit->aknown_min[CREWA_INT] =
-      MAX(unit->aknown_min[CREWA_INT], success * int_check);
-  return success;
-}
-
 void
 ThinkShip(uint64_t ship_index)
 {
@@ -90,25 +77,6 @@ ThinkShip(uint64_t ship_index)
   if (ship->power_delta > 0.0f) {
     think_flags |= FLAG(kShipAiPowerSurge);
     ship->danger += 1;
-    for (int j = 0; j < kUsedUnit; ++j) {
-      Unit* unit = &kUnit[j];
-      for (int k = 0; k < kUsedModule; ++k) {
-        Module* mod = &kModule[k];
-        if (mod->mkind != kModPower) continue;
-        if (v3fDsq(unit->transform.position, v3fModule(mod)) < kDsqOperatePod) {
-          if (operator_save_power(unit, ship->power_delta)) {
-            unit->notify = 1;
-
-            ship->power_delta = 0.0f;
-            LOGFMT("Unit %u prevented the power surge from damaging ship %i.",
-                   unit->id, ship_index);
-            break;
-          } else {
-            ship->danger += 1;
-          }
-        }
-      }
-    }
   } else {
     ship->danger = 0;
   }
@@ -631,12 +599,10 @@ UpdateConsumable(uint64_t ship_index)
     if (dsq < kDsqGather) {
       if (c->cryo_chamber) {
         const v3f scale = v3f(0.25f, 0.25f, 0.f);
-        uint8_t attrib[CREWA_MAX] = {11, 10, 11, 10};
         Unit* new_unit = UseIdUnit();
         new_unit->ship_index = ship_index;
         new_unit->transform.position = cw;
         new_unit->transform.scale = scale;
-        memcpy(new_unit->acurrent, attrib, sizeof(attrib));
         new_unit->kind = kOperator;
         // Everybody is unique!
         new_unit->mskill = rand() % kModCount;

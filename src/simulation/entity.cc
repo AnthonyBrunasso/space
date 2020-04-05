@@ -122,15 +122,6 @@ struct Transform {
   v3f scale = v3f(1.f, 1.f, 1.f);
 };
 
-// TODO (AN): Move crew
-enum CrewAttrib {
-  CREWA_STR,
-  CREWA_INT,
-  CREWA_DEX,
-  CREWA_CON,
-  CREWA_MAX,
-};
-
 const char* const deck_name[] = {
     "Cargo",
     "Bridge",
@@ -138,21 +129,6 @@ const char* const deck_name[] = {
 };
 constexpr uint64_t kMaxDeck = ARRAY_LENGTH(deck_name);
 constexpr uint64_t kLastDeck = kMaxDeck - 1;
-const char* const crew_aname[] = {
-    "strength",
-    "intelligence",
-    "dexterity",
-    "constitution",
-};
-#define CREW_A(val) \
-  {                 \
-      val,          \
-      val,          \
-      val,          \
-      val,          \
-  };
-#define CREW_ABEST CREW_A(18)
-#define CREW_AWORST CREW_A(3)
 
 struct Asteroid {
   Transform transform;
@@ -184,10 +160,6 @@ struct Unit {
   float max_health = 5.0f;
   float speed = 1.f;
   uint64_t player_id = kNonPlayerId;
-
-  uint8_t acurrent[CREWA_MAX];
-  uint8_t aknown_min[CREWA_MAX] = CREW_AWORST;
-  uint8_t aknown_max[CREWA_MAX] = CREW_ABEST;
 
   // Width, height, depth of unit.
   v3f bounds = v3f(15.f, 15.f, 15.f);

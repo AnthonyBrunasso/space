@@ -14,7 +14,6 @@ Delete items when they are done.
 
 gameplay -
 
-  God mode
   Can build module function
   Entity stuff
   Uncontrolled crew member

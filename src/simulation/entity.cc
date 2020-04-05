@@ -122,42 +122,6 @@ DECLARE_GAME_TYPE(Asteroid, 8);
 constexpr uint64_t kNonPlayerId = UINT64_MAX;
 constexpr unsigned kNotifyAgeBits = 5;
 
-struct Unit {
-  Transform transform;
-  Blackboard bb;
-  uint64_t ship_index = UINT64_MAX;
-
-  uint32_t id;
-  UnitKind kind;
-  Alliance alliance = kCrew;
-
-  // Maybe need a weapon type?
-  float attack_radius = 100.0f;
-  int attack_frame;
-  // Can attack every N frames.
-  int attack_cooldown = 60;
-  WeaponKind weapon_kind = kWeaponLaser;
-  float health = 5.0f;
-  float max_health = 5.0f;
-  float speed = 1.f;
-  uint64_t player_id = kNonPlayerId;
-
-  // Width, height, depth of unit.
-  v3f bounds = v3f(15.f, 15.f, 15.f);
-
-  // Bit Fields
-  unsigned control : MAX_PLAYER;
-  unsigned dead : 1;
-  unsigned spacesuit : 1;
-  unsigned inspace : 1;
-  unsigned uaction : 4;
-  unsigned persistent_uaction : 3;
-  unsigned mskill : kModBits;
-  unsigned notify : kNotifyAgeBits;
-  uint64_t PADDING : 13;
-};
-DECLARE_GAME_TYPE_WITH_ID(Unit, 64);
-
 struct Ship {
   uint64_t think_flags = 0;
   uint64_t operate_flags = 0;
@@ -195,6 +159,42 @@ struct Projectile {
   uint32_t target_id;
 };
 DECLARE_GAME_TYPE(Projectile, 128);
+
+struct Unit {
+  Transform transform;
+  Blackboard bb;
+  uint64_t ship_index = UINT64_MAX;
+
+  uint32_t id;
+  UnitKind kind;
+  Alliance alliance = kCrew;
+
+  // Maybe need a weapon type?
+  float attack_radius = 100.0f;
+  int attack_frame;
+  // Can attack every N frames.
+  int attack_cooldown = 60;
+  WeaponKind weapon_kind = kWeaponLaser;
+  float health = 5.0f;
+  float max_health = 5.0f;
+  float speed = 1.f;
+  uint64_t player_id = kNonPlayerId;
+
+  // Width, height, depth of unit.
+  v3f bounds = v3f(15.f, 15.f, 15.f);
+
+  // Bit Fields
+  unsigned control : MAX_PLAYER;
+  unsigned dead : 1;
+  unsigned spacesuit : 1;
+  unsigned inspace : 1;
+  unsigned uaction : 4;
+  unsigned persistent_uaction : 3;
+  unsigned mskill : kModBits;
+  unsigned notify : kNotifyAgeBits;
+  uint64_t PADDING : 13;
+};
+DECLARE_GAME_TYPE_WITH_ID(Unit, 64);
 
 constexpr int kTrainIdle = -1;
 

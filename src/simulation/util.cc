@@ -34,8 +34,9 @@ v3fDsq(const v3f& dst, const v3f& src)
 Unit*
 GetUnit(v3f world)
 {
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
+  for (int i = 0; i < kUsedEntity; ++i) {
+    Unit* unit = &kEntity[i].unit;
+    if (unit->type != kEeUnit) continue;
     if (v3fDsq(unit->position, world) < kDsqSelect) {
       return unit;
     }
@@ -46,8 +47,9 @@ GetUnit(v3f world)
 
 Unit*
 GetUnitTarget(uint64_t local_player, v3f world) {
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
+  for (int i = 0; i < kUsedEntity; ++i) {
+    Unit* unit = &kEntity[i].unit;
+    if (unit->type != kEeUnit) continue;
     if (FLAGGED(unit->control, local_player)) continue;
     if (v3fDsq(unit->position, world) < kDsqSelect) {
       return unit;
@@ -58,9 +60,9 @@ GetUnitTarget(uint64_t local_player, v3f world) {
 }
 
 Unit*
-GetUnit(const math::Rectf& rect, int idx)
+SelectUnit(const math::Rectf& rect, int idx)
 {
-  Unit* unit = &kUnit[idx];
+  Unit* unit = &kEntity[idx].unit;
   if (PointInRect(unit->position.xy(), rect)) {
     return unit;
   }
@@ -68,9 +70,11 @@ GetUnit(const math::Rectf& rect, int idx)
 }
 
 Module*
-GetModule(const math::Rectf& rect, int idx)
+SelectModule(const math::Rectf& rect, int idx)
 {
-  Module* mod = &kModule[idx];
+  if (kEntity[idx].type != kEeModule) return nullptr;
+
+  Module* mod = &kEntity[idx].module;
   TilemapModify tm(mod->ship_index);
   // TODO: Take into consideration module bounds and do a rect/rect intersect.
   //v2f t = TilePosToWorld(mod->tile);
@@ -118,8 +122,9 @@ ShouldAttack(uint64_t unit, uint64_t target)
 Unit*
 FindUnitInRangeToAttack(Unit* unit)
 {
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* target = &kUnit[i];
+  for (int i = 0; i < kUsedEntity; ++i) {
+    Unit* target = &kEntity[i].unit;
+    if (unit->type != kEeUnit) continue;
     if (unit == target) continue;
     if (!ShouldAttack(unit, target)) continue;
     if (InRange(unit, target)) return target;
@@ -132,8 +137,9 @@ GetNearestEnemyUnit(Unit* unit)
 {
   float d = FLT_MAX;
   Unit* target = nullptr;
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* new_target = &kUnit[i];
+  for (int i = 0; i < kUsedEntity; ++i) {
+    Unit* new_target = &kEntity[i].unit;
+    if (new_target->type != kEeUnit) continue;
     float nd = v3fDsq(unit->position,
                       new_target->position);
     if (nd < d && ShouldAttack(unit, new_target)) {
@@ -149,8 +155,8 @@ GetNearestUnit(const v3f& pos)
 {
   float d = FLT_MAX;
   Unit* target = nullptr;
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* new_target = &kUnit[i];
+  for (int i = 0; i < kUsedEntity; ++i) {
+    Unit* new_target = &kEntity[i].unit;
     float nd = v3fDsq(pos, new_target->position);
     if (nd < d) {
       target = new_target;
@@ -165,16 +171,16 @@ SpawnEnemy(v2i tile_position, uint64_t ship_index)
 {
   // Uses raii to revert ship index back to whatever was set.
   TilemapModify tm(ship_index);
-  Entity* enemy = UseIdEntity();
+  Unit* enemy = UseEntityUnit();
   enemy->position = TilePosToWorld(tile_position);
   enemy->scale = v3f(0.25f, 0.25f, 0.f);
   enemy->ship_index = ship_index;
   enemy->player_id = kInvalidIndex;
-  enemy->unit.alliance = kEnemy;
-  enemy->unit.kind = kAlien;
-  enemy->unit.attack_radius = 30.f;
-  enemy->unit.speed = 0.5f;
-  BB_SET(enemy->unit.bb, kUnitBehavior, kUnitBehaviorAttackWhenDiscovered);
+  enemy->alliance = kEnemy;
+  enemy->kind = kAlien;
+  enemy->attack_radius = 30.f;
+  enemy->speed = 0.5f;
+  BB_SET(enemy->bb, kUnitBehavior, kUnitBehaviorAttackWhenDiscovered);
   return enemy->id;
 }
 
@@ -182,28 +188,26 @@ void
 SpawnCrew(v3f world_position, uint64_t player_index, uint64_t ship_index)
 {
   TilemapModify tm(ship_index);
-  Entity* unit = UseIdEntity();
+  Unit* unit = UseEntityUnit();
   unit->position = world_position;
   unit->scale = v3f(0.25f, 0.25f, 0.f);
   unit->ship_index = ship_index;
   unit->player_id = player_index;
-  unit->unit.kind = kOperator;
-  unit->unit.spacesuit = 1;
-  unit->unit.speed = 1.0f;
+  unit->kind = kOperator;
+  unit->spacesuit = 1;
 }
 
 void
 SpawnCrew(v2i tile_position, uint64_t player_index, uint64_t ship_index)
 {
   TilemapModify tm(ship_index);
-  Entity* unit = UseIdEntity();
+  Unit* unit = UseEntityUnit();
   unit->position = TilePosToWorld(tile_position);
   unit->scale = v3f(0.25f, 0.25f, 0.f);
   unit->ship_index = ship_index;
   unit->player_id = player_index;
-  unit->unit.kind = kOperator;
-  unit->unit.spacesuit = 1;
-  unit->unit.speed = 1.0f;
+  unit->kind = kOperator;
+  unit->spacesuit = 1;
 }
 
 void

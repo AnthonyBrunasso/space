@@ -97,31 +97,6 @@ ModuleColor(ModuleKind mkind)
 }
 
 v3f
-ModuleBounds(ModuleKind mkind)
-{
-  switch (mkind) {
-    case kModPower:
-      return v3f(15.f, 15.f, 15.f);
-    case kModEngine:
-      return v3f(15.f, 15.f, 15.f);
-    case kModTurret:
-      return v3f(15.f, 15.f, 15.f);
-    case kModMine:
-      return v3f(15.f, 15.f, 15.f);
-    case kModBarrack:
-      return v3f(45.f, 45.f, 15.f);
-    case kModMedbay:
-      return v3f(45.f, 45.f, 15.f);
-    case kModWarp:
-      return v3f(15.f, 15.f, 15.f);
-    case kModCount:
-    default:
-      return v3f();
-  }
-  return v3f();
-}
-
-v3f
 ModulePosition(Module* mod)
 {
   TilemapModify modify(mod->ship_index);
@@ -200,8 +175,9 @@ ModuleWarpUpdate(Module* module)
   // Find the nearest warp on a seperate tilemap from this one.
   Module* target_module = nullptr;
   float d = FLT_MAX;
-  for (int i = 0; i < kUsedModule; ++i) {
-    Module* nm = &kModule[i];
+  for (int i = 0; i < kUsedEntity; ++i) {
+    if (kEntity[i].type != kEeModule) continue;
+    Module* nm = &kEntity[i].module;
     if (nm == module) continue;
     if (!ModuleBuilt(nm)) continue;
     if (nm->ship_index == module->ship_index) continue;
@@ -220,14 +196,16 @@ ModuleWarpUpdate(Module* module)
   BfsIterator iter = BfsStart(target_module->tile);
   while (BfsNextTile(&iter)) {
     int i = 0;
-    for (; i < kUsedUnit; ++i) {
+    for (; i < kUsedEntity; ++i) {
+      Unit* unit = &kEntity[i].unit;
+      if (unit->type != kEeUnit) continue;
       v2i tile;
-      if (kUnit[i].ship_index != target_module->ship_index) continue;
-      if (!WorldToTilePos(kUnit[i].position, &tile)) continue;
+      if (unit->ship_index != target_module->ship_index) continue;
+      if (!WorldToTilePos(unit->position, &tile)) continue;
 
       if (tile == v2i(iter.tile->cx, iter.tile->cy)) break;
     }
-    if (i != kUsedUnit) continue;
+    if (i != kUsedEntity) continue;
     unit->position = TileToWorld(*iter.tile);
     unit->ship_index = target_module->ship_index;
     unit->player_id = target_module->player_id;

@@ -78,8 +78,9 @@ RenderCrew(uint64_t ship_index)
   using namespace simulation;
 
   // Crew rendering
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
+  for (int i = 0; i < kUsedEntity; ++i) {
+    Unit* unit = &kEntity[i].unit;
+    if (unit->type != kEeUnit) continue;
     if (unit->ship_index != ship_index) continue;
     if (unit->inspace) {
       rgg::RenderPod(unit->position, v3f(20.f, 20.f, 20.f),
@@ -127,8 +128,9 @@ RenderCrew(uint64_t ship_index)
                         v4f(0.33f, 0.80f, 0.33f, 1.f));
     }
 
-    for (int k = 0; k < kUsedModule; ++k) {
-      Module* mod = &kModule[k];
+    for (int k = 0; k < kUsedEntity; ++k) {
+      Module* mod = &kEntity[k].module;
+      if (mod->type != kEeModule) continue;
       if (v3fDsq(unit->position, v3fModule(mod)) < kDsqOperate) {
         // TODO(abrunasso): This should be the graphic when working on
         // something.
@@ -182,8 +184,9 @@ RenderCrew(uint64_t ship_index)
     }
   }
 
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
+  for (int i = 0; i < kUsedEntity; ++i) {
+    Unit* unit = &kEntity[i].unit;
+    if (unit->type != kEeUnit) continue;
     TilemapModify mod(unit->ship_index);
     if (unit->uaction != kUaMove) continue;
     if (unit->inspace) continue;
@@ -217,47 +220,46 @@ RenderShip(uint64_t ship_index)
 
   // Modules are always visible
   constexpr float min_visibility = .4f;
-  for (int i = 0; i < kUsedModule; ++i) {
-    Module* module = &kModule[i];
-    if (module->ship_index != ship_index) continue;
-    v3f mcolor = ModuleColor(module->mkind);
-    mcolor *=
-        CLAMPF(min_visibility, kShip[ship_index].sys[module->mkind], 1.0f);
+  for (int i = 0; i < kUsedEntity; ++i) {
+    Module* mod = &kEntity[i].module;
+    if (mod->type != kEeModule) continue;
+    v3f mcolor = ModuleColor(mod->mkind);
+    mcolor *= CLAMPF(min_visibility, kShip[ship_index].sys[mod->mkind], 1.0f);
     v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
-    v2f t = simulation::TilePosToWorld(module->tile);
-    if (ModuleBuilt(module)) {
+    v2f t = simulation::TilePosToWorld(mod->tile);
+    if (ModuleBuilt(mod)) {
       rgg::RenderCube(
           math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f),
-                      module->bounds),
+                      mod->bounds),
           color);
     } else {
       rgg::RenderLineCube(
           math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f),
-                      module->bounds),
+                      mod->bounds),
           v4f(color.x, color.y, color.z, 1.f));
       glDisable(GL_DEPTH_TEST);
       rgg::RenderProgressBar(
-          math::Rectf(t.x - module->bounds.x / 2.f, t.y - module->bounds.y,
-                      module->bounds.y, 5.f),
-          2.f, module->frames_building, module->frames_to_build, kGreen,
-          kWhite);
+          math::Rectf(t.x - mod->bounds.x / 2.f, t.y - mod->bounds.y,
+                      mod->bounds.y, 5.f),
+          2.f, mod->frames_building, mod->frames_to_build, kGreen, kWhite);
       glEnable(GL_DEPTH_TEST);
     }
 
-    if (module->frames_training == kTrainIdle) continue;
+    if (mod->frames_training == kTrainIdle) continue;
 
     glDisable(GL_DEPTH_TEST);
-    rgg::RenderProgressBar(
-        math::Rectf(t.x - module->bounds.x / 2.f, t.y - module->bounds.y,
-                    module->bounds.y, 5.f),
-        2.f, module->frames_training, module->frames_to_train, kRed, kWhite);
+    rgg::RenderProgressBar(math::Rectf(t.x - mod->bounds.x / 2.f,
+                                       t.y - mod->bounds.y, mod->bounds.y, 5.f),
+                           2.f, mod->frames_training, mod->frames_to_train,
+                           kRed, kWhite);
     glEnable(GL_DEPTH_TEST);
   }
 
   {
     v3f world;
-    for (int i = 0; i < kUsedModule; ++i) {
-      Module* mod = &kModule[i];
+    for (int i = 0; i < kUsedEntity; ++i) {
+      Module* mod = &kEntity[i].module;
+      if (mod->type != kEeModule) continue;
       if (mod->ship_index != ship_index) continue;
       if (mod->mkind != kModEngine) continue;
       if (!ModuleBuilt(mod)) continue;
@@ -408,8 +410,9 @@ RenderSpaceObjects()
     if (!WorldToTilePos(missile->transform.position, &tile)) continue;
     if (!TileOk(tile)) continue;
 
-    for (; j < kUsedModule; ++j) {
-      Module* mod = &kModule[j];
+    for (; j < kUsedEntity; ++j) {
+      Module* mod = &kEntity[j].module;
+      if (mod->type != kEeModule) continue;
       if (mod->mkind != kModTurret) continue;
       v2f pos = TilePosToWorld(mod->tile);
       rgg::RenderLine(missile->transform.position, pos,

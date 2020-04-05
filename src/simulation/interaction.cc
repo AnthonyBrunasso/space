@@ -146,12 +146,20 @@ ReadOnlyUnits(v2f screen, uint32_t tag)
 
   if (unit_debug) {
     imui::Indent(2);
-    for (int i = 0; i < kUsedUnit; ++i) {
-      snprintf(ui_buffer, sizeof(ui_buffer), "Unit %d", kUnit[i].id);
+    for (int i = 0; i < kUsedEntity; ++i) {
+      snprintf(ui_buffer, sizeof(ui_buffer), "Entity %d", kEntity[i].id);
       if (imui::Text(ui_buffer, debug_options).highlighted ||
-          kUnit[i].control || unit_debug >= 2) {
+          kEntity[i].control || unit_debug >= 2) {
         imui::Indent(2);
-        RenderBlackboard(&kUnit[i]);
+        if (kEntity[i].type == kEeUnit) {
+          snprintf(ui_buffer, sizeof(ui_buffer), "action %d",
+                   kEntity[i].unit.uaction);
+          imui::Text(ui_buffer);
+          snprintf(ui_buffer, sizeof(ui_buffer), "persistent_action %d",
+                   kEntity[i].unit.persistent_uaction);
+          imui::Text(ui_buffer);
+          RenderBlackboard(&kEntity[i].unit);
+        }
         imui::Indent(-2);
       }
     }
@@ -302,14 +310,14 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
                 LOGFMT("Player can't afford module %i", mkind);
                 break;
               }
-              Entity* m = UseIdEntity();
-              m->bounds = ModuleBounds(mkind);
-              m->ship_index = grid;
-              m->player_id = player_index;
-              m->module.tile = tilepos;
-              m->module.mkind = mkind;
+              Module* mod = UseEntityModule();
+              mod->bounds = ModuleBounds(mkind);
+              mod->mkind = mkind;
+              mod->ship_index = player_index;
+              mod->player_id = player_index;
+              mod->tile = tilepos;
               if (player->god_mode) {
-                ModuleSetBuilt(&m->module);
+                ModuleSetBuilt(mod);
               } else {
                 player->mineral -= ModuleCost(mkind);
               }
@@ -347,8 +355,8 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
                            diff.x, diff.y);
           sbox = math::OrientToAabb(sbox);
           bool selected = false;
-          for (int i = 0; i < kUsedUnit; ++i) {
-            unit = GetUnit(sbox, i);
+          for (int i = 0; i < kUsedEntity; ++i) {
+            unit = SelectUnit(sbox, i);
             if (!unit) continue;
             LOGFMT("Select unit: %i", unit->id);
             SelectPlayerUnit(player_index, unit);
@@ -356,8 +364,8 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
           }
 
           // Prefer selecting units over modules.
-          for (int i = 0; i < kUsedModule && !selected; ++i) {
-            Module* mod = GetModule(sbox, i);
+          for (int i = 0; i < kUsedEntity && !selected; ++i) {
+            Module* mod = SelectModule(sbox, i);
             if (!mod) continue;
             LOGFMT("Select Module: %i", i);
             SelectPlayerModule(player_index, mod);

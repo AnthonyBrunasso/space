@@ -25,6 +25,18 @@
   sizeof(type), (const uint8_t*)k##type + offsetof(type, member), \
       (const uint8_t*)&k##type[kUsed##type]
 
+#define DECLARE_GAME_ENTITY(type)                                             \
+  type* UseEntity##type()                                                     \
+  {                                                                           \
+    Entity* e = UseEntity();                                                  \
+    if (!e) return nullptr;                                                   \
+    type t;                                                                   \
+    t.id = kAutoIncrementIdEntity;                                            \
+    kAutoIncrementIdEntity += (kAutoIncrementIdEntity == kInvalidEntity) + 1; \
+    memcpy(e, &t, sizeof(t));                                                 \
+    return (type*)e;                                                          \
+  }
+
 // Global game state that is local information
 static uint64_t kPlayerCount;
 static uint64_t kPlayerIndex;
@@ -36,7 +48,6 @@ enum UnitAction {
   kUaNone = 0,
   kUaMove,
   kUaOperate,
-  kUaVacuum,
   kUaAttack,
   kUaAttackMove,
   kUaBuild,
@@ -228,12 +239,10 @@ union Entity {
 };
 #define MAX_ENTITY 128
 DECLARE_GAME_TYPE_WITH_ID(Entity, MAX_ENTITY);
+DECLARE_GAME_ENTITY(Unit);
+DECLARE_GAME_ENTITY(Module);
 
-Unit* kUnit = (Unit*)&kEntity;
-uint64_t& kUsedUnit = kUsedEntity;
 #define FindUnit(x) ((Unit*)FindEntity(x))
-Module* kModule = (Module*)kEntity;
-uint64_t& kUsedModule = kUsedEntity;
 #define ZeroEntity(x) (*(Entity*)x = kZeroEntity)
 
 struct Command {
@@ -308,3 +317,29 @@ struct Invasion {
   v2i docked_tile;
 };
 DECLARE_GAME_TYPE(Invasion, 2);
+
+v3f
+ModuleBounds(ModuleKind mkind)
+{
+  switch (mkind) {
+    case kModPower:
+      return v3f(15.f, 15.f, 15.f);
+    case kModEngine:
+      return v3f(15.f, 15.f, 15.f);
+    case kModTurret:
+      return v3f(15.f, 15.f, 15.f);
+    case kModMine:
+      return v3f(15.f, 15.f, 15.f);
+    case kModBarrack:
+      return v3f(45.f, 45.f, 15.f);
+    case kModMedbay:
+      return v3f(45.f, 45.f, 15.f);
+    case kModWarp:
+      return v3f(15.f, 15.f, 15.f);
+    case kModCount:
+    default:
+      return v3f();
+  }
+  return v3f();
+}
+

@@ -22,7 +22,6 @@
 
 #include "platform/macro.h"
 
-
 #include "ai.cc"
 namespace simulation
 {
@@ -35,7 +34,7 @@ static bool kSimulationOver = false;
 
 void
 Reset(uint64_t seed)
-{ 
+{
   srand(seed);
   ScenarioReset(true);
 }
@@ -85,10 +84,12 @@ ThinkShip(uint64_t ship_index)
   // Crew objectives
   uint64_t satisfied = 0;
   v2i module_position;
-  for (int j = 0; j < kUsedUnit; ++j) {
-    Unit* unit = &kUnit[j];
-    for (int k = 0; k < kUsedModule; ++k) {
-      Module* mod = &kModule[k];
+  for (int j = 0; j < kUsedEntity; ++j) {
+    Unit* unit = &kEntity[j].unit;
+    if (unit->type != kEeUnit) continue;
+    for (int k = 0; k < kUsedEntity; ++k) {
+      Module* mod = &kEntity[k].module;
+      if (mod->type != kEeModule) continue;
       if (mod->mkind != kModPower && ship->sys[kModPower] < 1.0f) continue;
 
       if (v3fDsq(unit->position, v3fModule(mod)) < kDsqOperate) {
@@ -104,7 +105,6 @@ void
 ThinkAsteroid()
 {
   if (!kScenario.asteroid) return;
-  //printf("%i\n", kUsedAsteroid);
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
     asteroid->implode = (asteroid->mineral_source < .5f);
@@ -161,8 +161,9 @@ DecideShip(uint64_t ship_index)
   kShip[ship_index].ftl_frame += (kShip[ship_index].ftl_frame > 0);
 
   Ship* ship = &kShip[ship_index];
-  for (int i = 0; i < kUsedModule; ++i) {
-    Module* module = &kModule[i];
+  for (int i = 0; i < kUsedEntity; ++i) {
+    if (kEntity[i].type != kEeModule) continue;
+    Module* module = &kEntity[i].module;
     if (module->ship_index != ship_index) continue;
     if (!ModuleBuilt(module)) continue;
     ModuleUpdate(module);
@@ -195,7 +196,7 @@ DecideAsteroid()
   if (!kScenario.asteroid) return;
 
   if (kUsedAsteroid != kUsedPlayer) {
-    bool asteroid_spawned[kMaxGrid] = { false };
+    bool asteroid_spawned[kMaxGrid] = {false};
     // Spawn an asteroid on each tilemap.
     for (int i = 0; i < kUsedAsteroid; ++i) {
       Asteroid* asteroid = &kAsteroid[i];
@@ -385,9 +386,8 @@ MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
     }
   }
 
-  v3f move_vec =
-      math::Normalize(incremental_dest.xy() - unit->position.xy()) *
-      unit->speed;
+  v3f move_vec = math::Normalize(incremental_dest.xy() - unit->position.xy()) *
+                 unit->speed;
 
   unit->position += (move_vec + avoidance_vec);
 
@@ -443,8 +443,9 @@ ApplyCommand(Unit* unit, const Command& c)
 void
 UpdateModule(uint64_t ship_index)
 {
-  for (int i = 0; i < kUsedModule; ++i) {
-    Module* m = &kModule[i];
+  for (int i = 0; i < kUsedEntity; ++i) {
+    if (kEntity[i].type != kEeModule) continue;
+    Module* m = &kEntity[i].module;
     if (m->ship_index != ship_index) continue;
     if (m->mkind == kModPower) {
       v3f world = TilePosToWorld(m->tile);
@@ -466,8 +467,9 @@ UpdateModule(uint64_t ship_index)
 void
 UpdateUnit(uint64_t ship_index)
 {
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* unit = &kUnit[i];
+  for (int i = 0; i < kUsedEntity; ++i) {
+    Unit* unit = &kEntity[i].unit;
+    if (unit->type != kEeUnit) continue;
     if (unit->ship_index != ship_index) continue;
     v2i tilepos;
     if (!WorldToTilePos(unit->position.xy(), &tilepos)) continue;
@@ -496,15 +498,11 @@ UpdateUnit(uint64_t ship_index)
                 3.f * tile_world_distance * tile_world_distance);
     }
 
-    // Crew has been sucked away into the vacuum
-    if (tile->nooxygen) {
-      unit->uaction = kUaVacuum;
-    }
-
     AIThink(unit);
 
-    for (int i = 0; i < kUsedModule; ++i) {
-      Module* m = &kModule[i];
+    for (int i = 0; i < kUsedEntity; ++i) {
+      if (kEntity[i].type != kEeModule) continue;
+      Module* m = &kEntity[i].module;
       if (ModuleBuilt(m)) continue;
       if (ModuleNear(m, unit->position)) {
         m->frames_building++;
@@ -517,8 +515,6 @@ UpdateUnit(uint64_t ship_index)
     // has explicitly issued them a new command.
     if (unit->uaction == kUaNone) {
       unit->uaction = unit->persistent_uaction;
-    } else if (unit->uaction == kUaVacuum) {
-      unit->position += TileVacuum(tilepos) * 3.0f;
     } else if (unit->uaction == kUaMove) {
       const v3f* dest = nullptr;
       if (!BB_GET(unit->bb, kUnitDestination, dest)) {
@@ -578,11 +574,13 @@ UpdateUnit(uint64_t ship_index)
   }
 
   // Unit death logic happens here
-  for (int i = 0; i < kUsedUnit; ++i) {
-    if (kUnit[i].dead) {
-      uint32_t death_id = kUnit[i].id;
+  for (int i = 0; i < kUsedEntity; ++i) {
+    Unit* unit = &kEntity[i].unit;
+    if (unit->type != kEeUnit) continue;
+    if (unit->dead) {
+      uint32_t death_id = unit->id;
       LOGFMT("Unit died [id %d]", death_id);
-      ZeroEntity(&kUnit[i]);
+      ZeroEntity(unit);
     }
   }
 }
@@ -594,21 +592,24 @@ Decide()
     Command c = PopCommand();
     if (c.unit_id == kInvalidEntity) {
       if (c.type == kUaBuild) {
-        for (int i = 0; i < kUsedUnit; ++i) {
-          Unit* u = &kUnit[i];
-          if (0 == (u->control & c.control)) continue;
-          ApplyCommand(u, c);
+        for (int i = 0; i < kUsedEntity; ++i) {
+          Unit* unit = &kEntity[i].unit;
+          if (unit->type != kEeUnit) continue;
+          if (0 == (unit->control & c.control)) continue;
+          ApplyCommand(unit, c);
         }
       } else {
         TilemapSet(TilemapWorldToGrid(c.destination));
         v2i start;
         if (!WorldToTilePos(c.destination, &start)) continue;
         BfsIterator iter = BfsStart(start);
-        for (int i = 0; i < kUsedUnit; ++i) {
+        for (int i = 0; i < kUsedEntity; ++i) {
+          Unit* unit = &kEntity[i].unit;
+          if (unit->type != kEeUnit) continue;
           // The issuer of a command must have a set bit
-          if (0 == (kUnit[i].control & c.control)) continue;
+          if (0 == (unit->control & c.control)) continue;
           c.destination = TileToWorld(*iter.tile);
-          ApplyCommand(&kUnit[i], c);
+          ApplyCommand(unit, c);
           if (!BfsNextTile(&iter)) break;
         }
       }
@@ -663,9 +664,10 @@ Update()
   Decide();
   TilemapSet(-1);
 
-  for (int i = 0; i < kUsedUnit; ++i) {
-    Unit* u = &kUnit[i];
-    u->notify += (u->notify > 0);
+  for (int i = 0; i < kUsedEntity; ++i) {
+    Unit* unit = &kEntity[i].unit;
+    if (unit->type != kEeUnit) continue;
+    unit->notify += (unit->notify > 0);
   }
 
   ProjectileSimulation();

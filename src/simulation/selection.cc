@@ -29,8 +29,8 @@ CountUnitSelection(uint64_t player_index)
 {
   unsigned player_control = (1 << player_index);
   uint64_t selection_count = 0;
-  for (int i = 0; i < kUsedUnit; ++i) {
-    if (0 == (kUnit[i].control & player_control)) continue;
+  for (int i = 0; i < kUsedEntity; ++i) {
+    if (0 == (kEntity[i].control & player_control)) continue;
     ++selection_count;
   }
 
@@ -41,11 +41,8 @@ void
 UnselectPlayerAll(uint64_t player_index)
 {
   unsigned player_control = (1 << player_index);
-  for (int i = 0; i < kUsedUnit; ++i) {
-    kUnit[i].control = ANDN(player_control, kUnit[i].control);
-  }
-  for (int i = 0; i < kUsedModule; ++i) {
-    kModule[i].control = ANDN(player_control, kModule[i].control);
+  for (int i = 0; i < kUsedEntity; ++i) {
+    kEntity[i].control = ANDN(player_control, kEntity[i].control);
   }
 }
 

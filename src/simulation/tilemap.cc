@@ -28,10 +28,7 @@ enum TileType {
   kTileConsumable = 7,
 };
 
-enum TilemapType {
-  kTilemapEmpty,
-  kTilemapShip
-};
+enum TilemapType { kTilemapEmpty, kTilemapShip };
 
 static_assert(sizeof(Tile) == sizeof(uint32_t),
               "Sync TileAND with the new Tile size");
@@ -205,15 +202,18 @@ TilemapSet(uint64_t grid_idx)
   kTilemapWorldOffset = kCurrentGrid->transform.position.xy();
 }
 
-class TilemapModify {
+class TilemapModify
+{
  public:
-  TilemapModify(uint64_t set) {
+  TilemapModify(uint64_t set)
+  {
     prev_grid = kCurrentGrid;
     prev_offset = kTilemapWorldOffset;
     TilemapSet(set);
   }
 
-  ~TilemapModify() {
+  ~TilemapModify()
+  {
     kCurrentGrid = prev_grid;
     kTilemapWorldOffset = prev_offset;
   }
@@ -243,8 +243,7 @@ WorldToTilePos(const v3f pos, v2i* t)
   if (tidx == kInvalidIndex) return false;
   v2f offset = kGrid[tidx].transform.position.xy();
   v2f relpos = pos.xy() - offset;
-  *t = v2i((int)(relpos.x / kTileWidth),
-           (int)(relpos.y / kTileHeight));
+  *t = v2i((int)(relpos.x / kTileWidth), (int)(relpos.y / kTileHeight));
   return true;
 }
 
@@ -340,7 +339,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
     } break;
     case kTilemapShip: {
       kCurrentGrid->fog = false;
-      for (int y = kMapHeight-1; y >= 0; --y) {
+      for (int y = kMapHeight - 1; y >= 0; --y) {
         for (int x = 0; x < kMapWidth; ++x) {
           Tile* tile = TilePtr(v2i(x, y));
           *tile = {};
@@ -369,14 +368,12 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
             case kTileEngine:
             case kTileMine:
             case kTileTurret: {
-              Entity* t = UseIdEntity();
-              t->type = kEeModule;
-              t->ship_index = grid_index;
-              t->module.tile = v2i(x, y);
-              t->module.mkind = (ModuleKind)(kDefaultMap[y][x] - kTileModule);
-              // TODO: Need to clean this up. Make it clear the indices match
-              // by their name.
-              t->player_id = grid_index;
+              Module* mod = UseEntityModule();
+              mod->mkind = (ModuleKind)(kDefaultMap[y][x] - kTileModule);
+              mod->bounds = ModuleBounds(mod->mkind);
+              mod->ship_index = grid_index;
+              mod->player_id = grid_index;  // TODO: real player_id
+              mod->tile = v2i(x, y);
             } break;
           };
         }

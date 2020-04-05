@@ -40,8 +40,9 @@ ScenarioSpawnRandomModule(ModuleKind kind, uint64_t ship_index, int num = 0)
 {
   TilemapModify tm(ship_index);
   int made = 0;
-  for (int i = 0; i < kUsedModule; ++i) {
-    Module* module = &kModule[i];
+  for (int i = 0; i < kUsedEntity; ++i) {
+    if (kEntity[i].type != kEeModule) continue;
+    Module* module = &kEntity[i].module;
     if (module->mkind != kind) continue;
     if (module->ship_index != ship_index) continue;
     if (ModuleBuilt(module)) continue;

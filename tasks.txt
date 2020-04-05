@@ -12,58 +12,22 @@ Delete items when they are done.
 
 ---------- TASKS ---------- 
 
-new scenario -
-  anthony: sync mouse cursor position to ui
-  anthony: buttons for module placement
-  alan: level 2: unlock pod module
-  module construction progression
-  level 2: unlock ship for 2nd player
-  implementation for player ownership of a ship
-  level 3: enemy invasion hits one ship
-  level 3: invasion continues until death
-  deepen combat
-
 gameplay -
-  prototype building ship extensions while in space
-  Motion on ships
-  Unit inventory for grabbing minerals
 
-ai -
-  c file with branching?
-  global "blackboard" for group decisions (do we have a game example of groupthink for ai?)
-
-sound -
-
-  : Develop a system for playing audio / sound files. I think we should do our best to
-    minimize external dependencies for the sake of build time / complexity but would
-    not be surprised if we had to adopt one for this task.
+  God mode
+  Can build module function
+  Entity stuff
+  Uncontrolled crew member
+  Module exploration
 
 ui -
 
-  anthony: Header on ui panes.
-  anthony: Close ui pane.
-  anthony: Minimize ui pane.
-  anthony: Move ui pane.
-  anthony: Sliders.
-  anthony: Button relative to pane.
-  anthony: imui::SameLine() or something - renders next imui call on same line.
-  anthony: Text input.
-  anthony: Button click effect.
-  anthony: Function to test whether cursor is intersecting with any UI element. Can
-           be used to determine if interaction is in game vs ui.
-
-platform -
-
-  anthony: Bring macosx window to focus when starting. Currently game starts in background.
-  anthony: fix win32 window movement hang
+  Shadow ui, IsUIClick(v2f point) 
 
 graphics - 
 
-  anthony: Implement camera zoom. This will require implementing an inverse function.
   anthony: Antialias inner rings on circles.
-  anthony: Dynamic lighting.
   anthony: Load bitmaps.
-  anthony: Moving background, so it actually looks like we're flying.
 
 engine -
   pause frames

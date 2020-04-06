@@ -10,6 +10,9 @@
 
 namespace simulation
 {
+
+v3f ModuleBounds(ModuleKind mkind);  // defined in module.cc
+
 constexpr float kTileWidth = 25.0f;
 constexpr float kTileHeight = 25.0f;
 

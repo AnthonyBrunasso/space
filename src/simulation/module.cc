@@ -16,6 +16,31 @@ ModuleSetBuilt(Module* module)
   module->frames_building = module->frames_to_build;
 }
 
+v3f
+ModuleBounds(ModuleKind mkind)
+{
+  switch (mkind) {
+    case kModPower:
+      return v3f(15.f, 15.f, 15.f);
+    case kModEngine:
+      return v3f(15.f, 15.f, 15.f);
+    case kModTurret:
+      return v3f(15.f, 15.f, 15.f);
+    case kModMine:
+      return v3f(15.f, 15.f, 15.f);
+    case kModBarrack:
+      return v3f(45.f, 45.f, 15.f);
+    case kModMedbay:
+      return v3f(45.f, 45.f, 15.f);
+    case kModWarp:
+      return v3f(15.f, 15.f, 15.f);
+    case kModCount:
+    default:
+      return v3f();
+  }
+  return v3f();
+}
+
 uint64_t
 ModuleCost(ModuleKind mkind)
 {

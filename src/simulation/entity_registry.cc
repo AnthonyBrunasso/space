@@ -49,6 +49,7 @@ RegistryCompact()
     const uint32_t memb_size = r->memb_size;
     const void* zero_ptr = r->zero_ptr;
     uint64_t count = 0;
+    uint64_t idx = 0;
     for (; lower <= upper; ++lower) {
       uint8_t* lower_ent = (uint8_t*)r->ptr + lower * memb_size;
       bool empty_lower = memcmp(lower_ent, zero_ptr, memb_size) == 0;
@@ -61,16 +62,16 @@ RegistryCompact()
           };
           // Update hash map.
           HashStruct* hash_struct = (HashStruct*)(lower_ent);
-          // printf("hash_idx id from %u to %u \n",
-          //        r->hash_entry[hash_struct->hash_idx].id, hash_struct->id);
           uint32_t hash = r->hash_func(hash_struct->id);
-          r->hash_entry[hash].id = hash_struct->id;
-          r->hash_entry[hash].array_idx = count;
+          //printf("hash arr idx from %u to %u\n",
+          //       r->hash_entry[hash].array_idx, idx);
+          r->hash_entry[hash].array_idx = idx;
         }
         memcpy(upper_ent, zero_ptr, memb_size);
         --upper;
         ++count;
       }
+      ++idx;
     }
 
     *r->memb_count -= count;

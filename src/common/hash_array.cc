@@ -4,21 +4,21 @@
 #include <cstdint>
 
 #define HASH_STRUCT()  \
-  uint64_t id;         \
-  uint64_t hash_idx;   \
+  uint32_t id;         \
+  uint32_t hash_idx;   \
 
 struct HashEntry {
-  uint64_t id;
-  uint64_t array_idx;
+  uint32_t id;
+  uint32_t array_idx;
 };
 
 #define DECLARE_HASH_ARRAY(type, max_count)                         \
-  constexpr uint64_t kMax##type = max_count;                        \
-  constexpr uint64_t kMaxHash##type = (uint64_t)(1.3f * max_count); \
+  constexpr uint32_t kMax##type = max_count;                        \
+  constexpr uint32_t kMaxHash##type = (uint32_t)(1.3f * max_count); \
                                                                     \
-  static uint64_t kAutoIncrementId##type = 1;                       \
+  static uint32_t kAutoIncrementId##type = 1;                       \
   static uint64_t kUsed##type = 0;                                  \
-  static uint64_t kInvalid##type = 0;                               \
+  static uint32_t kInvalid##type = 0;                               \
                                                                     \
   static type k##type[max_count];                                   \
   static HashEntry kHashEntry##type[kMaxHash##type];                \
@@ -32,7 +32,7 @@ struct HashEntry {
   }                                                                 \
                                                                     \
   HashEntry*                                                        \
-  FindEmptyHashEntry##type(uint64_t hash, uint64_t* hash_idx)       \
+  FindEmptyHashEntry##type(uint32_t hash, uint32_t* hash_idx)       \
   {                                                                 \
     *hash_idx = hash;                                               \
     HashEntry* hash_entry = &kHashEntry##type[*hash_idx];           \
@@ -45,8 +45,8 @@ struct HashEntry {
     return hash_entry;                                              \
   }                                                                 \
                                                                     \
-  uint64_t                                                          \
-  Hash##type(uint64_t id)                                           \
+  uint32_t                                                          \
+  Hash##type(uint32_t id)                                           \
   {                                                                 \
     return (id * 2654435761 % kMaxHash##type);                      \
   }                                                                 \
@@ -56,8 +56,9 @@ struct HashEntry {
   {                                                                 \
     if (kUsed##type >= kMax##type) return nullptr;                  \
     type* u = &k##type[kUsed##type++];                              \
+    *u = {};                                                        \
     u->id = kAutoIncrementId##type++;                               \
-    uint64_t hash = Hash##type(u->id);                              \
+    uint32_t hash = Hash##type(u->id);                              \
     HashEntry* hash_entry =                                         \
         FindEmptyHashEntry##type(hash, &u->hash_idx);               \
     hash_entry->id = u->id;                                         \
@@ -66,11 +67,11 @@ struct HashEntry {
   }                                                                 \
                                                                     \
   type*                                                             \
-  Find##type(uint64_t id)                                           \
+  Find##type(uint32_t id)                                           \
   {                                                                 \
-    uint64_t hash = Hash##type(id);                                 \
+    uint32_t hash = Hash##type(id);                                 \
     type* u = &k##type[hash];                                       \
-    uint64_t n = 1;                                                 \
+    uint32_t n = 1;                                                 \
     while (u->id != id) {                                           \
       if (n >= kMaxHash##type) return nullptr;                      \
       ++hash;                                                       \
@@ -80,3 +81,20 @@ struct HashEntry {
     }                                                               \
     return u;                                                       \
   }                                                                 \
+                                                                    \
+  void                                                              \
+  FreeHashEntry##type(uint32_t id)                                  \
+  {                                                                 \
+    uint32_t hash = Hash##type(id);                                 \
+    HashEntry* hash_entry = &kHashEntry##type[hash];                \
+    uint32_t n = 1;                                                 \
+    while (hash_entry->id != id) {                                  \
+      if (n >= kMaxHash##type) return;                              \
+      ++hash;                                                       \
+      hash = hash % kMaxHash##type;                                 \
+      hash_entry = &kHashEntry##type[hash];                         \
+      ++n;                                                          \
+    }                                                               \
+    *hash_entry = {0, 0};                                           \
+  }
+

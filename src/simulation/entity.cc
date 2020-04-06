@@ -11,13 +11,14 @@
 #define DECLARE_GAME_TYPE(type, max_count)                               \
   DECLARE_ARRAY(type, max_count)                                         \
   static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type, \
-                                    max_count, sizeof(type));
+                                    max_count, sizeof(type), nullptr);
 
 // id == -1 is reserved for invalid references
 #define DECLARE_GAME_TYPE_WITH_ID(type, max_count)                       \
-  DECLARE_ID_ARRAY(type, max_count)                                      \
+  DECLARE_HASH_ARRAY(type, max_count)                                    \
   static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type, \
-                                    max_count, sizeof(type));
+                                    max_count, sizeof(type),             \
+                                    kHashEntry##type);
 
 #define DECLARE_GAME_QUEUE(type, count) DECLARE_QUEUE(type, count)
 
@@ -143,10 +144,10 @@ struct Projectile {
 DECLARE_GAME_TYPE(Projectile, 128);
 
 #define COMMON_MEMBER_DECL \
+  HASH_STRUCT()            \
   v3f position;            \
   v3f scale;               \
   v3f bounds;              \
-  uint32_t id;             \
   uint64_t control;        \
   uint64_t ship_index;     \
   uint64_t player_id;      \
@@ -214,7 +215,10 @@ DECLARE_GAME_ENTITY(Unit);
 DECLARE_GAME_ENTITY(Module);
 
 #define FindUnit(x) ((Unit*)FindEntity(x))
-#define ZeroEntity(x) (*(Entity*)x = kZeroEntity)
+
+#define ZeroEntity(x)         \
+  FreeHashEntryEntity(x->id); \
+  *(Entity*)x = kZeroEntity;  \
 
 struct Command {
   UnitAction type;

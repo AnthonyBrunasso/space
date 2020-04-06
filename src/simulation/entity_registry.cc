@@ -6,6 +6,7 @@
 #include <cstdio>
 
 #include "common/array.cc"
+#include "common/hash_array.cc"
 #include "platform/macro.h"
 
 struct Registry {
@@ -14,6 +15,7 @@ struct Registry {
   uint64_t* memb_count;
   uint32_t memb_max;
   uint32_t memb_size;
+  HashEntry* hash_entry;
 };
 
 #define MAX_REGISTRY (PAGE / sizeof(Registry))
@@ -24,10 +26,11 @@ class EntityRegistry
  public:
   // Used in global static initialization
   EntityRegistry(void* buffer, void* zero, uint64_t* count_ptr, uint32_t max,
-                 uint32_t size)
+                 uint32_t size, HashEntry* hash_entry)
   {
     assert(kUsedRegistry < MAX_REGISTRY);
-    kRegistry[kUsedRegistry] = {buffer, zero, count_ptr, max, size};
+    kRegistry[kUsedRegistry] =
+        {buffer, zero, count_ptr, max, size, hash_entry};
     kUsedRegistry += 1;
   }
 };
@@ -50,6 +53,16 @@ RegistryCompact()
       if (empty_lower) {
         uint8_t* upper_ent = (uint8_t*)r->ptr + upper * memb_size;
         memcpy(lower_ent, upper_ent, memb_size);
+        if (r->hash_entry) {
+          struct HashStruct {
+            HASH_STRUCT()
+          };
+          // Update hash map.
+          HashStruct* hash_struct = (HashStruct*)(lower_ent);
+          // printf("hash_idx id from %u to %u \n",
+          //        r->hash_entry[hash_struct->hash_idx].id, hash_struct->id);
+          r->hash_entry[hash_struct->hash_idx].id = hash_struct->id;
+        }
         --upper;
         ++count;
       }

@@ -1,10 +1,10 @@
 #include <cstdio>
 
-#include "common\array.cc"
-#include "common\hash_array.cc"
-#include "math\vec.h"
+#include "common/array.cc"
+#include "common/hash_array.cc"
+#include "math/vec.h"
 
-#define N 1000
+#define N 10
 
 struct UnitH {
   HASH_STRUCT()
@@ -31,13 +31,13 @@ DebugPrintH()
   printf("Unit - ");
 
   for (int i = 0; i < kMaxUnitH; ++i) {
-    printf("%i/%llu/%llu ", i, kUnitH[i].id, kUnitH[i].hash_idx);
+    printf("%i/%u/%u ", i, kUnitH[i].id, kUnitH[i].hash_idx);
   }
 
   printf("\nHash - ");
 
   for (int i = 0; i < kMaxHashUnitH; ++i) {
-    printf("%i/%llu/%llu ", i, kHashEntryUnitH[i].id, kHashEntryUnitH[i].array_idx);
+    printf("%i/%u/%u ", i, kHashEntryUnitH[i].id, kHashEntryUnitH[i].array_idx);
   }
 
   printf("\n\n");
@@ -56,7 +56,7 @@ DebugPrintA()
 
 void
 DebugPrintUnitH(UnitH* uh) {
-  printf("Unit - %llu/%llu\n", uh->id, uh->hash_idx);
+  printf("Unit - %u/%u\n", uh->id, uh->hash_idx);
 }
 
 void
@@ -71,7 +71,10 @@ main()
     UseUnitH();
     UseIdUnitA();
   }
-  DebugPrintA();
+  DebugPrintH();
+  FreeHashEntryUnitH(2);
+  DebugPrintH();
+  //DebugPrintA();
   //DebugPrintUnitH(FindUnitH(445));
   //DebugPrintUnitA(FindUnitA(445));
 

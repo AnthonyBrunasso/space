@@ -184,7 +184,6 @@ ModuleBarrackUpdate(Module* module)
       player->mineral < 50.f)
     return;
 
-  if (!player->god_mode) player->mineral -= 50.f;
   module->frames_training = 0;
 }
 

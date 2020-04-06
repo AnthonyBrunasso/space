@@ -70,7 +70,6 @@ ThinkAsteroid()
 void
 ThinkMissle(uint64_t ship_index)
 {
-
   for (int i = 0; i < kUsedMissile; ++i) {
     Missile* missile = &kMissile[i];
     v2i tilepos;
@@ -284,7 +283,7 @@ DecideMissle(uint64_t ship_index)
     if (missile->explode_frame) {
       bool laser_defense = false;
       for (int j = 0; j < kUsedEntity; ++j) {
-        Module *mod = &kEntity[j].module;
+        Module* mod = &kEntity[j].module;
         if (mod->type != kEeModule) continue;
         if (mod->ship_index != ship_index) continue;
         if (mod->mkind != kModTurret) continue;
@@ -398,8 +397,7 @@ UpdateModule(uint64_t ship_index)
       Tile set_bits;
       memset(&set_bits, 0x00, sizeof(Tile));
       set_bits.explored = 1;
-      float tile_world_distance =
-          kTileWidth * 8.0f;
+      float tile_world_distance = kTileWidth * 8.0f;
       BfsMutate(world, keep_bits, set_bits,
                 tile_world_distance * tile_world_distance);
     }
@@ -589,6 +587,10 @@ Update()
   for (int i = 0; i < kUsedPlayer; ++i) {
     camera::Update(&kPlayer[i].camera);
     kPlayer[i].camera.motion.z = 0.f;
+
+    if (kPlayer[i].mineral_cheat) {
+      kPlayer[i].mineral = 99999;
+    }
   }
 
   if (kSimulationOver) return;

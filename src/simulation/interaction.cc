@@ -190,10 +190,10 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
     if (imui::Text(ui_buffer, text_options).clicked) {
       gfx::kRenderGrid = !gfx::kRenderGrid;
     }
-    snprintf(ui_buffer, sizeof(ui_buffer), "God Mode: %s",
-             player->god_mode ? "Enabled" : "Disabled");
+    snprintf(ui_buffer, sizeof(ui_buffer), "Mineral Cheat: %s",
+             player->mineral_cheat ? "Enabled" : "Disabled");
     if (imui::Text(ui_buffer, text_options).clicked) {
-      player->god_mode = !player->god_mode;
+      player->mineral_cheat = !player->mineral_cheat;
     }
     if (imui::Text("Reset Game", text_options).clicked) {
       Reset(kNetworkState.game_id);
@@ -285,7 +285,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
             v2i tilepos;
             if (WorldToTilePos(world_pos, &tilepos) &&
                 event.button == BUTTON_LEFT) {
-              if (!player->god_mode && !ModuleCanBuild(mkind, player)) {
+              if (!ModuleCanBuild(mkind, player)) {
                 LOGFMT("Player can't afford module %i", mkind);
                 break;
               }
@@ -295,11 +295,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
               mod->ship_index = player->ship_index;
               mod->player_id = player_index;
               mod->tile = tilepos;
-              if (player->god_mode) {
-                ModuleSetBuilt(mod);
-              } else {
-                player->mineral -= ModuleCost(mkind);
-              }
+              player->mineral -= ModuleCost(mkind);
             }
             LOGFMT("Order build [%i] [%i,%i]", mkind, tilepos.x, tilepos.y);
             PushCommand({kUaBuild, world_pos, kInvalidEntity,

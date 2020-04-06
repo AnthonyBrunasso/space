@@ -8,30 +8,18 @@
 
 namespace simulation
 {
-// Do not add new fields to this struct you are not alright with being memset
-// to 0xff or 0x0.
-struct Scenario {
-  enum Type {
-    kTwoShip = 0,
-    kCombatScenario,
-    kSoloMission,
-    kEmptyScenario,
-    kMaxScenario,
-  };
-  Type type;
-
-  // Feature enabled in the scenario.
-  unsigned ship : 1;
-  unsigned asteroid : 1;
-  unsigned missile : 1;
-  unsigned pod : 1;
-  unsigned invasion : 1;
+enum ScenarioType {
+  kTwoShip = 0,
+  kCombatScenario,
+  kSoloMission,
+  kEmptyScenario,
+  kMaxScenario,
 };
 
-static Scenario kScenario;
+static ScenarioType kScenario;
 static uint64_t kFrame;
 
-constexpr const char* kScenarioNames[Scenario::kMaxScenario] = {
+constexpr const char* kScenarioNames[kMaxScenario] = {
     "TwoShip",
     "Combat",
     "Solo",
@@ -71,22 +59,21 @@ TilemapUnexplored(v3f world_position)
 }
 
 void
-ScenarioInitialize(bool reset_features = true)
+ScenarioInitialize()
 {
-  int sid = kScenario.type;
+  int sid = kScenario;
   TilemapType tilemap_type = kTilemapEmpty;
   TilemapClear();
 
   // Build ship.
   switch (sid) {
-    case Scenario::kCombatScenario: {
+    case kCombatScenario: {
       // At least one ship
-      kScenario.ship = 1;
       Ship* ship = UseShip();
       ship->pod_capacity = 1;
       ship->level = 1;
     } break;
-    case Scenario::kTwoShip: {
+    case kTwoShip: {
       while (kUsedShip < kPlayerCount) {
         Ship* ship = UseShip();
         ship->pod_capacity = 1;
@@ -94,16 +81,14 @@ ScenarioInitialize(bool reset_features = true)
         ship->transform.position = v2f(0.f, (kUsedShip - 1) * 1600.f);
       }
     } break;
-    case Scenario::kSoloMission: {
+    case kSoloMission: {
       // At least one ship
-      kScenario.ship = 1;
       Ship* ship = UseShip();
       ship->pod_capacity = 1;
       ship->level = 1;
     } break;
-    case Scenario::kEmptyScenario: {
+    case kEmptyScenario: {
       // At least one ship
-      kScenario.ship = 1;
       Ship* ship = UseShip();
       ship->pod_capacity = 1;
       ship->level = 1;
@@ -119,15 +104,15 @@ ScenarioInitialize(bool reset_features = true)
     player->mineral = 400;
   }
 
-  const bool FOG_DISABLE = false; 
+  const bool FOG_DISABLE = false;
   for (int i = 0; i < kUsedPlayer; ++i) {
     switch (sid) {
-      case Scenario::kEmptyScenario:
-      case Scenario::kCombatScenario:
+      case kEmptyScenario:
+      case kCombatScenario:
         TilemapInitialize(i, kTilemapEmpty, FOG_DISABLE);
         break;
-      case Scenario::kSoloMission:
-      case Scenario::kTwoShip:
+      case kSoloMission:
+      case kTwoShip:
         TilemapInitialize(i, kTilemapShip, FOG_DISABLE);
         break;
     }
@@ -137,28 +122,17 @@ ScenarioInitialize(bool reset_features = true)
 
   // Spawn units / modules.
   switch (sid) {
-    case Scenario::kCombatScenario: {
-      if (reset_features) {
-        memset(&kScenario, 0, sizeof(kScenario));
-      }
+    case kCombatScenario: {
       SpawnCrew(v2i(5, 12), 0);
       SpawnEnemy(v2i(10, 12), 0);
     } break;
-    case Scenario::kSoloMission: {
-      if (reset_features) {
-        memset(&kScenario, 0, sizeof(kScenario));
-      }
+    case kSoloMission: {
       SpawnCrew(v2i(8, 12), 0);
       SpawnEnemy(v2i(10, 15), 0);
       SpawnEnemy(v2i(10, 20), 0);
       SpawnEnemy(v2i(4, 20), 0);
     } break;
-    case Scenario::kTwoShip: {
-      if (reset_features) {
-        memset(&kScenario, 0xff, sizeof(kScenario));
-        kScenario.missile = 0;
-        kScenario.invasion = 0;
-      }
+    case kTwoShip: {
       TilemapUnexplored(TilemapWorldCenter());
       SpawnCrew(crew_pos[0], 0);
       SpawnCrew(crew_pos[1], 1);
@@ -168,10 +142,7 @@ ScenarioInitialize(bool reset_features = true)
       ScenarioSpawnRandomModule(kModEngine, 0, 5);
     } break;
     default:
-    case Scenario::kEmptyScenario: {
-      if (reset_features) {
-        memset(&kScenario, 0, sizeof(kScenario));
-      }
+    case kEmptyScenario: {
     } break;
   }
   // Always set unexplored/interior of ship
@@ -187,7 +158,7 @@ ScenarioInitialize(bool reset_features = true)
 }  // namespace simulation
 
 void
-ScenarioReset(bool reset_features)
+ScenarioReset()
 {
   kFrame = 0;
   // TODO (AN): GAME_QUEUE not in the registry
@@ -198,7 +169,7 @@ ScenarioReset(bool reset_features)
   for (int i = 0; i < kUsedRegistry; ++i) {
     *kRegistry[i].memb_count = 0;
   }
-  ScenarioInitialize(reset_features);
+  ScenarioInitialize();
 }
 
 bool

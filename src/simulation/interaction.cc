@@ -203,31 +203,12 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
     }
     if (player->scenario_menu) {
       imui::Indent(2);
-      for (int i = 0; i < Scenario::kMaxScenario; ++i) {
+      for (int i = 0; i < kMaxScenario; ++i) {
         if (imui::Text(kScenarioNames[i], text_options).clicked) {
-          kScenario.type = (Scenario::Type)i;
+          kScenario = (ScenarioType)i;
           Reset(kNetworkState.game_id);
         }
       }
-      imui::Indent(-2);
-    }
-    if (imui::Text("Feature", text_options).clicked) {
-      player->feature_menu = !player->feature_menu;
-    }
-    if (player->feature_menu) {
-#define UI_TOGGLE_FEATURE(name)                           \
-  snprintf(ui_buffer, sizeof(ui_buffer), "%s: %s", #name, \
-           kScenario.name ? "enabled" : "disabled");      \
-  if (imui::Text(ui_buffer, text_options).clicked) {      \
-    kScenario.name = !kScenario.name;                     \
-    ScenarioReset(false);                                 \
-  }
-      imui::Indent(2);
-      UI_TOGGLE_FEATURE(ship);
-      UI_TOGGLE_FEATURE(asteroid);
-      UI_TOGGLE_FEATURE(missile);
-      UI_TOGGLE_FEATURE(pod);
-      UI_TOGGLE_FEATURE(invasion);
       imui::Indent(-2);
     }
     if (imui::Text("Exit", text_options).clicked) {

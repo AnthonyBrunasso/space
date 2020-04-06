@@ -126,8 +126,8 @@ main(int argc, char** argv)
         kGameState.limit_frame = strtol(platform_optarg, NULL, 10);
         break;
       case 's':
-        simulation::kScenario.type =
-            (simulation::Scenario::Type)strtol(platform_optarg, NULL, 10);
+        simulation::kScenario =
+            (simulation::ScenarioType)strtol(platform_optarg, NULL, 10);
         break;
       case 'w':
         kGameState.window_create_info.window_width =

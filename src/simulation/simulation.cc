@@ -36,7 +36,7 @@ void
 Reset(uint64_t seed)
 {
   srand(seed);
-  ScenarioReset(true);
+  ScenarioReset();
 }
 
 bool
@@ -61,7 +61,6 @@ Hash()
 void
 ThinkAsteroid()
 {
-  if (!kScenario.asteroid) return;
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
     asteroid->implode = (asteroid->mineral_source < .5f);
@@ -71,7 +70,6 @@ ThinkAsteroid()
 void
 ThinkMissle(uint64_t ship_index)
 {
-  if (!kScenario.missile) return;
 
   for (int i = 0; i < kUsedMissile; ++i) {
     Missile* missile = &kMissile[i];
@@ -109,8 +107,6 @@ Think()
 void
 DecideShip(uint64_t ship_index)
 {
-  if (!kScenario.ship) return;
-
   // Advance engine animation
   kShip[ship_index].engine_animation += 1;
   // Advance ftl_frame, if active
@@ -133,8 +129,6 @@ DecideShip(uint64_t ship_index)
 void
 DecideAsteroid()
 {
-  if (!kScenario.asteroid) return;
-
   if (kUsedAsteroid != kUsedPlayer) {
     bool asteroid_spawned[kMaxGrid] = {false};
     // Spawn an asteroid on each tilemap.
@@ -194,7 +188,9 @@ InvasionDirection(v3f invasion_pos)
 void
 DecideInvasion()
 {
-  if (!kScenario.invasion) return;
+  if (kFrame < 1500) {
+    return;
+  }
 
   if (kUsedInvasion != kMaxPlayer) {
     // Find min and max bounds of all grids.
@@ -270,7 +266,7 @@ DecideInvasion()
 void
 DecideMissle(uint64_t ship_index)
 {
-  if (!kScenario.missile) return;
+  if (kFrame < 4500) return;
 
   const float missile_xrange = 50.f * kShip[ship_index].level;
   static float next_missile = 0.f;
@@ -593,11 +589,6 @@ Update()
   for (int i = 0; i < kUsedPlayer; ++i) {
     camera::Update(&kPlayer[i].camera);
     kPlayer[i].camera.motion.z = 0.f;
-  }
-
-  if (kFrame == 1500) {
-    kScenario.invasion = true;
-    LOG("Invasions beginning!");
   }
 
   if (kSimulationOver) return;

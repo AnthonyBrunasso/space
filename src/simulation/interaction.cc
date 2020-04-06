@@ -408,7 +408,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
         case ' ': {
           for (int i = 0; i < kUsedShip; ++i) {
             if (kShip[i].level != player->level) continue;
-            bool ftl_ready = kShip[i].sys[kModEngine] > .5f;
+            bool ftl_ready = true;
             if (!ftl_ready) {
               LOG("Faster Than Light engine is offline!");
             } else if (player->mineral >= kFtlCost) {

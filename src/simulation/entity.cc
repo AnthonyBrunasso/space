@@ -21,10 +21,7 @@
 
 #define DECLARE_GAME_QUEUE(type, count) DECLARE_QUEUE(type, count)
 
-#define GAME_ITER(type, member)                                   \
-  sizeof(type), (const uint8_t*)k##type + offsetof(type, member), \
-      (const uint8_t*)&k##type[kUsed##type]
-
+// Use with DECLARE_GAME_TYPE_WITH_ID(Entity, ...)
 #define DECLARE_GAME_ENTITY(type)                                             \
   type* UseEntity##type()                                                     \
   {                                                                           \
@@ -96,17 +93,6 @@ enum UnitBbEntry {
   kUnitAttacker = 4,
   kUnitBbEntryMax = 5,
 };
-// TODO (AN): Document/test priority behaviors
-enum PodAiGoals {
-  kPodAiLostControl,
-  kPodAiUnmanned,
-  kPodAiGather,
-  kPodAiUnload,
-  kPodAiReturn,
-  kPodAiApproach,
-  kPodAiDisembark,
-  kPodAiGoals = 64,
-};
 
 // Common Structures
 struct Transform {
@@ -134,16 +120,10 @@ constexpr uint64_t kNonPlayerId = UINT64_MAX;
 constexpr unsigned kNotifyAgeBits = 5;
 
 struct Ship {
-  uint64_t think_flags = 0;
-  uint64_t operate_flags = 0;
-  uint64_t danger = 0;
   uint64_t grid_index = UINT64_MAX;
   uint64_t level;
   uint64_t deck = 1;
   uint64_t pod_capacity;
-  float sys[kModCount];
-  float used_power;
-  float power_delta;
   unsigned ftl_frame : 6;
   unsigned engine_animation : 4;
   uint64_t PADDING : 22;

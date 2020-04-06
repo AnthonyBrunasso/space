@@ -59,49 +59,6 @@ Hash()
 }
 
 void
-ThinkShip(uint64_t ship_index)
-{
-  if (!kScenario.ship) return;
-
-  Ship* ship = &kShip[ship_index];
-  uint64_t think_flags = 0;
-
-  // Ship mining is powererd
-  if (ship->sys[kModMine] >= 1.0f) {
-    if (ship->pod_capacity) {
-      think_flags |= FLAG(kShipAiSpawnPod);
-    }
-  }
-
-  if (ship->power_delta > 0.0f) {
-    think_flags |= FLAG(kShipAiPowerSurge);
-    ship->danger += 1;
-  } else {
-    ship->danger = 0;
-  }
-  ship->think_flags = think_flags;
-
-  // Crew objectives
-  uint64_t satisfied = 0;
-  v2i module_position;
-  for (int j = 0; j < kUsedEntity; ++j) {
-    Unit* unit = &kEntity[j].unit;
-    if (unit->type != kEeUnit) continue;
-    for (int k = 0; k < kUsedEntity; ++k) {
-      Module* mod = &kEntity[k].module;
-      if (mod->type != kEeModule) continue;
-      if (mod->mkind != kModPower && ship->sys[kModPower] < 1.0f) continue;
-
-      if (v3fDsq(unit->position, v3fModule(mod)) < kDsqOperate) {
-        satisfied |= FLAG(mod->mkind);
-      }
-    }
-  }
-
-  ship->operate_flags = satisfied;
-}
-
-void
 ThinkAsteroid()
 {
   if (!kScenario.asteroid) return;
@@ -145,7 +102,6 @@ Think()
     // Shroud is reset each frame
     TilemapUpdate();
 
-    ThinkShip(i);
     ThinkMissle(i);
   }
 }
@@ -168,22 +124,6 @@ DecideShip(uint64_t ship_index)
     if (!ModuleBuilt(module)) continue;
     ModuleUpdate(module);
   }
-
-  for (int i = 0; i < kModCount; ++i) {
-    if (ship->operate_flags & FLAG(i)) {
-      ship->sys[i] += 0.01f;
-    } else {
-      ship->sys[i] -= 0.01f;
-    }
-    ship->sys[i] = CLAMPF(ship->sys[i], 0.0f, 1.0f);
-  }
-
-  float used_power = 0.f;
-  used_power += 20.f * (ship->sys[kModMine] >= 0.3f);
-  used_power += 40.f * (ship->sys[kModEngine] >= .3f);
-  used_power += 20.f * (ship->sys[kModTurret] >= 0.3f);
-  ship->power_delta = fmaxf(used_power - ship->used_power, ship->power_delta);
-  ship->used_power = used_power;
 
   const bool jumped = (FtlSimulation(ship) == 0);
   // Jump side effects
@@ -346,8 +286,14 @@ DecideMissle(uint64_t ship_index)
     Missile* missile = &kMissile[i];
 
     if (missile->explode_frame) {
-      const bool laser_defense =
-          kShip[ship_index].operate_flags & FLAG(kModTurret);
+      bool laser_defense = false;
+      for (int j = 0; j < kUsedEntity; ++j) {
+        Module *mod = &kEntity[j].module;
+        if (mod->type != kEeModule) continue;
+        if (mod->ship_index != ship_index) continue;
+        if (mod->mkind != kModTurret) continue;
+        laser_defense = true;
+      }
 
       if (laser_defense || !MissileHitSimulation(missile)) {
         *missile = kZeroMissile;
@@ -457,7 +403,7 @@ UpdateModule(uint64_t ship_index)
       memset(&set_bits, 0x00, sizeof(Tile));
       set_bits.explored = 1;
       float tile_world_distance =
-          kTileWidth * 8.0f * kShip[m->ship_index].sys[kModPower];
+          kTileWidth * 8.0f;
       BfsMutate(world, keep_bits, set_bits,
                 tile_world_distance * tile_world_distance);
     }

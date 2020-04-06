@@ -219,12 +219,10 @@ RenderShip(uint64_t ship_index)
   using namespace simulation;
 
   // Modules are always visible
-  constexpr float min_visibility = .4f;
   for (int i = 0; i < kUsedEntity; ++i) {
     Module* mod = &kEntity[i].module;
     if (mod->type != kEeModule) continue;
     v3f mcolor = ModuleColor(mod->mkind);
-    mcolor *= CLAMPF(min_visibility, kShip[ship_index].sys[mod->mkind], 1.0f);
     v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
     v2f t = simulation::TilePosToWorld(mod->tile);
     if (ModuleBuilt(mod)) {
@@ -263,11 +261,7 @@ RenderShip(uint64_t ship_index)
       if (mod->ship_index != ship_index) continue;
       if (mod->mkind != kModEngine) continue;
       if (!ModuleBuilt(mod)) continue;
-      float engine_power = fminf(kShip[ship_index].sys[kModEngine],
-                                 kShip[ship_index].sys[kModPower]);
-      float visibility = fmaxf(min_visibility, engine_power);
       v3f mcolor = ModuleColor(mod->mkind);
-      mcolor *= visibility;
       v2i hack = {-1, 1};
       world = TilePosToWorld(mod->tile + hack);
       v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);

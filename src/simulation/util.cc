@@ -195,6 +195,7 @@ SpawnCrew(v3f world_position, uint64_t player_index, uint64_t ship_index)
   unit->player_id = player_index;
   unit->kind = kOperator;
   unit->spacesuit = 1;
+  unit->notify = 1;
 }
 
 void
@@ -208,6 +209,7 @@ SpawnCrew(v2i tile_position, uint64_t player_index, uint64_t ship_index)
   unit->player_id = player_index;
   unit->kind = kOperator;
   unit->spacesuit = 1;
+  unit->notify = 1;
 }
 
 void

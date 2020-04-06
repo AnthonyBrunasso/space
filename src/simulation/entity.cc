@@ -130,15 +130,6 @@ struct Ship {
 };
 DECLARE_GAME_TYPE(Ship, 2);
 
-struct Missile {
-  Transform transform;
-  v2i tile_hit;
-  signed y_velocity : 3 + 1;
-  unsigned explode_frame : 6;
-  unsigned PADDING : 22;
-};
-DECLARE_GAME_TYPE(Missile, 8);
-
 struct Projectile {
   v3f start;
   v3f end;

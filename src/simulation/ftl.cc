@@ -16,9 +16,6 @@ FtlSimulation(const Ship* ship)
 {
   const uint64_t ftl_frame = ship->ftl_frame;
   if (ftl_frame == kFtlFrameTime) {
-    for (int i = 0; i < kUsedMissile; ++i) {
-      kMissile[i] = kZeroMissile;
-    }
     for (int i = 0; i < kUsedAsteroid; ++i) {
       kAsteroid[i] = kZeroAsteroid;
     }

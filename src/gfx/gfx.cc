@@ -10,7 +10,6 @@
 namespace gfx
 {
 struct Gfx {
-  RenderTag missile_tag;
   RenderTag cryo_tag;
   RenderTag exhaust_tag;
   RenderTag plus_tag;
@@ -36,10 +35,6 @@ Initialize(const window::CreateInfo& window_create_info)
   constexpr int kVertCount = 29;
   constexpr int kFloatCount = kVertCount * 3;
   // clang-format off
-  constexpr int kMissileVert = 4;
-  GLfloat missile[kMissileVert*3] = 
-  {0.0f, 0.0f, 0.0f, 2.0f, 0.0f, 0.0f,
-   2.0f, 4.0f, 0.0f, 0.0f, 4.0f, 0.0f};
   constexpr int kCryoVert = 6;
   GLfloat cryo[kCryoVert*3] = 
   {-1.0f, 0.0f, 0.0f, 0.0f, -2.0f, 0.0f,
@@ -61,11 +56,9 @@ Initialize(const window::CreateInfo& window_create_info)
     1.0f, 0.0f, 0.0f, ORIGIN, 
     0.0f, 1.0f, 0.0f, ORIGIN};
   // clang-format on
-  for (int i = 0; i < kMissileVert * 3; ++i) missile[i] *= 15.f;  // HA
   for (int i = 0; i < kCryoVert * 3; ++i) cryo[i] *= 12.f;        // HA
   for (int i = 0; i < kExhaustVert * 3; ++i) exhaust[i] *= 15.f;  // HA
   for (int i = 0; i < kPlusVert * 3; ++i) plus[i] *= 15.f;        // HA
-  kGfx.missile_tag = rgg::CreateRenderable(kMissileVert, missile, GL_LINE_LOOP);
   kGfx.cryo_tag = rgg::CreateRenderable(kCryoVert, cryo, GL_LINE_LOOP);
   kGfx.exhaust_tag = rgg::CreateRenderable(kExhaustVert, exhaust, GL_LINE_LOOP);
   kGfx.plus_tag = rgg::CreateRenderable(kPlusVert, plus, GL_LINE_LOOP);
@@ -394,24 +387,6 @@ RenderSpaceObjects()
                         v4f(.4f, .4f, .4f, 1.f));
     r += .3f;
     nr += .05f;
-  }
-
-  for (int i = 0, j = 0; i < kUsedMissile; ++i) {
-    Missile* missile = &kMissile[i];
-    rgg::RenderTag(kGfx.missile_tag, missile->transform.position,
-                   missile->transform.scale, kDefaultRotation, kWhite);
-    v2i tile;
-    if (!WorldToTilePos(missile->transform.position, &tile)) continue;
-    if (!TileOk(tile)) continue;
-
-    for (; j < kUsedEntity; ++j) {
-      Module* mod = &kEntity[j].module;
-      if (mod->type != kEeModule) continue;
-      if (mod->mkind != kModTurret) continue;
-      v2f pos = TilePosToWorld(mod->tile);
-      rgg::RenderLine(missile->transform.position, pos,
-                      v4f(1.0f, 0.0, 0.0, 1.f));
-    }
   }
 
   for (int i = 0; i < kUsedProjectile; ++i) {

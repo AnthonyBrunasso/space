@@ -10,7 +10,6 @@
 
 #include "entity.cc"
 #include "ftl.cc"
-#include "mhitu.cc"
 #include "phitu.cc"
 
 #include "module.cc"
@@ -68,28 +67,6 @@ ThinkAsteroid()
 }
 
 void
-ThinkMissle(uint64_t ship_index)
-{
-  for (int i = 0; i < kUsedMissile; ++i) {
-    Missile* missile = &kMissile[i];
-    v2i tilepos;
-    if (!WorldToTilePos(missile->transform.position.xy(), &tilepos)) continue;
-    Tile* tile = TilePtr(tilepos);
-    if (!tile) continue;
-
-    // ship entering ftl, cannot strike
-    if (kShip[ship_index].ftl_frame) continue;
-
-    if (tile->blocked) {
-      v2i hack(0, 1);
-      missile->explode_frame += 1;
-      missile->y_velocity = 0;
-      missile->tile_hit = tilepos + hack;
-    }
-  }
-}
-
-void
 Think()
 {
   ThinkAsteroid();
@@ -98,8 +75,6 @@ Think()
     TilemapSet(i);
     // Shroud is reset each frame
     TilemapUpdate();
-
-    ThinkMissle(i);
   }
 }
 
@@ -259,43 +234,6 @@ DecideInvasion()
     }
 
     if (all_dead) *v = kZeroInvasion;
-  }
-}
-
-void
-DecideMissle(uint64_t ship_index)
-{
-  if (kFrame < 4500) return;
-
-  const float missile_xrange = 50.f * kShip[ship_index].level;
-  static float next_missile = 0.f;
-  while (kUsedMissile < kShip[ship_index].level) {
-    Missile* missile = UseMissile();
-    missile->transform =
-        Transform{.position = v3f(300.f + next_missile, -1000.f, 0.f)};
-    missile->y_velocity = 5;
-    next_missile = fmodf(next_missile + 50.f, missile_xrange);
-  }
-
-  for (int i = 0; i < kUsedMissile; ++i) {
-    Missile* missile = &kMissile[i];
-
-    if (missile->explode_frame) {
-      bool laser_defense = false;
-      for (int j = 0; j < kUsedEntity; ++j) {
-        Module* mod = &kEntity[j].module;
-        if (mod->type != kEeModule) continue;
-        if (mod->ship_index != ship_index) continue;
-        if (mod->mkind != kModTurret) continue;
-        laser_defense = true;
-      }
-
-      if (laser_defense || !MissileHitSimulation(missile)) {
-        *missile = kZeroMissile;
-      }
-    }
-
-    missile->transform.position += v3f(0.0f, float(missile->y_velocity), 0.f);
   }
 }
 
@@ -570,7 +508,6 @@ Decide()
   for (uint64_t i = 0; i < kUsedShip; ++i) {
     TilemapSet(i);
     DecideShip(i);
-    DecideMissle(i);
     UpdateModule(i);
     UpdateUnit(i);
   }

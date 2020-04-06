@@ -30,6 +30,7 @@
     if (!e) return nullptr;                                                   \
     type t;                                                                   \
     t.id = e->id;                                                             \
+    t.hash_idx = e->hash_idx;                                                 \
     memcpy(e, &t, sizeof(t));                                                 \
     return (type*)e;                                                          \
   }
@@ -208,7 +209,7 @@ union Entity {
   {
   }
 };
-#define MAX_ENTITY 128
+#define MAX_ENTITY 100
 DECLARE_GAME_TYPE_WITH_ID(Entity, MAX_ENTITY);
 DECLARE_GAME_ENTITY(Unit);
 DECLARE_GAME_ENTITY(Module);

@@ -195,6 +195,19 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
     if (imui::Text(ui_buffer, text_options).clicked) {
       player->mineral_cheat = !player->mineral_cheat;
     }
+    if (imui::Text("Spawn Unit Cheat", text_options).clicked) {
+      SpawnCrew(TileRandomPosition(), 0);
+    }
+    if (imui::Text("Kill Unit Cheat", text_options).clicked) {
+      // Kill first unit in entity list.
+      for (int i = 0; i < kUsedEntity; ++i) {
+        Unit* unit = &kEntity[i].unit;
+        if (unit->type != kEeUnit) continue;
+        LOGFMT("Kill unit %i", unit->id);
+        ZeroEntity(unit);
+        break;
+      }
+    }
     if (imui::Text("Reset Game", text_options).clicked) {
       Reset(kNetworkState.game_id);
     }

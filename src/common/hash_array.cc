@@ -31,38 +31,49 @@ struct HashEntry {
            k##type[entry.array_idx].id != entry.id;                 \
   }                                                                 \
                                                                     \
-  HashEntry*                                                        \
-  FindEmptyHashEntry##type(uint32_t hash, uint32_t* hash_idx)       \
-  {                                                                 \
-    *hash_idx = hash;                                               \
-    HashEntry* hash_entry = &kHashEntry##type[*hash_idx];           \
-    while (!IsEmptyEntry##type(*hash_entry)) {                      \
-      printf("collides\n");                                         \
-      *hash_idx += 1;                                               \
-      *hash_idx = *hash_idx % kMaxHash##type;                       \
-      hash_entry = &kHashEntry##type[*hash_idx];                    \
-    }                                                               \
-    return hash_entry;                                              \
-  }                                                                 \
-                                                                    \
   uint32_t                                                          \
   Hash##type(uint32_t id)                                           \
   {                                                                 \
     return (id * 2654435761 % kMaxHash##type);                      \
   }                                                                 \
                                                                     \
+  uint32_t                                                          \
+  GenerateFreeId##type()                                            \
+  {                                                                 \
+    uint32_t id = kAutoIncrementId##type;                           \
+    HashEntry* hash_entry = &kHashEntry##type[Hash##type(id)];      \
+    while (!IsEmptyEntry##type(*hash_entry)) {                      \
+      printf("collides\n");                                         \
+      id += 1;                                                      \
+      hash_entry = &kHashEntry##type[Hash##type(id)];               \
+    }                                                               \
+    kAutoIncrementId##type = id;                                    \
+    return id;                                                      \
+  }                                                                 \
+                                                                    \
   type*                                                             \
   Use##type()                                                       \
   {                                                                 \
+    assert(kUsed##type < kMax##type);                               \
     if (kUsed##type >= kMax##type) return nullptr;                  \
     type* u = &k##type[kUsed##type++];                              \
     *u = {};                                                        \
-    u->id = kAutoIncrementId##type++;                               \
+    u->id = GenerateFreeId##type();                                 \
     uint32_t hash = Hash##type(u->id);                              \
-    HashEntry* hash_entry =                                         \
-        FindEmptyHashEntry##type(hash, &u->hash_idx);               \
+    u->hash_idx = hash;                                             \
+    HashEntry* hash_entry = &kHashEntry##type[hash];                \
     hash_entry->id = u->id;                                         \
     hash_entry->array_idx = kUsed##type - 1;                        \
+    printf("Element - ");                                           \
+  for (int i = 0; i < kMax##type; ++i) { \
+    printf("%i/%u/%u ", i, k##type[i].id, k##type[i].hash_idx); \
+  } \
+    printf("\nHash -    ");                                              \
+  for (int i = 0; i < kMaxHash##type; ++i) { \
+    printf("%i/%u/%u ", i, kHashEntry##type[i].id, kHashEntry##type[i].array_idx); \
+  } \
+    printf("\n"); \
+    ++kAutoIncrementId##type;                                       \
     return u;                                                       \
   }                                                                 \
                                                                     \

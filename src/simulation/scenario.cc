@@ -32,7 +32,10 @@ static Scenario kScenario;
 static uint64_t kFrame;
 
 constexpr const char* kScenarioNames[Scenario::kMaxScenario] = {
-    "TwoShip", "Combat", "Solo", "Empty",
+    "TwoShip",
+    "Combat",
+    "Solo",
+    "Empty",
 };
 
 void
@@ -72,53 +75,65 @@ ScenarioInitialize(bool reset_features = true)
 {
   int sid = kScenario.type;
   TilemapType tilemap_type = kTilemapEmpty;
-  TilemapSet(0);
+  TilemapClear();
 
   // Build ship.
-  uint64_t grid_index;
   switch (sid) {
     case Scenario::kCombatScenario: {
-      grid_index = TilemapInitialize(kTilemapEmpty);
       // At least one ship
       kScenario.ship = 1;
       Ship* ship = UseShip();
-      ship->grid_index = grid_index;
       ship->pod_capacity = 1;
       ship->level = 1;
     } break;
     case Scenario::kTwoShip: {
-      for (int i = 0; i < kPlayerCount; ++i) {
-        grid_index = TilemapInitialize(kTilemapShip);
-        // At least one ship
-        kScenario.ship = i;
+      while (kUsedShip < kPlayerCount) {
         Ship* ship = UseShip();
-        ship->grid_index = grid_index;
-        ship->pod_capacity = i;
+        ship->pod_capacity = 1;
         ship->level = 1;
-        kGrid[i].transform.position = v2f(0.f, i * 1600.f);
+        ship->transform.position = v2f(0.f, (kUsedShip - 1) * 1600.f);
       }
     } break;
     case Scenario::kSoloMission: {
-      grid_index = TilemapInitialize(kTilemapShip);
       // At least one ship
       kScenario.ship = 1;
       Ship* ship = UseShip();
-      ship->grid_index = grid_index;
       ship->pod_capacity = 1;
       ship->level = 1;
     } break;
     case Scenario::kEmptyScenario: {
-      grid_index = TilemapInitialize(kTilemapEmpty);
       // At least one ship
       kScenario.ship = 1;
       Ship* ship = UseShip();
-      ship->grid_index = grid_index;
       ship->pod_capacity = 1;
       ship->level = 1;
     } break;
   }
 
-  v2i crew_pos[2] = { v2i(5, 23), v2i(5, 7) };
+  // Assign players to ships
+  for (int i = 0; i < kPlayerCount; ++i) {
+    auto* player = UsePlayer();
+    player->ship_index = i % kUsedShip;
+    player->camera.viewport.x = kNetworkState.player_info[i].window_width;
+    player->camera.viewport.y = kNetworkState.player_info[i].window_height;
+    player->mineral = 400;
+  }
+
+  const bool FOG_DISABLE = false; 
+  for (int i = 0; i < kUsedPlayer; ++i) {
+    switch (sid) {
+      case Scenario::kEmptyScenario:
+      case Scenario::kCombatScenario:
+        TilemapInitialize(i, kTilemapEmpty, FOG_DISABLE);
+        break;
+      case Scenario::kSoloMission:
+      case Scenario::kTwoShip:
+        TilemapInitialize(i, kTilemapShip, FOG_DISABLE);
+        break;
+    }
+  }
+
+  v2i crew_pos[2] = {v2i(5, 23), v2i(5, 7)};
 
   // Spawn units / modules.
   switch (sid) {
@@ -162,14 +177,6 @@ ScenarioInitialize(bool reset_features = true)
   // Always set unexplored/interior of ship
   TilemapUnexplored(TilemapWorldCenter());
 
-  auto dims = window::GetWindowSize();
-  for (int i = 0; i < kPlayerCount; ++i) {
-    auto* player = UsePlayer();
-    player->ship_index = i % kUsedShip;
-    player->camera.viewport.x = kNetworkState.player_info[i].window_width;
-    player->camera.viewport.y = kNetworkState.player_info[i].window_height;
-    player->mineral = 400;
-  }
   LOGFMT("Player count: %lu", kUsedPlayer);
 
   for (int i = 0; i < kUsedPlayer; ++i) {

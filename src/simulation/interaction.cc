@@ -300,9 +300,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
           } break;
           case kHudModule: {
             ModuleKind mkind = player->mod_placement;
-            uint64_t grid = TilemapWorldToGrid(world_pos);
-            if (grid == kInvalidIndex) break;
-            TilemapSet(grid);
+            if (!TilemapSet(player->ship_index)) break;
             v2i tilepos;
             if (WorldToTilePos(world_pos, &tilepos) &&
                 event.button == BUTTON_LEFT) {
@@ -313,7 +311,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
               Module* mod = UseEntityModule();
               mod->bounds = ModuleBounds(mkind);
               mod->mkind = mkind;
-              mod->ship_index = player_index;
+              mod->ship_index = player->ship_index;
               mod->player_id = player_index;
               mod->tile = tilepos;
               if (player->god_mode) {

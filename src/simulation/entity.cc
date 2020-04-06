@@ -120,7 +120,7 @@ constexpr uint64_t kNonPlayerId = UINT64_MAX;
 constexpr unsigned kNotifyAgeBits = 5;
 
 struct Ship {
-  uint64_t grid_index = UINT64_MAX;
+  Transform transform;
   uint64_t level;
   uint64_t deck = 1;
   uint64_t pod_capacity;
@@ -269,15 +269,14 @@ struct Tile {
   unsigned cy : 8;
   unsigned blocked : 1;
   unsigned nooxygen : 1;
+  unsigned can_shroud : 1;
   unsigned shroud : 1;
   unsigned explored : 1;
   unsigned exterior : 1;
-  unsigned PADDING : 11;
+  unsigned PADDING : 10;
 };
 struct Grid {
-  Transform transform;
   Tile tilemap[kMapHeight][kMapWidth];
-  bool fog = true;
 };
 DECLARE_GAME_TYPE(Grid, 2);
 

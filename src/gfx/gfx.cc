@@ -454,7 +454,7 @@ Render(uint64_t player_index)
   for (int i = 0; i < kUsedShip; ++i) {
     if (kShip[i].level != kPlayer[player_index].level) continue;
 
-    simulation::TilemapSet(kShip[i].grid_index);
+    simulation::TilemapSet(i);
     RenderShip(i);
     RenderCrew(i);
   }

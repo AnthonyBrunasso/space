@@ -98,7 +98,7 @@ Think()
   ThinkAsteroid();
 
   for (uint64_t i = 0; i < kUsedShip; ++i) {
-    TilemapSet(kShip[i].grid_index);
+    TilemapSet(i);
     // Shroud is reset each frame
     TilemapUpdate();
 
@@ -574,7 +574,7 @@ Decide()
   DecideInvasion();
 
   for (uint64_t i = 0; i < kUsedShip; ++i) {
-    TilemapSet(kShip[i].grid_index);
+    TilemapSet(i);
     DecideShip(i);
     DecideMissle(i);
     UpdateModule(i);
@@ -603,7 +603,7 @@ Update()
   if (kSimulationOver) return;
 
   for (int i = 0; i < kUsedShip; ++i) {
-    TilemapSet(kShip[i].grid_index);
+    TilemapSet(i);
   }
 
   Think();

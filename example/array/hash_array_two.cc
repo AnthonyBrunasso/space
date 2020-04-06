@@ -80,3 +80,14 @@ main()
 
   return 0;
 }
+
+printf("Element - ");                                           \
+  for (int i = 0; i < kMax##type; ++i) { \
+    printf("%i/%u/%u ", i, k##type[i].id, Hash##type(k##type[i].id)); \
+  } \
+    printf("\nHash -    ");                                              \
+  for (int i = 0; i < kMaxHash##type; ++i) { \
+    printf("%i/%u/%u ", i, kHashEntry##type[i].id, kHashEntry##type[i].array_idx); \
+  } \
+    printf("\n"); \
+

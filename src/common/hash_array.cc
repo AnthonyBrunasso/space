@@ -5,7 +5,6 @@
 
 #define HASH_STRUCT()  \
   uint32_t id;         \
-  uint32_t hash_idx;   \
 
 struct HashEntry {
   uint32_t id;
@@ -60,19 +59,9 @@ struct HashEntry {
     *u = {};                                                        \
     u->id = GenerateFreeId##type();                                 \
     uint32_t hash = Hash##type(u->id);                              \
-    u->hash_idx = hash;                                             \
     HashEntry* hash_entry = &kHashEntry##type[hash];                \
     hash_entry->id = u->id;                                         \
     hash_entry->array_idx = kUsed##type - 1;                        \
-    printf("Element - ");                                           \
-  for (int i = 0; i < kMax##type; ++i) { \
-    printf("%i/%u/%u ", i, k##type[i].id, k##type[i].hash_idx); \
-  } \
-    printf("\nHash -    ");                                              \
-  for (int i = 0; i < kMaxHash##type; ++i) { \
-    printf("%i/%u/%u ", i, kHashEntry##type[i].id, kHashEntry##type[i].array_idx); \
-  } \
-    printf("\n"); \
     ++kAutoIncrementId##type;                                       \
     return u;                                                       \
   }                                                                 \

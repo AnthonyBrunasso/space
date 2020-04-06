@@ -16,6 +16,7 @@ struct Registry {
   uint32_t memb_max;
   uint32_t memb_size;
   HashEntry* hash_entry;
+  uint32_t (*hash_func)(uint32_t id);
 };
 
 #define MAX_REGISTRY (PAGE / sizeof(Registry))
@@ -26,11 +27,12 @@ class EntityRegistry
  public:
   // Used in global static initialization
   EntityRegistry(void* buffer, void* zero, uint64_t* count_ptr, uint32_t max,
-                 uint32_t size, HashEntry* hash_entry)
+                 uint32_t size, HashEntry* hash_entry,
+                 uint32_t (*hash_func)(uint32_t))
   {
     assert(kUsedRegistry < MAX_REGISTRY);
     kRegistry[kUsedRegistry] =
-        {buffer, zero, count_ptr, max, size, hash_entry};
+        {buffer, zero, count_ptr, max, size, hash_entry, hash_func};
     kUsedRegistry += 1;
   }
 };
@@ -61,8 +63,9 @@ RegistryCompact()
           HashStruct* hash_struct = (HashStruct*)(lower_ent);
           // printf("hash_idx id from %u to %u \n",
           //        r->hash_entry[hash_struct->hash_idx].id, hash_struct->id);
-          r->hash_entry[hash_struct->hash_idx].id = hash_struct->id;
+          r->hash_entry[r->hash_func(hash_struct->id)].id = hash_struct->id;
         }
+        memcpy(upper_ent, zero_ptr, memb_size);
         --upper;
         ++count;
       }

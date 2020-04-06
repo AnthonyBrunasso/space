@@ -11,14 +11,16 @@
 #define DECLARE_GAME_TYPE(type, max_count)                               \
   DECLARE_ARRAY(type, max_count)                                         \
   static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type, \
-                                    max_count, sizeof(type), nullptr);
+                                    max_count, sizeof(type), nullptr,    \
+                                    nullptr);
 
 // id == -1 is reserved for invalid references
 #define DECLARE_GAME_TYPE_WITH_ID(type, max_count)                       \
   DECLARE_HASH_ARRAY(type, max_count)                                    \
   static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type, \
                                     max_count, sizeof(type),             \
-                                    kHashEntry##type);
+                                    kHashEntry##type,                    \
+                                    Hash##type);
 
 #define DECLARE_GAME_QUEUE(type, count) DECLARE_QUEUE(type, count)
 
@@ -30,7 +32,6 @@
     if (!e) return nullptr;                                                   \
     type t;                                                                   \
     t.id = e->id;                                                             \
-    t.hash_idx = e->hash_idx;                                                 \
     memcpy(e, &t, sizeof(t));                                                 \
     return (type*)e;                                                          \
   }
@@ -173,16 +174,12 @@ struct Unit {
   float health = 5.0f;
   float max_health = 5.0f;
   float speed = 1.f;
-
-  // Bit Fields
-  unsigned dead : 1;
-  unsigned spacesuit : 1;
-  unsigned inspace : 1;
-  unsigned uaction : 4;
-  unsigned persistent_uaction : 3;
-  unsigned mskill : kModBits;
-  unsigned notify : kNotifyAgeBits;
-  uint64_t PADDING : 13;
+  UnitAction uaction = kUaNone;
+  UnitAction persistent_uaction = kUaNone;
+  bool dead;
+  bool spacesuit;
+  bool inspace;
+  int notify;
 };
 
 constexpr int kTrainIdle = -1;
@@ -209,7 +206,7 @@ union Entity {
   {
   }
 };
-#define MAX_ENTITY 100
+#define MAX_ENTITY 128
 DECLARE_GAME_TYPE_WITH_ID(Entity, MAX_ENTITY);
 DECLARE_GAME_ENTITY(Unit);
 DECLARE_GAME_ENTITY(Module);

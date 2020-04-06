@@ -29,8 +29,7 @@
     Entity* e = UseEntity();                                                  \
     if (!e) return nullptr;                                                   \
     type t;                                                                   \
-    t.id = kAutoIncrementIdEntity;                                            \
-    kAutoIncrementIdEntity += (kAutoIncrementIdEntity == kInvalidEntity) + 1; \
+    t.id = e->id;                                                             \
     memcpy(e, &t, sizeof(t));                                                 \
     return (type*)e;                                                          \
   }

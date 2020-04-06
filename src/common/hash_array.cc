@@ -70,16 +70,7 @@ struct HashEntry {
   Find##type(uint32_t id)                                           \
   {                                                                 \
     uint32_t hash = Hash##type(id);                                 \
-    type* u = &k##type[hash];                                       \
-    uint32_t n = 1;                                                 \
-    while (u->id != id) {                                           \
-      if (n >= kMaxHash##type) return nullptr;                      \
-      ++hash;                                                       \
-      hash = hash % kMaxHash##type;                                 \
-      u = &k##type[hash];                                           \
-      ++n;                                                          \
-    }                                                               \
-    return u;                                                       \
+    return &k##type[kHashEntry##type[hash].array_idx];              \
   }                                                                 \
                                                                     \
   void                                                              \

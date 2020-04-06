@@ -63,7 +63,9 @@ RegistryCompact()
           HashStruct* hash_struct = (HashStruct*)(lower_ent);
           // printf("hash_idx id from %u to %u \n",
           //        r->hash_entry[hash_struct->hash_idx].id, hash_struct->id);
-          r->hash_entry[r->hash_func(hash_struct->id)].id = hash_struct->id;
+          uint32_t hash = r->hash_func(hash_struct->id);
+          r->hash_entry[hash].id = hash_struct->id;
+          r->hash_entry[hash].array_idx = count;
         }
         memcpy(upper_ent, zero_ptr, memb_size);
         --upper;

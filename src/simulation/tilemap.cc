@@ -385,6 +385,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
               mod->ship_index = ship_index;
               mod->player_id = player_index;
               mod->tile = v2i(x, y);
+              mod->position = TilePosToWorld(mod->tile);
             } break;
           };
         }

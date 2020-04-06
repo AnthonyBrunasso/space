@@ -148,8 +148,8 @@ ReadOnlyUnits(v2f screen, uint32_t tag)
     imui::Indent(2);
     for (int i = 0; i < kUsedEntity; ++i) {
       snprintf(ui_buffer, sizeof(ui_buffer), "Entity %d", kEntity[i].id);
-      if (imui::Text(ui_buffer, debug_options).highlighted ||
-          kEntity[i].control || unit_debug >= 2) {
+      bool highlighted = imui::Text(ui_buffer, debug_options).highlighted;
+      if (highlighted || kEntity[i].control || unit_debug >= 2) {
         imui::Indent(2);
         if (kEntity[i].type == kEeUnit) {
           snprintf(ui_buffer, sizeof(ui_buffer), "action %d",
@@ -161,6 +161,21 @@ ReadOnlyUnits(v2f screen, uint32_t tag)
           RenderBlackboard(&kEntity[i].unit);
         }
         imui::Indent(-2);
+      }
+      // Draws a red line cube around the entity.
+      if (highlighted) {
+        gfx::PushDebugCube(math::Cubef(
+                  kEntity[i].position
+                      + v3f(0.f, 0.f, kEntity[i].bounds.z / 2.f),
+                  kEntity[i].bounds), gfx::kRed);
+        // Sanity check hashing... If a red and green box show up around two
+        // different entities that means the array_index in the hash bucket
+        // is incorrect.
+        Entity* ent = FindEntity(kEntity[i].id);
+        gfx::PushDebugCube(math::Cubef(
+                  ent->position
+                      + v3f(0.f, 0.f, ent->bounds.z / 2.f),
+                  ent->bounds), gfx::kGreen);
       }
     }
     imui::Indent(-2);
@@ -308,6 +323,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
               mod->ship_index = player->ship_index;
               mod->player_id = player_index;
               mod->tile = tilepos;
+              mod->position = TilePosToWorld(tilepos);
               player->mineral -= ModuleCost(mkind);
             }
             LOGFMT("Order build [%i] [%i,%i]", mkind, tilepos.x, tilepos.y);

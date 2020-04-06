@@ -180,6 +180,7 @@ SpawnEnemy(v2i tile_position, uint64_t ship_index)
   enemy->kind = kAlien;
   enemy->attack_radius = 30.f;
   enemy->speed = 0.5f;
+  enemy->bounds = v3f(15.f, 15.f, 25.f);
   BB_SET(enemy->bb, kUnitBehavior, kUnitBehaviorAttackWhenDiscovered);
   return enemy->id;
 }
@@ -196,6 +197,7 @@ SpawnCrew(v3f world_position, uint64_t player_index, uint64_t ship_index)
   unit->kind = kOperator;
   unit->spacesuit = 1;
   unit->notify = 1;
+  unit->bounds = v3f(17.f, 17.f, 25.f);
 }
 
 void
@@ -210,6 +212,7 @@ SpawnCrew(v2i tile_position, uint64_t player_index, uint64_t ship_index)
   unit->kind = kOperator;
   unit->spacesuit = 1;
   unit->notify = 1;
+  unit->bounds = v3f(17.f, 17.f, 25.f);
 }
 
 void

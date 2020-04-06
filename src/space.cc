@@ -232,6 +232,7 @@ main(int argc, char** argv)
   for (; frame <= limit_frame; ++frame) {
     if (window::ShouldClose()) break;
     imui::ResetTag(imui::kEveryoneTag);
+    gfx::Reset();
 
     GatherInput();
     NetworkEgress();

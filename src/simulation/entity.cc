@@ -164,7 +164,7 @@ struct Projectile {
 DECLARE_GAME_TYPE(Projectile, 128);
 
 #define COMMON_MEMBER_DECL \
-  HASH_STRUCT()            \
+  int id;                  \
   v3f position;            \
   v3f scale;               \
   v3f bounds;              \

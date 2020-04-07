@@ -168,7 +168,8 @@ ReadOnlyUnits(v2f screen, uint32_t tag)
                   kEntity[i].position
                       + v3f(0.f, 0.f, kEntity[i].bounds.z / 2.f),
                   kEntity[i].bounds), gfx::kRed);
-        // Sanity check hashing... If a red and green box show up around two
+#if 0
+        // Debug for hashing... If a red and green box show up around two
         // different entities that means the array_index in the hash bucket
         // is incorrect.
         Entity* ent = FindEntity(kEntity[i].id);
@@ -176,6 +177,7 @@ ReadOnlyUnits(v2f screen, uint32_t tag)
                   ent->position
                       + v3f(0.f, 0.f, ent->bounds.z / 2.f),
                   ent->bounds), gfx::kGreen);
+#endif
       }
     }
     imui::Indent(-2);

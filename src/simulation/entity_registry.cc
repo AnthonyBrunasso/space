@@ -57,15 +57,9 @@ RegistryCompact()
         uint8_t* upper_ent = (uint8_t*)r->ptr + upper * memb_size;
         memcpy(lower_ent, upper_ent, memb_size);
         if (r->hash_entry) {
-          struct HashStruct {
-            HASH_STRUCT()
-          };
-          // Update hash map.
-          HashStruct* hash_struct = (HashStruct*)(lower_ent);
-          uint32_t hash = r->hash_func(hash_struct->id);
-          //printf("hash arr idx from %u to %u\n",
-          //       r->hash_entry[hash].array_idx, idx);
-          r->hash_entry[hash].array_idx = idx;
+          // Expectation that id is first 32 bits in entities.
+          uint32_t id = *((uint32_t*)(lower_ent));
+          r->hash_entry[r->hash_func(id)].array_idx = idx;
         }
         memcpy(upper_ent, zero_ptr, memb_size);
         --upper;

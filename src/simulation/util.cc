@@ -214,7 +214,7 @@ SpawnCrew(v3f world_position, uint64_t player_index, uint64_t ship_index)
   unit->position = world_position;
   unit->scale = v3f(0.25f, 0.25f, 0.f);
   unit->ship_index = ship_index;
-  unit->player_id = player_index;
+  unit->player_index = player_index;
   unit->kind = kOperator;
   unit->spacesuit = 1;
   unit->notify = 1;
@@ -229,7 +229,7 @@ SpawnCrew(v2i tile_position, uint64_t player_index, uint64_t ship_index)
   unit->position = TilePosToWorld(tile_position);
   unit->scale = v3f(0.25f, 0.25f, 0.f);
   unit->ship_index = ship_index;
-  unit->player_id = player_index;
+  unit->player_index = player_index;
   unit->kind = kOperator;
   unit->spacesuit = 1;
   unit->notify = 1;

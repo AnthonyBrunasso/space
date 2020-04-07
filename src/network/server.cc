@@ -39,7 +39,7 @@ constexpr bool ALAN = false;
 struct PlayerState {
   Udp4 peer;
   uint64_t num_players;
-  uint64_t game_index = UINT64_MAX;
+  uint64_t game_index = kInvalidIndex;
   uint64_t pending_game_id;
   uint64_t last_active;
   uint64_t sequence;
@@ -110,20 +110,11 @@ GetGameIndex(uint64_t game_id)
   return -1;
 }
 
-bool
-PlayerInGame(uint64_t gidx)
-{
-  for (int i = 0; i < MAX_PLAYER; ++i) {
-    if (player[i].game_index == gidx) return true;
-  }
-  return false;
-}
-
 uint64_t
 PlayerContiguousSequence(uint64_t pidx)
 {
   uint64_t gidx = player[pidx].game_index;
-  assert(gidx != UINT64_MAX);
+  assert(gidx != kInvalidIndex);
   Game* g = &game[gidx];
 
   uint64_t slot = GAMEQUEUE_SLOT(g->last_frame + 1);
@@ -176,7 +167,7 @@ prune_games()
 
   for (int pidx = 0; pidx < MAX_PLAYER; ++pidx) {
     uint64_t game_index = player[pidx].game_index;
-    if (game_index == UINT64_MAX) continue;
+    if (game_index == kInvalidIndex) continue;
     active_game[game_index] = 1;
   }
 
@@ -298,12 +289,13 @@ game_update(uint64_t realtime_usec, uint64_t game_index)
   }
 
   if (ALAN) {
-    SERVER_LOGFMT("Server game "
-	" [ next_frame %lu ] "
-	" [ ack_frame %lu ] "
-	" [ new_ack_frame %lu ] "
-	" [ jerk %lu ] "
-	"\n",
+    SERVER_LOGFMT(
+        "Server game "
+        " [ next_frame %lu ] "
+        " [ ack_frame %lu ] "
+        " [ new_ack_frame %lu ] "
+        " [ jerk %lu ] "
+        "\n",
         next_frame, g->ack_frame, new_ack_frame, server_clock.jerk);
   }
 
@@ -397,7 +389,7 @@ server_main(void* void_arg)
       SERVER_LOGFMT("Server Accepted Handshake [index %d]\n", player_index);
       player[player_index].peer = peer;
       player[player_index].num_players = num_players;
-      player[player_index].game_index = UINT64_MAX;
+      player[player_index].game_index = kInvalidIndex;
       player[player_index].pending_game_id = 0;
       player[player_index].last_active = realtime_usec;
       player[player_index].sequence = 0;
@@ -456,7 +448,7 @@ server_main(void* void_arg)
 
     // Handle pending games
     uint64_t gidx = player[pidx].game_index;
-    if (gidx == UINT64_MAX) {
+    if (gidx == kInvalidIndex) {
       if (received_bytes == sizeof(BeginGame)) {
         BeginGame* bgPacket = (BeginGame*)(in_buffer);
         if (player[pidx].cookie != bgPacket->cookie) {
@@ -626,4 +618,3 @@ WaitForNetworkServer()
   platform::thread_join(&thread);
   return thread.return_value;
 }
-

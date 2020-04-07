@@ -36,7 +36,7 @@
 #define DJB2_CONST 5381
 
 // Compile time check that can be performed in an expression
-#define STATIC_ASSERT(cond) (sizeof(char [-1 * !(cond)]))
+#define STATIC_ASSERT(cond) (sizeof(char [(cond) - !(cond)]) - 1)
 
 // Array bucket
 #define POWEROF2(value) ((value & value-1) == 0)

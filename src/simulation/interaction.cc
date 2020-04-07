@@ -213,9 +213,10 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
     if (imui::Text("Spawn Unit Cheat", text_options).clicked) {
       SpawnCrew(TileRandomPosition(), 0);
     }
-    if (imui::Text("Kill Unit Cheat", text_options).clicked) {
+    if (imui::Text("Kill Random Unit Cheat", text_options).clicked) {
       // Kill first unit in entity list.
-      for (int i = 0; i < kUsedEntity; ++i) {
+      int i = rand() % kUsedEntity;
+      for (i; i < kUsedEntity; i = (i + 1) % kUsedEntity) {
         Unit* unit = &kEntity[i].unit;
         if (unit->type != kEeUnit) continue;
         LOGFMT("Kill unit %i", unit->id);

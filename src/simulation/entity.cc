@@ -14,7 +14,7 @@
                                     max_count, sizeof(type), nullptr,    \
                                     nullptr);
 
-// id == -1 is reserved for invalid references
+// kInvalidId is reserved for invalid references
 #define DECLARE_GAME_TYPE_WITH_ID(type, max_count)                             \
   DECLARE_HASH_ARRAY(type, max_count)                                          \
   static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type,       \
@@ -166,8 +166,9 @@ DECLARE_GAME_TYPE(Projectile, 128);
   int type_id
 
 enum EntityEnum {
-  kEeUnit = 0,
-  kEeModule = 1,
+  kEeInvalid = kInvalidId,
+  kEeUnit,
+  kEeModule,
 };
 
 struct Unit {
@@ -213,7 +214,7 @@ union Entity {
   Unit unit;
   Module module;
 
-  Entity() : type_id(UINT32_MAX)
+  Entity() : type_id(kEeInvalid)
   {
   }
 };

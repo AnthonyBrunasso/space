@@ -35,8 +35,8 @@ Unit*
 GetUnit(v3f world)
 {
   for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* unit = &kEntity[i].unit;
-    if (unit->type != kEeUnit) continue;
+    Unit* unit = i2Unit(i);
+    if (!unit) continue;
     if (v3fDsq(unit->position, world) < kDsqSelect) {
       return unit;
     }
@@ -48,8 +48,8 @@ GetUnit(v3f world)
 Unit*
 GetUnitTarget(uint64_t local_player, v3f world) {
   for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* unit = &kEntity[i].unit;
-    if (unit->type != kEeUnit) continue;
+    Unit* unit = i2Unit(i);
+    if (!unit) continue;
     if (FLAGGED(unit->control, local_player)) continue;
     if (v3fDsq(unit->position, world) < kDsqSelect) {
       return unit;
@@ -72,7 +72,7 @@ SelectUnit(const math::Rectf& rect, int idx)
 Module*
 SelectModule(const math::Rectf& rect, int idx)
 {
-  if (kEntity[idx].type != kEeModule) return nullptr;
+  if (kEntity[idx].type_id != kEeModule) return nullptr;
 
   Module* mod = &kEntity[idx].module;
   TilemapModify tm(mod->ship_index);
@@ -123,8 +123,8 @@ Unit*
 FindUnitInRangeToAttack(Unit* unit)
 {
   for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* target = &kEntity[i].unit;
-    if (unit->type != kEeUnit) continue;
+    Unit* target = i2Unit(i);
+    if (!target) continue;
     if (unit == target) continue;
     if (!ShouldAttack(unit, target)) continue;
     if (InRange(unit, target)) return target;
@@ -138,8 +138,8 @@ GetNearestEnemyUnit(Unit* unit)
   float d = FLT_MAX;
   Unit* target = nullptr;
   for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* new_target = &kEntity[i].unit;
-    if (new_target->type != kEeUnit) continue;
+    Unit* new_target = i2Unit(i);
+    if (!new_target) continue;
     float nd = v3fDsq(unit->position,
                       new_target->position);
     if (nd < d && ShouldAttack(unit, new_target)) {

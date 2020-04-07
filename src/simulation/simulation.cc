@@ -88,8 +88,8 @@ DecideShip(uint64_t ship_index)
 
   Ship* ship = &kShip[ship_index];
   for (int i = 0; i < kUsedEntity; ++i) {
-    if (kEntity[i].type != kEeModule) continue;
-    Module* module = &kEntity[i].module;
+    Module* module = i2Module(i);
+    if (!module) continue;
     if (module->ship_index != ship_index) continue;
     if (!ModuleBuilt(module)) continue;
     ModuleUpdate(module);
@@ -323,8 +323,8 @@ void
 UpdateModule(uint64_t ship_index)
 {
   for (int i = 0; i < kUsedEntity; ++i) {
-    if (kEntity[i].type != kEeModule) continue;
-    Module* m = &kEntity[i].module;
+    Module* m = i2Module(i);
+    if (!m) continue;
     if (m->ship_index != ship_index) continue;
     if (m->mkind == kModPower) {
       v3f world = TilePosToWorld(m->tile);
@@ -346,8 +346,8 @@ void
 UpdateUnit(uint64_t ship_index)
 {
   for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* unit = &kEntity[i].unit;
-    if (unit->type != kEeUnit) continue;
+    Unit* unit = i2Unit(i);
+    if (!unit) continue;
     if (unit->ship_index != ship_index) continue;
     v2i tilepos;
     if (!WorldToTilePos(unit->position.xy(), &tilepos)) continue;
@@ -379,8 +379,8 @@ UpdateUnit(uint64_t ship_index)
     AIThink(unit);
 
     for (int i = 0; i < kUsedEntity; ++i) {
-      if (kEntity[i].type != kEeModule) continue;
-      Module* m = &kEntity[i].module;
+      Module* m = i2Module(i);
+      if (!m) continue;
       if (ModuleBuilt(m)) continue;
       if (ModuleNear(m, unit->position)) {
         m->frames_building++;
@@ -453,8 +453,8 @@ UpdateUnit(uint64_t ship_index)
 
   // Unit death logic happens here
   for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* unit = &kEntity[i].unit;
-    if (unit->type != kEeUnit) continue;
+    Unit* unit = i2Unit(i);
+    if (!unit) continue;
     if (unit->dead) {
       uint32_t death_id = unit->id;
       LOGFMT("Unit died [id %d]", death_id);
@@ -471,8 +471,8 @@ Decide()
     if (c.unit_id == kInvalidEntity) {
       if (c.type == kUaBuild) {
         for (int i = 0; i < kUsedEntity; ++i) {
-          Unit* unit = &kEntity[i].unit;
-          if (unit->type != kEeUnit) continue;
+          Unit* unit = i2Unit(i);
+          if (!unit) continue;
           if (0 == (unit->control & c.control)) continue;
           ApplyCommand(unit, c);
         }
@@ -482,8 +482,8 @@ Decide()
         if (!WorldToTilePos(c.destination, &start)) continue;
         BfsIterator iter = BfsStart(start);
         for (int i = 0; i < kUsedEntity; ++i) {
-          Unit* unit = &kEntity[i].unit;
-          if (unit->type != kEeUnit) continue;
+          Unit* unit = i2Unit(i);
+          if (!unit) continue;
           // The issuer of a command must have a set bit
           if (0 == (unit->control & c.control)) continue;
           c.destination = TileToWorld(*iter.tile);
@@ -541,8 +541,8 @@ Update()
   TilemapSet(-1);
 
   for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* unit = &kEntity[i].unit;
-    if (unit->type != kEeUnit) continue;
+    Unit* unit = i2Unit(i);
+    if (!unit) continue;
     unit->notify += (unit->notify > 0);
   }
 

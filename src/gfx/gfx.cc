@@ -79,8 +79,8 @@ RenderCrew(uint64_t ship_index)
 
   // Crew rendering
   for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* unit = &kEntity[i].unit;
-    if (unit->type != kEeUnit) continue;
+    Unit* unit = i2Unit(i);
+    if (!unit) continue;
     if (unit->ship_index != ship_index) continue;
     if (unit->inspace) {
       rgg::RenderPod(unit->position, v3f(20.f, 20.f, 20.f),
@@ -129,8 +129,8 @@ RenderCrew(uint64_t ship_index)
     }
 
     for (int k = 0; k < kUsedEntity; ++k) {
-      Module* mod = &kEntity[k].module;
-      if (mod->type != kEeModule) continue;
+      Module* mod = i2Module(i);
+      if (!mod) continue;
       if (v3fDsq(unit->position, v3fModule(mod)) < kDsqOperate) {
         // TODO(abrunasso): This should be the graphic when working on
         // something.
@@ -185,8 +185,8 @@ RenderCrew(uint64_t ship_index)
   }
 
   for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* unit = &kEntity[i].unit;
-    if (unit->type != kEeUnit) continue;
+    Unit* unit = i2Unit(i);
+    if (!unit) continue;
     TilemapModify mod(unit->ship_index);
     if (unit->uaction != kUaMove) continue;
     if (unit->inspace) continue;
@@ -220,8 +220,8 @@ RenderShip(uint64_t ship_index)
 
   // Modules are always visible
   for (int i = 0; i < kUsedEntity; ++i) {
-    Module* mod = &kEntity[i].module;
-    if (mod->type != kEeModule) continue;
+    Module* mod = i2Module(i);
+    if (!mod) continue;
     v3f mcolor = ModuleColor(mod->mkind);
     v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
     v2f t = simulation::TilePosToWorld(mod->tile);
@@ -256,8 +256,8 @@ RenderShip(uint64_t ship_index)
   {
     v3f world;
     for (int i = 0; i < kUsedEntity; ++i) {
-      Module* mod = &kEntity[i].module;
-      if (mod->type != kEeModule) continue;
+      Module* mod = i2Module(i);
+      if (!mod) continue;
       if (mod->ship_index != ship_index) continue;
       if (mod->mkind != kModEngine) continue;
       if (!ModuleBuilt(mod)) continue;

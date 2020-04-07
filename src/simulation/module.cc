@@ -200,8 +200,8 @@ ModuleWarpUpdate(Module* module)
   Module* target_module = nullptr;
   float d = FLT_MAX;
   for (int i = 0; i < kUsedEntity; ++i) {
-    if (kEntity[i].type != kEeModule) continue;
-    Module* nm = &kEntity[i].module;
+    Module* nm = i2Module(i);
+    if (!nm) continue;
     if (nm == module) continue;
     if (!ModuleBuilt(nm)) continue;
     if (nm->ship_index == module->ship_index) continue;
@@ -221,8 +221,8 @@ ModuleWarpUpdate(Module* module)
   while (BfsNextTile(&iter)) {
     int i = 0;
     for (; i < kUsedEntity; ++i) {
-      Unit* unit = &kEntity[i].unit;
-      if (unit->type != kEeUnit) continue;
+      Unit* unit = i2Unit(i);
+      if (!unit) continue;
       v2i tile;
       if (unit->ship_index != target_module->ship_index) continue;
       if (!WorldToTilePos(unit->position, &tile)) continue;

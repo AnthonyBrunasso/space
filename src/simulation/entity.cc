@@ -25,7 +25,7 @@
 #define DECLARE_GAME_QUEUE(type, count) DECLARE_QUEUE(type, count)
 
 // Use with DECLARE_GAME_TYPE_WITH_ID(Entity, ...)
-#define DECLARE_GAME_ENTITY(type)                                             \
+#define DECLARE_GAME_ENTITY(type, tid)                                        \
   type* UseEntity##type()                                                     \
   {                                                                           \
     Entity* e = UseEntity();                                                  \
@@ -34,7 +34,15 @@
     t.id = e->id;                                                             \
     memcpy(e, &t, sizeof(t));                                                 \
     return (type*)e;                                                          \
-  }
+  }                                                                           \
+                                                                              \
+  type* i2##type(int idx)                                                     \
+  {                                                                           \
+    type* t = (type*)(&kEntity[idx]);                                         \
+    if (t->type_id != tid) return nullptr;                                    \
+    if (t->id == 0) return nullptr;                                           \
+    return t;                                                                 \
+  }                                                                           \
 
 // Global game state that is local information
 static uint64_t kPlayerCount;
@@ -152,7 +160,7 @@ DECLARE_GAME_TYPE(Projectile, 128);
   uint64_t control;        \
   uint64_t ship_index;     \
   uint64_t player_id;      \
-  int type
+  int type_id
 
 enum EntityEnum {
   kEeUnit = 0,
@@ -202,14 +210,14 @@ union Entity {
   Unit unit;
   Module module;
 
-  Entity() : type(UINT32_MAX)
+  Entity() : type_id(UINT32_MAX)
   {
   }
 };
 #define MAX_ENTITY 128
 DECLARE_GAME_TYPE_WITH_ID(Entity, MAX_ENTITY);
-DECLARE_GAME_ENTITY(Unit);
-DECLARE_GAME_ENTITY(Module);
+DECLARE_GAME_ENTITY(Unit, kEeUnit);
+DECLARE_GAME_ENTITY(Module, kEeModule);
 
 #define FindUnit(x) ((Unit*)FindEntity(x))
 

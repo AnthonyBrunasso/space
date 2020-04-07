@@ -151,7 +151,7 @@ ReadOnlyUnits(v2f screen, uint32_t tag)
       bool highlighted = imui::Text(ui_buffer, debug_options).highlighted;
       if (highlighted || kEntity[i].control || unit_debug >= 2) {
         imui::Indent(2);
-        if (kEntity[i].type == kEeUnit) {
+        if (kEntity[i].type_id == kEeUnit) {
           snprintf(ui_buffer, sizeof(ui_buffer), "action %d",
                    kEntity[i].unit.uaction);
           imui::Text(ui_buffer);
@@ -217,8 +217,8 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
       // Kill first unit in entity list.
       int i = rand() % kUsedEntity;
       for (i; i < kUsedEntity; i = (i + 1) % kUsedEntity) {
-        Unit* unit = &kEntity[i].unit;
-        if (unit->type != kEeUnit) continue;
+        Unit* unit = i2Unit(i);
+        if (!unit) continue;
         LOGFMT("Kill unit %i", unit->id);
         ZeroEntity(unit);
         break;

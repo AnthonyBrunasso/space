@@ -5,9 +5,6 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "platform/macro.h"
-#include "platform/x64_intrin.h"
-
 #include "entity.cc"
 #include "ftl.cc"
 #include "phitu.cc"
@@ -18,8 +15,6 @@
 #include "search.cc"
 #include "selection.cc"
 #include "util.cc"
-
-#include "platform/macro.h"
 
 #include "ai.cc"
 namespace simulation

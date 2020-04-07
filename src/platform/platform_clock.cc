@@ -2,7 +2,6 @@
 #include <cstdint>
 #include <ctime>
 
-#include "macro.h"
 #include "rdtsc.h"
 
 EXTERN(uint64_t median_tsc_per_usec);
@@ -72,8 +71,7 @@ __estimate_tsc_per_usec()
 void
 __init_tsc_per_usec()
 {
-  if (median_tsc_per_usec)
-    return;
+  if (median_tsc_per_usec) return;
 
   int kernel_tsc_khz = 0;
 #ifdef __linux__

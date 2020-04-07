@@ -1,5 +1,7 @@
 #pragma once
 
+#include "macro.h"
+
 #include "array.cc"
 #include "blackboard.cc"
 #include "constants.h"

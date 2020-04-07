@@ -6,7 +6,6 @@
 #include "GL/gl.h"
 #include "GL/glext.h"
 
-#include "macro.h"
 #include "window.h"
 
 EXTERN(float width_pixels);

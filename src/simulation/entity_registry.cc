@@ -5,9 +5,7 @@
 
 #include <cstdio>
 
-#include "common/array.cc"
-#include "common/hash_array.cc"
-#include "platform/macro.h"
+#include "common/common.cc"
 
 struct Registry {
   void* ptr;
@@ -31,8 +29,8 @@ class EntityRegistry
                  uint32_t (*hash_func)(uint32_t))
   {
     assert(kUsedRegistry < MAX_REGISTRY);
-    kRegistry[kUsedRegistry] =
-        {buffer, zero, count_ptr, max, size, hash_entry, hash_func};
+    kRegistry[kUsedRegistry] = {buffer, zero,       count_ptr, max,
+                                size,   hash_entry, hash_func};
     kUsedRegistry += 1;
   }
 };

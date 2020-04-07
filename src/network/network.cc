@@ -13,7 +13,7 @@
 // Game loop inputs allowed in-flight on the network
 #define MAX_NETQUEUE 128ul
 // Convert frame id into a NETQUEUE slot
-#define NETQUEUE_SLOT(sequence) ((sequence) % MAX_NETQUEUE)
+#define NETQUEUE_SLOT(sequence) MOD_BUCKET(sequence, MAX_NETQUEUE)
 // Largest network message
 #define MAX_NETBUFFER (PAGE)
 // Update packets per frame
@@ -65,8 +65,7 @@ struct NetworkState {
   uint64_t server_jerk;
 };
 
-enum
-{
+enum {
   kNeNone = 0,
   kNeSendFail,
   kNeCorrupt,
@@ -429,4 +428,3 @@ NetworkQueueGoal()
   // Add one because measure is done before current frame processing
   return roundf(StatsRsDev(&kNetworkStats) * kNetworkState.rsdev_const) + 1;
 }
-

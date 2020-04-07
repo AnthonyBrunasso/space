@@ -1,9 +1,6 @@
 #pragma once
 
-#include "platform/macro.h"
-
 #include <cfloat>
-
 
 namespace math
 {

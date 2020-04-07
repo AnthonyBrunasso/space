@@ -1,6 +1,4 @@
 
-#include "macro.h"
-
 static const char* kEmptyString = "";
 
 EXTERN(int platform_optind = 1);

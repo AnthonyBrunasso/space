@@ -7,8 +7,10 @@
 #define WIN32_LEAN_AND_MEAN
 // Disable unneeded warnings.
 // Warns about using %lu to printf uint64_t
-#pragma warning (disable: 4477)
+#pragma warning(disable : 4477)
 #endif
+
+#include "common/macro.h"
 
 #include "x64_intrin.h"
 

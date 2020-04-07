@@ -10,7 +10,6 @@
 #include <cstdint>
 #include <cstring>
 
-#include "macro.h"
 #include "udp.h"
 
 EXTERN(int udp_errno);

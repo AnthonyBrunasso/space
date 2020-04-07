@@ -66,14 +66,5 @@ struct HashEntry {
   void FreeHashEntry##type(uint32_t id)                                       \
   {                                                                           \
     uint32_t hash = Hash##type(id);                                           \
-    HashEntry* hash_entry = &kHashEntry##type[hash];                          \
-    uint32_t n = 1;                                                           \
-    while (hash_entry->id != id) {                                            \
-      if (n >= kMaxHash##type) return;                                        \
-      ++hash;                                                                 \
-      hash = hash % kMaxHash##type;                                           \
-      hash_entry = &kHashEntry##type[hash];                                   \
-      ++n;                                                                    \
-    }                                                                         \
-    *hash_entry = {0, 0};                                                     \
+    kHashEntry##type[hash] = {0, 0};                                          \
   }

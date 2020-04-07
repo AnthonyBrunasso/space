@@ -40,4 +40,3 @@
   {                                                       \
     return kWrite##type - kRead##type;                    \
   }
-

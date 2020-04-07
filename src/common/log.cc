@@ -3,28 +3,25 @@
 
 #include <cstring>
 
-#define MAX_LOGMESSAGE 64
+#define MAX_LOGLINE 64
 struct LogMessage {
-  char buffer[MAX_LOGMESSAGE];
+  char buffer[MAX_LOGLINE];
 };
 
 DECLARE_QUEUE(LogMessage, 32);
-static char kLogLine[MAX_LOGMESSAGE];
-static int kLineLen;
+static char kLogBuffer[MAX_LOGLINE];
+static int kUsedLogBuffer;
 
 void
 Log(const char* logline, unsigned len)
 {
-  if (len > MAX_LOGMESSAGE) {
-    len = MAX_LOGMESSAGE;
-  }
-
   if (kWriteLogMessage - kReadLogMessage == kMaxLogMessage)
     kReadLogMessage += 1;
 
-  unsigned bucket = kWriteLogMessage % kMaxLogMessage;
-  memcpy(&kLogMessage[bucket].buffer[0], logline, len);
-  memset(&kLogMessage[bucket].buffer[len], 0, MAX_LOGMESSAGE - len);
+  const unsigned bucket = MOD_BUCKET(kWriteLogMessage, kMaxLogMessage);
+  const unsigned line_len = MIN(len, MAX_LOGLINE);
+  memcpy(&kLogMessage[bucket].buffer[0], logline, line_len);
+  kLogMessage[bucket].buffer[line_len] = 0;
   kWriteLogMessage += 1;
 }
 
@@ -33,7 +30,7 @@ ReadLog(int index)
 {
   if (kWriteLogMessage - kReadLogMessage <= index) return 0;
 
-  int bucket = (kReadLogMessage + index) % kMaxLogMessage;
+  const unsigned bucket = MOD_BUCKET(kReadLogMessage + index, kMaxLogMessage);
   return kLogMessage[bucket].buffer;
 }
 
@@ -44,7 +41,6 @@ LogCount()
 }
 
 #define LOG(x) (Log(x, strlen(x)))
-#define LOGFMT(fmt, ...)                                           \
-  kLineLen = snprintf(kLogLine, MAX_LOGMESSAGE, fmt, __VA_ARGS__); \
-  Log(kLogLine, kLineLen);
-
+#define LOGFMT(fmt, ...)                                        \
+  kUsedLogBuffer = snprintf(kLogBuffer, MAX_LOGLINE, fmt, __VA_ARGS__); \
+  Log(kLogBuffer, kUsedLogBuffer);

@@ -13,6 +13,7 @@ SelectPlayerUnit(uint64_t player_index, Unit* unit)
   if (unit->alliance == kEnemy) return;
   if (unit->kind == kAlien) return;
   if (unit->player_index != player_index) return;
+  if (BB_EXI(unit->bb, kUnitBehavior)) return;
   unit->control |= (1 << player_index);
 }
 

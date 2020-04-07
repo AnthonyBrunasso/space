@@ -10,7 +10,8 @@ struct HashEntry {
 
 #define DECLARE_HASH_ARRAY(type, max_count)                                   \
   constexpr uint32_t kMax##type = max_count;                                  \
-  constexpr uint32_t kMaxHash##type = (uint32_t)(1.3f * max_count);           \
+  constexpr uint32_t kMaxHash##type = (max_count * 2);                        \
+  static_assert(POWEROF2(kMaxHash##type), "kMaxHash must be a power of 2");   \
                                                                               \
   static uint32_t kAutoIncrementId##type = 1;                                 \
   static uint64_t kUsed##type = 0;                                            \
@@ -26,7 +27,7 @@ struct HashEntry {
                                                                               \
   uint32_t Hash##type(uint32_t id)                                            \
   {                                                                           \
-    return (id * 2654435761 % kMaxHash##type);                                \
+    return MOD_BUCKET(id, kMaxHash##type);                                    \
   }                                                                           \
                                                                               \
   uint32_t GenerateFreeId##type()                                             \
@@ -34,7 +35,6 @@ struct HashEntry {
     uint32_t id = kAutoIncrementId##type;                                     \
     HashEntry* hash_entry = &kHashEntry##type[Hash##type(id)];                \
     while (!IsEmptyEntry##type(*hash_entry)) {                                \
-      printf("collides\n");                                                   \
       id += 1;                                                                \
       hash_entry = &kHashEntry##type[Hash##type(id)];                         \
     }                                                                         \
@@ -44,8 +44,8 @@ struct HashEntry {
                                                                               \
   type* Use##type()                                                           \
   {                                                                           \
-    assert(kUsed##type < kMax##type);                                         \
-    if (kUsed##type >= kMax##type) return nullptr;                            \
+    assert(kUsed##type < max_count);                                          \
+    if (kUsed##type >= max_count) return nullptr;                             \
     type* u = &k##type[kUsed##type++];                                        \
     *u = {};                                                                  \
     u->id = GenerateFreeId##type();                                           \

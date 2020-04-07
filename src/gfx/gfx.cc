@@ -127,8 +127,6 @@ RenderCrew(uint64_t ship_index)
     }
     
     FOR_EACH_ENTITY(Module, mod, {
-      Module* mod = i2Module(i);
-      if (!mod) continue;
       if (v3fDsq(unit->position, v3fModule(mod)) < kDsqOperate) {
         // TODO(abrunasso): This should be the graphic when working on
         // something.
@@ -216,8 +214,6 @@ RenderShip(uint64_t ship_index)
 
   // Modules are always visible
   FOR_EACH_ENTITY(Module, mod, {
-    Module* mod = i2Module(i);
-    if (!mod) continue;
     v3f mcolor = ModuleColor(mod->mkind);
     v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
     v2f t = simulation::TilePosToWorld(mod->tile);

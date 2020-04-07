@@ -44,16 +44,16 @@
     return t;                                                                 \
   }                                                                           \
 
-#define FOR_EACH_ENTITY(type, vname, body) \
-  {                                        \
-    type* vname;                           \
-    int i = 0;                             \
-    for (i = 0; i < kUsedEntity; ++i) {    \
-      vname = i2##type(i);                 \
-      if (!vname) continue;                \
-      body                                 \
-    }                                      \
-  }                                        \
+#define FOR_EACH_ENTITY(type, vname, body)                         \
+  {                                                                \
+    type* vname;                                                   \
+    int Idx##type = 0;                                             \
+    for (Idx##type = 0; Idx##type < kUsedEntity; ++Idx##type) {    \
+      vname = i2##type(Idx##type);                                 \
+      if (!vname) continue;                                        \
+      body                                                         \
+    }                                                              \
+  }                                                                \
 
 // Global game state that is local information
 static uint64_t kPlayerCount;

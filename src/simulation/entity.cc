@@ -30,7 +30,7 @@
   {                                                                           \
     Entity* e = UseEntity();                                                  \
     if (!e) return nullptr;                                                   \
-    type t;                                                                   \
+    type t = {};                                                              \
     t.id = e->id;                                                             \
     memcpy(e, &t, sizeof(t));                                                 \
     return (type*)e;                                                          \
@@ -193,12 +193,12 @@ struct Unit {
   float health = 5.0f;
   float max_health = 5.0f;
   float speed = 1.f;
-  UnitAction uaction = kUaNone;
-  UnitAction persistent_uaction = kUaNone;
-  bool dead = false;
-  bool spacesuit = false;
-  bool inspace = false;
-  int notify = 0;
+  UnitAction uaction;
+  UnitAction persistent_uaction;
+  bool dead;
+  bool spacesuit;
+  bool inspace;
+  int notify;
 };
 
 constexpr int kTrainIdle = -1;

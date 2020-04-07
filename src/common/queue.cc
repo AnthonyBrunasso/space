@@ -10,33 +10,31 @@
 // Methods:
 //    Pop<type>() - return the next queued element
 //    Push<type>(value) - append value to the queue
-#define DECLARE_QUEUE(type, max_count)                    \
-                                                          \
-  static_assert((max_count & (max_count - 1)) == 0,       \
-                "max_count must be a power of 2");        \
-  constexpr uint64_t kMax##type = max_count;              \
-                                                          \
-  static type k##type[max_count];                         \
-                                                          \
-  static uint64_t kRead##type;                            \
-  static uint64_t kWrite##type;                           \
-                                                          \
-  type Pop##type()                                        \
-  {                                                       \
-    if (kWrite##type - kRead##type == 0) return type{};   \
-    type ret = k##type[kRead##type % kMax##type];         \
-    kRead##type += 1;                                     \
-    return ret;                                           \
-  }                                                       \
-                                                          \
-  void Push##type(type val)                               \
-  {                                                       \
-    if (kWrite##type - kRead##type == kMax##type) return; \
-    k##type[kWrite##type % kMax##type] = val;             \
-    kWrite##type += 1;                                    \
-  }                                                       \
-                                                          \
-  uint64_t Count##type()                                  \
-  {                                                       \
-    return kWrite##type - kRead##type;                    \
+#define DECLARE_QUEUE(type, max_count)                                  \
+                                                                        \
+  static_assert(POWEROF2(max_count), "max_count must be a power of 2"); \
+  constexpr uint64_t kMax##type = max_count;                            \
+                                                                        \
+  static type k##type[max_count];                                       \
+  static uint64_t kRead##type;                                          \
+  static uint64_t kWrite##type;                                         \
+                                                                        \
+  type Pop##type()                                                      \
+  {                                                                     \
+    if (kWrite##type - kRead##type == 0) return type{};                 \
+    type ret = k##type[MOD_BUCKET(kRead##type, max_count)];             \
+    kRead##type += 1;                                                   \
+    return ret;                                                         \
+  }                                                                     \
+                                                                        \
+  void Push##type(type val)                                             \
+  {                                                                     \
+    if (kWrite##type - kRead##type == max_count) return;                \
+    k##type[MOD_BUCKET(kWrite##type, max_count)] = val;                 \
+    kWrite##type += 1;                                                  \
+  }                                                                     \
+                                                                        \
+  uint64_t Count##type()                                                \
+  {                                                                     \
+    return kWrite##type - kRead##type;                                  \
   }

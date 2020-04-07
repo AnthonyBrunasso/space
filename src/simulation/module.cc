@@ -199,9 +199,7 @@ ModuleWarpUpdate(Module* module)
   // Find the nearest warp on a seperate tilemap from this one.
   Module* target_module = nullptr;
   float d = FLT_MAX;
-  for (int i = 0; i < kUsedEntity; ++i) {
-    Module* nm = i2Module(i);
-    if (!nm) continue;
+  FOR_EACH_ENTITY(Module, nm, {
     if (nm == module) continue;
     if (!ModuleBuilt(nm)) continue;
     if (nm->ship_index == module->ship_index) continue;
@@ -211,7 +209,7 @@ ModuleWarpUpdate(Module* module)
       target_module = nm;
       d = nd;
     }
-  }
+  });
   if (!target_module) return;
 
   LOGFMT("Warping crew to ship %i. control change %d->%d",

@@ -87,13 +87,11 @@ DecideShip(uint64_t ship_index)
   kShip[ship_index].ftl_frame += (kShip[ship_index].ftl_frame > 0);
 
   Ship* ship = &kShip[ship_index];
-  for (int i = 0; i < kUsedEntity; ++i) {
-    Module* module = i2Module(i);
-    if (!module) continue;
+  FOR_EACH_ENTITY(Module, module, {
     if (module->ship_index != ship_index) continue;
     if (!ModuleBuilt(module)) continue;
     ModuleUpdate(module);
-  }
+  });
 
   const bool jumped = (FtlSimulation(ship) == 0);
   // Jump side effects
@@ -322,9 +320,7 @@ ApplyCommand(Unit* unit, const Command& c)
 void
 UpdateModule(uint64_t ship_index)
 {
-  for (int i = 0; i < kUsedEntity; ++i) {
-    Module* m = i2Module(i);
-    if (!m) continue;
+  FOR_EACH_ENTITY(Module, m, {
     if (m->ship_index != ship_index) continue;
     if (m->mkind == kModPower) {
       v3f world = TilePosToWorld(m->tile);
@@ -339,15 +335,13 @@ UpdateModule(uint64_t ship_index)
       BfsMutate(world, keep_bits, set_bits,
                 tile_world_distance * tile_world_distance);
     }
-  }
+  });
 }
 
 void
 UpdateUnit(uint64_t ship_index)
 {
-  for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* unit = i2Unit(i);
-    if (!unit) continue;
+  FOR_EACH_ENTITY(Unit, unit, {
     if (unit->ship_index != ship_index) continue;
     v2i tilepos;
     if (!WorldToTilePos(unit->position.xy(), &tilepos)) continue;
@@ -377,15 +371,13 @@ UpdateUnit(uint64_t ship_index)
     }
 
     AIThink(unit);
-
-    for (int i = 0; i < kUsedEntity; ++i) {
-      Module* m = i2Module(i);
-      if (!m) continue;
+    
+    FOR_EACH_ENTITY(Module, m, {
       if (ModuleBuilt(m)) continue;
       if (ModuleNear(m, unit->position)) {
         m->frames_building++;
       }
-    }
+    });
 
     // Implementation of uaction should properly reset persistent_uaction
     // when they are completed. Otherwise units will never have their uaction
@@ -449,18 +441,16 @@ UpdateUnit(uint64_t ship_index)
         unit->persistent_uaction = kUaBuild;
       }
     }
-  }
+  });
 
   // Unit death logic happens here
-  for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* unit = i2Unit(i);
-    if (!unit) continue;
+  FOR_EACH_ENTITY(Unit, unit, {
     if (unit->dead) {
       uint32_t death_id = unit->id;
       LOGFMT("Unit died [id %d]", death_id);
       ZeroEntity(unit);
     }
-  }
+  });
 }
 
 void
@@ -470,26 +460,22 @@ Decide()
     Command c = PopCommand();
     if (c.unit_id == kInvalidEntity) {
       if (c.type == kUaBuild) {
-        for (int i = 0; i < kUsedEntity; ++i) {
-          Unit* unit = i2Unit(i);
-          if (!unit) continue;
+        FOR_EACH_ENTITY(Unit, unit, {
           if (0 == (unit->control & c.control)) continue;
           ApplyCommand(unit, c);
-        }
+        });
       } else {
         TilemapSet(TilemapWorldToGrid(c.destination));
         v2i start;
         if (!WorldToTilePos(c.destination, &start)) continue;
         BfsIterator iter = BfsStart(start);
-        for (int i = 0; i < kUsedEntity; ++i) {
-          Unit* unit = i2Unit(i);
-          if (!unit) continue;
+        FOR_EACH_ENTITY(Unit, unit, {
           // The issuer of a command must have a set bit
           if (0 == (unit->control & c.control)) continue;
           c.destination = TileToWorld(*iter.tile);
           ApplyCommand(unit, c);
           if (!BfsNextTile(&iter)) break;
-        }
+        });
       }
     } else {
       Unit* unit = FindUnit(c.unit_id);
@@ -540,11 +526,10 @@ Update()
   Decide();
   TilemapSet(-1);
 
-  for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* unit = i2Unit(i);
+  FOR_EACH_ENTITY(Unit, unit, {
     if (!unit) continue;
     unit->notify += (unit->notify > 0);
-  }
+  });
 
   ProjectileSimulation();
 

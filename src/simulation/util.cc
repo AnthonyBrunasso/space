@@ -34,27 +34,22 @@ v3fDsq(const v3f& dst, const v3f& src)
 Unit*
 GetUnit(v3f world)
 {
-  for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* unit = i2Unit(i);
-    if (!unit) continue;
+  FOR_EACH_ENTITY(Unit, unit, {
     if (v3fDsq(unit->position, world) < kDsqSelect) {
       return unit;
     }
-  }
-
+  });
   return nullptr;
 }
 
 Unit*
 GetUnitTarget(uint64_t local_player, v3f world) {
-  for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* unit = i2Unit(i);
-    if (!unit) continue;
+  FOR_EACH_ENTITY(Unit, unit, {
     if (FLAGGED(unit->control, local_player)) continue;
     if (v3fDsq(unit->position, world) < kDsqSelect) {
       return unit;
     }
-  }
+  });
 
   return nullptr;
 }
@@ -122,13 +117,11 @@ ShouldAttack(uint64_t unit, uint64_t target)
 Unit*
 FindUnitInRangeToAttack(Unit* unit)
 {
-  for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* target = i2Unit(i);
-    if (!target) continue;
+  FOR_EACH_ENTITY(Unit, target, {
     if (unit == target) continue;
     if (!ShouldAttack(unit, target)) continue;
     if (InRange(unit, target)) return target;
-  }
+  });
   return nullptr;
 }
 
@@ -137,16 +130,14 @@ GetNearestEnemyUnit(Unit* unit)
 {
   float d = FLT_MAX;
   Unit* target = nullptr;
-  for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* new_target = i2Unit(i);
-    if (!new_target) continue;
+  FOR_EACH_ENTITY(Unit, new_target, {
     float nd = v3fDsq(unit->position,
                       new_target->position);
     if (nd < d && ShouldAttack(unit, new_target)) {
       target = new_target;
       d = nd;
     }
-  }
+  });
   return target;
 }
 
@@ -155,14 +146,13 @@ GetNearestUnit(const v3f& pos)
 {
   float d = FLT_MAX;
   Unit* target = nullptr;
-  for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* new_target = &kEntity[i].unit;
+  FOR_EACH_ENTITY(Unit, new_target, {
     float nd = v3fDsq(pos, new_target->position);
     if (nd < d) {
       target = new_target;
       d = nd;
     }
-  }
+  });
   return target;
 }
 

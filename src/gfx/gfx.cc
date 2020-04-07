@@ -78,9 +78,7 @@ RenderCrew(uint64_t ship_index)
   using namespace simulation;
 
   // Crew rendering
-  for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* unit = i2Unit(i);
-    if (!unit) continue;
+  FOR_EACH_ENTITY(Unit, unit, {
     if (unit->ship_index != ship_index) continue;
     if (unit->inspace) {
       rgg::RenderPod(unit->position, v3f(20.f, 20.f, 20.f),
@@ -127,8 +125,8 @@ RenderCrew(uint64_t ship_index)
       rgg::RenderCircle(unit->position + v3f(0.f, 0.f, 0.08f), 12.f, 14.f,
                         v4f(0.33f, 0.80f, 0.33f, 1.f));
     }
-
-    for (int k = 0; k < kUsedEntity; ++k) {
+    
+    FOR_EACH_ENTITY(Module, mod, {
       Module* mod = i2Module(i);
       if (!mod) continue;
       if (v3fDsq(unit->position, v3fModule(mod)) < kDsqOperate) {
@@ -142,7 +140,7 @@ RenderCrew(uint64_t ship_index)
             v4f(0.7f, 0.7f, 0.7f, 1.f));
         r += 0.3f;
       }
-    }
+    });
 
     rgg::RenderCrew(unit->position + v3f(0.f, 0.f, 20.f), v3f(10.f, 10.f, 10.f),
                     math::Quatf(-90, v3f(0.f, 0.f, 1.f)), color);
@@ -182,11 +180,9 @@ RenderCrew(uint64_t ship_index)
           v4f(0.3f, 0.3f, 0.3f, 1.0f));
       hstart.x += kHealthSz;
     }
-  }
+  });
 
-  for (int i = 0; i < kUsedEntity; ++i) {
-    Unit* unit = i2Unit(i);
-    if (!unit) continue;
+  FOR_EACH_ENTITY(Unit, unit, {
     TilemapModify mod(unit->ship_index);
     if (unit->uaction != kUaMove) continue;
     if (unit->inspace) continue;
@@ -210,7 +206,7 @@ RenderCrew(uint64_t ship_index)
       rgg::RenderRectangle(world_pos, v3f(1.f / 3.f, 1.f / 3.f, 1.f),
                            kDefaultRotation, v4f(0.33f, 0.33f, 0.33f, 0.40f));
     }
-  }
+  });
 }
 
 void
@@ -219,7 +215,7 @@ RenderShip(uint64_t ship_index)
   using namespace simulation;
 
   // Modules are always visible
-  for (int i = 0; i < kUsedEntity; ++i) {
+  FOR_EACH_ENTITY(Module, mod, {
     Module* mod = i2Module(i);
     if (!mod) continue;
     v3f mcolor = ModuleColor(mod->mkind);
@@ -251,7 +247,7 @@ RenderShip(uint64_t ship_index)
                            2.f, mod->frames_training, mod->frames_to_train,
                            kRed, kWhite);
     glEnable(GL_DEPTH_TEST);
-  }
+  });
 
   {
     v3f world;

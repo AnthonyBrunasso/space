@@ -208,6 +208,11 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
     if (imui::Text(ui_buffer, text_options).clicked) {
       gfx::kRenderGrid = !gfx::kRenderGrid;
     }
+    snprintf(ui_buffer, sizeof(ui_buffer), "Render Path: %s",
+             gfx::kRenderPath ? "Enabled" : "Disabled");
+    if (imui::Text(ui_buffer, text_options).clicked) {
+      gfx::kRenderPath = !gfx::kRenderPath;
+    }
     snprintf(ui_buffer, sizeof(ui_buffer), "Mineral Cheat: %s",
              player->mineral_cheat ? "Enabled" : "Disabled");
     if (imui::Text(ui_buffer, text_options).clicked) {

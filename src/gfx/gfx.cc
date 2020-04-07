@@ -25,6 +25,7 @@ static const math::Quatf kDefaultRotation = math::Quatf(0.f, 0.f, 0.f, 1.f);
 static v3f kDefaultScale = v3f(1.f, 1.f, 1.f);
 static v3f kTileScale = v3f(0.5f, 0.5f, 1.f);
 static bool kRenderGrid = false;
+static bool kRenderPath = false;
 
 struct DebugCube {
   math::Cubef cube;
@@ -187,31 +188,33 @@ RenderCrew(uint64_t ship_index)
     }
   });
 
-  FOR_EACH_ENTITY(Unit, unit, {
-    TilemapModify mod(unit->ship_index);
-    if (unit->uaction != kUaMove) continue;
-    if (unit->inspace) continue;
+  if (kRenderPath) {
+    FOR_EACH_ENTITY(Unit, unit, {
+      TilemapModify mod(unit->ship_index);
+      if (unit->uaction != kUaMove) continue;
+      if (unit->inspace) continue;
 
-    // Show the path they are on if they have one.
-    v2i start;
-    if (!WorldToTilePos(unit->position, &start)) continue;
-    const v3f* dest = nullptr;
-    if (!BB_GET(unit->bb, kUnitDestination, dest)) continue;
-    v2i end;
-    if (!WorldToTilePos(*dest, &end)) continue;
+      // Show the path they are on if they have one.
+      v2i start;
+      if (!WorldToTilePos(unit->position, &start)) continue;
+      const v3f* dest = nullptr;
+      if (!BB_GET(unit->bb, kUnitDestination, dest)) continue;
+      v2i end;
+      if (!WorldToTilePos(*dest, &end)) continue;
 
-    auto* path = PathTo(start, end);
-    if (!path || path->size <= 1) {
-      continue;
-    }
+      auto* path = PathTo(start, end);
+      if (!path || path->size <= 1) {
+        continue;
+      }
 
-    for (int i = 0; i < path->size; ++i) {
-      v2i pos = path->tile[i];
-      v2f world_pos = TilePosToWorld(pos);
-      rgg::RenderRectangle(world_pos, v3f(1.f / 3.f, 1.f / 3.f, 1.f),
-                           kDefaultRotation, v4f(0.33f, 0.33f, 0.33f, 0.40f));
-    }
-  });
+      for (int i = 0; i < path->size; ++i) {
+        v2i pos = path->tile[i];
+        v2f world_pos = TilePosToWorld(pos);
+        rgg::RenderRectangle(world_pos, v3f(1.f / 3.f, 1.f / 3.f, 1.f),
+                             kDefaultRotation, v4f(0.33f, 0.33f, 0.33f, 0.40f));
+      }
+    });
+  }
 }
 
 void

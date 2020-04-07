@@ -36,11 +36,12 @@
 #define DJB2_CONST 5381
 
 // Compile time check that can be performed in an expression
-#define STATIC_ASSERT(cond) (sizeof(char [(cond) - !(cond)]) - 1)
+#define STATIC_ASSERT(cond) (sizeof(char[(cond) - !(cond)]) - 1)
 
 // Array bucket
-#define POWEROF2(value) ((value & value-1) == 0)
-#define MOD_BUCKET(value, max) (value % (max + STATIC_ASSERT(POWEROF2(max))))
+#define POWEROF2(value) ((value & value - 1) == 0)
+#define MOD_BUCKET(value, max) \
+  ((value) % ((max) + STATIC_ASSERT(POWEROF2(max))))
 
 // Non-branching equivalence to: (condition) ? a : b
-#define TERNARY(condition, a, b) (((a)*(condition)) + ((b)*!(condition)))
+#define TERNARY(condition, a, b) (((a) * (condition)) + ((b) * !(condition)))

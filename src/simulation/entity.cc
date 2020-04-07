@@ -98,6 +98,7 @@ constexpr unsigned kModBits = 3;
 enum Alliance { kCrew = 0, kEnemy, kAllianceCount };
 constexpr int kUnitBehaviorSimple = 1;
 constexpr int kUnitBehaviorAttackWhenDiscovered = 2;
+constexpr int kUnitBehaviorCrewMember = 3;
 enum UnitBbEntry {
   kUnitTarget = 0,
   kUnitDestination = 1,

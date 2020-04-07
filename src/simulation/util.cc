@@ -175,6 +175,38 @@ SpawnEnemy(v2i tile_position, uint64_t ship_index)
 }
 
 void
+SpawnAICrew(v3f world_position, uint64_t player_index, uint64_t ship_index)
+{
+  TilemapModify tm(ship_index);
+  Unit* unit = UseEntityUnit();
+  unit->position = world_position;
+  unit->scale = v3f(0.25f, 0.25f, 0.f);
+  unit->ship_index = ship_index;
+  unit->player_id = player_index;
+  unit->kind = kOperator;
+  unit->spacesuit = 1;
+  unit->notify = 1;
+  unit->bounds = v3f(17.f, 17.f, 25.f);
+  BB_SET(unit->bb, kUnitBehavior, kUnitBehaviorCrewMember);
+}
+
+void
+SpawnAICrew(v2i tile_position, uint64_t player_index, uint64_t ship_index)
+{
+  TilemapModify tm(ship_index);
+  Unit* unit = UseEntityUnit();
+  unit->position = TilePosToWorld(tile_position);
+  unit->scale = v3f(0.25f, 0.25f, 0.f);
+  unit->ship_index = ship_index;
+  unit->player_id = player_index;
+  unit->kind = kOperator;
+  unit->spacesuit = 1;
+  unit->notify = 1;
+  unit->bounds = v3f(17.f, 17.f, 25.f);
+  BB_SET(unit->bb, kUnitBehavior, kUnitBehaviorCrewMember);
+}
+
+void
 SpawnCrew(v3f world_position, uint64_t player_index, uint64_t ship_index)
 {
   TilemapModify tm(ship_index);

@@ -134,12 +134,12 @@ ScenarioInitialize()
     } break;
     case kTwoShip: {
       TilemapUnexplored(TilemapWorldCenter());
-      SpawnCrew(crew_pos[0], 0);
-      SpawnCrew(crew_pos[1], 1);
-      ScenarioSpawnRandomModule(kModPower, 1);
-      ScenarioSpawnRandomModule(kModPower, 0);
-      ScenarioSpawnRandomModule(kModEngine, 1, 5);
-      ScenarioSpawnRandomModule(kModEngine, 0, 5);
+      for (int i = 0; i < kPlayerCount; ++i) {
+        SpawnCrew(crew_pos[0], i, i);
+        SpawnAICrew(v2i(15, 15), i, i);
+        ScenarioSpawnRandomModule(kModPower, i);
+        ScenarioSpawnRandomModule(kModEngine, i, 5);
+      }
     } break;
     default:
     case kEmptyScenario: {

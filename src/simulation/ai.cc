@@ -110,6 +110,9 @@ AIThink(Unit* unit)
     case kUnitBehaviorAttackWhenDiscovered: {
       AIAttackWhenDiscovered(unit);
     } break;
+    case kUnitBehaviorCrewMember: {
+      AIWander(unit);
+    } break;
     default: break;
   }
 

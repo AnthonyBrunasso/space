@@ -140,7 +140,14 @@ RenderCrew(uint64_t ship_index)
       }
     });
 
-    rgg::RenderCrew(unit->position + v3f(0.f, 0.f, 20.f), v3f(10.f, 10.f, 10.f),
+    v3f crew_bounds = v3f(10.f, 10.f, 10.f);
+    const int* behavior;
+    if (BB_GET(unit->bb, kUnitBehavior, behavior) &&
+        *behavior == kUnitBehaviorCrewMember) {
+      crew_bounds = v3f(8.f, 8.f, 8.f);
+      color = v4f(color.x * .8f, color.y * .8f, color.z * .8f, color.w);
+    }
+    rgg::RenderCrew(unit->position + v3f(0.f, 0.f, 20.f), crew_bounds,
                     math::Quatf(-90, v3f(0.f, 0.f, 1.f)), color);
 
     if (unit->spacesuit) {

@@ -382,7 +382,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
               mod->mkind = (ModuleKind)(kDefaultMap[y][x] - kTileModule);
               mod->bounds = ModuleBounds(mod->mkind);
               mod->ship_index = ship_index;
-              mod->player_id = player_index;
+              mod->player_index = player_index;
               mod->tile = v2i(x, y);
               mod->position = TilePosToWorld(mod->tile);
             } break;

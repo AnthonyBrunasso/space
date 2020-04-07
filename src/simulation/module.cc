@@ -161,20 +161,20 @@ ModuleMineUpdate(Module* module)
   if (!a) return;
 
   ProjectileCreate(p, ModulePosition(module), 15.f, 2, kWeaponMiningLaser);
-  kPlayer[module->player_id].mineral += .1f;
+  kPlayer[module->player_index].mineral += .1f;
 }
 
 void
 ModuleBarrackUpdate(Module* module)
 {
-  Player* player = &kPlayer[module->player_id];
+  Player* player = &kPlayer[module->player_index];
 
   if (module->frames_training != kTrainIdle) {
     ++module->frames_training;
   }
 
   if (module->frames_training >= module->frames_to_train) {
-    SpawnCrew(module->tile, module->player_id, module->ship_index);
+    SpawnCrew(module->tile, module->player_index, module->ship_index);
     module->frames_training = kTrainIdle;
   }
 
@@ -230,7 +230,7 @@ ModuleWarpUpdate(Module* module)
     if (i != kUsedEntity) continue;
     unit->position = TileToWorld(*iter.tile);
     unit->ship_index = target_module->ship_index;
-    unit->player_id = target_module->player_id;
+    unit->player_index = target_module->player_index;
     unit->persistent_uaction = unit->uaction = kUaNone;
     unit->control = 0;
     break;

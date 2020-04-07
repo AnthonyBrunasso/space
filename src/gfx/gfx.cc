@@ -99,7 +99,7 @@ RenderCrew(uint64_t ship_index)
     v4f color;
     switch (unit->kind) {
       case kOperator: {
-        switch (unit->player_id) {
+        switch (unit->player_index) {
           case 0:
             color = v4f(0.70f, .33f, .33f, 1.f);
             break;

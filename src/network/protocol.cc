@@ -22,7 +22,7 @@ struct Handshake {
 
 struct NotifyGame {
   uint64_t game_id;
-  uint64_t player_id;
+  uint64_t player_index;
   uint64_t player_count;
   uint64_t cookie;
   PlayerInfo player_info[MAX_PLAYER];

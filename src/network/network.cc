@@ -148,8 +148,8 @@ NetworkSetup()
 
   NotifyGame* ns = (NotifyGame*)kNetworkState.netbuffer;
   if (ALAN) {
-    printf("Handshake success [ player_id %zu ] [ player_count %zu ] [",
-           (size_t)ns->player_id, (size_t)ns->player_count);
+    printf("Handshake success [ player_index %zu ] [ player_count %zu ] [",
+           (size_t)ns->player_index, (size_t)ns->player_count);
     for (int i = 0; i < ns->player_count; ++i) {
       printf(" %lu,%lu ", ns->player_info[i].window_width,
              ns->player_info[i].window_height);
@@ -157,7 +157,7 @@ NetworkSetup()
     printf("]\n");
   }
   kNetworkState.game_id = ns->game_id;
-  kNetworkState.player_index = ns->player_id;
+  kNetworkState.player_index = ns->player_index;
   kNetworkState.player_count = ns->player_count;
   kNetworkState.player_cookie = ns->cookie;
   for (int i = 0; i < ns->player_count; ++i) {

@@ -44,7 +44,7 @@ struct PlayerState {
   uint64_t last_active;
   uint64_t sequence;
   uint64_t ack_frame;
-  uint64_t player_id;
+  uint64_t player_index;
   uint64_t cookie;
   uint64_t cookie_mismatch;
   uint64_t latency_excess;
@@ -414,7 +414,7 @@ server_main(void* void_arg)
       if (ready_players >= num_players) {
         NotifyGame* response = (NotifyGame*)(in_buffer);
 
-        uint64_t player_id = 0;
+        uint64_t player_index = 0;
         for (int i = 0; i < MAX_PLAYER; ++i) {
           if (player[i].pending_game_id) continue;
           if (player[i].num_players != num_players) continue;
@@ -425,10 +425,10 @@ server_main(void* void_arg)
           }
 
           SERVER_LOGFMT(
-              "Server Greeting [index %d] [player_id %d] [player_count %d] "
+              "Server Greeting [index %d] [player_index %d] [player_count %d] "
               "[next_game_id %d] [cookie 0x%llx]\n",
-              i, player_id, num_players, next_game_id, player_cookie);
-          response->player_id = player_id;
+              i, player_index, num_players, next_game_id, player_cookie);
+          response->player_index = player_index;
           response->player_count = num_players;
           response->game_id = next_game_id;
           response->cookie = player_cookie;
@@ -438,9 +438,9 @@ server_main(void* void_arg)
           }
           udp::SendTo(location, player[i].peer, in_buffer, sizeof(NotifyGame));
           player[i].pending_game_id = next_game_id;
-          player[i].player_id = player_id;
+          player[i].player_index = player_index;
           player[i].cookie = player_cookie;
-          ++player_id;
+          ++player_index;
         }
         next_game_id += 1 + (next_game_id == 0);
       }
@@ -520,7 +520,7 @@ server_main(void* void_arg)
 
     // Packet OK - Check game synchronization
     uint64_t game_id = game[gidx].game_id;
-    uint64_t pid = player[pidx].player_id;
+    uint64_t pid = player[pidx].player_index;
     int64_t sync_delta = packet->sequence - game[gidx].ack_frame;
     if (sync_delta < 1) {
       SERVER_LOGFMT(

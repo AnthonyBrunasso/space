@@ -163,7 +163,7 @@ DECLARE_GAME_TYPE(Projectile, 128);
   v3f bounds;              \
   uint64_t control;        \
   uint64_t ship_index;     \
-  uint64_t player_id;      \
+  uint64_t player_index;      \
   int type_id
 
 enum EntityEnum {

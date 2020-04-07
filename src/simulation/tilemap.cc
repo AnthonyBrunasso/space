@@ -153,7 +153,8 @@ TileVacuum(const v2i pos)
 v2f
 TileRandomPosition()
 {
-  v2i random_tile(rand() % kMapWidth, rand() % kMapHeight);
+  v2i random_tile(MOD_BUCKET(rand(), kMapWidth),
+                  MOD_BUCKET(rand(), kMapHeight));
   return TilePosToWorld(random_tile);
 }
 
@@ -162,7 +163,7 @@ TileRandomNeighbor(v2i tile)
 {
   v2i n;
   do {
-    int idx = rand() % kMaxNeighbor;
+    int idx = MOD_BUCKET(rand(), kMaxNeighbor);
     n = tile + kNeighbor[idx];
   } while (!TileOk(n));
   return n;

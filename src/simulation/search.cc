@@ -55,7 +55,8 @@ BfsStep(v2i from, BfsIterator* iter)
 {
   const auto& path_map = kSearch.path_map;
   const int neighbor_index = iter->neighbor_index;
-  const v2i neighbor = from + kNeighbor[neighbor_index % kMaxNeighbor];
+  const v2i neighbor =
+      from + kNeighbor[MOD_BUCKET(neighbor_index, kMaxNeighbor)];
   Tile* tile = TilePtr(neighbor);
 
   iter->queue_index = (neighbor_index + 1) / kMaxNeighbor;

@@ -216,7 +216,7 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
     if (imui::Text("Kill Random Unit Cheat", text_options).clicked) {
       // Kill first unit in entity list.
       int i = rand() % kUsedEntity;
-      for (i; i < kUsedEntity; i = (i + 1) % kUsedEntity) {
+      for (; i < kUsedEntity; i = (i + 1) % kUsedEntity) {
         Unit* unit = i2Unit(i);
         if (!unit) continue;
         LOGFMT("Kill unit %i", unit->id);

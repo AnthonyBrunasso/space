@@ -333,13 +333,14 @@ RenderShip(uint64_t ship_index)
         }
 
         if (!TileOk(mouse_grid)) continue;
-
         Unit* unit = GetNearestUnit(p->world_mouse);
-        float dsq = v3fDsq(p->world_mouse, unit->position);
-        if (dsq < kDsqSelect) {
-          // Highlight the unit that would be selected on mouse click
-          rgg::RenderRectangle(TilePosToWorld(mouse_grid), kTileScale,
-                               kDefaultRotation, v4f(1.0f, 1.0f, 1.0f, .45f));
+        if (unit) {
+          float dsq = v3fDsq(p->world_mouse, unit->position);
+          if (dsq < kDsqSelect) {
+            // Highlight the unit that would be selected on mouse click
+            rgg::RenderRectangle(TilePosToWorld(mouse_grid), kTileScale,
+                                 kDefaultRotation, v4f(1.0f, 1.0f, 1.0f, .45f));
+          }
         }
       } break;
       case kHudModule: {

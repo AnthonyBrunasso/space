@@ -99,11 +99,6 @@ enum WeaponKind {
 constexpr unsigned kHudModeBits = 2;
 constexpr unsigned kModBits = 3;
 enum Alliance { kCrew = 0, kEnemy, kAllianceCount };
-enum ShipAiGoals {
-  kShipAiSpawnPod,
-  kShipAiPowerSurge,
-  kShipAiGoals = 64,
-};
 constexpr int kUnitBehaviorSimple = 1;
 constexpr int kUnitBehaviorAttackWhenDiscovered = 2;
 enum UnitBbEntry {

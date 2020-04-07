@@ -15,51 +15,48 @@
                                     nullptr);
 
 // id == -1 is reserved for invalid references
-#define DECLARE_GAME_TYPE_WITH_ID(type, max_count)                       \
-  DECLARE_HASH_ARRAY(type, max_count)                                    \
-  static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type, \
-                                    max_count, sizeof(type),             \
-                                    kHashEntry##type,                    \
+#define DECLARE_GAME_TYPE_WITH_ID(type, max_count)                             \
+  DECLARE_HASH_ARRAY(type, max_count)                                          \
+  static EntityRegistry kInit##type(k##type, &kZero##type, &kUsed##type,       \
+                                    max_count, sizeof(type), kHashEntry##type, \
                                     Hash##type);
 
 #define DECLARE_GAME_QUEUE(type, count) DECLARE_QUEUE(type, count)
 
 // Use with DECLARE_GAME_TYPE_WITH_ID(Entity, ...)
-#define DECLARE_GAME_ENTITY(type, tid)                                        \
-  type* UseEntity##type()                                                     \
-  {                                                                           \
-    Entity* e = UseEntity();                                                  \
-    if (!e) return nullptr;                                                   \
-    type t = {};                                                              \
-    t.id = e->id;                                                             \
-    memcpy(e, &t, sizeof(t));                                                 \
-    return (type*)e;                                                          \
-  }                                                                           \
-                                                                              \
-  type* i2##type(int idx)                                                     \
-  {                                                                           \
-    type* t = (type*)(&kEntity[idx]);                                         \
-    if (t->type_id != tid) return nullptr;                                    \
-    if (t->id == 0) return nullptr;                                           \
-    return t;                                                                 \
-  }                                                                           \
+#define DECLARE_GAME_ENTITY(type, tid)     \
+  type* UseEntity##type()                  \
+  {                                        \
+    Entity* e = UseEntity();               \
+    if (!e) return nullptr;                \
+    type t = {};                           \
+    t.id = e->id;                          \
+    memcpy(e, &t, sizeof(t));              \
+    return (type*)e;                       \
+  }                                        \
+                                           \
+  type* i2##type(int idx)                  \
+  {                                        \
+    type* t = (type*)(&kEntity[idx]);      \
+    if (t->type_id != tid) return nullptr; \
+    if (t->id == 0) return nullptr;        \
+    return t;                              \
+  }
 
-#define FOR_EACH_ENTITY(type, vname, body)                         \
-  {                                                                \
-    type* vname;                                                   \
-    int Idx##type = 0;                                             \
-    for (Idx##type = 0; Idx##type < kUsedEntity; ++Idx##type) {    \
-      vname = i2##type(Idx##type);                                 \
-      if (!vname) continue;                                        \
-      body                                                         \
-    }                                                              \
-  }                                                                \
+#define FOR_EACH_ENTITY(type, vname, body)                      \
+  {                                                             \
+    type* vname;                                                \
+    int Idx##type = 0;                                          \
+    for (Idx##type = 0; Idx##type < kUsedEntity; ++Idx##type) { \
+      vname = i2##type(Idx##type);                              \
+      if (!vname) continue;                                     \
+      body                                                      \
+    }                                                           \
+  }
 
 // Global game state that is local information
 static uint64_t kPlayerCount;
 static uint64_t kPlayerIndex;
-
-constexpr uint64_t kInvalidIndex = UINT64_MAX;
 
 // Common Flags
 enum UnitAction {
@@ -229,7 +226,7 @@ DECLARE_GAME_ENTITY(Module, kEeModule);
 
 #define ZeroEntity(x)         \
   FreeHashEntryEntity(x->id); \
-  *(Entity*)x = kZeroEntity;  \
+  *(Entity*)x = kZeroEntity;
 
 struct Command {
   UnitAction type;

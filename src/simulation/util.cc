@@ -43,7 +43,8 @@ GetUnit(v3f world)
 }
 
 Unit*
-GetUnitTarget(uint64_t local_player, v3f world) {
+GetUnitTarget(uint64_t local_player, v3f world)
+{
   FOR_EACH_ENTITY(Unit, unit, {
     if (FLAGGED(unit->control, local_player)) continue;
     if (v3fDsq(unit->position, world) < kDsqSelect) {
@@ -72,8 +73,8 @@ SelectModule(const math::Rectf& rect, int idx)
   Module* mod = &kEntity[idx].module;
   TilemapModify tm(mod->ship_index);
   // TODO: Take into consideration module bounds and do a rect/rect intersect.
-  //v2f t = TilePosToWorld(mod->tile);
-  //printf("GetModule: %.2f,%.2f tile: %i,%i\n",
+  // v2f t = TilePosToWorld(mod->tile);
+  // printf("GetModule: %.2f,%.2f tile: %i,%i\n",
   //       t.x, t.y, mod->tile.x, mod->tile.y);
   if (PointInRect(TilePosToWorld(mod->tile), rect)) {
     return mod;
@@ -84,8 +85,7 @@ SelectModule(const math::Rectf& rect, int idx)
 bool
 InRange(Unit* source_unit, Unit* target_unit)
 {
-  float dsq =
-      v3fDsq(source_unit->position, target_unit->position);
+  float dsq = v3fDsq(source_unit->position, target_unit->position);
   float rsq = source_unit->attack_radius * source_unit->attack_radius;
   return dsq < rsq;
 }
@@ -93,7 +93,7 @@ InRange(Unit* source_unit, Unit* target_unit)
 bool
 InRange(uint64_t unit_id, uint64_t target_id)
 {
-  if (unit_id == kInvalidEntity || target_id == kInvalidEntity) return false;
+  if (unit_id == kInvalidId || target_id == kInvalidId) return false;
   Unit* source_unit = FindUnit(unit_id);
   Unit* target_unit = FindUnit(target_id);
   return InRange(source_unit, target_unit);
@@ -110,7 +110,7 @@ ShouldAttack(Unit* unit, Unit* target)
 bool
 ShouldAttack(uint64_t unit, uint64_t target)
 {
-  if (unit == kInvalidEntity || target == kInvalidEntity) return false;
+  if (unit == kInvalidId || target == kInvalidId) return false;
   return ShouldAttack(FindUnit(unit), FindUnit(target));
 }
 
@@ -131,8 +131,7 @@ GetNearestEnemyUnit(Unit* unit)
   float d = FLT_MAX;
   Unit* target = nullptr;
   FOR_EACH_ENTITY(Unit, new_target, {
-    float nd = v3fDsq(unit->position,
-                      new_target->position);
+    float nd = v3fDsq(unit->position, new_target->position);
     if (nd < d && ShouldAttack(unit, new_target)) {
       target = new_target;
       d = nd;

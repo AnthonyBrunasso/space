@@ -10,7 +10,6 @@
 
 namespace simulation
 {
-
 v3f ModuleBounds(ModuleKind mkind);  // defined in module.cc
 
 constexpr float kTileWidth = 25.0f;
@@ -234,7 +233,7 @@ class TilemapModify
   v2f prev_offset;
 };
 
-uint64_t
+int64_t
 TilemapWorldToGrid(v3f world)
 {
   for (int i = 0; i < kUsedShip; ++i) {
@@ -251,7 +250,7 @@ TilemapWorldToGrid(v3f world)
 bool
 WorldToTilePos(const v3f pos, v2i* t)
 {
-  uint64_t tidx = TilemapWorldToGrid(pos);
+  int64_t tidx = TilemapWorldToGrid(pos);
   if (tidx == kInvalidIndex) return false;
 
   v2f relpos = pos.xy() - kTilemapWorldOffset;

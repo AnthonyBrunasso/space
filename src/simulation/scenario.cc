@@ -164,7 +164,7 @@ ScenarioReset()
   // TODO (AN): GAME_QUEUE not in the registry
   kReadCommand = 0;
   kWriteCommand = 0;
-  kAutoIncrementIdEntity = kInvalidEntity + 1;
+  kAutoIncrementIdEntity = kInvalidId + 1;
 
   for (int i = 0; i < kUsedRegistry; ++i) {
     *kRegistry[i].memb_count = 0;

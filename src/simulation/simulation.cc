@@ -371,7 +371,7 @@ UpdateUnit(uint64_t ship_index)
     }
 
     AIThink(unit);
-    
+
     FOR_EACH_ENTITY(Module, m, {
       if (ModuleBuilt(m)) continue;
       if (ModuleNear(m, unit->position)) {
@@ -458,7 +458,7 @@ Decide()
 {
   while (CountCommand()) {
     Command c = PopCommand();
-    if (c.unit_id == kInvalidEntity) {
+    if (c.unit_id == kInvalidId) {
       if (c.type == kUaBuild) {
         FOR_EACH_ENTITY(Unit, unit, {
           if (0 == (unit->control & c.control)) continue;

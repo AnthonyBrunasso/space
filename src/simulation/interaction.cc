@@ -164,10 +164,11 @@ ReadOnlyUnits(v2f screen, uint32_t tag)
       }
       // Draws a red line cube around the entity.
       if (highlighted) {
-        gfx::PushDebugCube(math::Cubef(
-                  kEntity[i].position
-                      + v3f(0.f, 0.f, kEntity[i].bounds.z / 2.f),
-                  kEntity[i].bounds), gfx::kRed);
+        gfx::PushDebugCube(
+            math::Cubef(
+                kEntity[i].position + v3f(0.f, 0.f, kEntity[i].bounds.z / 2.f),
+                kEntity[i].bounds),
+            gfx::kRed);
 #if 0
         // Debug for hashing... If a red and green box show up around two
         // different entities that means the array_index in the hash bucket
@@ -307,7 +308,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
           } break;
           case kHudAttackMove: {
             LOGFMT("Order attack move [%.0f,%.0f]", world_pos.x, world_pos.y);
-            PushCommand({kUaAttackMove, world_pos, kInvalidEntity,
+            PushCommand({kUaAttackMove, world_pos, kInvalidId,
                          (unsigned)(1 << player_index)});
           } break;
           case kHudModule: {
@@ -330,7 +331,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
               player->mineral -= ModuleCost(mkind);
             }
             LOGFMT("Order build [%i] [%i,%i]", mkind, tilepos.x, tilepos.y);
-            PushCommand({kUaBuild, world_pos, kInvalidEntity,
+            PushCommand({kUaBuild, world_pos, kInvalidId,
                          (unsigned)(1 << player_index)});
           } break;
         }
@@ -338,12 +339,12 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
         Unit* target = GetUnitTarget(player_index, world_pos);
         if (target) {
           LOGFMT("Order attack [%lu]", target->id);
-          PushCommand({kUaAttack, world_pos, kInvalidEntity,
+          PushCommand({kUaAttack, world_pos, kInvalidId,
                        (unsigned)(1 << player_index)});
         } else {
           LOGFMT("Order move [%.0f,%.0f]", world_pos.x, world_pos.y);
-          PushCommand({kUaMove, world_pos, kInvalidEntity,
-                       (unsigned)(1 << player_index)});
+          PushCommand(
+              {kUaMove, world_pos, kInvalidId, (unsigned)(1 << player_index)});
         }
       }
 

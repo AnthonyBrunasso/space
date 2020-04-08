@@ -118,8 +118,6 @@ ScenarioInitialize()
     }
   }
 
-  v2i crew_pos[2] = {v2i(5, 23), v2i(5, 7)};
-
   // Spawn units / modules.
   switch (sid) {
     case kCombatScenario: {
@@ -133,9 +131,9 @@ ScenarioInitialize()
       SpawnEnemy(v2i(4, 20), 0);
     } break;
     case kTwoShip: {
-      TilemapUnexplored(TilemapWorldCenter());
       for (int i = 0; i < kPlayerCount; ++i) {
-        SpawnCrew(crew_pos[0], i, i);
+        TilemapSet(i);
+        SpawnCrew(v2i(5, 23), i, i);
         SpawnAICrew(v2i(15, 15), i, i);
         ScenarioSpawnRandomModule(kModPower, i);
         ScenarioSpawnRandomModule(kModEngine, i, 5);
@@ -145,15 +143,19 @@ ScenarioInitialize()
     case kEmptyScenario: {
     } break;
   }
-  // Always set unexplored/interior of ship
-  TilemapUnexplored(TilemapWorldCenter());
 
   LOGFMT("Player count: %lu", kUsedPlayer);
 
   for (int i = 0; i < kUsedPlayer; ++i) {
     TilemapSet(kPlayer[i].ship_index);
     camera::InitialCamera(&kPlayer[i].camera);
-    camera::Move(&kPlayer[i].camera, TilePosToWorld(crew_pos[i]));
+
+    FOR_EACH_ENTITY(Unit, unit, {
+      if (unit->player_index == i) {
+        camera::Move(&kPlayer[i].camera, unit->position);
+        break;
+      }
+    });
   }
 }  // namespace simulation
 

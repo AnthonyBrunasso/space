@@ -93,7 +93,8 @@ AIAttackWhenDiscovered(Unit* unit)
   unit->uaction = kUaAttack;
 }
 
-// Find a random module, go to it, stay there for a bit. Repeat.
+// Crew members build unbuilt modules.
+// Otherwise - find a random module, go to it, stay there for a bit. Repeat.
 void
 AICrewMember(Unit* unit)
 {
@@ -113,15 +114,25 @@ AICrewMember(Unit* unit)
     return;
   }
 
-  // Find a random module.
+  // Prioritize building unbuilt modules.
   Module* target_mod = nullptr;
-  for (int i = rand() % kUsedEntity; i < kUsedEntity;
-       i = (i + 1) % kUsedEntity) {
-    Module* mod = i2Module(i);
-    if (!mod) continue;
-    if (mod->mkind == kModEngine || mod->mkind == kModMine) {
+  FOR_EACH_ENTITY(Module, mod, {
+    if (!ModuleBuilt(mod)) {
       target_mod = mod;
       break;
+    }
+  });
+
+  // Find a random module.
+  if (!target_mod) {
+    for (int i = rand() % kUsedEntity; i < kUsedEntity;
+         i = (i + 1) % kUsedEntity) {
+      Module* mod = i2Module(i);
+      if (!mod) continue;
+      if (mod->mkind == kModEngine || mod->mkind == kModMine) {
+        target_mod = mod;
+        break;
+      }
     }
   }
 

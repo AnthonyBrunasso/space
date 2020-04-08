@@ -60,7 +60,9 @@ struct HashEntry {
   type* Find##type(uint32_t id)                                               \
   {                                                                           \
     uint32_t hash = Hash##type(id);                                           \
-    return &k##type[kHashEntry##type[hash].array_idx];                        \
+    HashEntry* entry = &kHashEntry##type[hash];                               \
+    if (entry->id != id) return nullptr;                                      \
+    return &k##type[entry->array_idx];                                        \
   }                                                                           \
                                                                               \
   void FreeHashEntry##type(uint32_t id)                                       \

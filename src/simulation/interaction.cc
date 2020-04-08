@@ -62,6 +62,12 @@ RenderBlackboard(const Unit* unit)
         snprintf(ui_buffer, sizeof(ui_buffer), "attacker: %i", *t);
         imui::Text(ui_buffer);
       } break;
+      case kUnitTimer: {
+        const int* t = nullptr;
+        if (!BB_GET(unit->bb, kUnitTimer, t)) continue;
+        snprintf(ui_buffer, sizeof(ui_buffer), "timer: %i", *t);
+        imui::Text(ui_buffer);
+      } break;
       default: {
         snprintf(ui_buffer, sizeof(ui_buffer), "set: %i", i);
         if (BB_EXI(unit->bb, i)) {

@@ -121,18 +121,11 @@ ModuleColor(ModuleKind mkind)
   return v3f();
 }
 
-v3f
-ModulePosition(Module* mod)
-{
-  TilemapModify modify(mod->ship_index);
-  return TilePosToWorld(mod->tile);
-}
-
 bool
 ModuleNear(Module* module, v3f loc)
 {
   // TODO: Take into consideration module bounds.
-  if (LengthSquared(loc - ModulePosition(module)) < 50.f * 38.f) return true;
+  if (LengthSquared(loc - module->position) < 50.f * 38.f) return true;
   return false;
 }
 
@@ -149,8 +142,7 @@ ModuleMineUpdate(Module* module)
         module->ship_index) {
       continue;
     }
-    float nd = math::LengthSquared(asteroid->transform.position -
-                                   ModulePosition(module));
+    float nd = math::LengthSquared(asteroid->transform.position - module->position);
     if (nd < d) {
       d = nd;
       p = asteroid->transform.position;
@@ -160,7 +152,7 @@ ModuleMineUpdate(Module* module)
 
   if (!a) return;
 
-  ProjectileCreate(p, ModulePosition(module), 15.f, 2, kWeaponMiningLaser);
+  ProjectileCreate(p, module->position, 15.f, 2, kWeaponMiningLaser);
   kPlayer[module->player_index].mineral += .1f;
 }
 
@@ -174,7 +166,7 @@ ModuleBarrackUpdate(Module* module)
   }
 
   if (module->frames_training >= module->frames_to_train) {
-    SpawnCrew(module->tile, module->player_index, module->ship_index);
+    SpawnCrew(module->position, module->player_index, module->ship_index);
     module->frames_training = kTrainIdle;
   }
 
@@ -190,12 +182,9 @@ ModuleBarrackUpdate(Module* module)
 void
 ModuleWarpUpdate(Module* module)
 {
-  Unit* unit = GetNearestUnit(TilePosToWorld(module->tile));
-  v2i ut;
-  if (!WorldToTilePos(unit->position, &ut)) return;
-  if (ut != module->tile) {
-    return;
-  }
+  Unit* unit = GetNearestUnit(module->position);
+  if (!ModuleNear(module, unit->position)) return;
+
   // Find the nearest warp on a seperate tilemap from this one.
   Module* target_module = nullptr;
   float d = FLT_MAX;
@@ -204,7 +193,7 @@ ModuleWarpUpdate(Module* module)
     if (!ModuleBuilt(nm)) continue;
     if (nm->ship_index == module->ship_index) continue;
     if (nm->mkind != kModWarp) continue;
-    float nd = LengthSquared(nm->tile - module->tile);
+    float nd = LengthSquared(nm->position - module->position);
     if (nd < d) {
       target_module = nm;
       d = nd;
@@ -215,7 +204,9 @@ ModuleWarpUpdate(Module* module)
   LOGFMT("Warping crew to ship %i. control change %d->%d",
          target_module->ship_index, unit->control, target_module->control);
   TilemapModify mod(target_module->ship_index);
-  BfsIterator iter = BfsStart(target_module->tile);
+  v2i tilepos;
+  if (!WorldToTilePos(target_module->position, &tilepos)) return;
+  BfsIterator iter = BfsStart(tilepos);
   while (BfsNextTile(&iter)) {
     int i = 0;
     for (; i < kUsedEntity; ++i) {

@@ -98,14 +98,6 @@ TilePtr(const v2i& pos)
   return &kCurrentGrid->tilemap[pos.y][pos.x];
 }
 
-// Returns kTileBlock for non-existent tiles, and TileType otherwise.
-bool
-TileBlockedSafe(const v2i& pos)
-{
-  Tile* tile = TilePtr(pos);
-  return !tile || tile->blocked;
-}
-
 // Returns any neighbor of type kTileOpen
 v2i
 TileOpenAdjacent(const v2i pos)
@@ -384,8 +376,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
               mod->bounds = ModuleBounds(mod->mkind);
               mod->ship_index = ship_index;
               mod->player_index = player_index;
-              mod->tile = v2i(x, y);
-              mod->position = TilePosToWorld(mod->tile);
+              mod->position = TilePosToWorld(v2i(x, y));
             } break;
           };
         }

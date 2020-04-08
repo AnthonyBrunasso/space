@@ -126,9 +126,9 @@ RenderCrew(uint64_t ship_index)
       rgg::RenderCircle(unit->position + v3f(0.f, 0.f, 0.08f), 12.f, 14.f,
                         v4f(0.33f, 0.80f, 0.33f, 1.f));
     }
-    
+
     FOR_EACH_ENTITY(Module, mod, {
-      if (v3fDsq(unit->position, v3fModule(mod)) < kDsqOperate) {
+      if (v3fDsq(unit->position, mod->position) < kDsqOperate) {
         // TODO(abrunasso): This should be the graphic when working on
         // something.
         static float r = 0.f;
@@ -226,20 +226,19 @@ RenderShip(uint64_t ship_index)
   FOR_EACH_ENTITY(Module, mod, {
     v3f mcolor = ModuleColor(mod->mkind);
     v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
-    v2f t = simulation::TilePosToWorld(mod->tile);
     if (ModuleBuilt(mod)) {
       rgg::RenderCube(
-          math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f),
+          math::Cubef(mod->position + v3f(0.f, 0.f, 15.f / 2.f),
                       mod->bounds),
           color);
     } else {
       rgg::RenderLineCube(
-          math::Cubef(v3f(t.x, t.y, 0.f) + v3f(0.f, 0.f, 15.f / 2.f),
+          math::Cubef(mod->position + v3f(0.f, 0.f, 15.f / 2.f),
                       mod->bounds),
           v4f(color.x, color.y, color.z, 1.f));
       glDisable(GL_DEPTH_TEST);
       rgg::RenderProgressBar(
-          math::Rectf(t.x - mod->bounds.x / 2.f, t.y - mod->bounds.y,
+          math::Rectf(mod->position.x - mod->bounds.x / 2.f, mod->position.y - mod->bounds.y,
                       mod->bounds.y, 5.f),
           2.f, mod->frames_building, mod->frames_to_build, kGreen, kWhite);
       glEnable(GL_DEPTH_TEST);
@@ -248,8 +247,8 @@ RenderShip(uint64_t ship_index)
     if (mod->frames_training == kTrainIdle) continue;
 
     glDisable(GL_DEPTH_TEST);
-    rgg::RenderProgressBar(math::Rectf(t.x - mod->bounds.x / 2.f,
-                                       t.y - mod->bounds.y, mod->bounds.y, 5.f),
+    rgg::RenderProgressBar(math::Rectf(mod->position.x - mod->bounds.x / 2.f,
+                                       mod->position.y - mod->bounds.y, mod->bounds.y, 5.f),
                            2.f, mod->frames_training, mod->frames_to_train,
                            kRed, kWhite);
     glEnable(GL_DEPTH_TEST);
@@ -264,8 +263,8 @@ RenderShip(uint64_t ship_index)
       if (mod->mkind != kModEngine) continue;
       if (!ModuleBuilt(mod)) continue;
       v3f mcolor = ModuleColor(mod->mkind);
-      v2i hack = {-1, 1};
-      world = TilePosToWorld(mod->tile + hack);
+      v2f hack = {-kTileWidth, kTileHeight};
+      world = mod->position + hack;
       v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
       float engine_scale = kShip[ship_index].engine_animation * .1f;
       rgg::RenderExhaust(world + v3f(-40.f, -20.f, 0.f), v3f(22.f, 22.f, 22.f),

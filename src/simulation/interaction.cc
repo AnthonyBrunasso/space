@@ -337,7 +337,6 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
               mod->mkind = mkind;
               mod->ship_index = player->ship_index;
               mod->player_index = player_index;
-              mod->tile = tilepos;
               mod->position = TilePosToWorld(tilepos);
               player->mineral -= ModuleCost(mkind);
             }

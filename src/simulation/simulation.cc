@@ -318,7 +318,6 @@ UpdateModule(uint64_t ship_index)
   FOR_EACH_ENTITY(Module, m, {
     if (m->ship_index != ship_index) continue;
     if (m->mkind == kModPower) {
-      v3f world = TilePosToWorld(m->tile);
       // Reveal the shroud
       Tile keep_bits;
       memset(&keep_bits, 0xff, sizeof(Tile));
@@ -327,7 +326,7 @@ UpdateModule(uint64_t ship_index)
       memset(&set_bits, 0x00, sizeof(Tile));
       set_bits.explored = 1;
       float tile_world_distance = kTileWidth * 8.0f;
-      BfsMutate(world, keep_bits, set_bits,
+      BfsMutate(m->position, keep_bits, set_bits,
                 tile_world_distance * tile_world_distance);
     }
   });

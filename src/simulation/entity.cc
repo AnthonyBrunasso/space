@@ -198,12 +198,11 @@ constexpr int kTrainIdle = -1;
 
 struct Module {
   COMMON_MEMBER_DECL = kEeModule;
+  ModuleKind mkind;
   int frames_to_build = 200;
   int frames_building = 0;
   int frames_to_train = 1600;
   int frames_training = kTrainIdle;
-  ModuleKind mkind;
-  v2i tile;
   bool enabled = true;
 };
 

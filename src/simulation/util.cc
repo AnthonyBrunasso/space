@@ -18,12 +18,6 @@ AssignPlayerId()
   return (id++ % kPlayerCount);
 }
 
-v3f
-v3fModule(Module* mod)
-{
-  return TilePosToWorld(mod->tile);
-}
-
 float
 v3fDsq(const v3f& dst, const v3f& src)
 {
@@ -76,7 +70,7 @@ SelectModule(const math::Rectf& rect, int idx)
   // v2f t = TilePosToWorld(mod->tile);
   // printf("GetModule: %.2f,%.2f tile: %i,%i\n",
   //       t.x, t.y, mod->tile.x, mod->tile.y);
-  if (PointInRect(TilePosToWorld(mod->tile), rect)) {
+  if (PointInRect(mod->position.xy(), rect)) {
     return mod;
   }
   return nullptr;
@@ -224,16 +218,7 @@ SpawnCrew(v3f world_position, uint64_t player_index, uint64_t ship_index)
 void
 SpawnCrew(v2i tile_position, uint64_t player_index, uint64_t ship_index)
 {
-  TilemapModify tm(ship_index);
-  Unit* unit = UseEntityUnit();
-  unit->position = TilePosToWorld(tile_position);
-  unit->scale = v3f(0.25f, 0.25f, 0.f);
-  unit->ship_index = ship_index;
-  unit->player_index = player_index;
-  unit->kind = kOperator;
-  unit->spacesuit = 1;
-  unit->notify = 1;
-  unit->bounds = v3f(17.f, 17.f, 25.f);
+  SpawnCrew(TilePosToWorld(tile_position), player_index, ship_index);
 }
 
 void
@@ -245,7 +230,7 @@ SpawnCrew(v3f world_position, uint64_t ship_index)
 void
 SpawnCrew(v2i tile_position, uint64_t ship_index)
 {
-  SpawnCrew(tile_position, AssignPlayerId(), ship_index);
+  SpawnCrew(TilePosToWorld(tile_position), AssignPlayerId(), ship_index);
 }
 
 bool

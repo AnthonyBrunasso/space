@@ -104,7 +104,8 @@ enum UnitBbEntry {
   kUnitAttackDestination = 2,
   kUnitBehavior = 3,
   kUnitAttacker = 4,
-  kUnitBbEntryMax = 5,
+  kUnitTimer = 5,
+  kUnitBbEntryMax = 6,
 };
 
 // Common Structures

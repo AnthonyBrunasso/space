@@ -15,7 +15,7 @@ AIWander(Unit* unit)
 
   v2i rpos = TileRandomNeighbor(p);
   v2f wpos = TilePosToWorld(rpos);
-  v3f destination( wpos.x, wpos.y, 0.f );
+  v3f destination(wpos.x, wpos.y, 0.f);
   BB_SET(unit->bb, kUnitDestination, destination);
   unit->uaction = kUaMove;
 }
@@ -93,6 +93,47 @@ AIAttackWhenDiscovered(Unit* unit)
   unit->uaction = kUaAttack;
 }
 
+// Find a random module, go to it, stay there for a bit. Repeat.
+void
+AICrewMember(Unit* unit)
+{
+  if (unit->uaction != kUaNone) return;
+
+  const int* timer;
+  // Timer should perhaps be a global AI construct that gets updated for all
+  // units that contain active timers?
+  if (BB_GET(unit->bb, kUnitTimer, timer) && *timer > 0) {
+    // If timer is set the crew member is working on something.
+    int new_time = (*timer) - 1;
+    if (new_time <= 0) {
+      BB_REM(unit->bb, kUnitTimer);
+    } else {
+      BB_SET(unit->bb, kUnitTimer, new_time);
+    }
+    return;
+  }
+
+  // Find a random module.
+  Module* target_mod = nullptr;
+  for (int i = rand() % kUsedEntity; i < kUsedEntity;
+       i = (i + 1) % kUsedEntity) {
+    Module* mod = i2Module(i);
+    if (!mod) continue;
+    if (mod->mkind == kModEngine || mod->mkind == kModMine) {
+      target_mod = mod;
+      break;
+    }
+  }
+
+  if (!target_mod) return;
+
+  // Go to the mod and stay there for timer.
+  BB_SET(unit->bb, kUnitDestination, target_mod->position);
+  unit->uaction = kUaMove;
+  int init_timer = 200;
+  BB_SET(unit->bb, kUnitTimer, init_timer);
+}
+
 void
 AIThink(Unit* unit)
 {
@@ -111,7 +152,7 @@ AIThink(Unit* unit)
       AIAttackWhenDiscovered(unit);
     } break;
     case kUnitBehaviorCrewMember: {
-      AIWander(unit);
+      AICrewMember(unit);
     } break;
     default: break;
   }

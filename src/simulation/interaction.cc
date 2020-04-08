@@ -264,6 +264,8 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
   imui::Text(ui_buffer);
   snprintf(ui_buffer, sizeof(ui_buffer), "Level: %lu", player->level);
   imui::Text(ui_buffer);
+  snprintf(ui_buffer, sizeof(ui_buffer), "Player Index: %zu", player-kPlayer);
+  imui::Text(ui_buffer);
 
   if (simulation::kSimulationOver) {
     snprintf(ui_buffer, sizeof(ui_buffer), "Game Over");

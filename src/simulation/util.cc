@@ -90,6 +90,7 @@ InRange(uint64_t unit_id, uint64_t target_id)
   if (unit_id == kInvalidId || target_id == kInvalidId) return false;
   Unit* source_unit = FindUnit(unit_id);
   Unit* target_unit = FindUnit(target_id);
+  if (!source_unit || !target_unit) return false;
   return InRange(source_unit, target_unit);
 }
 

@@ -45,7 +45,10 @@
                                            \
   type* Find##type(uint32_t id)            \
   {                                        \
-    return (type*)FindEntity(id);          \
+    type* t = (type*)FindEntity(id);       \
+    if (!t || t->type_id != tid)           \
+      return nullptr;                      \
+    return t;                              \
   }
 
 #define FOR_EACH_ENTITY(type, vname, body)                          \

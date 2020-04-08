@@ -41,6 +41,11 @@
     if (t->type_id != tid) return nullptr; \
     if (t->id == 0) return nullptr;        \
     return t;                              \
+  }                                        \
+                                           \
+  type* Find##type(uint32_t id)            \
+  {                                        \
+    return (type*)FindEntity(id);          \
   }
 
 #define FOR_EACH_ENTITY(type, vname, body)                          \
@@ -222,7 +227,6 @@ DECLARE_GAME_TYPE_WITH_ID(Entity, MAX_ENTITY);
 DECLARE_GAME_ENTITY(Unit, kEeUnit);
 DECLARE_GAME_ENTITY(Module, kEeModule);
 
-#define FindUnit(x) ((Unit*)FindEntity(x))
 
 #define ZeroEntity(x)         \
   FreeHashEntryEntity(x->id); \

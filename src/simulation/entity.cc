@@ -283,7 +283,6 @@ struct Tile {
   unsigned shroud : 1;
   unsigned explored : 1;
   unsigned exterior : 1;
-  unsigned door : 1;
   unsigned PADDING : 9;
 };
 struct Grid {

@@ -340,7 +340,9 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
               mod->mkind = mkind;
               mod->ship_index = player->ship_index;
               mod->player_index = player_index;
-              mod->position = TilePosToWorld(tilepos);
+              v3f mpos = TilePosToWorld(tilepos);
+              // Rase module to have bottom touch 0,0.
+              mod->position = mpos + v3f(0.f, 0.f, mod->bounds.z / 2.f);
               player->mineral -= ModuleCost(mkind);
             }
             LOGFMT("Order build [%i] [%i,%i]", mkind, tilepos.x, tilepos.y);

@@ -79,6 +79,7 @@ enum ModuleKind {
   kModEngine,
   kModTurret,
   kModMine,
+  kModDoor,
   kModBarrack,
   kModMedbay,
   kModWarp,
@@ -282,7 +283,8 @@ struct Tile {
   unsigned shroud : 1;
   unsigned explored : 1;
   unsigned exterior : 1;
-  unsigned PADDING : 10;
+  unsigned door : 1;
+  unsigned PADDING : 9;
 };
 struct Grid {
   Tile tilemap[kMapHeight][kMapWidth];

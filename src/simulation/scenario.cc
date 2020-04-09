@@ -134,6 +134,7 @@ ScenarioInitialize()
         SpawnAICrew(v2i(15, 15), i, i);
         ScenarioSpawnRandomModule(kModPower, i);
         ScenarioSpawnRandomModule(kModEngine, i, 5);
+        ScenarioSpawnRandomModule(kModDoor, i, 12);
       }
     } break;
     default:

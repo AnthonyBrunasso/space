@@ -130,7 +130,8 @@ AICrewMember(Unit* unit)
       Module* mod = i2Module(i);
       if (!mod) continue;
       if (mod->ship_index != unit->ship_index) continue;
-      if (mod->mkind == kModEngine || mod->mkind == kModMine) {
+      if (mod->mkind == kModEngine || mod->mkind == kModMine ||
+          mod->mkind == kModDoor) {
         target_mod = mod;
         break;
       }

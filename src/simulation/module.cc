@@ -2,6 +2,7 @@
 
 namespace simulation
 {
+
 bool
 ModuleBuilt(Module* module)
 {
@@ -34,6 +35,8 @@ ModuleBounds(ModuleKind mkind)
       return v3f(45.f, 45.f, 15.f);
     case kModWarp:
       return v3f(15.f, 15.f, 15.f);
+    case kModDoor:
+      return v3f(25.f, 25.f, 50.f);
     case kModCount:
     default:
       return v3f();
@@ -56,6 +59,7 @@ ModuleCost(ModuleKind mkind)
     case kModTurret:
     case kModEngine:
     case kModPower:
+    case kModDoor:
     case kModCount:
     default:
       return 0;
@@ -81,19 +85,13 @@ ModuleName(ModuleKind mkind)
       return "Power";
     case kModWarp:
       return "Warp";
+    case kModDoor:
+      return "Door";
     case kModCount:
     default:
       return "Unknown";
   }
   return "Unknown";
-}
-
-// TODO: Probably add some grid checking here.
-bool
-ModuleCanBuild(ModuleKind mkind, Player* player)
-{
-  if (!player) return false;
-  return player->mineral >= ModuleCost(mkind);
 }
 
 v3f
@@ -114,6 +112,8 @@ ModuleColor(ModuleKind mkind)
       return v3f(1.0, 1.0, 1.0);
     case kModWarp:
       return v3f(0.6, 1.0, 1.0);
+    case kModDoor:
+      return v3f(0.4, 0.4, 0.7);
     case kModCount:
     default:
       return v3f();
@@ -121,11 +121,27 @@ ModuleColor(ModuleKind mkind)
   return v3f();
 }
 
+// TODO: Probably add some grid checking here.
+bool
+ModuleCanBuild(ModuleKind mkind, Player* player)
+{
+  if (!player) return false;
+  return player->mineral >= ModuleCost(mkind);
+}
+
 bool
 ModuleNear(Module* module, v3f loc)
 {
   // TODO: Take into consideration module bounds.
   if (LengthSquared(loc - module->position) < 50.f * 38.f) return true;
+  return false;
+}
+
+bool
+ModuleNearXY(Module* module, v3f loc)
+{
+  // TODO: Take into consideration module bounds.
+  if (LengthSquared(loc.xy() - module->position.xy()) < 50.f * 38.f) return true;
   return false;
 }
 
@@ -228,6 +244,25 @@ ModuleWarpUpdate(Module* module)
   }
 }
 
+// TODO(abrunasso): Lol - Do this a better way....
+void
+ModuleDoorUpdate(Module* module)
+{
+  constexpr float up = 80.f;
+  constexpr float down = 15.f;
+  Unit* unit = GetNearestUnit(module->position);
+  if (!unit) return;
+  if (!ModuleNearXY(module, unit->position)) {
+    if (module->position.z > down) {
+      module->position.z -= 1.f;
+    }
+    return;
+  }
+  if (module->position.z < up) {
+    module->position.z += 1.f;
+  }
+}
+
 void
 ModuleUpdate(Module* module)
 {
@@ -243,6 +278,9 @@ ModuleUpdate(Module* module)
     } break;
     case kModWarp: {
       ModuleWarpUpdate(module);
+    } break;
+    case kModDoor: {
+      ModuleDoorUpdate(module);
     } break;
     default:
       break;

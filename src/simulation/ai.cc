@@ -2,7 +2,6 @@
 
 namespace simulation
 {
-
 // AI Will wander to adjacent tiles.
 void
 AIWander(Unit* unit)
@@ -117,6 +116,7 @@ AICrewMember(Unit* unit)
   // Prioritize building unbuilt modules.
   Module* target_mod = nullptr;
   FOR_EACH_ENTITY(Module, mod, {
+    if (mod->ship_index != unit->ship_index) continue;
     if (!ModuleBuilt(mod)) {
       target_mod = mod;
       break;
@@ -129,6 +129,7 @@ AICrewMember(Unit* unit)
          i = (i + 1) % kUsedEntity) {
       Module* mod = i2Module(i);
       if (!mod) continue;
+      if (mod->ship_index != unit->ship_index) continue;
       if (mod->mkind == kModEngine || mod->mkind == kModMine) {
         target_mod = mod;
         break;
@@ -165,7 +166,8 @@ AIThink(Unit* unit)
     case kUnitBehaviorCrewMember: {
       AICrewMember(unit);
     } break;
-    default: break;
+    default:
+      break;
   }
 
   // Clear AI knowledge that should be learned per tick.

@@ -67,7 +67,7 @@ Think()
   ThinkAsteroid();
 
   for (uint64_t i = 0; i < kUsedShip; ++i) {
-    TilemapSet(i);
+    TilemapModify tm(i);
     // Shroud is reset each frame
     TilemapUpdate();
   }
@@ -233,6 +233,11 @@ DecideInvasion()
 bool
 MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
 {
+  TilemapModify tm(unit->ship_index);
+  if (!tm.ok) {
+    return true;
+  }
+
   if (v3fDsq(unit->position, dest) < 1.f) {
     unit->position = dest;
     unit->uaction = set_on_arrival;
@@ -459,7 +464,7 @@ Decide()
           ApplyCommand(unit, c);
         });
       } else {
-        TilemapSet(TilemapWorldToGrid(c.destination));
+        TilemapModify tm(TilemapWorldToGrid(c.destination));
         v2i start;
         if (!WorldToTilePos(c.destination, &start)) continue;
         BfsIterator iter = BfsStart(start);
@@ -486,7 +491,7 @@ Decide()
   DecideInvasion();
 
   for (uint64_t i = 0; i < kUsedShip; ++i) {
-    TilemapSet(i);
+    TilemapModify tm(i);
     DecideShip(i);
     UpdateModule(i);
     UpdateUnit(i);
@@ -512,13 +517,9 @@ Update()
 
   if (kSimulationOver) return;
 
-  for (int i = 0; i < kUsedShip; ++i) {
-    TilemapSet(i);
-  }
-
   Think();
   Decide();
-  TilemapSet(-1);
+  TilemapClear();
 
   FOR_EACH_ENTITY(Unit, unit, {
     if (!unit) continue;

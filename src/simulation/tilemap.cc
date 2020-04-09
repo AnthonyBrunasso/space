@@ -183,22 +183,6 @@ TilemapWorldCenter()
          v2f(kMapWidth * kTileWidth * .5f, kMapHeight * kTileHeight * .5f);
 }
 
-bool
-TilemapSet(uint64_t ship_index)
-{
-  // no tilemap
-  if (ship_index >= kUsedGrid || ship_index >= kUsedShip) {
-    kCurrentGrid = nullptr;
-    return false;
-  }
-
-  // TODO (AN): For now grid_index is ship_index
-  kCurrentGrid = &kGrid[ship_index];
-  kTilemapWorldOffset = kShip[ship_index].transform.position.xy();
-
-  return true;
-}
-
 void
 TilemapClear()
 {
@@ -213,7 +197,14 @@ class TilemapModify
   {
     prev_grid = kCurrentGrid;
     prev_offset = kTilemapWorldOffset;
-    TilemapSet(ship_index);
+    // TODO (AN): For now grid_index is ship_index
+    ok = ship_index < kUsedGrid && ship_index < kUsedShip;
+
+    if (!ok) return;
+
+    // TODO (AN): For now grid_index is ship_index
+    kCurrentGrid = &kGrid[ship_index];
+    kTilemapWorldOffset = kShip[ship_index].transform.position.xy();
   }
 
   ~TilemapModify()
@@ -224,13 +215,15 @@ class TilemapModify
 
   Grid* prev_grid;
   v2f prev_offset;
+  bool ok;
 };
 
 int64_t
 TilemapWorldToGrid(v3f world)
 {
   for (int i = 0; i < kUsedShip; ++i) {
-    if (!TilemapSet(i)) continue;
+    TilemapModify tm(i);
+    if (!tm.ok) continue;
     math::Rectf r(kTilemapWorldOffset.x, kTilemapWorldOffset.y,
                   kMapWidth * kTileWidth, kMapHeight * kTileHeight);
     if (math::PointInRect(world.xy(), r)) {
@@ -256,9 +249,12 @@ TilemapInitialize(uint64_t player_index, TilemapType type, bool fog)
 {
   assert(player_index < kUsedPlayer);
 
-  kCurrentGrid = UseGrid();
-  kTilemapWorldOffset = v2f();
   uint64_t ship_index = kPlayer[player_index].ship_index;
+  // TODO (AN): assuming 1:1 ship grid again
+  if (kUsedGrid <= ship_index) {
+    UseGrid();
+  }
+  TilemapModify tm(ship_index);
 
   // clang-format off
 static int kDefaultMap[kMapHeight][kMapWidth] = {

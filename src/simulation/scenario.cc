@@ -31,17 +31,14 @@ ScenarioSpawnRandomModule(ModuleKind kind, uint64_t ship_index, int num = 0)
 {
   TilemapModify tm(ship_index);
   int made = 0;
-  for (int i = 0; i < kUsedEntity; ++i) {
-    Module* module = i2Module(i);
-    if (!module) return;
+  FOR_EACH_ENTITY(Module, module, {
     if (module->mkind != kind) continue;
     if (module->ship_index != ship_index) continue;
     if (ModuleBuilt(module)) continue;
-    // TODO: These correspond now - will they always?
     ModuleSetBuilt(module);
     ++made;
     if (made == num) break;
-  }
+  });
 }
 
 void
@@ -132,7 +129,7 @@ ScenarioInitialize()
     } break;
     case kTwoShip: {
       for (int i = 0; i < kPlayerCount; ++i) {
-        TilemapSet(i);
+        TilemapModify tm(i);
         SpawnCrew(v2i(5, 23), i, i);
         SpawnAICrew(v2i(15, 15), i, i);
         ScenarioSpawnRandomModule(kModPower, i);
@@ -147,7 +144,6 @@ ScenarioInitialize()
   LOGFMT("Player count: %lu", kUsedPlayer);
 
   for (int i = 0; i < kUsedPlayer; ++i) {
-    TilemapSet(kPlayer[i].ship_index);
     camera::InitialCamera(&kPlayer[i].camera);
 
     FOR_EACH_ENTITY(Unit, unit, {

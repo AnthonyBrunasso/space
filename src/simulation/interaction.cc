@@ -264,7 +264,7 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
   imui::Text(ui_buffer);
   snprintf(ui_buffer, sizeof(ui_buffer), "Level: %lu", player->level);
   imui::Text(ui_buffer);
-  snprintf(ui_buffer, sizeof(ui_buffer), "Player Index: %zu", player-kPlayer);
+  snprintf(ui_buffer, sizeof(ui_buffer), "Player Index: %zu", player - kPlayer);
   imui::Text(ui_buffer);
 
   if (simulation::kSimulationOver) {
@@ -325,8 +325,9 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
                          (unsigned)(1 << player_index)});
           } break;
           case kHudModule: {
+            TilemapModify tm(player->ship_index);
+            if (!tm.ok) break;
             ModuleKind mkind = player->mod_placement;
-            if (!TilemapSet(player->ship_index)) break;
             v2i tilepos;
             if (WorldToTilePos(world_pos, &tilepos) &&
                 event.button == BUTTON_LEFT) {

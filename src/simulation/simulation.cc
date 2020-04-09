@@ -187,10 +187,11 @@ DecideInvasion()
 
   for (int i = 0; i < kUsedInvasion; ++i) {
     Invasion* v = &kInvasion[i];
+    TilemapModify mod(TilemapWorldToGrid(v->transform.position));
     v2i tp;
     if (!v->docked && WorldToTilePos(v->transform.position, &tp)) {
       Tile* tile = TilePtr(tp);
-      if (tile->blocked) {
+      if (tile && tile->blocked) {
         v->docked = true;
         v->docked_tile = v2i(tile->cx, tile->cy);
       }

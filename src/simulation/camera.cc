@@ -27,13 +27,26 @@ struct Camera {
   v2i viewport;
 };
 
+namespace gfx
+{
+void
+PushDebugCube(const math::Cubef& cube, const v4f& color);
+}
+
 namespace camera
 {
+
 void
 Update(Camera* cam)
 {
   cam->target += cam->motion.xy();
   cam->position += cam->motion;
+  //v3f dir = math::Normalize(cam->position - cam->target);
+  //cam->position = cam->target + dir * 100.f;
+  //cam->position += cam->motion;
+  // TODO: Remove this or add a debug setting for it...
+  gfx::PushDebugCube(math::Cubef(cam->target, v3f(15.f, 15.f, 15.f)),
+                     v4f(1.f, 0.f, 0.f, 1.f));
 }
 
 void
@@ -92,14 +105,14 @@ ScreenToWorldSpace(const Camera* cam, const v3f screen)
 void
 InitialCamera(Camera* cam)
 {
-  cam->position = v3f(400.f, 400.f, 500.f);
+  cam->position = v3f(400.f, 500.f, 500.f);
   cam->target = v3f(400.f, 400.f, 0.f);
 }
 
 void
 Move(Camera* cam, v3f pos)
 {
-  cam->position = v3f(pos.x, pos.y, cam->position.z);
+  cam->position = v3f(pos.x, pos.y - 100.f, cam->position.z);
   cam->target = v3f(pos.x, pos.y, 0.f);
 }
 

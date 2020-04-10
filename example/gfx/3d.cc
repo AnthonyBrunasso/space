@@ -20,9 +20,9 @@ UI()
   auto dims = window::GetWindowSize();
   imui::PaneOptions pane_options;
   imui::Begin(v2f(20.f, dims.y - 50.f), 0, pane_options);
-  snprintf(buffer, 64, "Camera: (%.3f,%.3f,%.3f)", cpos.x, cpos.y, cpos.z);
+  snprintf(buffer, 64, "cpos: (%.3f,%.3f,%.3f)", cpos.x, cpos.y, cpos.z);
   imui::Text(buffer);
-  snprintf(buffer, 64, "Cube: (%.3f,%.3f,%.3f)", cubepos.x, cubepos.y, cubepos.z);
+  snprintf(buffer, 64, "ctgt: (%.3f,%.3f,%.3f)", ctgt.x, ctgt.y, ctgt.z);
   imui::Text(buffer);
   imui::End();
 }
@@ -55,31 +55,34 @@ main(int argc, char** argv)
           switch (event.key) {
             case 'w': {
               cpos.y += speed;
-              ctgt.y += speed;
             } break;
             case 'a': {
               cpos.x -= speed;
-              ctgt.x -= speed;
             } break;
             case 's': {
               cpos.y -= speed;
-              ctgt.y -= speed;
             } break;
             case 'd': {
               cpos.x += speed;
-              ctgt.x += speed;
             } break;
             case 'k': {
-              cubepos.z -= speed;
+              //cubepos.z -= speed;
+              ctgt.y += speed;
             } break;
             case 'h': {
-              cubepos.x -= speed;
+              //cubepos.x -= speed;
+              ctgt.x -= speed;
             } break;
             case 'j': {
-              cubepos.z += speed;
+              //cubepos.z += speed;
+              ctgt.y -= speed;
             } break;
             case 'l': {
-              cubepos.x += speed;
+              //cubepos.x += speed;
+              ctgt.x += speed;
+            } break;
+            case 27 /* ESC */: {
+              exit(1);
             } break;
           }
           rp = math::RandomPointOnRect(math::Rectf(
@@ -99,24 +102,21 @@ main(int argc, char** argv)
 
     o->view = math::LookAt(cpos, ctgt, cup);
 
+    math::Print4x4Matrix(o->view);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     rgg::kObserver.position = cpos;
 
-    rgg::RenderRectangle(
-        math::Rectf(cubepos.x, cubepos.y, cubedim.x, cubedim.y),
-        cubepos.z, v4f(1.f, 1.f, 1.f, 1.f));
-
-    rgg::RenderLine(
-        v3f(0.f, 0.f, cubepos.z + 0.1f), v3f(rp.x, rp.y, cubepos.z),
-        v4f(1.f, 0.f, 0.f, 1.f));
+    rgg::RenderLineCube(math::Cubef(ctgt, v3f(15.f, 15.f, 15.f)),
+                        v4f(1.f, 0.f, 0.f, 1.f));
 
     RenderAxis();
 
     UI();
 
     imui::Render(0);
-    imui::Reset();
+    imui::ResetAll();
 
     window::SwapBuffers();
     platform::sleep_usec(10*1000);

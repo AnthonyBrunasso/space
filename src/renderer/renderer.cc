@@ -672,7 +672,7 @@ void
 RenderLineCube(const math::Cubef& cube, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
-  math::Mat4f matrix = kObserver.projection * kObserver.view;
+  math::Mat4f matrix = kObserver.view * kObserver.projection;
   glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y,
               color.z, color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,

@@ -162,58 +162,27 @@ Scale(const v3f& scale)
 }
 
 Mat4f
-Rotation(const Quatf& quat)
-{
-  Mat4f rotation;
-  rotation.data_[0] = 1.f - 2.f * quat.y * quat.y - 2.f * quat.z * quat.z;
-  rotation.data_[1] = 2.f * quat.x * quat.y - 2.f * quat.w * quat.z;
-  rotation.data_[2] = 2.f * quat.x * quat.z + 2 * quat.w * quat.y;
-  rotation.data_[3] = 0.0f;
-  rotation.data_[4] = 2.f * quat.x * quat.y + 2.f * quat.w * quat.z;
-  rotation.data_[5] = 1.f - 2.f * quat.x * quat.x - 2.f * quat.z * quat.z;
-  rotation.data_[6] = 2.f * quat.y * quat.z - 2.f * quat.w * quat.x;
-  rotation.data_[7] = 0.0f;
-  rotation.data_[8] = 2.f * quat.x * quat.z - 2.f * quat.w * quat.y;
-  rotation.data_[9] = 2.f * quat.y * quat.z + 2.f * quat.w * quat.x;
-  rotation.data_[10] = 1.f - 2.f * quat.x * quat.x - 2.f * quat.y * quat.y;
-  rotation.data_[11] = 0.0f;
-  rotation.data_[12] = 0.0f;
-  rotation.data_[13] = 0.0f;
-  rotation.data_[14] = 0.0f;
-  rotation.data_[15] = 1.0f;
-  return rotation;
-}
-
-Mat4f
-View(const v3f& translation, const v3f& right, const v3f& up, const v3f& forward)
-{
-  Mat4f view;
-  view.data_[0] = right.x;
-  view.data_[1] = right.y;
-  view.data_[2] = right.z;
-  view.data_[3] = 0.0f;
-  view.data_[4] = up.x;
-  view.data_[5] = up.y;
-  view.data_[6] = up.z;
-  view.data_[7] = 0.0f;
-  view.data_[8] = -forward.x;
-  view.data_[9] = -forward.y;
-  view.data_[10] = -forward.z;
-  view.data_[11] = 0.0f;
-  view.data_[12] = -Dot(right, translation);
-  view.data_[13] = -Dot(up, translation);
-  view.data_[14] = Dot(forward, translation);
-  view.data_[15] = 1.0f;
-  return view;
-}
-
-Mat4f
 LookAt(const v3f& eye, const v3f& target, const v3f& up)
 {
-  v3f forward = math::Normalize(target - eye);
-  v3f right = math::Normalize(math::Cross(forward, up));
-  v3f nup = math::Cross(right, forward);
-  return View(eye, right, nup, forward);
+  v3f f = math::Normalize(eye - target);
+  v3f r = math::Normalize(math::Cross(up, f));
+  v3f u = math::Cross(f, r);
+
+#if 1
+  // Keeping this around to remind myself how the below is derived.
+  // NOTE - See the transposed columns, this is not a mistake. The view
+  // matrix is the inverse of the camera transform. The camera transform
+  // is given by the above basis and to invert a rotation matrix (orthonormal
+  // basis) we can transpose it.
+  Mat4f orientation(
+      r.x, u.x, f.x, 0.f,
+      r.y, u.y, f.y, 0.f,
+      r.z, u.z, f.z, 0.f,
+      0.f, 0.f, 0.f, 1.f);
+  return (orientation * Translation(-eye));
+#else
+  // TODO: Optimization here is to avoid the matrix multiply...
+#endif
 }
 
 Mat4f

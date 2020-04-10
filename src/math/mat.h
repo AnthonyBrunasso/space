@@ -17,6 +17,22 @@ class Mat4
  public:
   Mat4() = default;
 
+  // TODO(abrunasso): Change this initialization... This constructor
+  // matches the memory layout of data_. Which is - columns of the matrix
+  // are layed out adjacent to each other.
+  //
+  // So in a 4x4 matrix column one would be indices 1,2,3,4
+  //                    column two would be indices 5,6,7,8
+  //                    etc...
+  //
+  // This is in contrast with what is printed out by Print4x4Matrix but
+  // more importantly is in contrast with how a user would actually like
+  // to think about matrices which is in a column major way.
+  //
+  // This ctor causes, actually singificant, mental strain when converting
+  // matrices from theory to practice. One must transpose in the ctor
+  // and make sure they are multiplying in an appropriate column major
+  // order.
   Mat4(T c11, T c21, T c31, T c41,
        T c12, T c22, T c32, T c42,
        T c13, T c23, T c33, T c43,
@@ -41,17 +57,17 @@ class Mat4
   }
 
   T&
-  operator()(size_t m, size_t n)
+  operator()(size_t col, size_t row)
   {
-    assert(m * n < 16);
-    return data_[n * 4 + m];
+    assert(col * row < 16);
+    return data_[col * 4 + row];
   }
 
   const T&
-  operator()(size_t m, size_t n) const
+  operator()(size_t col, size_t row) const
   {
-    assert(m * n < 16);
-    return data_[n * 4 + m];
+    assert(col * row < 16);
+    return data_[col * 4 + row];
   }
 
   // Get the i'th column of the matrix as a vec4
@@ -310,19 +326,19 @@ template <class T>
 v3f operator*(const Mat4<T>& lhs, const v3f& rhs)
 {
   return v3f(
-      lhs(0, 0) * rhs.x + lhs(0, 1) * rhs.y + lhs(0, 2) * rhs.z + lhs(0, 3),
-      lhs(1, 0) * rhs.x + lhs(1, 1) * rhs.y + lhs(1, 2) * rhs.z + lhs(1, 3),
-      lhs(2, 0) * rhs.x + lhs(2, 1) * rhs.y + lhs(2, 2) * rhs.z + lhs(2, 3));
+      lhs(0, 0) * rhs.x + lhs(1, 0) * rhs.y + lhs(2, 0) * rhs.z + lhs(3, 0),
+      lhs(0, 1) * rhs.x + lhs(1, 1) * rhs.y + lhs(2, 1) * rhs.z + lhs(3, 1),
+      lhs(0, 2) * rhs.x + lhs(1, 2) * rhs.y + lhs(2, 2) * rhs.z + lhs(3, 2));
 }
 
 template <class T>
 v4f operator*(const Mat4<T>& lhs, const v4f& rhs)
 {
   return v4f(
-      lhs(0, 0) * rhs.x + lhs(0, 1) * rhs.y + lhs(0, 2) * rhs.z + lhs(0, 3) * rhs.w,
-      lhs(1, 0) * rhs.x + lhs(1, 1) * rhs.y + lhs(1, 2) * rhs.z + lhs(1, 3) * rhs.w,
-      lhs(2, 0) * rhs.x + lhs(2, 1) * rhs.y + lhs(2, 2) * rhs.z + lhs(2, 3) * rhs.w,
-      lhs(3, 0) * rhs.x + lhs(3, 1) * rhs.y + lhs(3, 2) * rhs.z + lhs(3, 3) * rhs.w);
+      lhs(0, 0) * rhs.x + lhs(1, 0) * rhs.y + lhs(2, 0) * rhs.z + lhs(3, 0) * rhs.w,
+      lhs(0, 1) * rhs.x + lhs(1, 1) * rhs.y + lhs(2, 1) * rhs.z + lhs(3, 1) * rhs.w,
+      lhs(0, 2) * rhs.x + lhs(1, 2) * rhs.y + lhs(2, 2) * rhs.z + lhs(3, 2) * rhs.w,
+      lhs(0, 3) * rhs.x + lhs(1, 3) * rhs.y + lhs(2, 3) * rhs.z + lhs(3, 3) * rhs.w);
 }
 
 // clang-format on

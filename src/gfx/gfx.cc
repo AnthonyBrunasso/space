@@ -16,11 +16,13 @@ struct Gfx {
 };
 
 static Gfx kGfx;
-static v4f kWhite = v4f(1.f, 1.f, 1.f, 1.f);
 static v4f kSelectionColor = v4f(0.19f, 0.803f, 0.19f, 0.40f);
 static v4f kSelectionOutlineColor = v4f(0.19f, 0.803f, 0.19f, 1.f);
 static v4f kRed = v4f(1.f, 0.f, 0.f, 1.f);
 static v4f kGreen = v4f(0.f, 1.f, 0.f, 1.f);
+static v4f kBlue = v4f(0.f, 0.f, 1.f, 1.f);
+static v4f kWhite = v4f(1.f, 1.f, 1.f, 1.f);
+static v4f kGray = v4f(.6f, .6f, .6f, 1.f);
 static const math::Quatf kDefaultRotation = math::Quatf(0.f, 0.f, 0.f, 1.f);
 static v3f kDefaultScale = v3f(1.f, 1.f, 1.f);
 static v3f kTileScale = v3f(0.5f, 0.5f, 1.f);

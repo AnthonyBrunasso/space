@@ -292,6 +292,7 @@ main(int argc, char** argv)
         Player* player = &kPlayer[i];
         simulation::LogPanel(dims, i);
         simulation::AdminPanel(dims, i, player);
+        simulation::TilePanel(dims, i, player);
         simulation::GameUI(dims, i, i, player);
       }
 #endif

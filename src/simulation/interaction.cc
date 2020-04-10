@@ -194,6 +194,52 @@ ReadOnlyUnits(v2f screen, uint32_t tag)
 }
 
 void
+TilePanel(v2f screen, uint32_t tag, Player* player)
+{
+  imui::PaneOptions options;
+  options.width = 300.f;
+  imui::Begin(v2f(screen.x - 600.f, screen.y - 30.f), tag, options);
+  imui::TextOptions debug_options;
+  debug_options.color = gfx::kWhite;
+  debug_options.highlight_color = gfx::kRed;
+  snprintf(ui_buffer, sizeof(ui_buffer), "Tile Debug [%d]", player->tile_menu);
+  if (imui::Text(ui_buffer, debug_options).clicked) {
+    player->tile_menu = !player->tile_menu;
+  }
+
+  if (player->tile_menu) {
+    imui::Indent(2);
+    v2i tilepos;
+    uint64_t ship_index = TilemapWorldToGrid(player->world_mouse);
+    if (ship_index != kInvalidIndex) {
+      TilemapModify tm(ship_index);
+      WorldToTilePos(player->world_mouse, &tilepos);
+      Tile* tile = TilePtr(tilepos);
+      snprintf(ui_buffer, sizeof(ui_buffer), "%u X %u Y", tilepos.x, tilepos.y);
+      imui::Text(ui_buffer, debug_options);
+      snprintf(ui_buffer, sizeof(ui_buffer), "blocked %u", tile->blocked);
+      imui::Text(ui_buffer, debug_options);
+      snprintf(ui_buffer, sizeof(ui_buffer), "nooxygen %u", tile->nooxygen);
+      imui::Text(ui_buffer, debug_options);
+      snprintf(ui_buffer, sizeof(ui_buffer), "can_shroud %u", tile->can_shroud);
+      imui::Text(ui_buffer, debug_options);
+      snprintf(ui_buffer, sizeof(ui_buffer), "shroud %u", tile->shroud);
+      imui::Text(ui_buffer, debug_options);
+      snprintf(ui_buffer, sizeof(ui_buffer), "explored %u", tile->explored);
+      imui::Text(ui_buffer, debug_options);
+      snprintf(ui_buffer, sizeof(ui_buffer), "exterior %u", tile->exterior);
+      imui::Text(ui_buffer, debug_options);
+
+      rgg::RenderRectangle(TilePosToWorld(tilepos), gfx::kTileScale,
+                           gfx::kDefaultRotation, gfx::kGray);
+    }
+    imui::Indent(-2);
+  }
+
+  imui::End();
+}
+
+void
 AdminPanel(v2f screen, uint32_t tag, Player* player)
 {
   imui::PaneOptions options;

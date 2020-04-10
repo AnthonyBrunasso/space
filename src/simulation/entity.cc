@@ -252,6 +252,7 @@ struct Player {
   ModuleKind mod_placement;
   uint64_t ship_index;
   bool admin_menu;
+  bool tile_menu;
   bool scenario_menu;
   bool mineral_cheat;
   float mineral = 0;

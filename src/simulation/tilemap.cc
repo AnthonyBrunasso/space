@@ -10,7 +10,8 @@
 
 namespace simulation
 {
-v3f ModuleBounds(ModuleKind mkind);  // defined in module.cc
+extern v3f ModuleBounds(ModuleKind mkind);  // defined in module.cc
+extern void BfsMutate(v3f origin, Tile keep_bits, Tile set_bits, float tile_dsq); // defined in search.cc
 
 constexpr float kTileWidth = 25.0f;
 constexpr float kTileHeight = 25.0f;
@@ -246,7 +247,7 @@ WorldToTilePos(const v3f pos, v2i* t)
 }
 
 void
-TilemapInitialize(uint64_t player_index, TilemapType type, bool fog)
+TilemapInitialize(uint64_t player_index, TilemapType type)
 {
   assert(player_index < kUsedPlayer);
 
@@ -348,7 +349,6 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
           tile->blocked = (kDefaultMap[y][x] == kTileBlock);
           tile->nooxygen = 0;
           tile->explored = 1;
-          tile->exterior = 1;
           tile->shroud = 0;
 
           // Consumables enabled: cryo chamber, gatherable resources
@@ -382,16 +382,32 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
       }
     } break;
   }
+}
 
-  if (fog) {
-    for (int i = 0; i < kMapHeight; ++i) {
-      for (int j = 0; j < kMapWidth; ++j) {
-        Tile* tile = TilePtr(v2i(j, i));
-        tile->can_shroud = !tile->exterior;
-      }
+void
+TilemapEnableFog()
+{
+  for (int i = 0; i < kMapHeight; ++i) {
+    for (int j = 0; j < kMapWidth; ++j) {
+      Tile* tile = TilePtr(v2i(j, i));
+      tile->can_shroud = !tile->exterior;
     }
   }
-}  // namespace simulation
+}
+
+void
+TilemapResetExterior()
+{
+  for (int i = 0; i < kUsedShip; ++i) {
+    TilemapModify tm(i);
+    Tile keep_bits;
+    memset(&keep_bits, 0xff, sizeof(Tile));
+    Tile set_bits;
+    memset(&set_bits, 0x00, sizeof(Tile));
+    set_bits.exterior = 1;
+    BfsMutate(kShip[i].transform.position, keep_bits, set_bits, FLT_MAX);
+  }
+}
 
 void
 TilemapUpdate()

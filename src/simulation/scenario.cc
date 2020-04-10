@@ -42,20 +42,6 @@ ScenarioSpawnRandomModule(ModuleKind kind, uint64_t ship_index, int num = 0)
 }
 
 void
-TilemapUnexplored(v3f world_position)
-{
-  Tile keep_bits;
-  memset(&keep_bits, 0xff, sizeof(Tile));
-  keep_bits.explored = 1;
-  keep_bits.exterior = 0;
-  Tile set_bits;
-  memset(&set_bits, 0x00, sizeof(Tile));
-  float tile_world_distance = kMapWidth * kTileWidth;
-  BfsMutate(world_position, keep_bits, set_bits,
-            tile_world_distance * tile_world_distance);
-}
-
-void
 ScenarioInitialize()
 {
   int sid = kScenario;
@@ -101,16 +87,15 @@ ScenarioInitialize()
     player->mineral = 400;
   }
 
-  const bool FOG_DISABLE = false;
   for (int i = 0; i < kUsedPlayer; ++i) {
     switch (sid) {
       case kEmptyScenario:
       case kCombatScenario:
-        TilemapInitialize(i, kTilemapEmpty, FOG_DISABLE);
+        TilemapInitialize(i, kTilemapEmpty);
         break;
       case kSoloMission:
       case kTwoShip:
-        TilemapInitialize(i, kTilemapShip, FOG_DISABLE);
+        TilemapInitialize(i, kTilemapShip);
         break;
     }
   }
@@ -154,6 +139,8 @@ ScenarioInitialize()
       }
     });
   }
+
+  TilemapResetExterior();
 }  // namespace simulation
 
 void

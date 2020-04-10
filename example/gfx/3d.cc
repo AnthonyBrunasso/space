@@ -1,6 +1,7 @@
 #include "platform/platform.cc"
 #include "gl/gl.cc"
 #include "renderer/renderer.cc"
+#include "renderer/camera.cc"
 #include "simulation/camera.cc"
 #include "gfx/gfx.cc"
 #include "math/math.cc"
@@ -18,12 +19,34 @@ UI()
 {
   char buffer[64];
   auto dims = window::GetWindowSize();
+  imui::TextOptions text_options;
+  text_options.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
   imui::PaneOptions pane_options;
   imui::Begin(v2f(20.f, dims.y - 50.f), 0, pane_options);
   snprintf(buffer, 64, "cpos: (%.3f,%.3f,%.3f)", cpos.x, cpos.y, cpos.z);
   imui::Text(buffer);
   snprintf(buffer, 64, "ctgt: (%.3f,%.3f,%.3f)", ctgt.x, ctgt.y, ctgt.z);
   imui::Text(buffer);
+  if (imui::Text("Create Camera", text_options).clicked) {
+    rgg::Camera camera;
+    camera.position = cpos;
+    camera.dir = math::Normalize(ctgt - cpos);
+    camera.up = v3f(0.f, 1.f, 0.f);
+    camera.mode = rgg::kCameraControl;
+    rgg::CameraInit(camera);
+  }
+  imui::Text("Local Cameras"); 
+  imui::Indent(2);
+  for (int i = 0; i < rgg::kUsedCamera[rgg::kLocalCameraTag]; ++i) {
+    rgg::Camera* c = &rgg::kCamera[rgg::kLocalCameraTag][i];
+    snprintf(buffer, 64, "%i pos(%.2f,%.2f,%.2f) dir(%.2f,%.2f,%.2f) mode(%i)", i,
+             c->position.x, c->position.y, c->position.y,
+             c->dir.x, c->dir.y, c->dir.y, c->mode);
+    if (imui::Text(buffer, text_options).clicked) {
+      rgg::CameraSwitch(rgg::kLocalCameraTag, i);
+    }
+  }
+  imui::Indent(-2);
   imui::End();
 }
 
@@ -46,39 +69,31 @@ main(int argc, char** argv)
   v2f size = window::GetWindowSize();
   auto* o = rgg::GetObserver();
   o->projection = math::Perspective(67.f, size.x / size.y, .1f, 1000.f);
+
+  rgg::Camera camera;
+  camera.position = cpos;
+  camera.dir = math::Normalize(ctgt - cpos);
+  camera.up = v3f(0.f, 1.f, 0.f);
+  camera.mode = rgg::kCameraControl;
+  rgg::CameraInit(camera);
   
   while (!window::ShouldClose()) {
     PlatformEvent event;
     while (window::PollEvent(&event)) {
+      rgg::CameraUpdate(event);
       switch (event.type) {
         case KEY_DOWN: {
           switch (event.key) {
-            case 'w': {
-              cpos.y += speed;
-            } break;
-            case 'a': {
-              cpos.x -= speed;
-            } break;
-            case 's': {
-              cpos.y -= speed;
-            } break;
-            case 'd': {
-              cpos.x += speed;
-            } break;
             case 'k': {
-              //cubepos.z -= speed;
               ctgt.y += speed;
             } break;
             case 'h': {
-              //cubepos.x -= speed;
               ctgt.x -= speed;
             } break;
             case 'j': {
-              //cubepos.z += speed;
               ctgt.y -= speed;
             } break;
             case 'l': {
-              //cubepos.x += speed;
               ctgt.x += speed;
             } break;
             case 27 /* ESC */: {
@@ -93,20 +108,19 @@ main(int argc, char** argv)
             imui::MouseClick(event.position, event.button, 0);
           }
         } break;
-        case MOUSE_WHEEL: {
-          cpos.z += (-10.f * event.wheel_delta);
-        } break;
         default: break;
       }
     }
 
-    o->view = math::LookAt(cpos, ctgt, cup);
+    const v2f cursor = window::GetCursorPosition();
+    imui::MousePosition(cursor, 0);
 
-    math::Print4x4Matrix(o->view);
+    rgg::CameraFollow(ctgt);
+    o->view = rgg::CameraView();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    rgg::kObserver.position = cpos;
+    rgg::kObserver.position = rgg::CameraPosition();
 
     rgg::RenderLineCube(math::Cubef(ctgt, v3f(15.f, 15.f, 15.f)),
                         v4f(1.f, 0.f, 0.f, 1.f));

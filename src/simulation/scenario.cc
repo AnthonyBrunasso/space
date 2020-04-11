@@ -25,6 +25,8 @@ constexpr const char* kScenarioNames[kMaxScenario] = {
     "Solo",
     "Empty",
 };
+// Global enable/disable for shroud
+constexpr uint64_t GAME_SHROUD = 0;
 
 void
 ScenarioSpawnRandomModule(ModuleKind kind, uint64_t ship_index, int num = 0)
@@ -141,7 +143,9 @@ ScenarioInitialize()
   }
 
   TilemapResetExterior();
-  TilemapResetShroud();
+  if (GAME_SHROUD) {
+    TilemapResetShroud();
+  }
 }  // namespace simulation
 
 void

@@ -493,7 +493,9 @@ Update()
 
   if (kSimulationOver) return;
 
-  TilemapResetVisible();
+  if (GAME_SHROUD) {
+    TilemapResetVisible();
+  }
   Decide();
   TilemapClear();
 

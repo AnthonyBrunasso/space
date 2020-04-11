@@ -10,8 +10,8 @@
 
 namespace simulation
 {
-extern v3f ModuleBounds(ModuleKind mkind);  // defined in module.cc
-void BfsTileEnable(Tile set_tile);          // in search.cc
+extern v3f ModuleBounds(ModuleKind mkind);             // defined in module.cc
+void BfsTileEnable(Tile set_tile, uint64_t tile_dsq);  // in search.cc
 
 constexpr float kTileWidth = 25.0f;
 constexpr float kTileHeight = 25.0f;
@@ -360,7 +360,20 @@ TilemapResetShroud()
     set_tile.cx = kMapWidth / 2;
     set_tile.cy = kMapHeight / 2;
     set_tile.shroud = 1;
-    BfsTileEnable(set_tile);
+    BfsTileEnable(set_tile, UINT64_MAX);
+  }
+}
+
+void
+TilemapResetVisible()
+{
+  for (int i = 0; i < kUsedShip; ++i) {
+    TilemapModify tm(i);
+    for (int j = 0; j < kMapHeight; ++j) {
+      for (int k = 0; k < kMapWidth; ++k) {
+        kCurrentGrid->tilemap[j][k].visible = false;
+      }
+    }
   }
 }
 
@@ -371,7 +384,7 @@ TilemapResetExterior()
     TilemapModify tm(i);
     Tile set_tile = kZeroTile;
     set_tile.exterior = 1;
-    BfsTileEnable(set_tile);
+    BfsTileEnable(set_tile, UINT64_MAX);
   }
 }
 

@@ -152,8 +152,9 @@ PathTo(const v2i& start, const v2i& end)
 
 // set_tile contains the start location (cx, cy)
 // set_tile contains the flags to be enabled during Bfs
+// tile_dsq is tile distance squared
 void
-BfsTileEnable(Tile set_tile)
+BfsTileEnable(Tile set_tile, uint64_t tile_dsq)
 {
   auto& queue = kSearch.queue;
   auto& path_map = kSearch.path_map;
@@ -169,10 +170,14 @@ BfsTileEnable(Tile set_tile)
     if (BfsStep(from, &iter)) {
       if (iter.tile->blocked) continue;
 
-      TileSet(iter.tile, set_tile.flags);
+      int64_t dx = iter.tile->cx - set_tile.cx;
+      int64_t dy = iter.tile->cy - set_tile.cy;
+      if (dx * dx + dy * dy < tile_dsq) {
+        TileSet(iter.tile, set_tile.flags);
 
-      path_map[iter.tile->cy][iter.tile->cx] = from;
-      queue[qsz++] = v2i(iter.tile->cx, iter.tile->cy);
+        path_map[iter.tile->cy][iter.tile->cx] = from;
+        queue[qsz++] = v2i(iter.tile->cx, iter.tile->cy);
+      }
     }
   }
 }

@@ -23,6 +23,7 @@ constexpr float kDsqGather = 25.f * 25.f;
 constexpr float kDsqOperate = 50.f * 35.f;
 constexpr float kDsqOperatePod = 75.f * 75.f;
 constexpr float kAvoidanceScaling = 0.15f;
+constexpr uint64_t kTileDsqVisible = 9;
 static uint64_t kSimulationHash = DJB2_CONST;
 static bool kSimulationOver = false;
 
@@ -310,7 +311,7 @@ UpdateModule(uint64_t ship_index)
     tile.cx = tilepos.x;
     tile.cy = tilepos.y;
     tile.visible = 1;
-    BfsTileEnable(tile);
+    BfsTileEnable(tile, UINT64_MAX);
     break;
   });
 }
@@ -340,7 +341,8 @@ UpdateUnit(uint64_t ship_index)
       set_tile.cx = tilepos.x;
       set_tile.cy = tilepos.y;
       set_tile.visible = 1;
-      BfsTileEnable(set_tile);
+      set_tile.explored = 1;
+      BfsTileEnable(set_tile, kTileDsqVisible);
     }
 
     AIThink(unit);
@@ -491,6 +493,7 @@ Update()
 
   if (kSimulationOver) return;
 
+  TilemapResetVisible();
   Decide();
   TilemapClear();
 

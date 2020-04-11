@@ -303,7 +303,10 @@ RenderShip(uint64_t ship_index)
       // printf("%.3f\n", world_pos.z);
 
       v4f color;
-      if (tile->blocked) {
+      if (tile->shroud && !tile->explored) {
+        color = v4f(0.3f, 0.3f, 0.3f, .7);
+        rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
+      } else if (tile->blocked) {
         color = v4f(.15f, .15f, .15f, 1.f);
         rgg::RenderCube(math::Cubef(world_pos + v3f(0.f, 0.f, 50.f), kTileWidth,
                                     kTileHeight, 100.f),

@@ -28,7 +28,6 @@ enum TileType {
   kTileMine = kTileModule + kModMine,
   kTileTurret = kTileModule + kModTurret,
   kTileDoor = kTileModule + kModDoor,
-  kTileVacuum = 7,
   kTileConsumable = 8,
 };
 
@@ -100,25 +99,6 @@ TilePtr(const v2i& pos)
   return &kCurrentGrid->tilemap[pos.y][pos.x];
 }
 
-// Returns any neighbor of type kTileOpen
-v2i
-TileOpenAdjacent(const v2i pos)
-{
-  Tile* tile = TilePtr(pos);
-  assert(tile);
-  if (!tile->blocked) return pos;
-
-  for (int i = 0; i < kMaxNeighbor; ++i) {
-    v2i neighbor = pos + kNeighbor[i];
-    tile = TilePtr(neighbor);
-    if (!tile) continue;
-
-    if (!tile->blocked) return neighbor;
-  }
-
-  return INVALID_TILE;
-}
-
 v3f
 TileAvoidWalls(const v2i pos)
 {
@@ -134,14 +114,6 @@ TileAvoidWalls(const v2i pos)
   }
 
   return v3f(avoidance.x, avoidance.y, 0.0f);
-}
-
-v2f
-TileVacuum(const v2i pos)
-{
-  v2f posf(pos.x * 1.f, pos.y * 1.f);
-  v2f center(kMapWidth * 0.5f, kMapHeight * 0.5f);
-  return Normalize(posf - center);
 }
 
 v2f

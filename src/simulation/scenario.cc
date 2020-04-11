@@ -141,6 +141,7 @@ ScenarioInitialize()
   }
 
   TilemapResetExterior();
+  TilemapResetShroud();
 }  // namespace simulation
 
 void

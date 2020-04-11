@@ -94,7 +94,7 @@ RenderCrew(uint64_t ship_index)
     if (!WorldToTilePos(unit->position, &p)) continue;
     Tile* tile = TilePtr(p);
     if (!tile) continue;
-    if (tile->can_shroud && !tile->visible) continue;
+    if (tile->shroud && !tile->visible) continue;
     if (unit->notify) {
       const float radius = 50.f - (unit->notify * 1.f);
       rgg::RenderCircle(unit->position, radius - 10.f, radius, kWhite);
@@ -311,7 +311,7 @@ RenderShip(uint64_t ship_index)
       } else if (tile->nooxygen) {
         color = v4f(1.f, 0.f, .2f, .4);
         rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
-      } else if (tile->can_shroud && !tile->visible) {
+      } else if (tile->shroud && !tile->visible) {
         color = v4f(0.3f, 0.3f, 0.3f, .4);
         rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
       }

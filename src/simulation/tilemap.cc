@@ -352,13 +352,15 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
 }
 
 void
-TilemapEnableFog()
+TilemapResetShroud()
 {
-  for (int i = 0; i < kMapHeight; ++i) {
-    for (int j = 0; j < kMapWidth; ++j) {
-      Tile* tile = TilePtr(v2i(j, i));
-      tile->can_shroud = !tile->exterior;
-    }
+  for (int i = 0; i < kUsedShip; ++i) {
+    TilemapModify tm(i);
+    Tile set_tile = kZeroTile;
+    set_tile.cx = kMapWidth / 2;
+    set_tile.cy = kMapHeight / 2;
+    set_tile.shroud = 1;
+    BfsTileEnable(set_tile);
   }
 }
 
@@ -368,8 +370,6 @@ TilemapResetExterior()
   for (int i = 0; i < kUsedShip; ++i) {
     TilemapModify tm(i);
     Tile set_tile = kZeroTile;
-    set_tile.cx = 0;
-    set_tile.cy = 0;
     set_tile.exterior = 1;
     BfsTileEnable(set_tile);
   }

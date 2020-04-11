@@ -289,7 +289,7 @@ struct Tile {
       // tile does not support human life
       unsigned nooxygen : 1;
       // tile contents are 'unknown' unless marked visible
-      unsigned can_shroud : 1;
+      unsigned shroud : 1;
       // tile is visible to all players
       unsigned visible : 1;
       // tile is exterior to the ship walls ('blocked' flag)

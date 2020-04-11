@@ -83,7 +83,7 @@ AIAttackWhenDiscovered(Unit* unit)
 
   Tile* tile = TilePtr(tpos);
   if (!tile) return;
-  if (tile->can_shroud && !tile->visible) return;
+  if (tile->shroud && !tile->visible) return;
 
   Unit* target = GetNearestEnemyUnit(unit);
   if (!target) return;

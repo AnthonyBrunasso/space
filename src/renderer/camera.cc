@@ -8,7 +8,8 @@ namespace rgg
 enum CameraMode {
   kCameraFollow,
   kCameraControl,
-  kCameraFirstPerson
+  kCameraFirstPerson,
+  kCameraMaxMode,
 };
 
 struct Camera {
@@ -26,7 +27,7 @@ struct CameraState {
 
 static CameraState kCameraState;
 
-constexpr uint32_t kMaxCameras = 3;
+constexpr uint32_t kMaxCameras = 16;
 constexpr uint32_t kMaxTags = 3;
 constexpr uint32_t kLocalCameraTag = 2;
 
@@ -77,6 +78,7 @@ CameraFollow(const v3f& target)
 {
   Camera* c = CameraGetCurrent();
   if (!c) return;
+  if (c->mode != kCameraFollow) return;
   c->dir = math::Normalize(target - c->position);
 }
 

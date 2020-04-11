@@ -27,6 +27,12 @@ UI()
   imui::Text(buffer);
   snprintf(buffer, 64, "ctgt: (%.3f,%.3f,%.3f)", ctgt.x, ctgt.y, ctgt.z);
   imui::Text(buffer);
+  if (imui::Text("Toggle Mode", text_options).clicked) {
+    rgg::Camera* c = rgg::CameraGetCurrent();
+    if (c) {
+      c->mode = (rgg::CameraMode)((c->mode + 1) % rgg::kCameraMaxMode);
+    }
+  }
   if (imui::Text("Create Camera", text_options).clicked) {
     rgg::Camera camera;
     camera.position = cpos;

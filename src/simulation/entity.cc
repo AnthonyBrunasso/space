@@ -24,31 +24,30 @@
 #define DECLARE_GAME_QUEUE(type, count) DECLARE_QUEUE(type, count)
 
 // Use with DECLARE_GAME_TYPE_WITH_ID(Entity, ...)
-#define DECLARE_GAME_ENTITY(type, tid)     \
-  type* UseEntity##type()                  \
-  {                                        \
-    Entity* e = UseEntity();               \
-    if (!e) return nullptr;                \
-    type t = {};                           \
-    t.id = e->id;                          \
-    memcpy(e, &t, sizeof(t));              \
-    return (type*)e;                       \
-  }                                        \
-                                           \
-  type* i2##type(int idx)                  \
-  {                                        \
-    type* t = (type*)(&kEntity[idx]);      \
-    if (t->type_id != tid) return nullptr; \
-    if (t->id == 0) return nullptr;        \
-    return t;                              \
-  }                                        \
-                                           \
-  type* Find##type(uint32_t id)            \
-  {                                        \
-    type* t = (type*)FindEntity(id);       \
-    if (!t || t->type_id != tid)           \
-      return nullptr;                      \
-    return t;                              \
+#define DECLARE_GAME_ENTITY(type, tid)           \
+  type* UseEntity##type()                        \
+  {                                              \
+    Entity* e = UseEntity();                     \
+    if (!e) return nullptr;                      \
+    type t = {};                                 \
+    t.id = e->id;                                \
+    memcpy(e, &t, sizeof(t));                    \
+    return (type*)e;                             \
+  }                                              \
+                                                 \
+  type* i2##type(int idx)                        \
+  {                                              \
+    type* t = (type*)(&kEntity[idx]);            \
+    if (t->type_id != tid) return nullptr;       \
+    if (t->id == 0) return nullptr;              \
+    return t;                                    \
+  }                                              \
+                                                 \
+  type* Find##type(uint32_t id)                  \
+  {                                              \
+    type* t = (type*)FindEntity(id);             \
+    if (!t || t->type_id != tid) return nullptr; \
+    return t;                                    \
   }
 
 #define FOR_EACH_ENTITY(type, vname, body)                          \
@@ -231,7 +230,6 @@ DECLARE_GAME_TYPE_WITH_ID(Entity, MAX_ENTITY);
 DECLARE_GAME_ENTITY(Unit, kEeUnit);
 DECLARE_GAME_ENTITY(Module, kEeModule);
 
-
 #define ZeroEntity(x)         \
   FreeHashEntryEntity(x->id); \
   *(Entity*)x = kZeroEntity;
@@ -276,15 +274,20 @@ DECLARE_GAME_TYPE(Consumable, 32);
 constexpr int kMapWidth = 64;
 constexpr int kMapHeight = 64;
 struct Tile {
-  unsigned cx : 8;
-  unsigned cy : 8;
-  unsigned blocked : 1;
-  unsigned nooxygen : 1;
-  unsigned can_shroud : 1;
-  unsigned shroud : 1;
-  unsigned explored : 1;
-  unsigned exterior : 1;
-  unsigned PADDING : 9;
+  uint16_t cx;
+  uint16_t cy;
+  union {
+    struct {
+      unsigned xy_bitrange : 4;
+      unsigned blocked : 1;
+      unsigned nooxygen : 1;
+      unsigned can_shroud : 1;
+      unsigned shroud : 1;
+      unsigned explored : 1;
+      unsigned exterior : 1;
+    };
+    uint32_t flags;
+  };
 };
 struct Grid {
   Tile tilemap[kMapHeight][kMapWidth];

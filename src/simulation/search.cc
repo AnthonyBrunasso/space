@@ -150,74 +150,27 @@ PathTo(const v2i& start, const v2i& end)
   return &kSearch.path;
 }
 
-uint64_t
-BfsRemoveOxygen(v2i start, const uint64_t limit)
-{
-  uint64_t count = 0;
-  {
-    Tile* start_tile = TilePtr(start);
-    if (!start_tile) return 0;
-    if (start_tile->nooxygen == 0) {
-      start_tile->nooxygen = 1;
-      ++count;
-    }
-  }
-
-  BfsIterator iter = BfsStart(start);
-
-  auto& queue = kSearch.queue;
-  auto& path_map = kSearch.path_map;
-  int& qsz = kSearch.queue_size;
-
-  while (count < limit) {
-    // No more tiles
-    if (iter.queue_index == qsz) break;
-
-    v2i from = queue[iter.queue_index];
-    if (BfsStep(from, &iter)) {
-      if (iter.tile->blocked) continue;
-
-      if (iter.tile->nooxygen == 0) {
-        iter.tile->nooxygen = 1;
-        ++count;
-      }
-      path_map[iter.tile->cy][iter.tile->cx] = from;
-      queue[qsz++] = v2i(iter.tile->cx, iter.tile->cy);
-    }
-  }
-
-  return count;
-}
-
+// set_tile contains the start location (cx, cy)
+// set_tile contains the flags to be enabled during Bfs
 void
-BfsMutate(v3f origin, Tile keep_bits, Tile set_bits, float tile_dsq)
+BfsTileEnable(Tile set_tile)
 {
-  v2i start;
-  if (!WorldToTilePos(origin, &start)) return;
-  {
-    Tile* start_tile = TilePtr(start);
-    if (!start_tile) return;
-    *start_tile = TileAND(*start_tile, keep_bits);
-    *start_tile = TileOR(*start_tile, set_bits);
-  }
-
   auto& queue = kSearch.queue;
   auto& path_map = kSearch.path_map;
   int& qsz = kSearch.queue_size;
 
-  BfsIterator iter = BfsStart(start);
+  BfsIterator iter = BfsStart(v2i(set_tile.cx, set_tile.cy));
+  if (!iter.tile->blocked) {
+    TileSet(iter.tile, set_tile.flags);
+  }
+
   while (iter.queue_index != qsz) {
     v2i from = queue[iter.queue_index];
     if (BfsStep(from, &iter)) {
       if (iter.tile->blocked) continue;
 
-      v3f neighbor_world = TileToWorld(*iter.tile);
-      v3f world = neighbor_world - origin;
-      float distance = LengthSquared(world);
-      if (distance > tile_dsq) continue;
+      TileSet(iter.tile, set_tile.flags);
 
-      *(iter.tile) = TileAND(*iter.tile, keep_bits);
-      *(iter.tile) = TileOR(*iter.tile, set_bits);
       path_map[iter.tile->cy][iter.tile->cx] = from;
       queue[qsz++] = v2i(iter.tile->cx, iter.tile->cy);
     }

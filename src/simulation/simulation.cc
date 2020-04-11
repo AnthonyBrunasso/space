@@ -332,8 +332,8 @@ UpdateModule(uint64_t ship_index)
       memset(&set_bits, 0x00, sizeof(Tile));
       set_bits.explored = 1;
       float tile_world_distance = kTileWidth * 8.0f;
-      BfsMutate(m->position, keep_bits, set_bits,
-                tile_world_distance * tile_world_distance);
+      /*BfsMutate(m->position, keep_bits, set_bits,
+                tile_world_distance * tile_world_distance);*/
     }
   });
 }
@@ -366,8 +366,8 @@ UpdateUnit(uint64_t ship_index)
       memset(&set_bits, 0x00, sizeof(Tile));
       set_bits.explored = 1;
       float tile_world_distance = kTileWidth * 2.0f;
-      BfsMutate(unit->position, keep_bits, set_bits,
-                3.f * tile_world_distance * tile_world_distance);
+      /*BfsMutate(unit->position, keep_bits, set_bits,
+                3.f * tile_world_distance * tile_world_distance);*/
     }
 
     AIThink(unit);

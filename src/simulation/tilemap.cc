@@ -11,7 +11,7 @@
 namespace simulation
 {
 extern v3f ModuleBounds(ModuleKind mkind);  // defined in module.cc
-extern void BfsMutate(v3f origin, Tile keep_bits, Tile set_bits, float tile_dsq); // defined in search.cc
+void BfsTileEnable(Tile set_tile); // in search.cc
 
 constexpr float kTileWidth = 25.0f;
 constexpr float kTileHeight = 25.0f;
@@ -33,20 +33,18 @@ enum TileType {
 
 enum TilemapType { kTilemapEmpty, kTilemapShip };
 
-static_assert(sizeof(Tile) == sizeof(uint32_t),
-              "Sync TileAND with the new Tile size");
-INLINE Tile
-TileAND(Tile lhs, Tile rhs)
+static Tile kZeroTile;
+
+INLINE void
+TileClear(Tile* t, uint32_t clear)
 {
-  uint32_t res = *(uint32_t*)&lhs & *(uint32_t*)&rhs;
-  return *(Tile*)&res;
+  t->flags &= ~(clear);
 }
 
-INLINE Tile
-TileOR(Tile lhs, Tile rhs)
+INLINE void
+TileSet(Tile* t, uint32_t set)
 {
-  uint32_t res = *(uint32_t*)&lhs | *(uint32_t*)&rhs;
-  return *(Tile*)&res;
+  t->flags |= set;
 }
 
 #define INVALID_TILE v2i(0, 0)
@@ -372,12 +370,11 @@ TilemapResetExterior()
 {
   for (int i = 0; i < kUsedShip; ++i) {
     TilemapModify tm(i);
-    Tile keep_bits;
-    memset(&keep_bits, 0xff, sizeof(Tile));
-    Tile set_bits;
-    memset(&set_bits, 0x00, sizeof(Tile));
-    set_bits.exterior = 1;
-    BfsMutate(kShip[i].transform.position, keep_bits, set_bits, FLT_MAX);
+    Tile set_tile = kZeroTile;
+    set_tile.cx = 0;
+    set_tile.cy = 0;
+    set_tile.exterior = 1;
+    BfsTileEnable(set_tile);
   }
 }
 

@@ -93,7 +93,8 @@ RenderCrew(uint64_t ship_index)
     v2i p;
     if (!WorldToTilePos(unit->position, &p)) continue;
     Tile* tile = TilePtr(p);
-    if (tile && tile->shroud) continue;
+    if (!tile) continue;
+    if (tile->can_shroud && !tile->visible) continue;
     if (unit->notify) {
       const float radius = 50.f - (unit->notify * 1.f);
       rgg::RenderCircle(unit->position, radius - 10.f, radius, kWhite);
@@ -230,17 +231,15 @@ RenderShip(uint64_t ship_index)
     v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
     if (ModuleBuilt(mod)) {
       rgg::RenderCube(
-          math::Cubef(mod->position + v3f(0.f, 0.f, 15.f / 2.f),
-                      mod->bounds),
+          math::Cubef(mod->position + v3f(0.f, 0.f, 15.f / 2.f), mod->bounds),
           color);
     } else {
       rgg::RenderLineCube(
-          math::Cubef(mod->position + v3f(0.f, 0.f, 15.f / 2.f),
-                      mod->bounds),
+          math::Cubef(mod->position + v3f(0.f, 0.f, 15.f / 2.f), mod->bounds),
           v4f(color.x, color.y, color.z, 1.f));
       glDisable(GL_DEPTH_TEST);
       rgg::RenderProgressBar(
-          math::Rectf(mod->position.x - mod->bounds.x / 2.f, 
+          math::Rectf(mod->position.x - mod->bounds.x / 2.f,
                       mod->position.y - mod->bounds.y, mod->bounds.y, 5.f),
           2.f, mod->frames_building, mod->frames_to_build, kGreen, kWhite);
       glEnable(GL_DEPTH_TEST);
@@ -249,10 +248,10 @@ RenderShip(uint64_t ship_index)
     if (mod->frames_training == kTrainIdle) continue;
 
     glDisable(GL_DEPTH_TEST);
-    rgg::RenderProgressBar(math::Rectf(mod->position.x - mod->bounds.x / 2.f,
-                                       mod->position.y - mod->bounds.y, mod->bounds.y, 5.f),
-                           2.f, mod->frames_training, mod->frames_to_train,
-                           kRed, kWhite);
+    rgg::RenderProgressBar(
+        math::Rectf(mod->position.x - mod->bounds.x / 2.f,
+                    mod->position.y - mod->bounds.y, mod->bounds.y, 5.f),
+        2.f, mod->frames_training, mod->frames_to_train, kRed, kWhite);
     glEnable(GL_DEPTH_TEST);
   });
 
@@ -284,7 +283,7 @@ RenderShip(uint64_t ship_index)
     Consumable* c = &kConsumable[i];
     if (c->ship_index != ship_index) continue;
     const Tile* tile = TilePtr(v2i(c->cx, c->cy));
-    if (!tile || !tile->explored) continue;
+    if (!tile) continue;
 
     v4f color = v4f(.3f, .3f, .7f, 1.f);
     v3f world = TileToWorld(*tile);
@@ -304,10 +303,7 @@ RenderShip(uint64_t ship_index)
       // printf("%.3f\n", world_pos.z);
 
       v4f color;
-      if (!tile->explored) {
-        color = v4f(0.3f, 0.3f, 0.3f, .7);
-        rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
-      } else if (tile->blocked) {
+      if (tile->blocked) {
         color = v4f(.15f, .15f, .15f, 1.f);
         rgg::RenderCube(math::Cubef(world_pos + v3f(0.f, 0.f, 50.f), kTileWidth,
                                     kTileHeight, 100.f),
@@ -315,7 +311,7 @@ RenderShip(uint64_t ship_index)
       } else if (tile->nooxygen) {
         color = v4f(1.f, 0.f, .2f, .4);
         rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
-      } else if (tile->shroud) {
+      } else if (tile->can_shroud && !tile->visible) {
         color = v4f(0.3f, 0.3f, 0.3f, .4);
         rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
       }
@@ -361,7 +357,8 @@ RenderShip(uint64_t ship_index)
         v3f bounds = ModuleBounds(p->mod_placement);
         v3f mgw = TilePosToWorld(mouse_grid);
         rgg::RenderLineCube(math::Cubef(mgw + v3f(0.f, 0.f, bounds.z / 2.f),
-                            bounds.x, bounds.y, bounds.z), color);
+                                        bounds.x, bounds.y, bounds.z),
+                            color);
       } break;
       case kHudAttackMove: {
         glDisable(GL_DEPTH_TEST);

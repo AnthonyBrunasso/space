@@ -11,7 +11,7 @@
 namespace simulation
 {
 extern v3f ModuleBounds(ModuleKind mkind);  // defined in module.cc
-void BfsTileEnable(Tile set_tile); // in search.cc
+void BfsTileEnable(Tile set_tile);          // in search.cc
 
 constexpr float kTileWidth = 25.0f;
 constexpr float kTileHeight = 25.0f;
@@ -302,24 +302,21 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
       for (int y = 0; y < kMapHeight; ++y) {
         for (int x = 0; x < kMapWidth; ++x) {
           Tile* tile = TilePtr(v2i(x, y));
-          *tile = {};
+          *tile = kZeroTile;
           tile->cx = x;
           tile->cy = y;
-          tile->explored = 1;
         }
       }
     } break;
     case kTilemapShip: {
-      for (int y = kMapHeight - 1; y >= 0; --y) {
+      for (int y = 0; y < kMapHeight; ++y) {
         for (int x = 0; x < kMapWidth; ++x) {
           Tile* tile = TilePtr(v2i(x, y));
-          *tile = {};
+          *tile = kZeroTile;
           tile->cx = x;
           tile->cy = y;
           tile->blocked = (kDefaultMap[y][x] == kTileBlock);
           tile->nooxygen = 0;
-          tile->explored = 1;
-          tile->shroud = 0;
 
           // Consumables enabled: cryo chamber, gatherable resources
           if (kDefaultMap[y][x] == kTileConsumable) {
@@ -375,17 +372,6 @@ TilemapResetExterior()
     set_tile.cy = 0;
     set_tile.exterior = 1;
     BfsTileEnable(set_tile);
-  }
-}
-
-void
-TilemapUpdate()
-{
-  for (int i = 0; i < kMapHeight; ++i) {
-    for (int j = 0; j < kMapWidth; ++j) {
-      Tile* tile = TilePtr(v2i(j, i));
-      tile->shroud = tile->can_shroud;
-    }
   }
 }
 

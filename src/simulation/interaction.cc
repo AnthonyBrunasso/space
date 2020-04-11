@@ -223,9 +223,7 @@ TilePanel(v2f screen, uint32_t tag, Player* player)
       imui::Text(ui_buffer, debug_options);
       snprintf(ui_buffer, sizeof(ui_buffer), "can_shroud %u", tile->can_shroud);
       imui::Text(ui_buffer, debug_options);
-      snprintf(ui_buffer, sizeof(ui_buffer), "shroud %u", tile->shroud);
-      imui::Text(ui_buffer, debug_options);
-      snprintf(ui_buffer, sizeof(ui_buffer), "explored %u", tile->explored);
+      snprintf(ui_buffer, sizeof(ui_buffer), "visible %u", tile->visible);
       imui::Text(ui_buffer, debug_options);
       snprintf(ui_buffer, sizeof(ui_buffer), "exterior %u", tile->exterior);
       imui::Text(ui_buffer, debug_options);

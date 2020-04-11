@@ -134,7 +134,6 @@ struct Asteroid {
   Transform transform;
   float mineral_source;
   float deplete;
-  bool implode;
 };
 DECLARE_GAME_TYPE(Asteroid, 8);
 
@@ -273,18 +272,30 @@ DECLARE_GAME_TYPE(Consumable, 32);
 
 constexpr int kMapWidth = 64;
 constexpr int kMapHeight = 64;
+// Arrays of Tiles are everywhere: avoid specifying a constructor
+// Initialization requires:
+//   Tile t = kZeroTile;
+// or
+//   Tile tarr[128][128];
+//   memset(tarr, 0, sizeof(tarr));
 struct Tile {
   uint16_t cx;
   uint16_t cy;
   union {
     struct {
       unsigned xy_bitrange : 4;
+      // a wall, no movement
       unsigned blocked : 1;
+      // tile does not support human life
       unsigned nooxygen : 1;
+      // tile contents are 'unknown' unless marked visible
       unsigned can_shroud : 1;
-      unsigned shroud : 1;
-      unsigned explored : 1;
+      // tile is visible to all players
+      unsigned visible : 1;
+      // tile is exterior to the ship walls ('blocked' flag)
       unsigned exterior : 1;
+      // tile has ever been visible to a player (disabled by AN 4/11/20)
+      // unsigned explored : 1;
     };
     uint32_t flags;
   };

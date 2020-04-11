@@ -53,27 +53,6 @@ Hash()
 }
 
 void
-ThinkAsteroid()
-{
-  for (int i = 0; i < kUsedAsteroid; ++i) {
-    Asteroid* asteroid = &kAsteroid[i];
-    asteroid->implode = (asteroid->mineral_source < .5f);
-  }
-}
-
-void
-Think()
-{
-  ThinkAsteroid();
-
-  for (uint64_t i = 0; i < kUsedShip; ++i) {
-    TilemapModify tm(i);
-    // Shroud is reset each frame
-    TilemapUpdate();
-  }
-}
-
-void
 DecideShip(uint64_t ship_index)
 {
   // Advance engine animation
@@ -112,14 +91,13 @@ DecideAsteroid()
       asteroid->transform.position =
           TilePosToWorld(v2i(kMapHeight - 1, kMapWidth - 1));
       asteroid->mineral_source = 200.f;
-      asteroid->implode = 0;
     }
   }
 
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
 
-    if (asteroid->implode || asteroid->mineral_source == 0) {
+    if (asteroid->mineral_source < .5f) {
       LOG("Asteroid imploded.");
       *asteroid = kZeroAsteroid;
       continue;
@@ -321,20 +299,19 @@ ApplyCommand(Unit* unit, const Command& c)
 void
 UpdateModule(uint64_t ship_index)
 {
+  TilemapModify tm(ship_index);
   FOR_EACH_ENTITY(Module, m, {
     if (m->ship_index != ship_index) continue;
-    if (m->mkind == kModPower) {
-      // Reveal the shroud
-      Tile keep_bits;
-      memset(&keep_bits, 0xff, sizeof(Tile));
-      keep_bits.shroud = 0;
-      Tile set_bits;
-      memset(&set_bits, 0x00, sizeof(Tile));
-      set_bits.explored = 1;
-      float tile_world_distance = kTileWidth * 8.0f;
-      /*BfsMutate(m->position, keep_bits, set_bits,
-                tile_world_distance * tile_world_distance);*/
-    }
+    if (m->mkind != kModPower) continue;
+
+    v2i tilepos;
+    WorldToTilePos(m->position, &tilepos);
+    Tile tile = kZeroTile;
+    tile.cx = tilepos.x;
+    tile.cy = tilepos.y;
+    tile.visible = 1;
+    BfsTileEnable(tile);
+    break;
   });
 }
 
@@ -359,15 +336,11 @@ UpdateUnit(uint64_t ship_index)
 
     // Reveal the shroud
     if (unit->alliance != kEnemy) {
-      Tile keep_bits;
-      memset(&keep_bits, 0xff, sizeof(Tile));
-      keep_bits.shroud = 0;
-      Tile set_bits;
-      memset(&set_bits, 0x00, sizeof(Tile));
-      set_bits.explored = 1;
-      float tile_world_distance = kTileWidth * 2.0f;
-      /*BfsMutate(unit->position, keep_bits, set_bits,
-                3.f * tile_world_distance * tile_world_distance);*/
+      Tile set_tile = kZeroTile;
+      set_tile.cx = tilepos.x;
+      set_tile.cy = tilepos.y;
+      set_tile.visible = 1;
+      BfsTileEnable(set_tile);
     }
 
     AIThink(unit);
@@ -518,7 +491,6 @@ Update()
 
   if (kSimulationOver) return;
 
-  Think();
   Decide();
   TilemapClear();
 

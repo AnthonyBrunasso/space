@@ -47,6 +47,17 @@ TileSet(Tile* t, uint32_t set)
   t->flags |= set;
 }
 
+// Integer math to measure the distance squred to the center of a tile
+bool
+TileDsq(int64_t dx, int64_t dy, uint64_t tile_distance)
+{
+  const uint64_t dt = (tile_distance * 2) + 2;
+  const uint64_t dsq = (dt * dt);
+  uint64_t dx2 = dx * 2 + TERNARY(dx > 0, 1, -1);
+  uint64_t dy2 = dy * 2 + TERNARY(dy > 0, 1, -1);
+  return (dx2 * dx2 + dy2 * dy2 <= dsq);
+}
+
 #define INVALID_TILE v2i(0, 0)
 
 constexpr int kMaxNeighbor = 8;
@@ -360,7 +371,7 @@ TilemapResetShroud()
     set_tile.cx = kMapWidth / 2;
     set_tile.cy = kMapHeight / 2;
     set_tile.shroud = 1;
-    BfsTileEnable(set_tile, UINT64_MAX);
+    BfsTileEnable(set_tile, kMapWidth);
   }
 }
 
@@ -384,7 +395,7 @@ TilemapResetExterior()
     TilemapModify tm(i);
     Tile set_tile = kZeroTile;
     set_tile.exterior = 1;
-    BfsTileEnable(set_tile, UINT64_MAX);
+    BfsTileEnable(set_tile, kMapWidth);
   }
 }
 

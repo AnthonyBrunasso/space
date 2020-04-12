@@ -154,7 +154,7 @@ PathTo(const v2i& start, const v2i& end)
 // set_tile contains the flags to be enabled during Bfs
 // tile_dsq is tile distance squared
 void
-BfsTileEnable(Tile set_tile, uint64_t tile_dsq)
+BfsTileEnable(Tile set_tile, uint64_t tile_distance)
 {
   auto& queue = kSearch.queue;
   auto& path_map = kSearch.path_map;
@@ -172,7 +172,7 @@ BfsTileEnable(Tile set_tile, uint64_t tile_dsq)
 
       int64_t dx = iter.tile->cx - set_tile.cx;
       int64_t dy = iter.tile->cy - set_tile.cy;
-      if (dx * dx + dy * dy < tile_dsq) {
+      if (TileDsq(dx, dy, tile_distance)) {
         TileSet(iter.tile, set_tile.flags);
 
         path_map[iter.tile->cy][iter.tile->cx] = from;

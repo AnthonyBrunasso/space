@@ -35,6 +35,12 @@ enum TilemapType { kTilemapEmpty, kTilemapShip };
 
 static Tile kZeroTile;
 
+INLINE bool
+TileEqual(Tile lhs, Tile rhs)
+{
+  return lhs.cx == rhs.cx && lhs.cy == rhs.cy && lhs.flags == rhs.flags;
+}
+
 INLINE void
 TileClear(Tile* t, uint32_t clear)
 {
@@ -109,16 +115,15 @@ TilePtr(const v2i& pos)
 }
 
 v3f
-TileAvoidWalls(const v2i pos)
+TileAvoidWalls(Tile tile)
 {
   v2i avoidance = {};
   for (int i = 0; i < kMaxNeighbor; ++i) {
-    v2i neighbor = pos + kNeighbor[i];
+    v2i neighbor = v2i(tile.cx, tile.cy) + kNeighbor[i];
     Tile* tile = TilePtr(neighbor);
     if (!tile) continue;
     if (tile->blocked) {
-      v2i away = (pos - neighbor);
-      avoidance += away;
+      avoidance -= kNeighbor[i];
     }
   }
 
@@ -222,6 +227,7 @@ WorldToTilePos(const v3f pos, v2i* t)
   int64_t tidx = TilemapWorldToGrid(pos);
   if (tidx == kInvalidIndex) return false;
 
+  TilemapModify tm(tidx);
   v2f relpos = pos.xy() - kTilemapWorldOffset;
   *t = v2i((int)(relpos.x / kTileWidth), (int)(relpos.y / kTileHeight));
   return true;

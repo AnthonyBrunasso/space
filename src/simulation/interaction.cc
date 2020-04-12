@@ -158,6 +158,12 @@ ReadOnlyUnits(v2f screen, uint32_t tag)
       if (highlighted || kEntity[i].control || unit_debug >= 2) {
         imui::Indent(2);
         if (kEntity[i].type_id == kEeUnit) {
+          snprintf(ui_buffer, sizeof(ui_buffer), "tile %u %u",
+                   kEntity[i].tile.cx, kEntity[i].tile.cy);
+          imui::Text(ui_buffer);
+          snprintf(ui_buffer, sizeof(ui_buffer), "position %04.0f %04.0f",
+                   kEntity[i].position.x, kEntity[i].position.y);
+          imui::Text(ui_buffer);
           snprintf(ui_buffer, sizeof(ui_buffer), "action %d",
                    kEntity[i].unit.uaction);
           imui::Text(ui_buffer);

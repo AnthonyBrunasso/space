@@ -54,6 +54,26 @@ Hash()
 }
 
 void
+TilemapUpdate()
+{
+  if (GAME_SHROUD) {
+    TilemapResetVisible();
+  }
+
+  // Logical isolation for mapping v3f -> tile
+  // Copying the tile introduces a frame delay when processing tile properties
+  FOR_EACH_ENTITY(Unit, unit, {
+    v2i tilepos;
+    Tile* tile = nullptr;
+    if (WorldToTilePos(unit->position, &tilepos)) {
+      TilemapModify tm(unit->ship_index);
+      tile = TilePtr(tilepos);
+    }
+    unit->tile = tile ? *tile : kZeroTile;
+  });
+}
+
+void
 DecideShip(uint64_t ship_index)
 {
   // Advance engine animation
@@ -211,7 +231,7 @@ DecideInvasion()
 }
 
 bool
-MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
+MoveTowards(Unit* unit, v3f dest, UnitAction set_on_arrival)
 {
   TilemapModify tm(unit->ship_index);
   if (!tm.ok) {
@@ -230,7 +250,7 @@ MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
   if (!unit->inspace) {
     v2i end;
     if (!WorldToTilePos(dest, &end)) return false;
-    auto* path = PathTo(tilepos, end);
+    auto* path = PathTo(v2i(unit->tile.cx, unit->tile.cy), end);
     if (!path) {
       unit->uaction = set_on_arrival;
       BB_REM(unit->bb, kUnitDestination);
@@ -239,7 +259,7 @@ MoveTowards(Unit* unit, v2i tilepos, v3f dest, UnitAction set_on_arrival)
 
     if (path->size > 1) {
       incremental_dest = TilePosToWorld(path->tile[1]);
-      avoidance_vec = TileAvoidWalls(tilepos) * kAvoidanceScaling;
+      avoidance_vec = TileAvoidWalls(unit->tile) * kAvoidanceScaling;
     }
   }
 
@@ -305,11 +325,9 @@ UpdateModule(uint64_t ship_index)
     if (m->ship_index != ship_index) continue;
     if (m->mkind != kModPower) continue;
 
-    v2i tilepos;
-    WorldToTilePos(m->position, &tilepos);
-    Tile tile = kZeroTile;
-    tile.cx = tilepos.x;
-    tile.cy = tilepos.y;
+    Tile tile;
+    tile.cx = m->tile.cx;
+    tile.cy = m->tile.cy;
     tile.visible = 1;
     BfsTileEnable(tile, kMapWidth);
     break;
@@ -321,25 +339,22 @@ UpdateUnit(uint64_t ship_index)
 {
   FOR_EACH_ENTITY(Unit, unit, {
     if (unit->ship_index != ship_index) continue;
-    v2i tilepos;
-    if (!WorldToTilePos(unit->position.xy(), &tilepos)) continue;
-    Tile* tile = TilePtr(tilepos);
 
     if (unit->health < 0.f) {
       unit->dead = 1;
       continue;
     }
 
-    if (!tile) {
-      ZeroEntity(unit);
+    if (TileEqual(unit->tile, kZeroTile)) {
+      unit->dead = 1;
       continue;
     }
 
     // Reveal the shroud
     if (unit->alliance != kEnemy) {
-      Tile set_tile = kZeroTile;
-      set_tile.cx = tilepos.x;
-      set_tile.cy = tilepos.y;
+      Tile set_tile;
+      set_tile.cx = unit->tile.cx;
+      set_tile.cy = unit->tile.cy;
       set_tile.visible = 1;
       set_tile.explored = 1;
       BfsTileEnable(set_tile, kTileVisibleDistance);
@@ -366,7 +381,7 @@ UpdateUnit(uint64_t ship_index)
         continue;
       }
 
-      if (MoveTowards(unit, tilepos, *dest, kUaNone)) {
+      if (MoveTowards(unit, *dest, kUaNone)) {
         unit->persistent_uaction = kUaNone;
       }
     } else if (unit->uaction == kUaAttack) {
@@ -386,7 +401,7 @@ UpdateUnit(uint64_t ship_index)
       if (!InRange(unit->id, *target)) {
         // Go to your target.
         BB_SET(unit->bb, kUnitDestination, target_unit->position);
-        MoveTowards(unit, tilepos, target_unit->position, kUaAttack);
+        MoveTowards(unit, target_unit->position, kUaAttack);
         continue;
       }
 
@@ -399,7 +414,7 @@ UpdateUnit(uint64_t ship_index)
 
       Unit* target_unit = FindUnitInRangeToAttack(unit);
       if (!target_unit) {
-        if (MoveTowards(unit, tilepos, *dest, kUaNone)) {
+        if (MoveTowards(unit, *dest, kUaNone)) {
           unit->persistent_uaction = kUaNone;
         }
         continue;
@@ -412,7 +427,7 @@ UpdateUnit(uint64_t ship_index)
         continue;
       }
 
-      if (MoveTowards(unit, tilepos, *dest, kUaNone)) {
+      if (MoveTowards(unit, *dest, kUaNone)) {
         unit->persistent_uaction = kUaBuild;
       }
     }
@@ -493,9 +508,7 @@ Update()
 
   if (kSimulationOver) return;
 
-  if (GAME_SHROUD) {
-    TilemapResetVisible();
-  }
+  TilemapUpdate();
   Decide();
   TilemapClear();
 

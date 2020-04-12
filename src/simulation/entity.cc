@@ -35,8 +35,9 @@
     return (type*)e;                             \
   }                                              \
                                                  \
-  type* i2##type(int idx)                        \
+  type* i2##type(uint64_t idx)                   \
   {                                              \
+    assert(idx < kUsedEntity);                   \
     type* t = (type*)(&kEntity[idx]);            \
     if (t->type_id != tid) return nullptr;       \
     if (t->id == 0) return nullptr;              \
@@ -150,6 +151,41 @@ struct Ship {
 };
 DECLARE_GAME_TYPE(Ship, 2);
 
+constexpr int kMapWidth = 64;
+constexpr int kMapHeight = 64;
+// Arrays of Tiles are everywhere: avoid specifying a constructor
+// Initialization requires:
+//   Tile t = kZeroTile;
+// or
+//   Tile tarray[128][128];
+//   memset(tarray, 0, sizeof(tarray));
+struct Tile {
+  uint16_t cx;
+  uint16_t cy;
+  union {
+    struct {
+      unsigned xy_bitrange : 4;
+      // a wall, no movement
+      unsigned blocked : 1;
+      // tile does not support human life
+      unsigned nooxygen : 1;
+      // tile contents are 'unknown' unless marked visible
+      unsigned shroud : 1;
+      // tile is visible to all players
+      unsigned visible : 1;
+      // tile is exterior to the ship walls ('blocked' flag)
+      unsigned exterior : 1;
+      // tile has ever been visible to a player (disabled by AN 4/11/20)
+      unsigned explored : 1;
+    };
+    uint32_t flags;
+  };
+};
+struct Grid {
+  Tile tilemap[kMapHeight][kMapWidth];
+};
+DECLARE_GAME_TYPE(Grid, 2);
+
 struct Projectile {
   v3f start;
   v3f end;
@@ -167,6 +203,7 @@ DECLARE_GAME_TYPE(Projectile, 128);
   v3f position;            \
   v3f scale;               \
   v3f bounds;              \
+  Tile tile;               \
   uint64_t control;        \
   uint64_t ship_index;     \
   uint64_t player_index;   \
@@ -269,41 +306,6 @@ struct Consumable {
   uint64_t PADDING : 47;
 };
 DECLARE_GAME_TYPE(Consumable, 32);
-
-constexpr int kMapWidth = 64;
-constexpr int kMapHeight = 64;
-// Arrays of Tiles are everywhere: avoid specifying a constructor
-// Initialization requires:
-//   Tile t = kZeroTile;
-// or
-//   Tile tarr[128][128];
-//   memset(tarr, 0, sizeof(tarr));
-struct Tile {
-  uint16_t cx;
-  uint16_t cy;
-  union {
-    struct {
-      unsigned xy_bitrange : 4;
-      // a wall, no movement
-      unsigned blocked : 1;
-      // tile does not support human life
-      unsigned nooxygen : 1;
-      // tile contents are 'unknown' unless marked visible
-      unsigned shroud : 1;
-      // tile is visible to all players
-      unsigned visible : 1;
-      // tile is exterior to the ship walls ('blocked' flag)
-      unsigned exterior : 1;
-      // tile has ever been visible to a player (disabled by AN 4/11/20)
-      unsigned explored : 1;
-    };
-    uint32_t flags;
-  };
-};
-struct Grid {
-  Tile tilemap[kMapHeight][kMapWidth];
-};
-DECLARE_GAME_TYPE(Grid, 2);
 
 constexpr int kMaxInvasionCount = 10;
 

@@ -33,9 +33,9 @@ RenderBlackboard(const Unit* unit)
     UnitBbEntry bb_entry = (UnitBbEntry)i;
     switch (bb_entry) {
       case kUnitDestination: {
-        const v3f* d = nullptr;
+        const Tile* d = nullptr;
         if (!BB_GET(unit->bb, kUnitDestination, d)) continue;
-        snprintf(ui_buffer, sizeof(ui_buffer), "dest: %.0f,%.0f", d->x, d->y);
+        snprintf(ui_buffer, sizeof(ui_buffer), "dest: %.0f,%.0f", d->cx, d->cy);
         imui::Text(ui_buffer);
       } break;
       case kUnitAttackDestination: {

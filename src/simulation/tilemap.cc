@@ -138,15 +138,15 @@ TileRandomPosition()
   return TilePosToWorld(random_tile);
 }
 
-v2i
-TileRandomNeighbor(v2i tile)
+Tile
+TileNeighbor(Tile tile, uint64_t index)
 {
-  v2i n;
-  do {
-    int idx = MOD_BUCKET(rand(), kMaxNeighbor);
-    n = tile + kNeighbor[idx];
-  } while (!TileOk(n));
-  return n;
+  v2i n = kNeighbor[MOD_BUCKET(index, kMaxNeighbor)];
+
+  tile.cx = BITRANGE_WRAP(tile.xy_bitrange, tile.cx+n.x);
+  tile.cy = BITRANGE_WRAP(tile.xy_bitrange, tile.cy+n.y);
+
+  return tile;
 }
 
 math::Rectf
@@ -219,6 +219,21 @@ TilemapWorldToGrid(v3f world)
     }
   }
   return kInvalidIndex;
+}
+
+bool
+WorldToTile(const v3f pos, Tile* t)
+{
+  *t = kZeroTile;
+  int64_t tidx = TilemapWorldToGrid(pos);
+  if (tidx == kInvalidIndex) return false;
+
+  TilemapModify tm(tidx);
+  v2f relpos = pos.xy() - kTilemapWorldOffset;
+  t->cx = relpos.x/kTileWidth;
+  t->cy = relpos.y/kTileHeight;
+  t->flags = 0;
+  return true;
 }
 
 bool

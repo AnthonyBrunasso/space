@@ -194,12 +194,10 @@ RenderCrew(uint64_t ship_index)
       if (unit->inspace) continue;
 
       // Show the path they are on if they have one.
-      const v3f* dest = nullptr;
+      const Tile* dest = nullptr;
       if (!BB_GET(unit->bb, kUnitDestination, dest)) continue;
-      v2i end;
-      if (!WorldToTilePos(*dest, &end)) continue;
 
-      auto* path = PathTo(unit->tile, end);
+      auto* path = PathTo(unit->tile, *dest);
       if (!path || path->size <= 1) {
         continue;
       }

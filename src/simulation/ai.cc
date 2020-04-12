@@ -12,10 +12,8 @@ AIWander(Unit* unit)
   v2i p;
   if (!WorldToTilePos(unit->position, &p)) return;
 
-  v2i rpos = TileRandomNeighbor(p);
-  v2f wpos = TilePosToWorld(rpos);
-  v3f destination(wpos.x, wpos.y, 0.f);
-  BB_SET(unit->bb, kUnitDestination, destination);
+  Tile t = TileNeighbor(unit->tile, rand());
+  BB_SET(unit->bb, kUnitDestination, t);
   unit->uaction = kUaMove;
 }
 
@@ -136,7 +134,7 @@ AICrewMember(Unit* unit)
   if (!target_mod) return;
 
   // Go to the mod and stay there for timer.
-  BB_SET(unit->bb, kUnitDestination, target_mod->position);
+  BB_SET(unit->bb, kUnitDestination, target_mod->tile);
   unit->uaction = kUaMove;
   int init_timer = 200;
   BB_SET(unit->bb, kUnitTimer, init_timer);

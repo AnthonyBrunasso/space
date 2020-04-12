@@ -117,9 +117,10 @@ BfsNext(BfsIterator* iter)
 }
 
 Path*
-PathTo(Tile start_tile, v2i end)
+PathTo(Tile start_tile, Tile end_tile)
 {
   v2i start = v2i(start_tile.cx, start_tile.cy);
+  v2i end = v2i(end_tile.cx, end_tile.cy);
 
   if (start == end) return nullptr;
   if (!TileOk(end)) return nullptr;

@@ -231,26 +231,14 @@ DecideInvasion()
 }
 
 bool
-MoveTowards(Unit* unit, v3f dest, UnitAction set_on_arrival)
+MoveTowards(Unit* unit, Tile dest, UnitAction set_on_arrival)
 {
-  TilemapModify tm(unit->ship_index);
-  if (!tm.ok) {
-    return true;
-  }
+  if (unit->tile.cxy == dest.cxy) return true;
 
-  if (v3fDsq(unit->position, dest) < 1.f) {
-    unit->position = dest;
-    unit->uaction = set_on_arrival;
-    BB_REM(unit->bb, kUnitDestination);
-    return true;
-  }
-
-  v3f incremental_dest = dest;
+  Tile incremental_dest = dest;
   v3f avoidance_vec = {};
   if (!unit->inspace) {
-    v2i end;
-    if (!WorldToTilePos(dest, &end)) return false;
-    auto* path = PathTo(unit->tile, end);
+    auto* path = PathTo(unit->tile, dest);
     if (!path) {
       unit->uaction = set_on_arrival;
       BB_REM(unit->bb, kUnitDestination);
@@ -258,13 +246,14 @@ MoveTowards(Unit* unit, v3f dest, UnitAction set_on_arrival)
     }
 
     if (path->size > 1) {
-      incremental_dest = TilePosToWorld(path->tile[1]);
+      incremental_dest.cx = path->tile[1].x;
+      incremental_dest.cy = path->tile[1].y;
       avoidance_vec = TileAvoidWalls(unit->tile) * kAvoidanceScaling;
     }
   }
 
-  v3f move_vec = math::Normalize(incremental_dest.xy() - unit->position.xy()) *
-                 unit->speed;
+  v3f delta(incremental_dest.cx - unit->tile.cx, incremental_dest.cy - unit->tile.cy, 0.f);
+  v3f move_vec = delta * unit->speed;
 
   unit->position += (move_vec + avoidance_vec);
 
@@ -296,9 +285,13 @@ ApplyCommand(Unit* unit, const Command& c)
 
   unit->uaction = c.type;
   int ctype = c.type;
+
   switch (ctype) {
     case kUaMove: {
-      BB_SET(unit->bb, kUnitDestination, c.destination);
+      Tile t;
+      if (WorldToTile(c.destination, &t)) {
+        BB_SET(unit->bb, kUnitDestination, t);
+      }
     } break;
     case kUaAttack: {
       Unit* target = GetUnit(c.destination);
@@ -306,11 +299,17 @@ ApplyCommand(Unit* unit, const Command& c)
       BB_SET(unit->bb, kUnitTarget, target->id);
     } break;
     case kUaAttackMove: {
-      BB_SET(unit->bb, kUnitAttackDestination, c.destination);
-      persistent_action = c.type;
+      Tile t;
+      if (WorldToTile(c.destination, &t)) {
+        BB_SET(unit->bb, kUnitAttackDestination, t);
+        persistent_action = c.type;
+      }
     } break;
     case kUaBuild: {
-      BB_SET(unit->bb, kUnitDestination, c.destination);
+      Tile t;
+      if (WorldToTile(c.destination, &t)) {
+        BB_SET(unit->bb, kUnitDestination, t);
+      }
     } break;
   }
 
@@ -376,7 +375,7 @@ UpdateUnit(uint64_t ship_index)
     if (unit->uaction == kUaNone) {
       unit->uaction = unit->persistent_uaction;
     } else if (unit->uaction == kUaMove) {
-      const v3f* dest = nullptr;
+      const Tile* dest = nullptr;
       if (!BB_GET(unit->bb, kUnitDestination, dest)) {
         continue;
       }
@@ -400,14 +399,14 @@ UpdateUnit(uint64_t ship_index)
 
       if (!InRange(unit->id, *target)) {
         // Go to your target.
-        BB_SET(unit->bb, kUnitDestination, target_unit->position);
-        MoveTowards(unit, target_unit->position, kUaAttack);
+        BB_SET(unit->bb, kUnitDestination, target_unit->tile);
+        MoveTowards(unit, target_unit->tile, kUaAttack);
         continue;
       }
 
       AttackTarget(unit, target_unit);
     } else if (unit->uaction == kUaAttackMove) {
-      const v3f* dest = nullptr;
+      const Tile* dest = nullptr;
       if (!BB_GET(unit->bb, kUnitAttackDestination, dest)) {
         continue;
       }
@@ -422,7 +421,7 @@ UpdateUnit(uint64_t ship_index)
 
       AttackTarget(unit, target_unit);
     } else if (unit->uaction == kUaBuild) {
-      const v3f* dest = nullptr;
+      const Tile* dest = nullptr;
       if (!BB_GET(unit->bb, kUnitDestination, dest)) {
         continue;
       }

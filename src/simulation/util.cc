@@ -239,7 +239,7 @@ CanPathTo(Unit* unit, Unit* target)
 {
   if (!unit || !target) return false;
   if (unit->ship_index != target->ship_index) return false;
-  return PathTo(unit->tile, v2i(target->tile.cx, target->tile.cy)) != nullptr;
+  return PathTo(unit->tile, target->tile) != nullptr;
 }
 
 }  // namespace simulation

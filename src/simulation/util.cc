@@ -239,12 +239,7 @@ CanPathTo(Unit* unit, Unit* target)
 {
   if (!unit || !target) return false;
   if (unit->ship_index != target->ship_index) return false;
-  TilemapModify tm(unit->ship_index);
-  v2i ut;
-  if (!WorldToTilePos(unit->position, &ut)) return false;
-  v2i tt;
-  if (!WorldToTilePos(target->position, &tt)) return false;
-  return PathTo(ut, tt) != nullptr;
+  return PathTo(unit->tile, v2i(target->tile.cx, target->tile.cy)) != nullptr;
 }
 
 }  // namespace simulation

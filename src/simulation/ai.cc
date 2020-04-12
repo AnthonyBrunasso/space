@@ -78,12 +78,7 @@ AIAttackWhenDiscovered(Unit* unit)
   // Non interrupting behavior.
   if (unit->uaction != kUaNone) return;
 
-  v2i tpos;
-  if (!WorldToTilePos(unit->position, &tpos)) return;
-
-  Tile* tile = TilePtr(tpos);
-  if (!tile) return;
-  if (tile->shroud && !tile->visible) return;
+  if (unit->tile.shroud && !unit->tile.visible) return;
 
   Unit* target = GetNearestEnemyUnit(unit);
   if (!target) return;

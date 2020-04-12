@@ -228,11 +228,8 @@ ModuleWarpUpdate(Module* module)
     for (; i < kUsedEntity; ++i) {
       Unit* unit = i2Unit(i);
       if (!unit) continue;
-      v2i tile;
       if (unit->ship_index != target_module->ship_index) continue;
-      if (!WorldToTilePos(unit->position, &tile)) continue;
-
-      if (tile == v2i(iter.tile->cx, iter.tile->cy)) break;
+      if (unit->tile.cxy == iter.tile->cxy) break;
     }
     if (i != kUsedEntity) continue;
     unit->position = TileToWorld(*iter.tile);

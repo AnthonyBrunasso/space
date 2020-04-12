@@ -160,8 +160,13 @@ constexpr int kMapHeight = 64;
 //   Tile tarray[128][128];
 //   memset(tarray, 0, sizeof(tarray));
 struct Tile {
-  uint16_t cx;
-  uint16_t cy;
+  union {
+    struct {
+      uint16_t cx;
+      uint16_t cy;
+    };
+    uint32_t cxy;
+  };
   union {
     struct {
       unsigned xy_bitrange : 4;

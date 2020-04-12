@@ -90,11 +90,7 @@ RenderCrew(uint64_t ship_index)
 
       continue;
     }
-    v2i p;
-    if (!WorldToTilePos(unit->position, &p)) continue;
-    Tile* tile = TilePtr(p);
-    if (!tile) continue;
-    if (tile->shroud && !tile->visible) continue;
+    if (unit->tile.shroud && !unit->tile.visible) continue;
     if (unit->notify) {
       const float radius = 50.f - (unit->notify * 1.f);
       rgg::RenderCircle(unit->position, radius - 10.f, radius, kWhite);
@@ -198,14 +194,12 @@ RenderCrew(uint64_t ship_index)
       if (unit->inspace) continue;
 
       // Show the path they are on if they have one.
-      v2i start;
-      if (!WorldToTilePos(unit->position, &start)) continue;
       const v3f* dest = nullptr;
       if (!BB_GET(unit->bb, kUnitDestination, dest)) continue;
       v2i end;
       if (!WorldToTilePos(*dest, &end)) continue;
 
-      auto* path = PathTo(start, end);
+      auto* path = PathTo(unit->tile, end);
       if (!path || path->size <= 1) {
         continue;
       }

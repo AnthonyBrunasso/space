@@ -250,7 +250,7 @@ MoveTowards(Unit* unit, v3f dest, UnitAction set_on_arrival)
   if (!unit->inspace) {
     v2i end;
     if (!WorldToTilePos(dest, &end)) return false;
-    auto* path = PathTo(v2i(unit->tile.cx, unit->tile.cy), end);
+    auto* path = PathTo(unit->tile, end);
     if (!path) {
       unit->uaction = set_on_arrival;
       BB_REM(unit->bb, kUnitDestination);

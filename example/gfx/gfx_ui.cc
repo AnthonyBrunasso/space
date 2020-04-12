@@ -17,47 +17,30 @@ RenderStringWithBoundingBox(const char* msg, v2f pos, v2f dims)
                            v4f(1.0f, 0.0f, 0.0f, 1.0f));
 }
 
-// Test used for testing bounding box on sentences and using it to do modal
-// text rendering stuff. Probably test that this looks decent if switching
-// font sheets or messing with text code.
 void
 TextTest()
 {
   auto dims = window::GetWindowSize();
-#if 0
-  RenderStringWithBoundingBox(
-      "quick", v2f(dims.x / 2.f, dims.y / 2.f), dims);
-  RenderStringWithBoundingBox(
-      "The quick brown fox", v2f(dims.x / 2.f, dims.y / 2.f + 40.0f), dims);
-  RenderStringWithBoundingBox(
-      "this, sentence, has, commas", v2f(dims.x / 2.f, dims.y / 2.f + 80.0f), dims);
-  RenderStringWithBoundingBox(
-      "I kInd. OF, h4te_ font", v2f(dims.x / 2.f, dims.y / 2.f + 120.0f), dims);
-  RenderStringWithBoundingBox(
-      "1.32241 + 32569 = NUMBER", v2f(dims.x / 2.f, dims.y / 2.f + 160.0f), dims);
-#endif
 
-
-  {
-    imui::PaneOptions pane_options;
-    imui::Begin(v2f(dims.x / 2.f - 400.0f, dims.y / 2.f + 160.0f), 0, pane_options);
-    imui::TextOptions text_options;
-    text_options.highlight_color = v4f(1.0f, 0.0f, 0.0f, 1.0f);
-    text_options.color = gfx::kWhite;
-    static bool is_clicked = false;
-    if (imui::Text("Debug", text_options).highlighted) {
-      imui::Indent(5);
-      imui::Text("1.32241 + 32569 = NUMBER");
-      imui::Text("I kInd. OF, h4te_ font");
-      imui::Text("The quick brown fox");
-      imui::Text("quick");
-      imui::Text("To TL td tj Tj Pj pj PJ");
-      imui::Text("1023");
-      imui::Indent(-5);
-    }
-    imui::Text("Test");
-    imui::End();
+  imui::PaneOptions pane_options;
+  imui::Begin(
+      v2f(dims.x / 2.f - 400.0f, dims.y / 2.f + 160.0f), 0, pane_options);
+  imui::TextOptions text_options;
+  text_options.highlight_color = v4f(1.0f, 0.0f, 0.0f, 1.0f);
+  text_options.color = gfx::kWhite;
+  static bool is_clicked = false;
+  if (imui::Text("Debug", text_options).highlighted) {
+    imui::Indent(5);
+    imui::Text("1.32241 + 32569 = NUMBER");
+    imui::Text("I kInd. OF, h4te_ font");
+    imui::Text("The quick brown fox");
+    imui::Text("quick");
+    imui::Text("To TL td tj Tj Pj pj PJ");
+    imui::Text("1023");
+    imui::Indent(-5);
   }
+  imui::Text("Test");
+  imui::End();
 
 }
 

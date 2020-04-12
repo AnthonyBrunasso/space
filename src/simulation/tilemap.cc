@@ -53,8 +53,8 @@ TileDsq(int64_t dx, int64_t dy, uint64_t tile_distance)
 {
   const uint64_t dt = (tile_distance * 2) + 2;
   const uint64_t dsq = (dt * dt);
-  uint64_t dx2 = dx * 2 + TERNARY(dx > 0, 1, -1);
-  uint64_t dy2 = dy * 2 + TERNARY(dy > 0, 1, -1);
+  uint64_t dx2 = ABS64(dx) * 2 + 1;
+  uint64_t dy2 = ABS64(dy) * 2 + 1;
   return (dx2 * dx2 + dy2 * dy2 <= dsq);
 }
 

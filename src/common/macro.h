@@ -44,5 +44,7 @@
 #define MOD_BUCKET(value, max) \
   ((value) % ((max) + STATIC_ASSERT(POWEROF2(max))))
 
+#define BITRANGE_WRAP(bitrange, op) ((op)&((1<<bitrange)-1))
+
 // Non-branching equivalence to: (condition) ? a : b
 #define TERNARY(condition, a, b) (((a) * (condition)) + ((b) * !(condition)))

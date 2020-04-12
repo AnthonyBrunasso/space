@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vec.h"
+
 namespace math {
 
 float

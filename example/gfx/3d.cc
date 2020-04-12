@@ -38,7 +38,7 @@ UI()
     camera.position = cpos;
     camera.dir = math::Normalize(ctgt - cpos);
     camera.up = v3f(0.f, 1.f, 0.f);
-    camera.mode = rgg::kCameraControl;
+    camera.mode = rgg::kCameraOverhead;
     rgg::CameraInit(camera);
   }
   imui::Text("Local Cameras"); 
@@ -46,8 +46,8 @@ UI()
   for (int i = 0; i < rgg::kUsedCamera[rgg::kLocalCameraTag]; ++i) {
     rgg::Camera* c = &rgg::kCamera[rgg::kLocalCameraTag][i];
     snprintf(buffer, 64, "%i pos(%.2f,%.2f,%.2f) dir(%.2f,%.2f,%.2f) mode(%i)", i,
-             c->position.x, c->position.y, c->position.y,
-             c->dir.x, c->dir.y, c->dir.y, c->mode);
+             c->position.x, c->position.y, c->position.z,
+             c->dir.x, c->dir.y, c->dir.z, c->mode);
     if (imui::Text(buffer, text_options).clicked) {
       rgg::CameraSwitch(rgg::kLocalCameraTag, i);
     }
@@ -80,13 +80,13 @@ main(int argc, char** argv)
   camera.position = cpos;
   camera.dir = math::Normalize(ctgt - cpos);
   camera.up = v3f(0.f, 1.f, 0.f);
-  camera.mode = rgg::kCameraControl;
+  camera.mode = rgg::kCameraOverhead;
   rgg::CameraInit(camera);
   
   while (!window::ShouldClose()) {
     PlatformEvent event;
     while (window::PollEvent(&event)) {
-      rgg::CameraUpdate(event);
+      rgg::CameraUpdateEvent(event);
       switch (event.type) {
         case KEY_DOWN: {
           switch (event.key) {
@@ -118,10 +118,14 @@ main(int argc, char** argv)
       }
     }
 
+    rgg::CameraUpdate();
+
     const v2f cursor = window::GetCursorPosition();
     imui::MousePosition(cursor, 0);
 
-    rgg::CameraFollow(ctgt);
+    //rgg::CameraLookAt(ctgt);
+    rgg::CameraLerpToXY(ctgt.xy());
+
     o->view = rgg::CameraView();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

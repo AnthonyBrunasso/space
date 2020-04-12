@@ -6,8 +6,7 @@ namespace rgg
 {
 
 enum CameraMode {
-  kCameraFollow,
-  kCameraControl,
+  kCameraOverhead,
   kCameraFirstPerson,
   kCameraMaxMode,
 };
@@ -17,7 +16,9 @@ struct Camera {
   v3f dir;
   v3f up = v3f(0.f, 1.f, 0.f);
   CameraMode mode;
-  float speed = 5.f;
+  float speed = 10.f;
+  v3f lerp_to;
+  float lerpv = 1.f;
 };
 
 struct CameraState {
@@ -37,6 +38,27 @@ Camera*
 CameraGetCurrent()
 {
   return &kCamera[kCameraState.camera_tag][kCameraState.camera_index];
+}
+
+// Current camera will set its direction to be towards target
+void
+CameraLookAt(const v3f& target)
+{
+  Camera* c = CameraGetCurrent();
+  if (!c) return;
+  c->dir = math::Normalize(target - c->position);
+}
+
+// Will lerp along the XY axis to a certain ositino.
+void
+CameraLerpToXY(const v2f& position)
+{
+  Camera* c = CameraGetCurrent();
+  if (!c) return;
+  c->lerp_to.x = position.x;
+  c->lerp_to.y = position.y;
+  c->lerp_to.z = c->position.z;
+  c->lerpv = c->lerpv >= 1.f ? 0.f : c->lerpv;
 }
 
 v3f
@@ -74,16 +96,7 @@ CameraInit(Camera camera)
 }
 
 void
-CameraFollow(const v3f& target)
-{
-  Camera* c = CameraGetCurrent();
-  if (!c) return;
-  if (c->mode != kCameraFollow) return;
-  c->dir = math::Normalize(target - c->position);
-}
-
-void
-CameraControl(const PlatformEvent& event)
+CameraOverhead(const PlatformEvent& event)
 {
   Camera* c = CameraGetCurrent();
   if (!c) return;
@@ -119,16 +132,33 @@ CameraFirstPerson(const PlatformEvent& event)
 }
 
 void
-CameraUpdate(const PlatformEvent& event, uint32_t tag)
+CameraUpdate(uint32_t tag)
 {
   kCameraState.camera_tag = tag;
   Camera* c = CameraGetCurrent();
+  // If there is some target to move to lerp to it.
+  if (c->lerpv < 1.f) {
+    c->position = math::Lerp(c->position, c->lerp_to, c->lerpv);
+    c->lerpv += .001f;
+  }
+}
+
+void
+CameraUpdate()
+{
+  CameraUpdate(kLocalCameraTag);
+}
+
+void
+CameraUpdateEvent(const PlatformEvent& event, uint32_t tag)
+{
+  kCameraState.camera_tag = tag;
+  Camera* c = CameraGetCurrent();
+  // Otherwise let the player control the camera.
   if (!c) return;
   switch (c->mode) {
-    case kCameraFollow: {
-    } break;
-    case kCameraControl: {
-      CameraControl(event);
+    case kCameraOverhead: {
+      CameraOverhead(event);
     } break;
     case kCameraFirstPerson: {
       CameraFirstPerson(event);
@@ -137,9 +167,9 @@ CameraUpdate(const PlatformEvent& event, uint32_t tag)
 }
 
 void
-CameraUpdate(const PlatformEvent& event)
+CameraUpdateEvent(const PlatformEvent& event)
 {
-  CameraUpdate(event, kLocalCameraTag);
+  CameraUpdateEvent(event, kLocalCameraTag);
 }
 
 math::Mat4f
@@ -148,8 +178,7 @@ CameraView()
   Camera* c = CameraGetCurrent();
   if (!c) return math::Identity();
   switch (c->mode) {
-    case kCameraFollow:
-    case kCameraControl: {
+    case kCameraOverhead: {
       return math::LookAt(c->position, c->position + c->dir * 1.f, c->up);
     } break;
     case kCameraFirstPerson: {

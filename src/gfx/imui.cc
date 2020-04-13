@@ -12,13 +12,19 @@ constexpr int kMaxTextSize = 128;
 constexpr int kClickForFrames = 100;
 
 static const v4f kWhite(1.f, 1.f, 1.f, 1.f);
-static const v4f kPaneColor(0.f, 0.f, 0.f, 0.5f);
+static const v4f kPaneColor(0.0f, 0.0f, 0.0f, 0.4f);
 
 struct Result {
-  Rectf rect;
+  Result() = default;
+  Result(const math::Rectf& rect, bool highlighted, bool clicked) :
+      rect(rect), highlighted(highlighted), clicked(clicked) {}
+  math::Rectf rect;
   bool highlighted = false;
   bool clicked = false;
 };
+
+#define IMUI_RESULT(rect) \
+  Result(rect, IsRectHighlighted(rect), IsRectClicked(rect))
 
 struct TextOptions {
   v4f color = kWhite;
@@ -193,27 +199,25 @@ Indent(int spaces)
   kIMUI.begin_mode.pos.x += spaces * row->xadvance;
 }
 
-void
-UpdatePaneOnCall(const Rectf& rect, Pane* pane)
+// Returns rect representing bounds for the current object.
+// Updates global bounds of pane.
+// Set begin_mode.pos to point to the bottom left of where the current element
+// should draw.
+math::Rectf
+UpdatePane(float width, float height, Pane* pane)
 {
-  if (!pane) return;
+  assert(pane);
   auto& begin_mode = kIMUI.begin_mode;
   // Must call Begin() before UI rendering starts and End() when it's done.
   assert(begin_mode.set);
-  switch (pane->options.size_mode) {
-    case PaneOptions::kAutoResize: {
-      begin_mode.pane->rect.y = begin_mode.pos.y;
-      begin_mode.pane->rect.height += rect.height;
-      float width = (rect.x + rect.width) - begin_mode.pane->rect.x;
-      if (width > begin_mode.pane->rect.width) {
-        begin_mode.pane->rect.width = width;
-      }
-    } break;
-    case PaneOptions::kFixedSize:
-      break;
-    default:
-      break;
+  begin_mode.pane->rect.y -= height;
+  begin_mode.pane->rect.height += height;
+  float new_width = (begin_mode.pos.x + width) - begin_mode.pane->rect.x;
+  if (new_width > begin_mode.pane->rect.width) {
+    begin_mode.pane->rect.width = new_width;
   }
+  begin_mode.pos.y -= height;
+  return math::Rectf(begin_mode.pos.x, begin_mode.pos.y, width, height);
 }
 
 void
@@ -249,12 +253,13 @@ UpdatePaneOnEnd(Pane* pane)
 }
 
 Result
-Text(const char* msg, v2f pos, TextOptions options)
+Text(const char* msg, TextOptions options)
 {
   assert(kIMUI.begin_mode.set);
+  auto& begin_mode = kIMUI.begin_mode;
   uint32_t tag = kIMUI.begin_mode.tag;
-  Result data;
   struct Text* text = UseText(tag);
+  Result data;
   if (!text) {
     imui_errno = 1;
     return data;
@@ -263,44 +268,20 @@ Text(const char* msg, v2f pos, TextOptions options)
     imui_errno = 2;
     return data;
   }
-  auto& begin_mode = kIMUI.begin_mode;
-  data.rect = rgg::GetTextRect(msg, strlen(msg), begin_mode.pos, options.scale);
-  data.highlighted = IsRectHighlighted(data.rect);
-  data.clicked = IsRectClicked(data.rect);
+  math::Rectf text_rect = 
+      rgg::GetTextRect(msg, strlen(msg), begin_mode.pos, options.scale);
+  math::Rectf rect =
+      UpdatePane(text_rect.width, text_rect.height, begin_mode.pane);
   strcpy(text->msg, msg);
-  text->pos = pos;
+  text->pos = v2f(rect.x, rect.y);
   text->color = options.color;
-  if (data.highlighted && options.highlight_color != v4f()) {
+  if (IsRectHighlighted(rect) && options.highlight_color != v4f()) {
     text->color = options.highlight_color;
   }
   text->options = options;
-  text->rect = data.rect;
+  text->rect = rect;
   ++begin_mode.text_calls;
-  return data;
-}
-
-// TODO(abrunasso): Consider removing. I think only allowing UI calls between
-// Consider making all UI calls occur between Begin / End. Otherwise there
-// will be many code paths for UI elements and state becomes hard to reason
-// about.
-Result
-Text(const char* msg, v2f pos)
-{
-  assert(kIMUI.begin_mode.set);
-  return Text(msg, pos, {kWhite, kWhite});
-}
-
-Result
-Text(const char* msg, TextOptions options)
-{
-  assert(kIMUI.begin_mode.set);
-  auto& begin_mode = kIMUI.begin_mode;
-  // Call StartText before this.
-  assert(kIMUI.begin_mode.set);
-  Result data = Text(msg, begin_mode.pos, options);
-  UpdatePaneOnCall(data.rect, begin_mode.pane);
-  begin_mode.pos.y -= data.rect.height;
-  return data;
+  return IMUI_RESULT(rect);
 }
 
 Result
@@ -332,14 +313,7 @@ Begin(v2f start, uint32_t tag, const PaneOptions& pane_options)
 void
 Begin(v2f start, uint32_t tag)
 {
-  assert(tag < kMaxTags);
-  auto& begin_mode = kIMUI.begin_mode;
-  // End must be called before Begin.
-  assert(!begin_mode.set);
-  begin_mode.pos = start;
-  begin_mode.set = true;
-  begin_mode.tag = tag;
-  begin_mode.pane = nullptr;
+  Begin(start, tag, PaneOptions());
 }
 
 void
@@ -350,7 +324,7 @@ End()
 }
 
 Result
-Button(const Rectf& rect, const v4f& color)
+Button(float width, float height, const v4f& color)
 {
   // Call Begin() before imui elements.
   assert(kIMUI.begin_mode.set);
@@ -361,12 +335,10 @@ Button(const Rectf& rect, const v4f& color)
     imui_errno = 3;
     return result;
   }
+  math::Rectf rect = UpdatePane(width, height, kIMUI.begin_mode.pane);
   button->rect = rect;
   button->color = color;
-  result.clicked = IsRectClicked(rect);
-  result.highlighted = IsRectHighlighted(rect);
-  result.rect = rect;
-  return result;
+  return IMUI_RESULT(button->rect);
 }
 
 void

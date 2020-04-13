@@ -13,7 +13,7 @@ if [ -n "$unix" ]; then
   echo Building with $CXX $CXXFLAGS
   time $CXX $CXXFLAGS $1 -I src/ -lX11 -lEGL -lGL -lpthread -o $APP
 else
-  time $CXX $CXXFLAGS $1 -I src/ -O1 -ObjC++ -L bin/ -ldl -o $APP -framework OpenGL -framework AppKit -mmacosx-version-min=10.7 -stdlib=libc++ -Wno-format
+  time $CXX $CXXFLAGS $1 -I src/ -g -ObjC++ -L bin/ -ldl -o $APP -framework OpenGL -framework AppKit -mmacosx-version-min=10.7 -stdlib=libc++ -Wno-format
   # For teeny weeny builds '-Os -flto'
   # O0 takes about half a second off the compile time.
 fi

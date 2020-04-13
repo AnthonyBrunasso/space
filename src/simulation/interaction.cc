@@ -85,7 +85,7 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
 {
   static bool enable_debug = false;
   imui::PaneOptions options;
-  imui::Begin(v2f(3.f, screen.y - 30.f), tag, options);
+  imui::Begin(v2f(3.f, screen.y), tag, options);
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
@@ -141,7 +141,7 @@ ReadOnlyUnits(v2f screen, uint32_t tag)
   static uint64_t unit_debug = 0;
   imui::PaneOptions options;
   options.width = 300.f;
-  imui::Begin(v2f(screen.x - 300.f, screen.y - 30.f), tag, options);
+  imui::Begin(v2f(screen.x - 300.f, screen.y), tag, options);
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
@@ -204,7 +204,7 @@ TilePanel(v2f screen, uint32_t tag, Player* player)
 {
   imui::PaneOptions options;
   options.width = 300.f;
-  imui::Begin(v2f(screen.x - 600.f, screen.y - 30.f), tag, options);
+  imui::Begin(v2f(screen.x - 600.f, screen.y), tag, options);
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
@@ -567,13 +567,14 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
 void
 GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
 {
-  imui::Begin(v2f(0.f, 100.f), tag);
+  imui::Begin(v2f(0.f, 400.f), tag);
   imui::Result hud_result;
   v2f p(50.f, 10.f);
   for (int i = 3; i < kModCount; ++i) {
     v3f c = ModuleColor((ModuleKind)i);
+    imui::Text(ModuleName((ModuleKind)i));
     hud_result =
-        imui::Button(Rectf(p.x, p.y, 50, 50), v4f(c.x, c.y, c.z, .6f));
+        imui::Button(50.f, 50, v4f(c.x, c.y, c.z, .6f));
     p.x += 55.f;
     if (hud_result.clicked) {
       player->hud_mode = kHudModule;

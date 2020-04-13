@@ -363,6 +363,9 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
     case MOUSE_DOWN: {
       imui::MouseClick(event.position, event.button, player_index);
 
+      // Don't perform world click events if mouse down is done in UI.
+      if (imui::MousePosition(event.position, player_index)) break;
+
       if (event.button == BUTTON_MIDDLE) {
         camera::Move(&player->camera, event_world);
       }

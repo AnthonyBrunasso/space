@@ -5,6 +5,7 @@
 
 #include "entity.cc"
 #include "search.cc"
+#include "tilemap.cc"
 
 namespace simulation
 {
@@ -105,20 +106,22 @@ ScenarioInitialize()
   // Spawn units / modules.
   switch (sid) {
     case kCombatScenario: {
-      SpawnCrew(v2i(5, 12), 0);
-      SpawnEnemy(v2i(10, 12), 0);
+      TilemapModify tm(0);
+      SpawnCrew(*TilePtr(5, 12), 0);
+      SpawnEnemy(*TilePtr(10, 12));
     } break;
     case kSoloMission: {
-      SpawnCrew(v2i(8, 12), 0);
-      SpawnEnemy(v2i(10, 15), 0);
-      SpawnEnemy(v2i(10, 20), 0);
-      SpawnEnemy(v2i(4, 20), 0);
+      TilemapModify tm(0);
+      SpawnCrew(*TilePtr(8, 12), 0);
+      SpawnEnemy(*TilePtr(10, 15));
+      SpawnEnemy(*TilePtr(10, 20));
+      SpawnEnemy(*TilePtr(4, 20));
     } break;
     case kTwoShip: {
       for (int i = 0; i < kPlayerCount; ++i) {
         TilemapModify tm(i);
-        SpawnCrew(v2i(5, 23), i, i);
-        SpawnAICrew(v2i(15, 15), i, i);
+        SpawnCrew(*TilePtr(5, 23), i);
+        SpawnAICrew(*TilePtr(15, 15), i);
         ScenarioSpawnRandomModule(kModPower, i);
         ScenarioSpawnRandomModule(kModEngine, i, 5);
         ScenarioSpawnRandomModule(kModDoor, i, 12);

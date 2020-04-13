@@ -148,14 +148,12 @@ GetNearestUnit(const v3f& pos)
 }
 
 uint32_t
-SpawnEnemy(v2i tile_position, uint64_t ship_index)
+SpawnEnemy(Tile tile)
 {
-  // Uses raii to revert ship index back to whatever was set.
-  TilemapModify tm(ship_index);
   Unit* enemy = UseEntityUnit();
-  enemy->position = TilePosToWorld(tile_position);
+  enemy->position = FromShip(tile).Center();
   enemy->scale = v3f(0.25f, 0.25f, 0.f);
-  enemy->ship_index = ship_index;
+  enemy->ship_index = tile.ship_index;
   enemy->player_index = kInvalidIndex;
   enemy->alliance = kEnemy;
   enemy->kind = kAlien;
@@ -167,13 +165,12 @@ SpawnEnemy(v2i tile_position, uint64_t ship_index)
 }
 
 void
-SpawnAICrew(v3f world_position, uint64_t player_index, uint64_t ship_index)
+SpawnAICrew(Tile tile, uint64_t player_index)
 {
-  TilemapModify tm(ship_index);
   Unit* unit = UseEntityUnit();
-  unit->position = world_position;
+  unit->position = FromShip(tile).Center();
   unit->scale = v3f(0.25f, 0.25f, 0.f);
-  unit->ship_index = ship_index;
+  unit->ship_index = tile.ship_index;
   unit->player_index = player_index;
   unit->kind = kOperator;
   unit->spacesuit = 1;
@@ -183,52 +180,17 @@ SpawnAICrew(v3f world_position, uint64_t player_index, uint64_t ship_index)
 }
 
 void
-SpawnAICrew(v2i tile_position, uint64_t player_index, uint64_t ship_index)
+SpawnCrew(Tile tile, uint64_t player_index)
 {
-  TilemapModify tm(ship_index);
   Unit* unit = UseEntityUnit();
-  unit->position = TilePosToWorld(tile_position);
+  unit->position = FromShip(tile).Center();
   unit->scale = v3f(0.25f, 0.25f, 0.f);
-  unit->ship_index = ship_index;
+  unit->ship_index = tile.ship_index;
   unit->player_index = player_index;
   unit->kind = kOperator;
   unit->spacesuit = 1;
   unit->notify = 1;
   unit->bounds = v3f(17.f, 17.f, 25.f);
-  BB_SET(unit->bb, kUnitBehavior, kUnitBehaviorCrewMember);
-}
-
-void
-SpawnCrew(v3f world_position, uint64_t player_index, uint64_t ship_index)
-{
-  TilemapModify tm(ship_index);
-  Unit* unit = UseEntityUnit();
-  unit->position = world_position;
-  unit->scale = v3f(0.25f, 0.25f, 0.f);
-  unit->ship_index = ship_index;
-  unit->player_index = player_index;
-  unit->kind = kOperator;
-  unit->spacesuit = 1;
-  unit->notify = 1;
-  unit->bounds = v3f(17.f, 17.f, 25.f);
-}
-
-void
-SpawnCrew(v2i tile_position, uint64_t player_index, uint64_t ship_index)
-{
-  SpawnCrew(TilePosToWorld(tile_position), player_index, ship_index);
-}
-
-void
-SpawnCrew(v3f world_position, uint64_t ship_index)
-{
-  SpawnCrew(world_position, AssignPlayerId(), ship_index);
-}
-
-void
-SpawnCrew(v2i tile_position, uint64_t ship_index)
-{
-  SpawnCrew(TilePosToWorld(tile_position), AssignPlayerId(), ship_index);
 }
 
 bool

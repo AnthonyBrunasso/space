@@ -12,13 +12,12 @@ namespace simulation
 {
 extern v3f ModuleBounds(ModuleKind mkind);             // in module.cc
 void BfsTileEnable(Tile set_tile, uint64_t tile_dsq);  // in search.cc
-Rectf FromShip(Tile tile); // in ship.cc
+Rectf FromShip(Tile tile);                             // in ship.cc
 
 constexpr float kTileWidth = 25.0f;
 constexpr float kTileHeight = 25.0f;
 
 Grid* kCurrentGrid;
-v2f kTilemapWorldOffset;
 
 enum TileType {
   kTileOpen = 0,
@@ -46,7 +45,6 @@ TileEqualPosition(Tile lhs, Tile rhs)
 {
   return memcmp(lhs.position, rhs.position, sizeof(Tile::position)) == 0;
 }
-
 
 INLINE bool
 operator==(Tile lhs, Tile rhs)
@@ -83,8 +81,6 @@ TileDsq(int64_t dx, int64_t dy, uint64_t tile_distance)
   return (dx2 * dx2 + dy2 * dy2 <= dsq);
 }
 
-#define INVALID_TILE v2i(0, 0)
-
 constexpr int kMaxNeighbor = 8;
 constexpr int kLastNeighbor = kMaxNeighbor - 1;
 static const v2i kNeighbor[kMaxNeighbor] = {
@@ -92,62 +88,31 @@ static const v2i kNeighbor[kMaxNeighbor] = {
     v2i(1, 1),  v2i(-1, 1), v2i(1, -1), v2i(-1, -1),
 };
 
-// Returns the centered position of the tile.
-v2f
-TilePosToWorld(const v2i pos)
+  return {kTilemapWorldOffset.x + (pos.x * kTileWidth) + .5 * kTileWidth,
+          kTilemapWorldOffset.y + (pos.y * kTileHeight) + .5 * kTileHeight};
+Tile*
+TilePtr(uint16_t x, uint16_t y)
 {
-  return {kTilemapWorldOffset.x + (pos.x * kTileWidth) + .5f * kTileWidth,
-          kTilemapWorldOffset.y + (pos.y * kTileHeight) + .5f * kTileHeight};
-}
+  if (!kCurrentGrid) return nullptr;
+  if (x < 0) return nullptr;
+  if (x >= kMapWidth) return nullptr;
+  if (y < 0) return nullptr;
+  if (y >= kMapHeight) return nullptr;
 
-// Returns true for positions that exist as a tile in kTilemap
-bool
-TileOk(v2i pos)
-{
-  if (pos.x < 0) return false;
-  if (pos.x >= kMapWidth) return false;
-  if (pos.y < 0) return false;
-  if (pos.y >= kMapHeight) return false;
-  return true;
+  return &kCurrentGrid->tilemap[y][x];
 }
 
 Tile*
-TilePtr(const v2i& pos)
-{
-  if (!kCurrentGrid) return nullptr;
-  if (!TileOk(pos)) return nullptr;
-  return &kCurrentGrid->tilemap[pos.y][pos.x];
-}
-
-Tile* 
 TilePtr(Tile t)
 {
   v2i grid(t.cx, t.cy);
   return &kCurrentGrid->tilemap[grid.y][grid.x];
 }
 
-v3f
-TileAvoidWalls(Tile tile)
+Tile
+TileRandom()
 {
-  v2i avoidance = {};
-  for (int i = 0; i < kMaxNeighbor; ++i) {
-    v2i neighbor = v2i(tile.cx, tile.cy) + kNeighbor[i];
-    Tile* tile = TilePtr(neighbor);
-    if (!tile) continue;
-    if (tile->blocked) {
-      avoidance -= kNeighbor[i];
-    }
-  }
-
-  return v3f(avoidance.x, avoidance.y, 0.0f);
-}
-
-v2f
-TileRandomPosition()
-{
-  v2i random_tile(MOD_BUCKET(rand(), kMapWidth),
-                  MOD_BUCKET(rand(), kMapHeight));
-  return TilePosToWorld(random_tile);
+  return *TilePtr(MOD_BUCKET(rand(), kMapWidth), MOD_BUCKET(rand(), kMapHeight));
 }
 
 Tile
@@ -165,7 +130,6 @@ void
 TilemapClear()
 {
   kCurrentGrid = nullptr;
-  kTilemapWorldOffset = v2f();
 }
 
 class TilemapModify
@@ -174,7 +138,6 @@ class TilemapModify
   TilemapModify(uint64_t ship_index)
   {
     prev_grid = kCurrentGrid;
-    prev_offset = kTilemapWorldOffset;
     // TODO (AN): For now grid_index is ship_index
     ok = ship_index < kUsedGrid && ship_index < kUsedShip;
 
@@ -182,17 +145,14 @@ class TilemapModify
 
     // TODO (AN): For now grid_index is ship_index
     kCurrentGrid = &kGrid[ship_index];
-    kTilemapWorldOffset = kShip[ship_index].transform.position.xy();
   }
 
   ~TilemapModify()
   {
     kCurrentGrid = prev_grid;
-    kTilemapWorldOffset = prev_offset;
   }
 
   Grid* prev_grid;
-  v2f prev_offset;
   bool ok;
 };
 
@@ -281,7 +241,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
     case kTilemapEmpty: {
       for (int y = 0; y < kMapHeight; ++y) {
         for (int x = 0; x < kMapWidth; ++x) {
-          Tile* tile = TilePtr(v2i(x, y));
+          Tile* tile = TilePtr(x, y);
           *tile = kZeroTile;
           tile->cx = x;
           tile->cy = y;
@@ -293,7 +253,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
     case kTilemapShip: {
       for (int y = 0; y < kMapHeight; ++y) {
         for (int x = 0; x < kMapWidth; ++x) {
-          Tile* tile = TilePtr(v2i(x, y));
+          Tile* tile = TilePtr(x, y);
           *tile = kZeroTile;
           tile->cx = x;
           tile->cy = y;
@@ -313,14 +273,28 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
               mod->bounds = ModuleBounds(mod->mkind);
               mod->ship_index = ship_index;
               mod->player_index = player_index;
-              mod->position = v3f(0.f, 0.f, mod->bounds.z / 2.f) +
-                              FromShip(*tile).Center();
+              mod->position =
+                  v3f(0.f, 0.f, mod->bounds.z / 2.f) + FromShip(*tile).Center();
             } break;
           };
         }
       }
     } break;
   }
+}
+
+v3f
+TileAvoidWalls(Tile start)
+{
+  v2i avoidance = {};
+  for (int i = 0; i < kMaxNeighbor; ++i) {
+    Tile neighbor = TileNeighbor(start, i);
+    if (neighbor.blocked) {
+      avoidance -= kNeighbor[i];
+    }
+  }
+
+  return v3f(avoidance.x, avoidance.y, 0.0f);
 }
 
 void

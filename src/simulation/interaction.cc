@@ -274,7 +274,7 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
       player->mineral_cheat = !player->mineral_cheat;
     }
     if (imui::Text("Spawn Unit Cheat", text_options).clicked) {
-      SpawnCrew(TileRandomPosition(), 0);
+      SpawnCrew(TileRandom(), player - kPlayer);
     }
     if (imui::Text("Kill Random Unit Cheat", text_options).clicked) {
       // Kill first unit in entity list.

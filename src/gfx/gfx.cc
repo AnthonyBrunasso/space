@@ -274,7 +274,7 @@ RenderShip(uint64_t ship_index)
   float ship_alpha = 1.f - fft;
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
-      const Tile* tile = TilePtr(v2i(j, i));
+      const Tile* tile = TilePtr(j, i);
       v2f world_pos = FromShip(*tile).Min();
 
       v4f color;

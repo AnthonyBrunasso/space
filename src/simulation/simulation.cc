@@ -160,9 +160,7 @@ DecideInvasion()
       int count = rand() % kMaxThisInvasion + 1;
       while (BfsNext(&iter)) {
         if (iter.tile->exterior || iter.tile->blocked) continue;
-        v->unit_id[v->unit_count++] = SpawnEnemy(
-            v2i(iter.tile->cx, iter.tile->cy), v->docked_tile.ship_index);
-
+        v->unit_id[v->unit_count++] = SpawnEnemy(*iter.tile);
         if (v->unit_count == count) break;
       }
       if (kMaxThisInvasion < kMaxInvasionCount) {

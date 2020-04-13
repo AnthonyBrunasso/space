@@ -180,7 +180,7 @@ ModuleBarrackUpdate(Module* module)
   }
 
   if (module->frames_training >= module->frames_to_train) {
-    SpawnCrew(module->position, module->player_index, module->ship_index);
+    SpawnCrew(module->tile, module->player_index);
     module->frames_training = kTrainIdle;
   }
 

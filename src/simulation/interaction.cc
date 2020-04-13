@@ -573,7 +573,7 @@ GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
   for (int i = 3; i < kModCount; ++i) {
     v3f c = ModuleColor((ModuleKind)i);
     imui::Text(ModuleName((ModuleKind)i));
-    hud_result = imui::Button(50.f, 50, v4f(c.x, c.y, c.z, .6f));
+    hud_result = imui::Button(35.f, 35.f, v4f(c.x, c.y, c.z, .6f));
     p.x += 55.f;
     if (hud_result.clicked) {
       player->hud_mode = kHudModule;

@@ -54,6 +54,14 @@ TextTest()
   //imui::Button(50.f, 50.f, v4f(1.f, 0.f, 0.f, 1.f));
 //  imui::Button(50.f, 50.f, v4f(1.f, 0.f, 0.f, 1.f));
   imui::End();
+
+  imui::Begin(v2f(1000, 300), 0, pane_options);
+  imui::Text("Some text");
+  imui::Text("That is going to be");
+  imui::HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));
+  imui::Text("Seperated");
+  imui::Text("By a line!");
+  imui::End();
 }
 
 int

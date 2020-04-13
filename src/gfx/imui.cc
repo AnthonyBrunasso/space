@@ -99,12 +99,23 @@ struct Box {
   v4f outline_color;
 };
 
+struct Line {
+  v2f start;
+  enum type {
+    kHorizontal,
+    kVertical,
+  } type;
+  v4f color;
+  Pane* pane;
+};
+
 static IMUI kIMUI;
 
 constexpr uint32_t kMaxTags = MAX_PLAYER + 1;
 constexpr uint32_t kEveryoneTag = MAX_PLAYER;
 
 DECLARE_2D_ARRAY(Text, kMaxTags, 64);
+DECLARE_2D_ARRAY(Line, kMaxTags, 64);
 DECLARE_2D_ARRAY(Button, kMaxTags, 16);
 DECLARE_2D_ARRAY(UIClick, kMaxTags, 8);
 DECLARE_2D_ARRAY(MousePosition, kMaxTags, MAX_PLAYER);
@@ -119,6 +130,7 @@ ResetAll()
   memset(kUsedUIClick, 0, sizeof(kUsedUIClick));
   memset(kUsedMousePosition, 0, sizeof(kUsedMousePosition));
   memset(kUsedPane, 0, sizeof(kUsedPane));
+  memset(kUsedLine, 0, sizeof(kUsedLine));
 }
 
 void
@@ -130,6 +142,7 @@ ResetTag(uint32_t tag)
   kUsedPane[tag] = 0;
   kUsedUIClick[tag] = 0;
   kUsedMousePosition[tag] = 0;
+  kUsedLine[tag] = 0;
 }
 
 void
@@ -153,6 +166,14 @@ Render(uint32_t tag)
   for (int i = 0; i < kUsedText[tag]; ++i) {
     Text* text = &kText[tag][i];
     rgg::RenderText(text->msg, text->pos, text->options.scale, text->color);
+  }
+
+  for (int i = 0; i < kUsedLine[tag]; ++i) {
+    Line* line = &kLine[tag][i];
+    if (line->type == Line::kHorizontal) {
+      v2f end(line->start.x + line->pane->rect.width, line->start.y);
+      rgg::RenderLine(line->start, end, line->color);
+    }
   }
 
   for (int i = kReadUIClickRender; i < kWriteUIClickRender; ++i) {
@@ -345,6 +366,22 @@ Button(float width, float height, const v4f& color)
 }
 
 void
+HorizontalLine(const v4f& color)
+{
+  assert(kIMUI.begin_mode.set);
+  uint32_t tag = kIMUI.begin_mode.tag;
+  Line* line = UseLine(tag);
+  if (!line) {
+    imui_errno = 5;
+    return;
+  }
+  line->start = kIMUI.begin_mode.pos;
+  line->pane = kIMUI.begin_mode.pane;
+  line->color = color;
+  UpdatePane(line->pane->rect.width, 1.f, kIMUI.begin_mode.pane);
+}
+
+void
 MouseClick(v2f pos, PlatformButton b, uint32_t tag)
 {
   UIClick* click = UseUIClick(tag);
@@ -381,6 +418,9 @@ LastErrorString()
       return ("imui button count exhausted.");
     case 4:
       return ("imui click count exhausted.");
+    case 5:
+      return ("imui line count exhausted.");
+
   };
 
   return 0;

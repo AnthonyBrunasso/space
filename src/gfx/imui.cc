@@ -316,13 +316,12 @@ Indent(int spaces)
 // Set begin_mode.pos to point to the bottom left of where the current element
 // should draw.
 Rectf
-UpdatePane(float width, float height, Pane* pane)
+UpdatePane(float width, float height)
 {
   IF_HIDDEN(return Rectf());
-  assert(pane);
   auto& begin_mode = kIMUI.begin_mode;
-  // Must call Begin() before UI rendering starts and End() when it's done.
   assert(begin_mode.set);
+  assert(begin_mode.pane);
   if (begin_mode.flow_switch || begin_mode.flow_type == kNewLine) {
     begin_mode.pane->rect.y -= height;
     begin_mode.pane->rect.height += height;
@@ -398,8 +397,7 @@ Text(const char* msg, TextOptions options)
   }
   Rectf text_rect = 
       rgg::GetTextRect(msg, strlen(msg), begin_mode.pos, kTextScale);
-  Rectf rect =
-      UpdatePane(text_rect.width, text_rect.height, begin_mode.pane);
+  Rectf rect = UpdatePane(text_rect.width, text_rect.height);
   strcpy(text->msg, msg);
   text->pos = v2f(rect.x, rect.y);
   text->color = options.color;
@@ -433,7 +431,7 @@ HorizontalLine(const v4f& color)
   line->start = kIMUI.begin_mode.pos;
   line->pane = kIMUI.begin_mode.pane;
   line->color = color;
-  UpdatePane(line->pane->rect.width, 1.f, kIMUI.begin_mode.pane);
+  UpdatePane(line->pane->rect.width, 1.f);
 }
 
 void
@@ -442,9 +440,9 @@ Space(SpaceType type, int count)
   assert(kIMUI.begin_mode.set);
   IF_HIDDEN(return);
   if (type == kHorizontal) {
-    UpdatePane(count, 0.f, kIMUI.begin_mode.pane);
+    UpdatePane(count, 0.f);
   } else {
-    UpdatePane(0.f, count, kIMUI.begin_mode.pane);
+    UpdatePane(0.f, count);
   }
 }
 
@@ -461,7 +459,7 @@ Button(float width, float height, const v4f& color)
     imui_errno = 3;
     return result;
   }
-  Rectf rect = UpdatePane(width, height, kIMUI.begin_mode.pane);
+  Rectf rect = UpdatePane(width, height);
   button->rect = rect;
   button->color = color;
   return IMUI_RESULT(button->rect);
@@ -480,7 +478,7 @@ ButtonCircle(float radius, const v4f& color)
     imui_errno = 3;
     return result;
   }
-  Rectf rect = UpdatePane(2.f * radius, 2.f * radius, kIMUI.begin_mode.pane);
+  Rectf rect = UpdatePane(2.f * radius, 2.f * radius);
   // RenderButton renders from center.
   button->position = v2f(rect.x, rect.y) + v2f(radius, radius);
   button->radius = radius;

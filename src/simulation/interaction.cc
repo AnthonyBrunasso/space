@@ -362,9 +362,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
     } break;
     case MOUSE_DOWN: {
       imui::MouseClick(event.position, event.button, player_index);
-
-      // Don't perform world click events if mouse down is done in UI.
-      if (imui::MousePosition(event.position, player_index)) break;
+      if (imui::MouseInUI(event.position, player_index)) break;
 
       if (event.button == BUTTON_MIDDLE) {
         camera::Move(&player->camera, event_world);
@@ -422,6 +420,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
     } break;
     case MOUSE_UP: {
       if (event.button == BUTTON_LEFT) {
+        if (imui::MouseInUI(event.position, player_index)) break;
         // TODO(abrunasso): Unconvinced this is the best way to check if a
         // selection occurred. Also unconvined that it's not....
         Unit* unit = nullptr;

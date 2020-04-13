@@ -493,6 +493,15 @@ MouseClick(v2f pos, PlatformButton b, uint32_t tag)
   click->button = b;
 }
 
+bool
+MouseInUI(v2f pos, uint32_t tag)
+{
+  for (int i = 0; i < kUsedUIBound[tag]; ++i) {
+    if (math::PointInRect(pos, kUIBound[tag][i].rect)) return true;
+  }
+  return false;
+}
+
 // Returns true if the mouse is contained within UI given bounds of last
 // UI frame.
 bool
@@ -504,10 +513,7 @@ MousePosition(v2f pos, uint32_t tag)
     return false;
   }
   mp->pos = pos;
-  for (int i = 0; i < kUsedUIBound[tag]; ++i) {
-    if (math::PointInRect(pos, kUIBound[tag][i].rect)) return true;
-  }
-  return false;
+  return MouseInUI(pos, tag);
 }
 
 const char*

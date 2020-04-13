@@ -21,10 +21,12 @@ ShipBounds(uint64_t ship_index)
 }
 
 Rectf
-FromShip(uint64_t ship_index, Tile tile)
+FromShip(Tile tile)
 {
   Rectf tile_bounds = {};
-  if (ship_index >= kUsedShip) return tile_bounds;
+  if (!TileValid(tile)) return tile_bounds;
+  const uint64_t ship_index = tile.ship_index;
+  assert(ship_index < kUsedShip);
 
   v3f ship_position = kShip[ship_index].transform.position;
   tile_bounds.x = ship_position.x + (tile.cx*kTileWidth);

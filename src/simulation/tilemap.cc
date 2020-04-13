@@ -12,7 +12,7 @@ namespace simulation
 {
 extern v3f ModuleBounds(ModuleKind mkind);             // in module.cc
 void BfsTileEnable(Tile set_tile, uint64_t tile_dsq);  // in search.cc
-Rectf FromShip(uint64_t ship_index, Tile tile); // in ship.cc
+Rectf FromShip(Tile tile); // in ship.cc
 
 constexpr float kTileWidth = 25.0f;
 constexpr float kTileHeight = 25.0f;
@@ -336,7 +336,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
               mod->ship_index = ship_index;
               mod->player_index = player_index;
               mod->position = v3f(0.f, 0.f, mod->bounds.z / 2.f) +
-                              FromShip(ship_index, *tile).Center();
+                              FromShip(*tile).Center();
             } break;
           };
         }

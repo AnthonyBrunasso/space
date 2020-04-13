@@ -62,9 +62,8 @@ TilemapUpdate()
 
   // Logical isolation for mapping v3f -> tile
   // Copying the tile introduces a frame delay when processing tile properties
-  FOR_EACH_ENTITY(Unit, unit, {
-    unit->tile = ToShip(unit->ship_index, unit->position);
-  });
+  FOR_EACH_ENTITY(Unit, unit,
+                  { unit->tile = ToShip(unit->ship_index, unit->position); });
 }
 
 void
@@ -90,17 +89,8 @@ DecideShip(uint64_t ship_index)
 void
 DecideAsteroid()
 {
-  if (kUsedAsteroid != kUsedPlayer) {
-    bool asteroid_spawned[kMaxGrid] = {false};
-    // Spawn an asteroid on each tilemap.
-    for (int i = 0; i < kUsedAsteroid; ++i) {
-      Asteroid* asteroid = &kAsteroid[i];
-      uint64_t grid = TilemapWorldToGrid(asteroid->transform.position);
-      asteroid_spawned[grid] = true;
-    }
-
-    for (int i = 0; i < kPlayerCount; ++i) {
-      if (asteroid_spawned[i]) continue;
+  if (kUsedAsteroid != kUsedShip) {
+    for (int i = 0; i < kUsedShip; ++i) {
       Asteroid* asteroid = UseAsteroid();
       Rectf ship_bounds = ShipBounds(i);
       asteroid->transform.position = v2f(ship_bounds.x + ship_bounds.width,
@@ -154,7 +144,6 @@ DecideInvasion()
 
   for (int i = 0; i < kUsedInvasion; ++i) {
     Invasion* v = &kInvasion[i];
-    TilemapModify mod(TilemapWorldToGrid(v->transform.position));
     Tile tile = ToAnyShip(v->transform.position);
     if (!v->docked && TileValid(tile)) {
       if (tile.blocked) {
@@ -165,14 +154,14 @@ DecideInvasion()
     if (!v->docked) {
       v->transform.position += v->invasion_dir;
     } else if (v->unit_count == 0) {
+      TilemapModify mod(v->docked_tile.ship_index);
       // Spawn the units from the invasion force!
       BfsIterator iter = BfsStart(v->docked_tile);
       int count = rand() % kMaxThisInvasion + 1;
       while (BfsNext(&iter)) {
         if (iter.tile->exterior || iter.tile->blocked) continue;
-        v->unit_id[v->unit_count++] =
-            SpawnEnemy(v2i(iter.tile->cx, iter.tile->cy),
-                       TilemapWorldToGrid(v->transform.position));
+        v->unit_id[v->unit_count++] = SpawnEnemy(
+            v2i(iter.tile->cx, iter.tile->cy), v->docked_tile.ship_index);
 
         if (v->unit_count == count) break;
       }
@@ -410,17 +399,18 @@ Decide()
           ApplyCommand(unit, c);
         });
       } else {
-        TilemapModify tm(TilemapWorldToGrid(c.destination));
-        // TODO (AN): ship_index unchecked
         Tile start = ToAnyShip(c.destination);
-        BfsIterator iter = BfsStart(start);
-        FOR_EACH_ENTITY(Unit, unit, {
-          // The issuer of a command must have a set bit
-          if (0 == (unit->control & c.control)) continue;
-          c.destination = FromShip(unit->ship_index, *iter.tile).Center();
-          ApplyCommand(unit, c);
-          if (!BfsNextTile(&iter)) break;
-        });
+        if (TileValid(start)) {
+		  TilemapModify tm(start.ship_index);
+          BfsIterator iter = BfsStart(start);
+          FOR_EACH_ENTITY(Unit, unit, {
+            // The issuer of a command must have a set bit
+            if (0 == (unit->control & c.control)) continue;
+            c.destination = FromShip(*iter.tile).Center();
+            ApplyCommand(unit, c);
+            if (!BfsNextTile(&iter)) break;
+          });
+        }
       }
     } else {
       Unit* unit = FindUnit(c.unit_id);

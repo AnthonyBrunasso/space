@@ -275,7 +275,7 @@ RenderShip(uint64_t ship_index)
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
       const Tile* tile = TilePtr(j, i);
-      v2f world_pos = FromShip(*tile).Min();
+      v2f world_pos = FromShip(*tile).Center();
 
       v4f color;
       if (tile->shroud && !tile->explored) {

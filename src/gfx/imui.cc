@@ -44,6 +44,8 @@ struct Result {
 #define IMUI_RESULT_CIRCLE(center, radius) \
   Result(rect, IsCircleHighlighted(center, radius), IsCircleClicked(center, radius))
 
+#define IF_HIDDEN(jmp) \
+  if (kIMUI.begin_mode.show && !(*kIMUI.begin_mode.show)) jmp;
 
 struct TextOptions {
   v4f color = kWhite;
@@ -302,6 +304,7 @@ void
 Indent(int spaces)
 {
   assert(kIMUI.begin_mode.set);
+  IF_HIDDEN(return);
   auto& font = rgg::kUI.font;
   rgg::FontMetadataRow* row = &rgg::kFontMetadataRow[' '];
   if (!row || !row->id) return;
@@ -315,6 +318,7 @@ Indent(int spaces)
 Rectf
 UpdatePane(float width, float height, Pane* pane)
 {
+  IF_HIDDEN(return Rectf());
   assert(pane);
   auto& begin_mode = kIMUI.begin_mode;
   // Must call Begin() before UI rendering starts and End() when it's done.
@@ -346,6 +350,7 @@ void
 UpdatePaneOnEnd(Pane* pane)
 {
   if (!pane) return;
+  IF_HIDDEN(return);
   auto& begin_mode = kIMUI.begin_mode;
   uint32_t tag = begin_mode.tag;
   assert(begin_mode.set);
@@ -382,7 +387,7 @@ Text(const char* msg, TextOptions options)
   uint32_t tag = kIMUI.begin_mode.tag;
   struct Text* text = UseText(tag);
   Result data;
-  if (kIMUI.begin_mode.show && !(*kIMUI.begin_mode.show)) return data;
+  IF_HIDDEN(return data);
   if (!text) {
     imui_errno = 1;
     return data;
@@ -419,7 +424,7 @@ HorizontalLine(const v4f& color)
 {
   assert(kIMUI.begin_mode.set);
   uint32_t tag = kIMUI.begin_mode.tag;
-  if (kIMUI.begin_mode.show && !(*kIMUI.begin_mode.show)) return;
+  IF_HIDDEN(return);
   Line* line = UseLine(tag);
   if (!line) {
     imui_errno = 5;
@@ -435,7 +440,7 @@ void
 Space(SpaceType type, int count)
 {
   assert(kIMUI.begin_mode.set);
-  if (kIMUI.begin_mode.show && !(*kIMUI.begin_mode.show)) return;
+  IF_HIDDEN(return);
   if (type == kHorizontal) {
     UpdatePane(count, 0.f, kIMUI.begin_mode.pane);
   } else {
@@ -451,7 +456,7 @@ Button(float width, float height, const v4f& color)
   uint32_t tag = kIMUI.begin_mode.tag;
   struct Button* button = UseButton(tag);
   Result result;
-  if (kIMUI.begin_mode.show && !(*kIMUI.begin_mode.show)) return result;
+  IF_HIDDEN(return result);
   if (!button) {
     imui_errno = 3;
     return result;
@@ -468,7 +473,7 @@ ButtonCircle(float radius, const v4f& color)
   // Call Begin() before imui elements.
   assert(kIMUI.begin_mode.set);
   Result result;
-  if (kIMUI.begin_mode.show && !(*kIMUI.begin_mode.show)) return result;
+  IF_HIDDEN(return result);
   uint32_t tag = kIMUI.begin_mode.tag;
   struct ButtonCircle* button = UseButtonCircle(tag);
   if (!button) {
@@ -487,6 +492,7 @@ void
 ToggleSameLine()
 {
   assert(kIMUI.begin_mode.set);
+  IF_HIDDEN(return);
   kIMUI.begin_mode.flow_type = kSameLine;
   kIMUI.begin_mode.flow_switch = true;
   kIMUI.begin_mode.x_reset = kIMUI.begin_mode.pos.x;
@@ -496,6 +502,7 @@ void
 ToggleNewLine()
 {
   assert(kIMUI.begin_mode.set);
+  IF_HIDDEN(return);
   kIMUI.begin_mode.flow_type = kNewLine;
   kIMUI.begin_mode.flow_switch = true;
   kIMUI.begin_mode.pos.x = kIMUI.begin_mode.x_reset;

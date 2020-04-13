@@ -62,9 +62,7 @@ TilemapUpdate()
 
   // Logical isolation for mapping v3f -> tile
   // Copying the tile introduces a frame delay when processing tile properties
-  FOR_EACH_ENTITY(Unit, unit, {
-    WorldToTile(unit->position, &unit->tile);
-  });
+  FOR_EACH_ENTITY(Unit, unit, { WorldToTile(unit->position, &unit->tile); });
 }
 
 void
@@ -102,9 +100,9 @@ DecideAsteroid()
     for (int i = 0; i < kPlayerCount; ++i) {
       if (asteroid_spawned[i]) continue;
       Asteroid* asteroid = UseAsteroid();
-      TilemapModify mod(i);
-      asteroid->transform.position =
-          TilePosToWorld(v2i(kMapHeight - 1, kMapWidth - 1));
+      Rectf ship_bounds = ShipBounds(i);
+      asteroid->transform.position = v2f(ship_bounds.x + ship_bounds.width,
+                                         ship_bounds.y + ship_bounds.height);
       asteroid->mineral_source = 200.f;
     }
   }

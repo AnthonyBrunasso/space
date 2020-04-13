@@ -10,8 +10,9 @@
 
 namespace simulation
 {
-extern v3f ModuleBounds(ModuleKind mkind);             // defined in module.cc
+extern v3f ModuleBounds(ModuleKind mkind);             // in module.cc
 void BfsTileEnable(Tile set_tile, uint64_t tile_dsq);  // in search.cc
+Rectf ShipTile(uint64_t ship_index, Tile tile); // in ship.cc
 
 constexpr float kTileWidth = 25.0f;
 constexpr float kTileHeight = 25.0f;
@@ -213,7 +214,7 @@ WorldToTile(const v3f pos, Tile* t)
 
   TilemapModify tm(tidx);
   v2f relpos = pos.xy() - kTilemapWorldOffset;
-  v2i grid(relpos.x/kTileWidth, relpos.y/kTileHeight);
+  v2i grid(relpos.x / kTileWidth, relpos.y / kTileHeight);
   if (!TileOk(grid)) return false;
 
   *t = kCurrentGrid->tilemap[grid.y][grid.x];
@@ -347,8 +348,8 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
               mod->bounds = ModuleBounds(mod->mkind);
               mod->ship_index = ship_index;
               mod->player_index = player_index;
-              v3f mp = TilePosToWorld(v2i(x, y));
-              mod->position = mp + v3f(0.f, 0.f, mod->bounds.z / 2.f);
+              mod->position = v3f(0.f, 0.f, mod->bounds.z / 2.f) +
+                              ShipTile(ship_index, *tile).Center();
             } break;
           };
         }

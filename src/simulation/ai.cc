@@ -1,5 +1,9 @@
 #pragma once
 
+#include "entity.cc"
+#include "module.cc"
+#include "tilemap.cc"
+
 namespace simulation
 {
 // AI Will wander to adjacent tiles.

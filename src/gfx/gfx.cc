@@ -370,7 +370,7 @@ RenderShip(uint64_t ship_index)
         v4f(0.207f, 0.317f, 0.360f, 0.60f),
         v4f(0.050f, 0.215f, 0.050f, 0.45f),
     };
-    rgg::RenderGrid(grid_dims, TilemapWorldBounds(), ARRAY_LENGTH(colors),
+    rgg::RenderGrid(grid_dims, ShipBounds(ship_index), ARRAY_LENGTH(colors),
                     colors);
   }
 }

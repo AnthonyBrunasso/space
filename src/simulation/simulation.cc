@@ -5,18 +5,18 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "entity.cc"
-#include "ftl.cc"
-#include "phitu.cc"
-
-#include "module.cc"
-
-#include "scenario.cc"
-#include "search.cc"
-#include "selection.cc"
 #include "util.cc"
 
 #include "ai.cc"
+#include "entity.cc"
+#include "ftl.cc"
+#include "module.cc"
+#include "phitu.cc"
+#include "scenario.cc"
+#include "search.cc"
+#include "selection.cc"
+#include "ship.cc"
+
 namespace simulation
 {
 constexpr float kDsqGather = 25.f * 25.f;
@@ -134,54 +134,28 @@ DecideAsteroid()
   }
 }
 
-v2f
-InvasionDirection(v3f invasion_pos)
-{
-  v3f c = TilemapWorldCenter();
-  float d = FLT_MAX;
-  for (int i = 0; i < kUsedGrid; ++i) {
-    TilemapModify mod(i);
-    v3f nc = TilemapWorldCenter();
-    float nd = math::LengthSquared(nc - invasion_pos);
-    if (nd < d) {
-      c = nc;
-      d = nd;
-    }
-  }
-  return math::Normalize(c.xy() - invasion_pos.xy());
-}
-
 void
 DecideInvasion()
 {
-  if (kFrame < 1500) {
+  /*if (kFrame < 1500) {
     return;
-  }
+  } else if (kFrame == 1500) {
+    LOG("Invasions have begun");
+  }*/
 
   if (kUsedInvasion != kMaxPlayer) {
-    // Find min and max bounds of all grids.
-    v2f min = TilePosToWorldMin({0, 0});
-    v2f max = TilePosToWorldMin({kMapWidth, kMapHeight});
-    for (int i = 0; i < kUsedGrid; ++i) {
-      TilemapModify mod(i);
-      v2f nmin = TilePosToWorldMin({0, 0});
-      v2f nmax = TilePosToWorldMin({kMapWidth, kMapHeight});
-      if (math::LengthSquared(nmin) < math::LengthSquared(min)) {
-        min = nmin;
-      }
-      if (math::LengthSquared(nmax) > math::LengthSquared(max)) {
-        max = nmax;
-      }
-    }
-    Rectf r(min.x, min.y, max.x - min.x, max.y - min.y);
+    Rectf r = FleetBounds();
     // Spawn the invasion at a random point on the exterior of a rect
     // consuming all the grids pushed out by a vector from the midpoint
     // of the nearest grid to it.
     v2f rp = math::RandomPointOnRect(r);
-    v2f dir = InvasionDirection(v3f(rp.x, rp.y, 0.f));
+    v2f center(r.x + .5 * r.width, r.y + .5 * r.height);
+    v2f invasion_dir = math::Normalize(center - rp);
+
     Invasion* invasion = UseInvasion();
     invasion->transform.position =
-        v3f(rp.x, rp.y, 0.f) - v3f(dir.x, dir.y, 0.f) * 350.f;
+        center - invasion_dir * fmax(r.width, r.height);
+    invasion->invasion_dir = invasion_dir;
   }
 
   for (int i = 0; i < kUsedInvasion; ++i) {
@@ -196,7 +170,7 @@ DecideInvasion()
       }
     }
     if (!v->docked) {
-      v->transform.position += InvasionDirection(v->transform.position);
+      v->transform.position += v->invasion_dir;
     } else if (v->unit_count == 0) {
       // Spawn the units from the invasion force!
       BfsIterator iter = BfsStart(v->docked_tile);
@@ -252,7 +226,8 @@ MoveTowards(Unit* unit, Tile dest, UnitAction set_on_arrival)
     }
   }
 
-  v3f delta(incremental_dest.cx - unit->tile.cx, incremental_dest.cy - unit->tile.cy, 0.f);
+  v3f delta(incremental_dest.cx - unit->tile.cx,
+            incremental_dest.cy - unit->tile.cy, 0.f);
   v3f move_vec = delta * unit->speed;
 
   unit->position += (move_vec + avoidance_vec);
@@ -340,11 +315,6 @@ UpdateUnit(uint64_t ship_index)
     if (unit->ship_index != ship_index) continue;
 
     if (unit->health < 0.f) {
-      unit->dead = 1;
-      continue;
-    }
-
-    if (TileEqual(unit->tile, kZeroTile)) {
       unit->dead = 1;
       continue;
     }

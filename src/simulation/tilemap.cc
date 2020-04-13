@@ -149,28 +149,6 @@ TileNeighbor(Tile tile, uint64_t index)
   return tile;
 }
 
-Rectf
-TilemapWorldBounds()
-{
-  Rectf ret;
-  v2f minf = TilePosToWorldMin({0, 0});
-  v2f maxf = TilePosToWorldMin({kMapWidth, kMapHeight});
-
-  ret.x = minf.x;
-  ret.y = minf.y;
-  ret.width = maxf.x - minf.x;
-  ret.height = maxf.y - minf.y;
-
-  return ret;
-}
-
-v3f
-TilemapWorldCenter()
-{
-  return TilePosToWorld({0, 0}) +
-         v2f(kMapWidth * kTileWidth * .5f, kMapHeight * kTileHeight * .5f);
-}
-
 void
 TilemapClear()
 {

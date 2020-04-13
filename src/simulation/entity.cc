@@ -320,6 +320,7 @@ static int kMaxThisInvasion = 2;
 
 struct Invasion {
   Transform transform;
+  v2f invasion_dir;
   // Units countained in the invasion.
   uint32_t unit_id[kMaxInvasionCount];
   int unit_count;

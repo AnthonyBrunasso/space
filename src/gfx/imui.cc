@@ -123,6 +123,10 @@ struct Line {
   Pane* pane;
 };
 
+struct UIBound {
+  Rectf rect;
+};
+
 static IMUI kIMUI;
 
 constexpr uint32_t kMaxTags = MAX_PLAYER + 1;
@@ -135,11 +139,24 @@ DECLARE_2D_ARRAY(ButtonCircle, kMaxTags, 16);
 DECLARE_2D_ARRAY(UIClick, kMaxTags, 8);
 DECLARE_2D_ARRAY(MousePosition, kMaxTags, MAX_PLAYER);
 DECLARE_2D_ARRAY(Pane, kMaxTags, 8);
+DECLARE_2D_ARRAY(UIBound, kMaxTags, 8);
 DECLARE_QUEUE(UIClickRender, 8);
+
+void
+GenerateUIBounds(uint32_t tag)
+{
+  for (int i = 0; i < kUsedPane[tag]; ++i) {
+    kUIBound[tag][i].rect = kPane[tag][i].rect;
+  }
+  kUsedUIBound[tag] = kUsedPane[tag];
+}
 
 void
 ResetAll()
 {
+  for (int i = 0; i < kMaxTags; ++i) {
+    GenerateUIBounds(i);
+  }
   memset(kUsedText, 0, sizeof(kUsedText));
   memset(kUsedButton, 0, sizeof(kUsedButton));
   memset(kUsedButtonCircle, 0, sizeof(kUsedButton));
@@ -153,6 +170,7 @@ void
 ResetTag(uint32_t tag)
 {
   assert(tag < kMaxTags);
+  GenerateUIBounds(tag);
   kUsedText[tag] = 0;
   kUsedButton[tag] = 0;
   kUsedButtonCircle[tag] = 0;
@@ -475,15 +493,21 @@ MouseClick(v2f pos, PlatformButton b, uint32_t tag)
   click->button = b;
 }
 
-void
+// Returns true if the mouse is contained within UI given bounds of last
+// UI frame.
+bool
 MousePosition(v2f pos, uint32_t tag)
 {
   struct MousePosition* mp = UseMousePosition(tag);
   if (!mp) {
     imui_errno = 4;
-    return;
+    return false;
   }
   mp->pos = pos;
+  for (int i = 0; i < kUsedUIBound[tag]; ++i) {
+    if (math::PointInRect(pos, kUIBound[tag][i].rect)) return true;
+  }
+  return false;
 }
 
 const char*

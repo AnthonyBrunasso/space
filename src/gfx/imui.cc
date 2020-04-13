@@ -93,6 +93,10 @@ struct MousePosition {
   v2f pos;
 };
 
+struct LastMousePosition {
+  v2f pos;
+};
+
 struct UIClickRender {
   v2f pos;
   int render_frames;
@@ -125,6 +129,8 @@ struct BeginMode {
 
 struct IMUI {
   BeginMode begin_mode;
+  v2f last_mouse;
+  v2f current_mouse;
 };
 
 struct Box {
@@ -155,24 +161,28 @@ DECLARE_2D_ARRAY(Button, kMaxTags, 16);
 DECLARE_2D_ARRAY(ButtonCircle, kMaxTags, 16);
 DECLARE_2D_ARRAY(UIClick, kMaxTags, 8);
 DECLARE_2D_ARRAY(MousePosition, kMaxTags, MAX_PLAYER);
+DECLARE_2D_ARRAY(LastMousePosition, kMaxTags, MAX_PLAYER);
 DECLARE_2D_ARRAY(Pane, kMaxTags, 8);
 DECLARE_2D_ARRAY(UIBound, kMaxTags, 8);
 DECLARE_QUEUE(UIClickRender, 8);
 
 void
-GenerateUIBounds(uint32_t tag)
+GenerateUIMetadata(uint32_t tag)
 {
   for (int i = 0; i < kUsedPane[tag]; ++i) {
     kUIBound[tag][i].rect = kPane[tag][i].rect;
   }
   kUsedUIBound[tag] = kUsedPane[tag];
+  memcpy(kLastMousePosition[tag], kMousePosition[tag],
+         sizeof(kMousePosition[tag]));
+  kUsedLastMousePosition[tag] = kUsedMousePosition[tag];
 }
 
 void
 ResetAll()
 {
   for (int i = 0; i < kMaxTags; ++i) {
-    GenerateUIBounds(i);
+    GenerateUIMetadata(i);
   }
   memset(kUsedText, 0, sizeof(kUsedText));
   memset(kUsedButton, 0, sizeof(kUsedButton));
@@ -187,7 +197,7 @@ void
 ResetTag(uint32_t tag)
 {
   assert(tag < kMaxTags);
-  GenerateUIBounds(tag);
+  GenerateUIMetadata(tag);
   kUsedText[tag] = 0;
   kUsedButton[tag] = 0;
   kUsedButtonCircle[tag] = 0;
@@ -195,6 +205,14 @@ ResetTag(uint32_t tag)
   kUsedUIClick[tag] = 0;
   kUsedMousePosition[tag] = 0;
   kUsedLine[tag] = 0;
+}
+
+v2f
+MouseDelta(uint32_t tag)
+{
+  if (kUsedMousePosition[tag] < 1 || kUsedLastMousePosition[tag] < 1)
+    return {};
+  return kMousePosition[tag][0].pos - kLastMousePosition[tag][0].pos;
 }
 
 void

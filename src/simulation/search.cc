@@ -7,15 +7,15 @@
 namespace simulation
 {
 struct Path {
-  v2i tile[kMapHeight * kMapWidth];
+  Tile tile[kMapHeight * kMapWidth];
   int size;
 };
 
 struct Search {
   // Visited Nodes
-  v2i path_map[kMapHeight][kMapWidth];
+  Tile path_map[kMapHeight][kMapWidth];
   // BFS queue.
-  v2i queue[kMapHeight * kMapWidth];
+  Tile queue[kMapHeight * kMapWidth];
   int queue_size;
   // The resulting path as calculated from the last call to PathTo.
   Path path;
@@ -32,8 +32,7 @@ static Search kSearch;
 BfsIterator
 BfsStart(Tile tile)
 {
-  constexpr int N = kMapHeight * kMapWidth;
-  memset(kSearch.path_map, 0, sizeof(v2i) * N);
+  memset(kSearch.path_map, 0, sizeof(kSearch.path_map));
   kSearch.queue_size = 0;
   kSearch.path.size = 0;
   BfsIterator itr;
@@ -41,10 +40,9 @@ BfsStart(Tile tile)
   itr.queue_index = 0;
   itr.tile = nullptr;
   if (!TileValid(tile)) return itr;
-  v2i start(tile.cx, tile.cy);
-  kSearch.queue[kSearch.queue_size++] = start;
-  kSearch.path_map[start.y][start.x] = start;
-  itr.tile = TilePtr(start);
+  kSearch.queue[kSearch.queue_size++] = tile;
+  kSearch.path_map[tile.cy][tile.cx] = tile;
+  itr.tile = TilePtr(tile);
   return itr;
 }
 
@@ -52,20 +50,18 @@ BfsStart(Tile tile)
 // Returns true when the next node is first discovered.
 // Returns false when the next node does not exist, or has been seen.
 INLINE bool
-BfsStep(v2i from, BfsIterator* iter)
+BfsStep(Tile from, BfsIterator* iter)
 {
   const auto& path_map = kSearch.path_map;
   const int neighbor_index = iter->neighbor_index;
-  const v2i neighbor =
-      from + kNeighbor[MOD_BUCKET(neighbor_index, kMaxNeighbor)];
+  Tile neighbor = TileNeighbor(from, neighbor_index);
   Tile* tile = TilePtr(neighbor);
 
   iter->queue_index = (neighbor_index + 1) / kMaxNeighbor;
   iter->neighbor_index += 1;
   iter->tile = tile;
 
-  if (!tile) return false;
-  if (path_map[neighbor.y][neighbor.x] != INVALID_TILE) return false;
+  if (TileValid(path_map[neighbor.cy][neighbor.cx])) return false;
   return true;
 }
 
@@ -81,12 +77,12 @@ BfsNextTile(BfsIterator* iter)
   int& qsz = kSearch.queue_size;
 
   while (iter->queue_index < qsz) {
-    v2i from = queue[iter->queue_index];
+    Tile from = queue[iter->queue_index];
     if (BfsStep(from, iter)) {
       if (iter->tile->blocked) continue;
 
       path_map[iter->tile->cy][iter->tile->cx] = from;
-      queue[qsz++] = v2i(iter->tile->cx, iter->tile->cy);
+      queue[qsz++] = *iter->tile;
       break;
     }
   }
@@ -106,10 +102,10 @@ BfsNext(BfsIterator* iter)
   int& qsz = kSearch.queue_size;
 
   while (iter->queue_index < qsz) {
-    v2i from = queue[iter->queue_index];
+    Tile from = queue[iter->queue_index];
     if (BfsStep(from, iter)) {
       path_map[iter->tile->cy][iter->tile->cx] = from;
-      queue[qsz++] = v2i(iter->tile->cx, iter->tile->cy);
+      queue[qsz++] = *iter->tile;
       break;
     }
   }
@@ -118,31 +114,26 @@ BfsNext(BfsIterator* iter)
 }
 
 Path*
-PathTo(Tile start_tile, Tile end_tile)
+PathTo(Tile start, Tile end)
 {
-  v2i start = v2i(start_tile.cx, start_tile.cy);
-  v2i end = v2i(end_tile.cx, end_tile.cy);
-
   if (start == end) return nullptr;
-  if (!TileOk(end)) return nullptr;
-  if (!TileOk(start)) return nullptr;
 
   auto& path_map = kSearch.path_map;
-  BfsIterator iter = BfsStart(start_tile);
+  BfsIterator iter = BfsStart(start);
   while (BfsNextTile(&iter)) {
-    if (path_map[end.y][end.x] != INVALID_TILE) {
+    if (TileValid(path_map[end.cy][end.cx])) {
       break;
     }
   }
 
-  if (path_map[end.y][end.x] == INVALID_TILE) return nullptr;
+  if (!TileValid(path_map[end.cy][end.cx])) return nullptr;
 
   auto& path = kSearch.path;
   auto& psz = kSearch.path.size;
   path.tile[psz++] = end;
   while (path.tile[psz - 1] != start) {
     auto& prev = path.tile[psz - 1];
-    path.tile[psz++] = kSearch.path_map[prev.y][prev.x];
+    path.tile[psz++] = kSearch.path_map[prev.cy][prev.cx];
   }
   // Reverse it
   for (int i = 0, last = psz - 1; i < last; ++i, --last) {
@@ -170,7 +161,7 @@ BfsTileEnable(Tile set_tile, uint64_t tile_distance)
   }
 
   while (iter.queue_index != qsz) {
-    v2i from = queue[iter.queue_index];
+    Tile from = queue[iter.queue_index];
     if (BfsStep(from, &iter)) {
       if (iter.tile->blocked) continue;
 
@@ -180,7 +171,7 @@ BfsTileEnable(Tile set_tile, uint64_t tile_distance)
         TileSet(iter.tile, set_tile.flags);
 
         path_map[iter.tile->cy][iter.tile->cx] = from;
-        queue[qsz++] = v2i(iter.tile->cx, iter.tile->cy);
+        queue[qsz++] = *iter.tile;
       }
     }
   }

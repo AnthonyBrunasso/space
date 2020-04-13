@@ -203,8 +203,7 @@ RenderCrew(uint64_t ship_index)
       }
 
       for (int i = 0; i < path->size; ++i) {
-        v2i pos = path->tile[i];
-        v2f world_pos = TilePosToWorld(pos);
+        v2f world_pos = ShipTile(unit->ship_index, path->tile[i]).Center();
         rgg::RenderRectangle(world_pos, v3f(1.f / 3.f, 1.f / 3.f, 1.f),
                              kDefaultRotation, v4f(0.33f, 0.33f, 0.33f, 0.40f));
       }

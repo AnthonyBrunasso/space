@@ -211,8 +211,7 @@ MoveTowards(Unit* unit, Tile dest, UnitAction set_on_arrival)
     }
 
     if (path->size > 1) {
-      incremental_dest.cx = path->tile[1].x;
-      incremental_dest.cy = path->tile[1].y;
+      incremental_dest = path->tile[1];
       avoidance_vec = TileAvoidWalls(unit->tile) * kAvoidanceScaling;
     }
   }

@@ -54,6 +54,12 @@ operator==(Tile lhs, Tile rhs)
   return TileEqualPosition(lhs, rhs);
 }
 
+INLINE bool
+operator!=(Tile lhs, Tile rhs)
+{
+  return !TileEqualPosition(lhs, rhs);
+}
+
 INLINE void
 TileClear(Tile* t, uint32_t clear)
 {
@@ -118,6 +124,13 @@ TilePtr(const v2i& pos)
   if (!kCurrentGrid) return nullptr;
   if (!TileOk(pos)) return nullptr;
   return &kCurrentGrid->tilemap[pos.y][pos.x];
+}
+
+Tile* 
+TilePtr(Tile t)
+{
+  v2i grid(t.cx, t.cy);
+  return &kCurrentGrid->tilemap[grid.y][grid.x];
 }
 
 v3f

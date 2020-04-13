@@ -285,6 +285,7 @@ UpdateModule(uint64_t ship_index)
 void
 UpdateUnit(uint64_t ship_index)
 {
+  TilemapModify tm(ship_index);
   FOR_EACH_ENTITY(Unit, unit, {
     if (unit->ship_index != ship_index) continue;
 
@@ -427,7 +428,6 @@ Decide()
   DecideInvasion();
 
   for (uint64_t i = 0; i < kUsedShip; ++i) {
-    TilemapModify tm(i);
     DecideShip(i);
     UpdateModule(i);
     UpdateUnit(i);

@@ -65,7 +65,6 @@ SelectModule(const Rectf& rect, int idx)
   if (kEntity[idx].type_id != kEeModule) return nullptr;
 
   Module* mod = &kEntity[idx].module;
-  TilemapModify tm(mod->ship_index);
   // TODO: Take into consideration module bounds and do a rect/rect intersect.
   if (PointInRect(mod->position.xy(), rect)) {
     return mod;

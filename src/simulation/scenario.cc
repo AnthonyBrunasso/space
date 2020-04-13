@@ -32,7 +32,6 @@ constexpr uint64_t GAME_SHROUD = 0;
 void
 ScenarioSpawnRandomModule(ModuleKind kind, uint64_t ship_index, int num = 0)
 {
-  TilemapModify tm(ship_index);
   int made = 0;
   FOR_EACH_ENTITY(Module, module, {
     if (module->mkind != kind) continue;

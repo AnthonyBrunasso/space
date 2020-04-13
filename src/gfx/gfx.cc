@@ -189,7 +189,6 @@ RenderCrew(uint64_t ship_index)
 
   if (kRenderPath) {
     FOR_EACH_ENTITY(Unit, unit, {
-      TilemapModify mod(unit->ship_index);
       if (unit->uaction != kUaMove) continue;
       if (unit->inspace) continue;
 

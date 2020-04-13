@@ -259,7 +259,6 @@ ModuleDoorUpdate(Module* module)
 void
 ModuleUpdate(Module* module)
 {
-  TilemapModify modify(module->ship_index);
   switch (module->mkind) {
     case kModMine: {
       ModuleMineUpdate(module);

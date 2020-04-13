@@ -55,7 +55,14 @@ TextTest()
 //  imui::Button(50.f, 50.f, v4f(1.f, 0.f, 0.f, 1.f));
   imui::End();
 
+  pane_options.title = "Test";
   imui::Begin(v2f(1000, 300), 0, pane_options);
+  static int i = 0;
+  if (imui::ButtonCircle(15.f, v4f(1.f, 0.f, 0.f, 1.f)).clicked) {
+    ++i;
+  }
+  snprintf(buffer, 64, "Button Click: %i", i);
+  imui::Text(buffer);
   imui::Text("Some text");
   imui::Text("That is going to be");
   imui::HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));

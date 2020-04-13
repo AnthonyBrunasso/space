@@ -129,4 +129,10 @@ PointInRect(const v2f& point, const Rectf& rect)
          (point.y >= rect.y && point.y <= rect.y + rect.height);
 }
 
+bool
+PointInCircle(const v2f& point, const v2f& center, float radius)
+{
+  return LengthSquared(point - center) < radius * radius;
+}
+
 }  // namespace math

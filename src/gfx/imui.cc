@@ -8,6 +8,12 @@ EXTERN(unsigned imui_errno);
 
 namespace imui
 {
+
+enum SpaceType {
+  kHorizontal = 0,
+  kVertical = 1,
+};
+
 constexpr int kMaxTextSize = 128;
 constexpr int kClickForFrames = 100;
 
@@ -25,6 +31,10 @@ struct Result {
 
 #define IMUI_RESULT(rect) \
   Result(rect, IsRectHighlighted(rect), IsRectClicked(rect))
+
+#define IMUI_RESULT_CIRCLE(center, radius) \
+  Result(rect, IsCircleHighlighted(center, radius), IsCircleClicked(center, radius))
+
 
 struct TextOptions {
   v4f color = kWhite;
@@ -47,6 +57,7 @@ struct PaneOptions {
   float width = 0.f;
   float height = 0.f;
   v4f color = kPaneColor;
+  const char* title = nullptr;
 };
 
 struct Text {
@@ -81,6 +92,12 @@ struct Button {
   v4f color;
 };
 
+struct ButtonCircle {
+  v2f position;
+  float radius;
+  v4f color;
+};
+
 struct BeginMode {
   v2f pos;
   bool set = false;
@@ -101,10 +118,7 @@ struct Box {
 
 struct Line {
   v2f start;
-  enum type {
-    kHorizontal,
-    kVertical,
-  } type;
+  SpaceType type;
   v4f color;
   Pane* pane;
 };
@@ -117,6 +131,7 @@ constexpr uint32_t kEveryoneTag = MAX_PLAYER;
 DECLARE_2D_ARRAY(Text, kMaxTags, 64);
 DECLARE_2D_ARRAY(Line, kMaxTags, 64);
 DECLARE_2D_ARRAY(Button, kMaxTags, 16);
+DECLARE_2D_ARRAY(ButtonCircle, kMaxTags, 16);
 DECLARE_2D_ARRAY(UIClick, kMaxTags, 8);
 DECLARE_2D_ARRAY(MousePosition, kMaxTags, MAX_PLAYER);
 DECLARE_2D_ARRAY(Pane, kMaxTags, 8);
@@ -127,6 +142,7 @@ ResetAll()
 {
   memset(kUsedText, 0, sizeof(kUsedText));
   memset(kUsedButton, 0, sizeof(kUsedButton));
+  memset(kUsedButtonCircle, 0, sizeof(kUsedButton));
   memset(kUsedUIClick, 0, sizeof(kUsedUIClick));
   memset(kUsedMousePosition, 0, sizeof(kUsedMousePosition));
   memset(kUsedPane, 0, sizeof(kUsedPane));
@@ -139,6 +155,7 @@ ResetTag(uint32_t tag)
   assert(tag < kMaxTags);
   kUsedText[tag] = 0;
   kUsedButton[tag] = 0;
+  kUsedButtonCircle[tag] = 0;
   kUsedPane[tag] = 0;
   kUsedUIClick[tag] = 0;
   kUsedMousePosition[tag] = 0;
@@ -163,6 +180,11 @@ Render(uint32_t tag)
     rgg::RenderButton("test", button->rect, button->color);
   }
 
+  for (int i = 0; i < kUsedButtonCircle[tag]; ++i) {
+    ButtonCircle* button = &kButtonCircle[tag][i];
+    rgg::RenderCircle(button->position, button->radius, button->color);
+  }
+
   for (int i = 0; i < kUsedText[tag]; ++i) {
     Text* text = &kText[tag][i];
     rgg::RenderText(text->msg, text->pos, text->options.scale, text->color);
@@ -170,7 +192,7 @@ Render(uint32_t tag)
 
   for (int i = 0; i < kUsedLine[tag]; ++i) {
     Line* line = &kLine[tag][i];
-    if (line->type == Line::kHorizontal) {
+    if (line->type == kHorizontal) {
       v2f end(line->start.x + line->pane->rect.width, line->start.y);
       rgg::RenderLine(line->start, end, line->color);
     }
@@ -207,6 +229,28 @@ IsRectClicked(Rectf rect)
   for (int i = 0; i < kUsedUIClick[tag]; ++i) {
     UIClick* click = &kUIClick[tag][i];
     if (math::PointInRect(click->pos, rect)) return true;
+  }
+  return false;
+}
+
+bool
+IsCircleHighlighted(v2f center, float radius)
+{
+  uint32_t tag = kIMUI.begin_mode.tag;
+  for (int i = 0; i < kUsedMousePosition[tag]; ++i) {
+    MousePosition* mp = &kMousePosition[tag][i];
+    if (math::PointInCircle(mp->pos, center, radius)) return true;
+  }
+  return false;
+}
+
+bool
+IsCircleClicked(v2f center, float radius)
+{
+  uint32_t tag = kIMUI.begin_mode.tag;
+  for (int i = 0; i < kUsedUIClick[tag]; ++i) {
+    UIClick* click = &kUIClick[tag][i];
+    if (math::PointInCircle(click->pos, center, radius)) return true;
   }
   return false;
 }
@@ -314,6 +358,32 @@ Text(const char* msg)
 }
 
 void
+HorizontalLine(const v4f& color)
+{
+  assert(kIMUI.begin_mode.set);
+  uint32_t tag = kIMUI.begin_mode.tag;
+  Line* line = UseLine(tag);
+  if (!line) {
+    imui_errno = 5;
+    return;
+  }
+  line->start = kIMUI.begin_mode.pos;
+  line->pane = kIMUI.begin_mode.pane;
+  line->color = color;
+  UpdatePane(line->pane->rect.width, 1.f, kIMUI.begin_mode.pane);
+}
+
+void
+Space(SpaceType type, int count)
+{
+  if (type == kHorizontal) {
+    UpdatePane(count, 0.f, kIMUI.begin_mode.pane);
+  } else {
+    UpdatePane(0.f, count, kIMUI.begin_mode.pane);
+  }
+}
+
+void
 Begin(v2f start, uint32_t tag, const PaneOptions& pane_options)
 {
   assert(tag < kMaxTags);
@@ -330,6 +400,12 @@ Begin(v2f start, uint32_t tag, const PaneOptions& pane_options)
   begin_mode.pane->rect.width = pane_options.width;
   begin_mode.pane->rect.height = pane_options.height;
   begin_mode.pane->options = pane_options;
+  if (pane_options.title) {
+    HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));
+    Space(kVertical, 1.f);
+    Text(pane_options.title);
+    HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));
+  }
 }
 
 void
@@ -365,20 +441,24 @@ Button(float width, float height, const v4f& color)
   return IMUI_RESULT(button->rect);
 }
 
-void
-HorizontalLine(const v4f& color)
+Result
+ButtonCircle(float radius, const v4f& color)
 {
+  // Call Begin() before imui elements.
   assert(kIMUI.begin_mode.set);
   uint32_t tag = kIMUI.begin_mode.tag;
-  Line* line = UseLine(tag);
-  if (!line) {
-    imui_errno = 5;
-    return;
+  struct ButtonCircle* button = UseButtonCircle(tag);
+  Result result;
+  if (!button) {
+    imui_errno = 3;
+    return result;
   }
-  line->start = kIMUI.begin_mode.pos;
-  line->pane = kIMUI.begin_mode.pane;
-  line->color = color;
-  UpdatePane(line->pane->rect.width, 1.f, kIMUI.begin_mode.pane);
+  Rectf rect = UpdatePane(2.f * radius, 2.f * radius, kIMUI.begin_mode.pane);
+  // RenderButton renders from center.
+  button->position = v2f(rect.x, rect.y) + v2f(radius, radius);
+  button->radius = radius;
+  button->color = color;
+  return IMUI_RESULT_CIRCLE(button->position, radius);
 }
 
 void

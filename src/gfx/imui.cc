@@ -39,7 +39,7 @@ struct Result {
 struct TextOptions {
   v4f color = kWhite;
   v4f highlight_color = v4f();
-  float scale = 1.0f;
+  float scale = 0.8f;
 };
 
 struct PaneOptions {

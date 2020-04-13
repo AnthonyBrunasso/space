@@ -304,16 +304,6 @@ struct Player {
 };
 DECLARE_GAME_TYPE(Player, MAX_PLAYER);
 
-struct Consumable {
-  uint64_t ship_index = kInvalidIndex;
-  unsigned cx : 5;
-  unsigned cy : 5;
-  unsigned cryo_chamber : 1;
-  uint32_t minerals : 6;
-  uint64_t PADDING : 47;
-};
-DECLARE_GAME_TYPE(Consumable, 32);
-
 constexpr int kMaxInvasionCount = 10;
 
 // TODO: Find a better place for this. Controls the max units allowed in an

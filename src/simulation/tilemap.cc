@@ -29,7 +29,6 @@ enum TileType {
   kTileMine = kTileModule + kModMine,
   kTileTurret = kTileModule + kModTurret,
   kTileDoor = kTileModule + kModDoor,
-  kTileConsumable = 8,
 };
 
 enum TilemapType { kTilemapEmpty, kTilemapShip };
@@ -337,18 +336,6 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
           tile->bitrange_xy = kMapBits;
           tile->blocked = (kDefaultMap[y][x] == kTileBlock);
           tile->nooxygen = 0;
-
-          // Consumables enabled: cryo chamber, gatherable resources
-          if (kDefaultMap[y][x] == kTileConsumable) {
-            Consumable* c = UseConsumable();
-            c->ship_index = ship_index;
-            c->cx = tile->cx;
-            c->cy = tile->cy;
-            c->minerals = y * x % 89;
-            if (kDefaultMap[y][x - 1] == kTileBlock) {
-              c->cryo_chamber = 1;
-            }
-          }
 
           switch (kDefaultMap[y][x]) {
             case kTilePower:

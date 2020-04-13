@@ -270,21 +270,6 @@ RenderShip(uint64_t ship_index)
     }
   }
 
-  for (int i = 0; i < kUsedConsumable; ++i) {
-    Consumable* c = &kConsumable[i];
-    if (c->ship_index != ship_index) continue;
-    const Tile* tile = TilePtr(v2i(c->cx, c->cy));
-    if (!tile) continue;
-
-    v4f color = v4f(.3f, .3f, .7f, 1.f);
-    v3f world = TileToWorld(*tile);
-    if (c->cryo_chamber) {
-      rgg::RenderTag(kGfx.cryo_tag, world, kTileScale, kDefaultRotation, color);
-    } else {
-      rgg::RenderSphere(world + v3f(0.f, 0.f, 5.f), v3f(7.f, 7.f, 7.f), color);
-    }
-  }
-
   float fft = kShip[ship_index].ftl_frame * (1.f / kFtlFrameTime);
   float ship_alpha = 1.f - fft;
   for (int i = 0; i < kMapHeight; ++i) {

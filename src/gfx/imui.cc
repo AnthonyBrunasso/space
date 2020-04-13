@@ -16,9 +16,9 @@ static const v4f kPaneColor(0.0f, 0.0f, 0.0f, 0.4f);
 
 struct Result {
   Result() = default;
-  Result(const math::Rectf& rect, bool highlighted, bool clicked) :
+  Result(const Rectf& rect, bool highlighted, bool clicked) :
       rect(rect), highlighted(highlighted), clicked(clicked) {}
-  math::Rectf rect;
+  Rectf rect;
   bool highlighted = false;
   bool clicked = false;
 };
@@ -203,7 +203,7 @@ Indent(int spaces)
 // Updates global bounds of pane.
 // Set begin_mode.pos to point to the bottom left of where the current element
 // should draw.
-math::Rectf
+Rectf
 UpdatePane(float width, float height, Pane* pane)
 {
   assert(pane);
@@ -217,7 +217,7 @@ UpdatePane(float width, float height, Pane* pane)
     begin_mode.pane->rect.width = new_width;
   }
   begin_mode.pos.y -= height;
-  return math::Rectf(begin_mode.pos.x, begin_mode.pos.y, width, height);
+  return Rectf(begin_mode.pos.x, begin_mode.pos.y, width, height);
 }
 
 void
@@ -268,9 +268,9 @@ Text(const char* msg, TextOptions options)
     imui_errno = 2;
     return data;
   }
-  math::Rectf text_rect = 
+  Rectf text_rect = 
       rgg::GetTextRect(msg, strlen(msg), begin_mode.pos, options.scale);
-  math::Rectf rect =
+  Rectf rect =
       UpdatePane(text_rect.width, text_rect.height, begin_mode.pane);
   strcpy(text->msg, msg);
   text->pos = v2f(rect.x, rect.y);
@@ -335,7 +335,7 @@ Button(float width, float height, const v4f& color)
     imui_errno = 3;
     return result;
   }
-  math::Rectf rect = UpdatePane(width, height, kIMUI.begin_mode.pane);
+  Rectf rect = UpdatePane(width, height, kIMUI.begin_mode.pane);
   button->rect = rect;
   button->color = color;
   return IMUI_RESULT(button->rect);

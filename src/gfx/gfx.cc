@@ -203,7 +203,7 @@ RenderCrew(uint64_t ship_index)
       }
 
       for (int i = 0; i < path->size; ++i) {
-        v2f world_pos = ShipTile(unit->ship_index, path->tile[i]).Center();
+        v2f world_pos = FromShip(unit->ship_index, path->tile[i]).Center();
         rgg::RenderRectangle(world_pos, v3f(1.f / 3.f, 1.f / 3.f, 1.f),
                              kDefaultRotation, v4f(0.33f, 0.33f, 0.33f, 0.40f));
       }
@@ -321,7 +321,7 @@ RenderShip(uint64_t ship_index)
         v3f mcolor = ModuleColor(p->mod_placement);
         v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
         v3f bounds = ModuleBounds(p->mod_placement);
-        v3f mgw = ShipTile(ship_index, p->mouse_tile).Center();
+        v3f mgw = FromShip(ship_index, p->mouse_tile).Center();
         rgg::RenderLineCube(math::Cubef(mgw + v3f(0.f, 0.f, bounds.z / 2.f),
                                         bounds.x, bounds.y, bounds.z),
                             color);

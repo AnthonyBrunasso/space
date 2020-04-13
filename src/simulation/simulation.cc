@@ -62,7 +62,9 @@ TilemapUpdate()
 
   // Logical isolation for mapping v3f -> tile
   // Copying the tile introduces a frame delay when processing tile properties
-  FOR_EACH_ENTITY(Unit, unit, { WorldToTile(unit->position, &unit->tile); });
+  FOR_EACH_ENTITY(Unit, unit, {
+    unit->tile = ToShip(unit->ship_index, unit->position);
+  });
 }
 
 void
@@ -153,8 +155,8 @@ DecideInvasion()
   for (int i = 0; i < kUsedInvasion; ++i) {
     Invasion* v = &kInvasion[i];
     TilemapModify mod(TilemapWorldToGrid(v->transform.position));
-    Tile tile;
-    if (!v->docked && WorldToTile(v->transform.position, &tile)) {
+    Tile tile = ToAnyShip(v->transform.position);
+    if (!v->docked && TileValid(tile)) {
       if (tile.blocked) {
         v->docked = true;
         v->docked_tile = tile;
@@ -253,10 +255,8 @@ ApplyCommand(Unit* unit, const Command& c)
 
   switch (ctype) {
     case kUaMove: {
-      Tile t;
-      if (WorldToTile(c.destination, &t)) {
-        BB_SET(unit->bb, kUnitDestination, t);
-      }
+      Tile t = ToShip(unit->ship_index, c.destination);
+      BB_SET(unit->bb, kUnitDestination, t);
     } break;
     case kUaAttack: {
       Unit* target = GetUnit(c.destination);
@@ -264,17 +264,13 @@ ApplyCommand(Unit* unit, const Command& c)
       BB_SET(unit->bb, kUnitTarget, target->id);
     } break;
     case kUaAttackMove: {
-      Tile t;
-      if (WorldToTile(c.destination, &t)) {
-        BB_SET(unit->bb, kUnitAttackDestination, t);
-        persistent_action = c.type;
-      }
+      Tile t = ToShip(unit->ship_index, c.destination);
+      BB_SET(unit->bb, kUnitAttackDestination, t);
+      persistent_action = c.type;
     } break;
     case kUaBuild: {
-      Tile t;
-      if (WorldToTile(c.destination, &t)) {
-        BB_SET(unit->bb, kUnitDestination, t);
-      }
+      Tile t = ToShip(unit->ship_index, c.destination);
+      BB_SET(unit->bb, kUnitDestination, t);
     } break;
   }
 
@@ -415,13 +411,13 @@ Decide()
         });
       } else {
         TilemapModify tm(TilemapWorldToGrid(c.destination));
-        Tile start;
-        if (!WorldToTile(c.destination, &start)) continue;
+        // TODO (AN): ship_index unchecked
+        Tile start = ToAnyShip(c.destination);
         BfsIterator iter = BfsStart(start);
         FOR_EACH_ENTITY(Unit, unit, {
           // The issuer of a command must have a set bit
           if (0 == (unit->control & c.control)) continue;
-          c.destination = TileToWorld(*iter.tile);
+          c.destination = FromShip(unit->ship_index, *iter.tile).Center();
           ApplyCommand(unit, c);
           if (!BfsNextTile(&iter)) break;
         });

@@ -234,7 +234,7 @@ TilePanel(v2f screen, uint32_t tag, Player* player)
       snprintf(ui_buffer, sizeof(ui_buffer), "explored %u", tile.explored);
       imui::Text(ui_buffer, debug_options);
 
-      rgg::RenderRectangle(ShipTile(ship_index, tile).Center(), gfx::kTileScale,
+      rgg::RenderRectangle(FromShip(ship_index, tile).Center(), gfx::kTileScale,
                            gfx::kDefaultRotation, gfx::kGray);
     }
     imui::Indent(-2);
@@ -346,8 +346,8 @@ void
 ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
 {
   v3f event_world = camera::ScreenToWorldSpace(&player->camera, event.position);
-  Tile event_tile;
-  WorldToTile(event_world, &event_tile);
+  // TODO (AN): api is unclear about which ship matched, store ship_index in tile for validation?
+  Tile event_tile = ToAnyShip(event_world);
 
   djb2_hash_more((const uint8_t*)&event, sizeof(PlatformEvent), &kInputHash);
   switch (event.type) {
@@ -394,7 +394,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
             mod->player_index = player_index;
             // Rase module to have bottom touch 0,0.
             mod->position = v3f(0.f, 0.f, mod->bounds.z / 2.f) +
-                            ShipTile(player->ship_index, event_tile).Center();
+                            FromShip(player->ship_index, event_tile).Center();
             player->mineral -= ModuleCost(mkind);
             LOGFMT("Order build [%i] [%i,%i]", mkind, event_tile.cx,
                    event_tile.cy);

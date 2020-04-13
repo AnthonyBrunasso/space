@@ -21,7 +21,7 @@ ShipBounds(uint64_t ship_index)
 }
 
 Rectf
-ShipTile(uint64_t ship_index, Tile tile)
+FromShip(uint64_t ship_index, Tile tile)
 {
   Rectf tile_bounds;
   if (ship_index >= kUsedShip) return tile_bounds;
@@ -33,6 +33,32 @@ ShipTile(uint64_t ship_index, Tile tile)
   tile_bounds.height = kTileHeight;
 
   return tile_bounds;
+}
+
+Tile
+ToShip(uint64_t ship_index, v3f world)
+{
+  Tile tile = kZeroTile;
+
+  if (!math::PointInRect(world.xy(), ShipBounds(ship_index))) return tile;
+
+  TilemapModify tm(ship_index);
+
+  v2f relpos = world.xy() - kShip[ship_index].transform.position.xy();
+  v2i grid(relpos.x / kTileWidth, relpos.y / kTileHeight);
+  tile = kCurrentGrid->tilemap[grid.y][grid.x];
+  return tile; 
+}
+
+Tile
+ToAnyShip(v3f world)
+{
+  for (int i = 0; i < kUsedShip; ++i) {
+    Tile tile = ToShip(i, world);
+    if (TileValid(tile)) return tile;
+  }
+  
+  return kZeroTile;
 }
 
 Rectf

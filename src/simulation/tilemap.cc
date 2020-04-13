@@ -88,8 +88,6 @@ static const v2i kNeighbor[kMaxNeighbor] = {
     v2i(1, 1),  v2i(-1, 1), v2i(1, -1), v2i(-1, -1),
 };
 
-  return {kTilemapWorldOffset.x + (pos.x * kTileWidth) + .5 * kTileWidth,
-          kTilemapWorldOffset.y + (pos.y * kTileHeight) + .5 * kTileHeight};
 Tile*
 TilePtr(uint16_t x, uint16_t y)
 {

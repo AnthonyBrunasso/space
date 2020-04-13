@@ -275,6 +275,7 @@ UpdateModule(uint64_t ship_index)
     Tile tile;
     tile.cx = m->tile.cx;
     tile.cy = m->tile.cy;
+    tile.flags = 0;
     tile.visible = 1;
     BfsTileEnable(tile, kMapWidth);
     break;
@@ -297,6 +298,7 @@ UpdateUnit(uint64_t ship_index)
       Tile set_tile;
       set_tile.cx = unit->tile.cx;
       set_tile.cy = unit->tile.cy;
+      set_tile.flags = 0;
       set_tile.visible = 1;
       set_tile.explored = 1;
       BfsTileEnable(set_tile, kTileVisibleDistance);

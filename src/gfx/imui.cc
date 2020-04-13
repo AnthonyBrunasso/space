@@ -46,6 +46,7 @@ struct PaneOptions {
   SizeMode size_mode = kAutoResize;
   float width = 0.f;
   float height = 0.f;
+  v4f color = kPaneColor;
 };
 
 struct Text {
@@ -141,7 +142,7 @@ Render(uint32_t tag)
 
   for (int i = 0; i < kUsedPane[tag]; ++i) {
     Pane* pane = &kPane[tag][i];
-    rgg::RenderRectangle(pane->rect, kPaneColor);
+    rgg::RenderRectangle(pane->rect, pane->options.color);
   }
 
   for (int i = 0; i < kUsedButton[tag]; ++i) {
@@ -313,7 +314,9 @@ Begin(v2f start, uint32_t tag, const PaneOptions& pane_options)
 void
 Begin(v2f start, uint32_t tag)
 {
-  Begin(start, tag, PaneOptions());
+  PaneOptions pane_options;
+  pane_options.color = v4f(0.f, 0.f, 0.f, 0.f);
+  Begin(start, tag, pane_options);
 }
 
 void

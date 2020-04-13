@@ -162,29 +162,35 @@ constexpr int kMapBits = 6;
 //   memset(tarray, 0, sizeof(tarray));
 struct Tile {
   union {
+    char position[6];
     struct {
       uint16_t cx;
       uint16_t cy;
+      // Reference to the ship
+      uint8_t ship_index;
+      // for later
+      uint8_t reserved;
     };
-    uint32_t cxy;
   };
+  // Bitfields
   union {
+    uint16_t flags;
     struct {
-      unsigned bitrange_xy : 4;
+      // number of bits used in cx and cy
+      uint16_t bitrange_xy : 4;
       // a wall, no movement
-      unsigned blocked : 1;
+      uint16_t blocked : 1;
       // tile does not support human life
-      unsigned nooxygen : 1;
+      uint16_t nooxygen : 1;
       // tile contents are 'unknown' unless marked visible
-      unsigned shroud : 1;
+      uint16_t shroud : 1;
       // tile is visible to all players
-      unsigned visible : 1;
+      uint16_t visible : 1;
       // tile is exterior to the ship walls ('blocked' flag)
-      unsigned exterior : 1;
+      uint16_t exterior : 1;
       // tile has ever been visible to a player (disabled by AN 4/11/20)
-      unsigned explored : 1;
+      uint16_t explored : 1;
     };
-    uint32_t flags;
   };
 };
 struct Grid {

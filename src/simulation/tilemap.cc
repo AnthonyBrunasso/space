@@ -44,8 +44,9 @@ TileValid(Tile tile)
 INLINE bool
 TileEqualPosition(Tile lhs, Tile rhs)
 {
-  return lhs.cx == rhs.cx && lhs.cy == rhs.cy;
+  return memcmp(lhs.position, rhs.position, sizeof(Tile::position)) == 0;
 }
+
 
 INLINE bool
 operator==(Tile lhs, Tile rhs)
@@ -60,13 +61,13 @@ operator!=(Tile lhs, Tile rhs)
 }
 
 INLINE void
-TileClear(Tile* t, uint32_t clear)
+TileClear(Tile* t, uint16_t clear)
 {
   t->flags &= ~(clear);
 }
 
 INLINE void
-TileSet(Tile* t, uint32_t set)
+TileSet(Tile* t, uint16_t set)
 {
   t->flags |= set;
 }
@@ -306,6 +307,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
           *tile = kZeroTile;
           tile->cx = x;
           tile->cy = y;
+          tile->ship_index = ship_index;
           tile->bitrange_xy = kMapBits;
         }
       }
@@ -317,6 +319,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
           *tile = kZeroTile;
           tile->cx = x;
           tile->cy = y;
+          tile->ship_index = ship_index;
           tile->bitrange_xy = kMapBits;
           tile->blocked = (kDefaultMap[y][x] == kTileBlock);
           tile->nooxygen = 0;

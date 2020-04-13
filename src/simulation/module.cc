@@ -156,10 +156,6 @@ ModuleMineUpdate(Module* module)
   Asteroid* a = nullptr;
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
-    if (TilemapWorldToGrid(asteroid->transform.position) !=
-        module->ship_index) {
-      continue;
-    }
     float nd = math::LengthSquared(asteroid->transform.position - module->position);
     if (nd < d) {
       d = nd;
@@ -229,7 +225,7 @@ ModuleWarpUpdate(Module* module)
       Unit* unit = i2Unit(i);
       if (!unit) continue;
       if (unit->ship_index != target_module->ship_index) continue;
-      if (unit->tile.cxy == iter.tile->cxy) break;
+      if (unit->tile == *iter.tile) break;
     }
     if (i != kUsedEntity) continue;
     unit->position = TileToWorld(*iter.tile);

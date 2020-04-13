@@ -35,10 +35,22 @@ enum TilemapType { kTilemapEmpty, kTilemapShip };
 
 static Tile kZeroTile;
 
-INLINE bool
-TileEqual(Tile lhs, Tile rhs)
+bool
+TileValid(Tile tile)
 {
-  return lhs.cx == rhs.cx && lhs.cy == rhs.cy && lhs.flags == rhs.flags;
+  return memcmp(&tile, &kZeroTile, sizeof(Tile)) != 0;
+}
+
+INLINE bool
+TileEqualPosition(Tile lhs, Tile rhs)
+{
+  return lhs.cx == rhs.cx && lhs.cy == rhs.cy;
+}
+
+INLINE bool
+operator==(Tile lhs, Tile rhs)
+{
+  return TileEqualPosition(lhs, rhs);
 }
 
 INLINE void
@@ -73,19 +85,12 @@ static const v2i kNeighbor[kMaxNeighbor] = {
     v2i(1, 1),  v2i(-1, 1), v2i(1, -1), v2i(-1, -1),
 };
 
-// Returns the minimum position of the tile.
-v2f
-TilePosToWorldMin(const v2i pos)
-{
-  return {kTilemapWorldOffset.x + ((float)pos.x * kTileWidth),
-          kTilemapWorldOffset.y + ((float)pos.y * kTileHeight)};
-}
-
 // Returns the centered position of the tile.
 v2f
 TilePosToWorld(const v2i pos)
 {
-  return TilePosToWorldMin(pos) + v2f(kTileWidth * .5f, kTileHeight * .5f);
+  return {kTilemapWorldOffset.x + (pos.x * kTileWidth) + .5 * kTileWidth,
+          kTilemapWorldOffset.y + (pos.y * kTileHeight) + .5 * kTileHeight};
 }
 
 // Returns the minimum position of the tile.
@@ -143,8 +148,8 @@ TileNeighbor(Tile tile, uint64_t index)
 {
   v2i n = kNeighbor[MOD_BUCKET(index, kMaxNeighbor)];
 
-  tile.cx = BITRANGE_WRAP(tile.xy_bitrange, tile.cx+n.x);
-  tile.cy = BITRANGE_WRAP(tile.xy_bitrange, tile.cy+n.y);
+  tile.cx = BITRANGE_WRAP(tile.xy_bitrange, tile.cx + n.x);
+  tile.cy = BITRANGE_WRAP(tile.xy_bitrange, tile.cy + n.y);
 
   return tile;
 }
@@ -191,7 +196,7 @@ TilemapWorldToGrid(v3f world)
     TilemapModify tm(i);
     if (!tm.ok) continue;
     Rectf r(kTilemapWorldOffset.x, kTilemapWorldOffset.y,
-                  kMapWidth * kTileWidth, kMapHeight * kTileHeight);
+            kMapWidth * kTileWidth, kMapHeight * kTileHeight);
     if (math::PointInRect(world.xy(), r)) {
       return i;
     }
@@ -208,9 +213,10 @@ WorldToTile(const v3f pos, Tile* t)
 
   TilemapModify tm(tidx);
   v2f relpos = pos.xy() - kTilemapWorldOffset;
-  t->cx = relpos.x/kTileWidth;
-  t->cy = relpos.y/kTileHeight;
-  t->flags = 0;
+  v2i grid(relpos.x/kTileWidth, relpos.y/kTileHeight);
+  if (!TileOk(grid)) return false;
+
+  *t = kCurrentGrid->tilemap[grid.y][grid.x];
   return true;
 }
 

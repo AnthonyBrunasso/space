@@ -67,9 +67,6 @@ SelectModule(const Rectf& rect, int idx)
   Module* mod = &kEntity[idx].module;
   TilemapModify tm(mod->ship_index);
   // TODO: Take into consideration module bounds and do a rect/rect intersect.
-  // v2f t = TilePosToWorld(mod->tile);
-  // printf("GetModule: %.2f,%.2f tile: %i,%i\n",
-  //       t.x, t.y, mod->tile.x, mod->tile.y);
   if (PointInRect(mod->position.xy(), rect)) {
     return mod;
   }

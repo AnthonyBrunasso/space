@@ -21,6 +21,21 @@ ShipBounds(uint64_t ship_index)
 }
 
 Rectf
+ShipTile(uint64_t ship_index, Tile tile)
+{
+  Rectf tile_bounds;
+  if (ship_index >= kUsedShip) return tile_bounds;
+
+  v3f ship_position = kShip[ship_index].transform.position;
+  tile_bounds.x = ship_position.x + (tile.cx*kTileWidth);
+  tile_bounds.y = ship_position.y + (tile.cy*kTileHeight);
+  tile_bounds.width = kTileWidth;
+  tile_bounds.height = kTileHeight;
+
+  return tile_bounds;
+}
+
+Rectf
 FleetBounds()
 {
   // Find min and max bounds of all grids.

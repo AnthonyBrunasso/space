@@ -13,9 +13,6 @@ AIWander(Unit* unit)
   // Non interrupting behavior.
   if (unit->uaction != kUaNone) return;
 
-  v2i p;
-  if (!WorldToTilePos(unit->position, &p)) return;
-
   Tile t = TileNeighbor(unit->tile, rand());
   BB_SET(unit->bb, kUnitDestination, t);
   unit->uaction = kUaMove;

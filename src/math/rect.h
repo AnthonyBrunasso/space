@@ -3,22 +3,30 @@
 #include "vec.h"
 
 struct AxisAlignedRect {
-  v3f min; 
-  v3f max; 
+  v3f min;
+  v3f max;
 };
 
 struct Rectf {
   Rectf() = default;
-  Rectf(float x, float y, float width, float height) :
-    x(x), y(y), width(width), height(height) {}
+  Rectf(float x, float y, float width, float height)
+      : x(x), y(y), width(width), height(height)
+  {
+  }
   float x;
   float y;
   float width;
   float height;
+
+  v2f
+  Center()
+  {
+    return v2f(x + .5 * width, y + .5 * height);
+  }
 };
 
-namespace math {
-
+namespace math
+{
 // Orients a rect so that it has positive widths and heights.
 Rectf
 OrientToAabb(const Rectf& rect)
@@ -75,7 +83,7 @@ RandomPointOnRect(const Rectf& rect)
       math::LengthSquared(pl - pv) < math::LengthSquared(pb - pv) ? pl : pb;
   // Orient rect s.t. top right is now origin.
   r.x -= r.width;
-  r.y -= r.height; 
+  r.y -= r.height;
   v2f nv = RandomPointInRect(r);
   // Project to top and right exteriors.
   v2f nt = Project(nv, v2f(-r.width, 0.f));
@@ -91,4 +99,4 @@ RandomPointOnRect(const Rectf& rect)
   return pkeep + t;
 }
 
-}
+}  // namespace math

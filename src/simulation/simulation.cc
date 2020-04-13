@@ -63,13 +63,7 @@ TilemapUpdate()
   // Logical isolation for mapping v3f -> tile
   // Copying the tile introduces a frame delay when processing tile properties
   FOR_EACH_ENTITY(Unit, unit, {
-    v2i tilepos;
-    Tile* tile = nullptr;
-    if (WorldToTilePos(unit->position, &tilepos)) {
-      TilemapModify tm(unit->ship_index);
-      tile = TilePtr(tilepos);
-    }
-    unit->tile = tile ? *tile : kZeroTile;
+    WorldToTile(unit->position, &unit->tile);
   });
 }
 
@@ -161,12 +155,11 @@ DecideInvasion()
   for (int i = 0; i < kUsedInvasion; ++i) {
     Invasion* v = &kInvasion[i];
     TilemapModify mod(TilemapWorldToGrid(v->transform.position));
-    v2i tp;
-    if (!v->docked && WorldToTilePos(v->transform.position, &tp)) {
-      Tile* tile = TilePtr(tp);
-      if (tile && tile->blocked) {
+    Tile tile;
+    if (!v->docked && WorldToTile(v->transform.position, &tile)) {
+      if (tile.blocked) {
         v->docked = true;
-        v->docked_tile = v2i(tile->cx, tile->cy);
+        v->docked_tile = v2i(tile.cx, tile.cy);
       }
     }
     if (!v->docked) {

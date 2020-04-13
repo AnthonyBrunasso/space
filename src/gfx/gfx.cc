@@ -315,49 +315,36 @@ RenderShip(uint64_t ship_index)
 
   for (int i = 0; i < kUsedPlayer; ++i) {
     Player* p = &kPlayer[i];
-    TilemapModify mod(TilemapWorldToGrid(p->world_mouse));
-    v2i mouse_grid;
-    if (!WorldToTilePos(p->world_mouse, &mouse_grid)) continue;
+    TilemapModify mod(TilemapWorldToGrid(p->mouse_world));
+    if (!TileValid(p->mouse_tile)) continue;
 
     switch (p->hud_mode) {
       case kHudSelection: {
         if (p->selection_start.x != 0.f || p->selection_start.y != 0.f ||
             p->selection_start.z != 0.f) {
           glDisable(GL_DEPTH_TEST);
-          v3f diff = p->world_mouse - p->selection_start;
+          v3f diff = p->mouse_world - p->selection_start;
           Rectf sbox(p->selection_start.x, p->selection_start.y, diff.x,
                            diff.y);
           sbox = math::OrientToAabb(sbox);
-          rgg::RenderRectangle(sbox, p->world_mouse.z, kSelectionColor);
-          rgg::RenderLineRectangle(sbox, p->world_mouse.z,
+          rgg::RenderRectangle(sbox, p->mouse_world.z, kSelectionColor);
+          rgg::RenderLineRectangle(sbox, p->mouse_world.z,
                                    kSelectionOutlineColor);
           glEnable(GL_DEPTH_TEST);
         }
-
-        if (!TileOk(mouse_grid)) continue;
-        Unit* unit = GetNearestUnit(p->world_mouse);
-        if (unit) {
-          float dsq = v3fDsq(p->world_mouse, unit->position);
-          if (dsq < kDsqSelect) {
-            // Highlight the unit that would be selected on mouse click
-            rgg::RenderRectangle(TilePosToWorld(mouse_grid), kTileScale,
-                                 kDefaultRotation, v4f(1.0f, 1.0f, 1.0f, .45f));
-          }
-        }
       } break;
       case kHudModule: {
-        if (!TileOk(mouse_grid)) continue;
         v3f mcolor = ModuleColor(p->mod_placement);
         v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
         v3f bounds = ModuleBounds(p->mod_placement);
-        v3f mgw = TilePosToWorld(mouse_grid);
+        v3f mgw = ShipTile(ship_index, p->mouse_tile).Center();
         rgg::RenderLineCube(math::Cubef(mgw + v3f(0.f, 0.f, bounds.z / 2.f),
                                         bounds.x, bounds.y, bounds.z),
                             color);
       } break;
       case kHudAttackMove: {
         glDisable(GL_DEPTH_TEST);
-        rgg::RenderTag(kGfx.plus_tag, p->world_mouse, kDefaultScale,
+        rgg::RenderTag(kGfx.plus_tag, p->mouse_world, kDefaultScale,
                        kDefaultRotation, v4f(1.f, 0.f, 0.f, 1.f));
         glEnable(GL_DEPTH_TEST);
       } break;

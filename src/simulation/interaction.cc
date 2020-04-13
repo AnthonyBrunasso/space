@@ -216,27 +216,25 @@ TilePanel(v2f screen, uint32_t tag, Player* player)
   if (player->tile_menu) {
     imui::Indent(2);
     v2i tilepos;
-    uint64_t ship_index = TilemapWorldToGrid(player->world_mouse);
-    if (ship_index != kInvalidIndex) {
-      TilemapModify tm(ship_index);
-      WorldToTilePos(player->world_mouse, &tilepos);
-      Tile* tile = TilePtr(tilepos);
-      snprintf(ui_buffer, sizeof(ui_buffer), "%u X %u Y", tilepos.x, tilepos.y);
+    uint64_t ship_index = TilemapWorldToGrid(player->mouse_world);
+    if (ship_index != kInvalidIndex && TileValid(player->mouse_tile)) {
+      Tile tile = player->mouse_tile;
+      snprintf(ui_buffer, sizeof(ui_buffer), "%u X %u Y", tile.cx, tile.cy);
       imui::Text(ui_buffer, debug_options);
-      snprintf(ui_buffer, sizeof(ui_buffer), "blocked %u", tile->blocked);
+      snprintf(ui_buffer, sizeof(ui_buffer), "blocked %u", tile.blocked);
       imui::Text(ui_buffer, debug_options);
-      snprintf(ui_buffer, sizeof(ui_buffer), "nooxygen %u", tile->nooxygen);
+      snprintf(ui_buffer, sizeof(ui_buffer), "nooxygen %u", tile.nooxygen);
       imui::Text(ui_buffer, debug_options);
-      snprintf(ui_buffer, sizeof(ui_buffer), "shroud %u", tile->shroud);
+      snprintf(ui_buffer, sizeof(ui_buffer), "shroud %u", tile.shroud);
       imui::Text(ui_buffer, debug_options);
-      snprintf(ui_buffer, sizeof(ui_buffer), "visible %u", tile->visible);
+      snprintf(ui_buffer, sizeof(ui_buffer), "visible %u", tile.visible);
       imui::Text(ui_buffer, debug_options);
-      snprintf(ui_buffer, sizeof(ui_buffer), "exterior %u", tile->exterior);
+      snprintf(ui_buffer, sizeof(ui_buffer), "exterior %u", tile.exterior);
       imui::Text(ui_buffer, debug_options);
-      snprintf(ui_buffer, sizeof(ui_buffer), "explored %u", tile->explored);
+      snprintf(ui_buffer, sizeof(ui_buffer), "explored %u", tile.explored);
       imui::Text(ui_buffer, debug_options);
 
-      rgg::RenderRectangle(TilePosToWorld(tilepos), gfx::kTileScale,
+      rgg::RenderRectangle(ShipTile(ship_index, tile).Center(), gfx::kTileScale,
                            gfx::kDefaultRotation, gfx::kGray);
     }
     imui::Indent(-2);
@@ -347,12 +345,16 @@ LogPanel(v2f screen_dims, uint32_t tag)
 void
 ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
 {
-  v3f world_pos = camera::ScreenToWorldSpace(&player->camera, event.position);
+  v3f event_world = camera::ScreenToWorldSpace(&player->camera, event.position);
+  Tile event_tile;
+  WorldToTile(event_world, &event_tile);
+
   djb2_hash_more((const uint8_t*)&event, sizeof(PlatformEvent), &kInputHash);
   switch (event.type) {
     case MOUSE_POSITION: {
       imui::MousePosition(event.position, player_index);
-      player->world_mouse = world_pos;
+      player->mouse_world = event_world;
+      player->mouse_tile = event_tile;
     } break;
     case MOUSE_WHEEL: {
       // TODO(abrunasso): Why does this need to be negative?
@@ -362,56 +364,54 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
       imui::MouseClick(event.position, event.button, player_index);
 
       if (event.button == BUTTON_MIDDLE) {
-        camera::Move(&player->camera, world_pos);
+        camera::Move(&player->camera, event_world);
       }
 
       if (event.button == BUTTON_LEFT) {
         switch (player->hud_mode) {
           case kHudSelection: {
-            player->selection_start = world_pos;
+            player->selection_start = event_world;
             UnselectPlayerAll(player_index);
           } break;
           case kHudAttackMove: {
-            LOGFMT("Order attack move [%.0f,%.0f]", world_pos.x, world_pos.y);
-            PushCommand({kUaAttackMove, world_pos, kInvalidId,
+            LOGFMT("Order attack move [%.0f,%.0f]", event_world.x,
+                   event_world.y);
+            PushCommand({kUaAttackMove, event_world, kInvalidId,
                          (unsigned)(1 << player_index)});
           } break;
           case kHudModule: {
-            TilemapModify tm(player->ship_index);
-            if (!tm.ok) break;
+            if (!TileValid(event_tile)) break;
+
             ModuleKind mkind = player->mod_placement;
-            v2i tilepos;
-            if (WorldToTilePos(world_pos, &tilepos) &&
-                event.button == BUTTON_LEFT) {
-              if (!ModuleCanBuild(mkind, player)) {
-                LOGFMT("Player can't afford module %i", mkind);
-                break;
-              }
-              Module* mod = UseEntityModule();
-              mod->bounds = ModuleBounds(mkind);
-              mod->mkind = mkind;
-              mod->ship_index = player->ship_index;
-              mod->player_index = player_index;
-              v3f mpos = TilePosToWorld(tilepos);
-              // Rase module to have bottom touch 0,0.
-              mod->position = mpos + v3f(0.f, 0.f, mod->bounds.z / 2.f);
-              player->mineral -= ModuleCost(mkind);
+            if (!ModuleCanBuild(mkind, player)) {
+              LOGFMT("Player can't afford module %i", mkind);
+              break;
             }
-            LOGFMT("Order build [%i] [%i,%i]", mkind, tilepos.x, tilepos.y);
-            PushCommand({kUaBuild, world_pos, kInvalidId,
+            Module* mod = UseEntityModule();
+            mod->bounds = ModuleBounds(mkind);
+            mod->mkind = mkind;
+            mod->ship_index = player->ship_index;
+            mod->player_index = player_index;
+            // Rase module to have bottom touch 0,0.
+            mod->position = v3f(0.f, 0.f, mod->bounds.z / 2.f) +
+                            ShipTile(player->ship_index, event_tile).Center();
+            player->mineral -= ModuleCost(mkind);
+            LOGFMT("Order build [%i] [%i,%i]", mkind, event_tile.cx,
+                   event_tile.cy);
+            PushCommand({kUaBuild, event_world, kInvalidId,
                          (unsigned)(1 << player_index)});
           } break;
         }
       } else if (event.button == BUTTON_RIGHT) {
-        Unit* target = GetUnitTarget(player_index, world_pos);
+        Unit* target = GetUnitTarget(player_index, event_world);
         if (target) {
           LOGFMT("Order attack [%lu]", target->id);
-          PushCommand({kUaAttack, world_pos, kInvalidId,
+          PushCommand({kUaAttack, event_world, kInvalidId,
                        (unsigned)(1 << player_index)});
         } else {
-          LOGFMT("Order move [%.0f,%.0f]", world_pos.x, world_pos.y);
-          PushCommand(
-              {kUaMove, world_pos, kInvalidId, (unsigned)(1 << player_index)});
+          LOGFMT("Order move [%.0f,%.0f]", event_world.x, event_world.y);
+          PushCommand({kUaMove, event_world, kInvalidId,
+                       (unsigned)(1 << player_index)});
         }
       }
 
@@ -425,9 +425,9 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
         if (player->selection_start.x != 0.f ||
             player->selection_start.y != 0.f ||
             player->selection_start.z != 0.f) {
-          v3f diff = player->world_mouse - player->selection_start;
+          v3f diff = player->mouse_world - player->selection_start;
           Rectf sbox(player->selection_start.x, player->selection_start.y,
-                           diff.x, diff.y);
+                     diff.x, diff.y);
           sbox = math::OrientToAabb(sbox);
           bool selected = false;
           for (int i = 0; i < kUsedEntity; ++i) {
@@ -450,7 +450,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
         player->selection_start = v3f(0.f, 0.f, 0.f);
         // Box selection missed, fallback to single unit selection
         if (!unit) {
-          unit = GetUnit(world_pos);
+          unit = GetUnit(event_world);
           SelectPlayerUnit(player_index, unit);
         }
       }
@@ -573,8 +573,7 @@ GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
   for (int i = 3; i < kModCount; ++i) {
     v3f c = ModuleColor((ModuleKind)i);
     imui::Text(ModuleName((ModuleKind)i));
-    hud_result =
-        imui::Button(50.f, 50, v4f(c.x, c.y, c.z, .6f));
+    hud_result = imui::Button(50.f, 50, v4f(c.x, c.y, c.z, .6f));
     p.x += 55.f;
     if (hud_result.clicked) {
       player->hud_mode = kHudModule;

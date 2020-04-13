@@ -426,7 +426,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
             player->selection_start.y != 0.f ||
             player->selection_start.z != 0.f) {
           v3f diff = player->world_mouse - player->selection_start;
-          math::Rectf sbox(player->selection_start.x, player->selection_start.y,
+          Rectf sbox(player->selection_start.x, player->selection_start.y,
                            diff.x, diff.y);
           sbox = math::OrientToAabb(sbox);
           bool selected = false;
@@ -573,7 +573,7 @@ GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
   for (int i = 3; i < kModCount; ++i) {
     v3f c = ModuleColor((ModuleKind)i);
     hud_result =
-        imui::Button(math::Rectf(p.x, p.y, 50, 50), v4f(c.x, c.y, c.z, .6f));
+        imui::Button(Rectf(p.x, p.y, 50, 50), v4f(c.x, c.y, c.z, .6f));
     p.x += 55.f;
     if (hud_result.clicked) {
       player->hud_mode = kHudModule;

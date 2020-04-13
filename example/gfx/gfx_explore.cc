@@ -5,7 +5,7 @@
 #include "gfx/gfx.cc"
 
 void
-AlignToGrid(v2f grid, math::Rectf* world)
+AlignToGrid(v2f grid, Rectf* world)
 {
   float x_align = fmodf(world->min.x, grid.x);
   float y_align = fmodf(world->min.y, grid.y);
@@ -24,17 +24,17 @@ RenderGrid()
   rgg::RenderLine(v3f(0.0f, -dims.y / 2.f, 0.0f),
                   v3f(0.0f, dims.y / 2.f, 0.0f),
                   v4f(0.0f, 0.0f, 1.0f, 1.0f));
-  math::Rectf world;
+  Rectf world;
   world.min = {-dims.x / 2.f, -dims.y / 2.f};
   world.max = {dims.x / 2.f, dims.y / 2.f};
 
   const v2f grid2(50.f, 50.f);
-  math::Rectf world2 = world;
+  Rectf world2 = world;
   AlignToGrid(grid2, &world2);
   rgg::RenderGrid(grid2, world2, v4f(0.207f, 0.317f, 0.360f, 0.60f));
 
   const v2f grid1(25.f, 25.f);
-  math::Rectf world1 = world;
+  Rectf world1 = world;
   AlignToGrid(grid1, &world1);
   rgg::RenderGrid(grid1, world1, v4f(0.050f, 0.215f, 0.050f, 0.55f));
 }

@@ -15,7 +15,7 @@ static const v4f kWhite(1.f, 1.f, 1.f, 1.f);
 static const v4f kPaneColor(0.f, 0.f, 0.f, 0.5f);
 
 struct Result {
-  math::Rectf rect;
+  Rectf rect;
   bool highlighted = false;
   bool clicked = false;
 };
@@ -46,12 +46,12 @@ struct Text {
   char msg[kMaxTextSize];
   v2f pos;
   v4f color;  // TODO: This is duplicated in TextOptions
-  math::Rectf rect;
+  Rectf rect;
   TextOptions options;
 };
 
 struct Pane {
-  math::Rectf rect;
+  Rectf rect;
   PaneOptions options;
 };
 
@@ -70,7 +70,7 @@ struct UIClickRender {
 };
 
 struct Button {
-  math::Rectf rect;
+  Rectf rect;
   v4f color;
 };
 
@@ -87,7 +87,7 @@ struct IMUI {
 };
 
 struct Box {
-  math::Rectf rect;
+  Rectf rect;
   v4f color;
   v4f outline_color;
 };
@@ -162,7 +162,7 @@ Render(uint32_t tag)
 }
 
 bool
-IsRectHighlighted(math::Rectf rect)
+IsRectHighlighted(Rectf rect)
 {
   uint32_t tag = kIMUI.begin_mode.tag;
   for (int i = 0; i < kUsedMousePosition[tag]; ++i) {
@@ -173,7 +173,7 @@ IsRectHighlighted(math::Rectf rect)
 }
 
 bool
-IsRectClicked(math::Rectf rect)
+IsRectClicked(Rectf rect)
 {
   uint32_t tag = kIMUI.begin_mode.tag;
   for (int i = 0; i < kUsedUIClick[tag]; ++i) {
@@ -194,7 +194,7 @@ Indent(int spaces)
 }
 
 void
-UpdatePaneOnCall(const math::Rectf& rect, Pane* pane)
+UpdatePaneOnCall(const Rectf& rect, Pane* pane)
 {
   if (!pane) return;
   auto& begin_mode = kIMUI.begin_mode;
@@ -350,7 +350,7 @@ End()
 }
 
 Result
-Button(const math::Rectf& rect, const v4f& color)
+Button(const Rectf& rect, const v4f& color)
 {
   // Call Begin() before imui elements.
   assert(kIMUI.begin_mode.set);

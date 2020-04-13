@@ -149,10 +149,10 @@ TileNeighbor(Tile tile, uint64_t index)
   return tile;
 }
 
-math::Rectf
+Rectf
 TilemapWorldBounds()
 {
-  math::Rectf ret;
+  Rectf ret;
   v2f minf = TilePosToWorldMin({0, 0});
   v2f maxf = TilePosToWorldMin({kMapWidth, kMapHeight});
 
@@ -212,7 +212,7 @@ TilemapWorldToGrid(v3f world)
   for (int i = 0; i < kUsedShip; ++i) {
     TilemapModify tm(i);
     if (!tm.ok) continue;
-    math::Rectf r(kTilemapWorldOffset.x, kTilemapWorldOffset.y,
+    Rectf r(kTilemapWorldOffset.x, kTilemapWorldOffset.y,
                   kMapWidth * kTileWidth, kMapHeight * kTileHeight);
     if (math::PointInRect(world.xy(), r)) {
       return i;

@@ -106,7 +106,7 @@ main(int argc, char** argv)
               exit(1);
             } break;
           }
-          rp = math::RandomPointOnRect(math::Rectf(
+          rp = math::RandomPointOnRect(Rectf(
               cubepos.x, cubepos.y, cubedim.x, cubedim.y));
         } break;
         case MOUSE_DOWN: {

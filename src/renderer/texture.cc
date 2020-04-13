@@ -112,8 +112,8 @@ EndRenderTo()
 }
 
 void
-RenderTexture(const Texture& texture, const math::Rectf& src,
-              const math::Rectf& dest)
+RenderTexture(const Texture& texture, const Rectf& src,
+              const Rectf& dest)
 {
   glUseProgram(kTextureState.program);
   glBindTexture(GL_TEXTURE_2D, texture.reference);

@@ -50,7 +50,7 @@ GetUnitTarget(uint64_t local_player, v3f world)
 }
 
 Unit*
-SelectUnit(const math::Rectf& rect, int idx)
+SelectUnit(const Rectf& rect, int idx)
 {
   Unit* unit = &kEntity[idx].unit;
   if (PointInRect(unit->position.xy(), rect)) {
@@ -60,7 +60,7 @@ SelectUnit(const math::Rectf& rect, int idx)
 }
 
 Module*
-SelectModule(const math::Rectf& rect, int idx)
+SelectModule(const Rectf& rect, int idx)
 {
   if (kEntity[idx].type_id != kEeModule) return nullptr;
 

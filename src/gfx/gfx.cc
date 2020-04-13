@@ -178,10 +178,10 @@ RenderCrew(uint64_t ship_index)
         hcolor.w = math::ScaleRange(hdiff, 0.f, bar_range, 1.f, 0.f);
       }
       rgg::RenderRectangle(
-          math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz), unit->bounds.z,
+          Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz), unit->bounds.z,
           hcolor);
       rgg::RenderLineRectangle(
-          math::Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz), unit->bounds.z,
+          Rectf(hstart.x, hstart.y, kHealthSz, kHealthSz), unit->bounds.z,
           v4f(0.3f, 0.3f, 0.3f, 1.0f));
       hstart.x += kHealthSz;
     }
@@ -231,7 +231,7 @@ RenderShip(uint64_t ship_index)
           v4f(color.x, color.y, color.z, 1.f));
       glDisable(GL_DEPTH_TEST);
       rgg::RenderProgressBar(
-          math::Rectf(mod->position.x - mod->bounds.x / 2.f,
+          Rectf(mod->position.x - mod->bounds.x / 2.f,
                       mod->position.y - mod->bounds.y, mod->bounds.y, 5.f),
           2.f, mod->frames_building, mod->frames_to_build, kGreen, kWhite);
       glEnable(GL_DEPTH_TEST);
@@ -241,7 +241,7 @@ RenderShip(uint64_t ship_index)
 
     glDisable(GL_DEPTH_TEST);
     rgg::RenderProgressBar(
-        math::Rectf(mod->position.x - mod->bounds.x / 2.f,
+        Rectf(mod->position.x - mod->bounds.x / 2.f,
                     mod->position.y - mod->bounds.y, mod->bounds.y, 5.f),
         2.f, mod->frames_training, mod->frames_to_train, kRed, kWhite);
     glEnable(GL_DEPTH_TEST);
@@ -325,7 +325,7 @@ RenderShip(uint64_t ship_index)
             p->selection_start.z != 0.f) {
           glDisable(GL_DEPTH_TEST);
           v3f diff = p->world_mouse - p->selection_start;
-          math::Rectf sbox(p->selection_start.x, p->selection_start.y, diff.x,
+          Rectf sbox(p->selection_start.x, p->selection_start.y, diff.x,
                            diff.y);
           sbox = math::OrientToAabb(sbox);
           rgg::RenderRectangle(sbox, p->world_mouse.z, kSelectionColor);

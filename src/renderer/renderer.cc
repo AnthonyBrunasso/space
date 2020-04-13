@@ -412,7 +412,7 @@ RenderRectangle(const v3f& position, const v3f& scale,
 }
 
 void
-RenderRectangle(const math::Rectf& rect, float z, const v4f& color)
+RenderRectangle(const Rectf& rect, float z, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   // Texture state has quad with length 1 geometry. This makes scaling simpler
@@ -430,13 +430,13 @@ RenderRectangle(const math::Rectf& rect, float z, const v4f& color)
 }
 
 void
-RenderRectangle(const math::Rectf& rect, const v4f& color)
+RenderRectangle(const Rectf& rect, const v4f& color)
 {
   RenderRectangle(rect, 0.f, color);
 }
 
 void
-RenderLineRectangle(const math::Rectf& rect, float z, const v4f& color)
+RenderLineRectangle(const Rectf& rect, float z, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   // Texture state has quad with length 1 geometry. This makes scaling simpler
@@ -454,13 +454,13 @@ RenderLineRectangle(const math::Rectf& rect, float z, const v4f& color)
 }
 
 void
-RenderLineRectangle(const math::Rectf& rect, const v4f& color)
+RenderLineRectangle(const Rectf& rect, const v4f& color)
 {
   RenderLineRectangle(rect, 0.f, color);
 }
 
 void
-RenderSmoothRectangle(const math::Rectf& rect, float smoothing_radius,
+RenderSmoothRectangle(const Rectf& rect, float smoothing_radius,
                       const v4f& color)
 {
   glUseProgram(kRGG.smooth_rectangle_program.reference);
@@ -525,7 +525,7 @@ RenderLine(const v3f& start, const v3f& end, const v4f& color)
 }
 
 void
-RenderGrid(v2f grid, math::Rectf bounds, uint64_t color_count, v4f* color)
+RenderGrid(v2f grid, Rectf bounds, uint64_t color_count, v4f* color)
 {
   // Prepare Geometry and color
   glUseProgram(kRGG.geometry_program.reference);
@@ -712,13 +712,13 @@ RenderLineCube(const math::Cubef& cube, const v4f& color)
 }
 
 void
-RenderProgressBar(const math::Rectf& rect, float z, float current_progress,
+RenderProgressBar(const Rectf& rect, float z, float current_progress,
                   float max_progress, const v4f& fill_color,
                   const v4f& outline_color)
 {
   RenderLineRectangle(rect, z, outline_color);
   if (current_progress > FLT_EPSILON) {
-    math::Rectf fill_rect(
+    Rectf fill_rect(
         rect.x, rect.y,
         rect.width * fmodf(current_progress, max_progress) / max_progress,
         rect.height);

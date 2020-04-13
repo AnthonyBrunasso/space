@@ -2,8 +2,6 @@
 
 #include "vec.h"
 
-namespace math {
-
 struct AxisAlignedRect {
   v3f min; 
   v3f max; 
@@ -19,9 +17,11 @@ struct Rectf {
   float height;
 };
 
+namespace math {
+
 // Orients a rect so that it has positive widths and heights.
 Rectf
-OrientToAabb(const math::Rectf& rect)
+OrientToAabb(const Rectf& rect)
 {
   Rectf r = rect;
   if (rect.height < 0.f) {
@@ -36,7 +36,7 @@ OrientToAabb(const math::Rectf& rect)
 }
 
 v2f
-RandomPointInRect(const math::Rectf& rect)
+RandomPointInRect(const Rectf& rect)
 {
   float min_x = rect.x;
   float max_x = rect.x + rect.width;
@@ -59,7 +59,7 @@ RandomPointInRect(const math::Rectf& rect)
 // 8. Save vector with min projection distance.
 // 9. Return the min of distances from 4, 8 and retranslate to exterior.
 v2f
-RandomPointOnRect(const math::Rectf& rect)
+RandomPointOnRect(const Rectf& rect)
 {
   Rectf r = OrientToAabb(rect);
   v2f t(r.x, r.y);

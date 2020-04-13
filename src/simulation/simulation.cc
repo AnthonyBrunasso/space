@@ -173,7 +173,7 @@ DecideInvasion()
         max = nmax;
       }
     }
-    math::Rectf r(min.x, min.y, max.x - min.x, max.y - min.y);
+    Rectf r(min.x, min.y, max.x - min.x, max.y - min.y);
     // Spawn the invasion at a random point on the exterior of a rect
     // consuming all the grids pushed out by a vector from the midpoint
     // of the nearest grid to it.

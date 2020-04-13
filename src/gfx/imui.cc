@@ -84,7 +84,7 @@ struct Pane {
   PaneOptions options;
 };
 
-struct UIClick {
+struct MouseDown {
   v2f pos;
   PlatformButton button;
 };
@@ -95,11 +95,6 @@ struct MousePosition {
 
 struct LastMousePosition {
   v2f pos;
-};
-
-struct UIClickRender {
-  v2f pos;
-  int render_frames;
 };
 
 struct Button {
@@ -159,12 +154,11 @@ DECLARE_2D_ARRAY(Text, kMaxTags, 128);
 DECLARE_2D_ARRAY(Line, kMaxTags, 8);
 DECLARE_2D_ARRAY(Button, kMaxTags, 16);
 DECLARE_2D_ARRAY(ButtonCircle, kMaxTags, 16);
-DECLARE_2D_ARRAY(UIClick, kMaxTags, 8);
+DECLARE_2D_ARRAY(MouseDown, kMaxTags, 8);
 DECLARE_2D_ARRAY(MousePosition, kMaxTags, MAX_PLAYER);
 DECLARE_2D_ARRAY(LastMousePosition, kMaxTags, MAX_PLAYER);
 DECLARE_2D_ARRAY(Pane, kMaxTags, 8);
 DECLARE_2D_ARRAY(UIBound, kMaxTags, 8);
-DECLARE_QUEUE(UIClickRender, 8);
 
 void
 GenerateUIMetadata(uint32_t tag)
@@ -187,7 +181,7 @@ ResetAll()
   memset(kUsedText, 0, sizeof(kUsedText));
   memset(kUsedButton, 0, sizeof(kUsedButton));
   memset(kUsedButtonCircle, 0, sizeof(kUsedButton));
-  memset(kUsedUIClick, 0, sizeof(kUsedUIClick));
+  memset(kUsedMouseDown, 0, sizeof(kUsedMouseDown));
   memset(kUsedMousePosition, 0, sizeof(kUsedMousePosition));
   memset(kUsedPane, 0, sizeof(kUsedPane));
   memset(kUsedLine, 0, sizeof(kUsedLine));
@@ -202,7 +196,7 @@ ResetTag(uint32_t tag)
   kUsedButton[tag] = 0;
   kUsedButtonCircle[tag] = 0;
   kUsedPane[tag] = 0;
-  kUsedUIClick[tag] = 0;
+  kUsedMouseDown[tag] = 0;
   kUsedMousePosition[tag] = 0;
   kUsedLine[tag] = 0;
 }
@@ -260,17 +254,6 @@ Render(uint32_t tag)
       rgg::RenderLine(line->start, end, line->color);
     }
   }
-
-  for (int i = kReadUIClickRender; i < kWriteUIClickRender; ++i) {
-    UIClickRender* render = &kUIClickRender[i % kMaxUIClickRender];
-    rgg::RenderCircle(
-        render->pos, 3.5f,
-        v4f(1.f, 0.f, 0.65f, (float)render->render_frames / kClickForFrames));
-    --render->render_frames;
-    if (!render->render_frames) {
-      PopUIClickRender();
-    }
-  }
   glEnable(GL_DEPTH_TEST);
 }
 
@@ -289,8 +272,8 @@ bool
 IsRectClicked(Rectf rect)
 {
   uint32_t tag = kIMUI.begin_mode.tag;
-  for (int i = 0; i < kUsedUIClick[tag]; ++i) {
-    UIClick* click = &kUIClick[tag][i];
+  for (int i = 0; i < kUsedMouseDown[tag]; ++i) {
+    MouseDown* click = &kMouseDown[tag][i];
     if (math::PointInRect(click->pos, rect)) return true;
   }
   return false;
@@ -311,8 +294,8 @@ bool
 IsCircleClicked(v2f center, float radius)
 {
   uint32_t tag = kIMUI.begin_mode.tag;
-  for (int i = 0; i < kUsedUIClick[tag]; ++i) {
-    UIClick* click = &kUIClick[tag][i];
+  for (int i = 0; i < kUsedMouseDown[tag]; ++i) {
+    MouseDown* click = &kMouseDown[tag][i];
     if (math::PointInCircle(click->pos, center, radius)) return true;
   }
   return false;
@@ -576,9 +559,9 @@ End()
 }
 
 void
-MouseClick(v2f pos, PlatformButton b, uint32_t tag)
+MouseDown(v2f pos, PlatformButton b, uint32_t tag)
 {
-  UIClick* click = UseUIClick(tag);
+  struct MouseDown* click = UseMouseDown(tag);
   if (!click) {
     imui_errno = 4;
     return;

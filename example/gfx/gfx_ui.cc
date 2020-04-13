@@ -99,7 +99,7 @@ main(int argc, char** argv)
       switch (event.type) {
         case MOUSE_DOWN: {
           if (event.button == BUTTON_LEFT) {
-            imui::MouseClick(event.position, event.button, 0);
+            imui::MouseDown(event.position, event.button, 0);
           }
         } break;
         case KEY_DOWN: {

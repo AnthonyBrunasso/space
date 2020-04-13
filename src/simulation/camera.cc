@@ -36,17 +36,18 @@ PushDebugCube(const math::Cubef& cube, const v4f& color);
 namespace camera
 {
 
+static bool kShowCameraDebugTarget = false;
+
 void
 Update(Camera* cam)
 {
   cam->target += cam->motion.xy();
   cam->position += cam->motion;
-  //v3f dir = math::Normalize(cam->position - cam->target);
-  //cam->position = cam->target + dir * 100.f;
-  //cam->position += cam->motion;
-  // TODO: Remove this or add a debug setting for it...
-  gfx::PushDebugCube(math::Cubef(cam->target, v3f(15.f, 15.f, 15.f)),
-                     v4f(1.f, 0.f, 0.f, 1.f));
+  if (kShowCameraDebugTarget) {
+    // TODO: Remove this or add a debug setting for it...
+    gfx::PushDebugCube(math::Cubef(cam->target, v3f(15.f, 15.f, 15.f)),
+                       v4f(1.f, 0.f, 0.f, 1.f));
+  }
 }
 
 void

@@ -199,9 +199,10 @@ TilePanel(v2f screen, uint32_t tag, Player* player)
     imui::Text(ui_buffer, debug_options);
     snprintf(ui_buffer, sizeof(ui_buffer), "explored %u", tile.explored);
     imui::Text(ui_buffer, debug_options);
-
-    rgg::RenderRectangle(FromShip(tile).Center(), gfx::kTileScale,
-                         gfx::kDefaultRotation, gfx::kGray);
+    if (player->tile_menu) {
+      rgg::RenderRectangle(FromShip(tile).Center(), gfx::kTileScale,
+                           gfx::kDefaultRotation, gfx::kGray);
+    }
   }
   imui::End();
 }
@@ -226,6 +227,11 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
            gfx::kRenderPath ? "Enabled" : "Disabled");
   if (imui::Text(ui_buffer, text_options).clicked) {
     gfx::kRenderPath = !gfx::kRenderPath;
+  }
+  snprintf(ui_buffer, sizeof(ui_buffer), "Render Cam Target: %s",
+           camera::kShowCameraDebugTarget ? "Enabled" : "Disabled");
+  if (imui::Text(ui_buffer, text_options).clicked) {
+    camera::kShowCameraDebugTarget = !camera::kShowCameraDebugTarget;
   }
   snprintf(ui_buffer, sizeof(ui_buffer), "Mineral Cheat: %s",
            player->mineral_cheat ? "Enabled" : "Disabled");

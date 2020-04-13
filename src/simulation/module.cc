@@ -228,7 +228,7 @@ ModuleWarpUpdate(Module* module)
       if (unit->tile == *iter.tile) break;
     }
     if (i != kUsedEntity) continue;
-    unit->position = TileToWorld(*iter.tile);
+    unit->position = FromShip(*iter.tile).Center();
     unit->ship_index = target_module->ship_index;
     unit->player_index = target_module->player_index;
     unit->persistent_uaction = unit->uaction = kUaNone;

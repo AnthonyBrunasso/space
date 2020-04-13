@@ -275,8 +275,7 @@ RenderShip(uint64_t ship_index)
   for (int i = 0; i < kMapHeight; ++i) {
     for (int j = 0; j < kMapWidth; ++j) {
       const Tile* tile = TilePtr(v2i(j, i));
-      v3f world_pos = TileToWorld(*tile);
-      // printf("%.3f\n", world_pos.z);
+      v2f world_pos = FromShip(*tile).Min();
 
       v4f color;
       if (tile->shroud && !tile->explored) {
@@ -284,7 +283,7 @@ RenderShip(uint64_t ship_index)
         rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
       } else if (tile->blocked) {
         color = v4f(.15f, .15f, .15f, 1.f);
-        rgg::RenderCube(math::Cubef(world_pos + v3f(0.f, 0.f, 50.f), kTileWidth,
+        rgg::RenderCube(math::Cubef(v3f(0.f, 0.f, 50.f) + world_pos, kTileWidth,
                                     kTileHeight, 100.f),
                         color);
       } else if (tile->nooxygen) {

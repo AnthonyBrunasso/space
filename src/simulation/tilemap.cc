@@ -100,13 +100,6 @@ TilePosToWorld(const v2i pos)
           kTilemapWorldOffset.y + (pos.y * kTileHeight) + .5f * kTileHeight};
 }
 
-// Returns the minimum position of the tile.
-v2f
-TileToWorld(const Tile tile)
-{
-  return TilePosToWorld(v2i(tile.cx, tile.cy));
-}
-
 // Returns true for positions that exist as a tile in kTilemap
 bool
 TileOk(v2i pos)
@@ -202,21 +195,6 @@ class TilemapModify
   v2f prev_offset;
   bool ok;
 };
-
-int64_t
-TilemapWorldToGrid(v3f world)
-{
-  for (int i = 0; i < kUsedShip; ++i) {
-    TilemapModify tm(i);
-    if (!tm.ok) continue;
-    Rectf r(kTilemapWorldOffset.x, kTilemapWorldOffset.y,
-            kMapWidth * kTileWidth, kMapHeight * kTileHeight);
-    if (math::PointInRect(world.xy(), r)) {
-      return i;
-    }
-  }
-  return kInvalidIndex;
-}
 
 void
 TilemapInitialize(uint64_t player_index, TilemapType type)

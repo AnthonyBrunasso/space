@@ -23,6 +23,12 @@ struct Rectf {
   {
     return v2f(x + .5 * width, y + .5 * height);
   }
+
+  v2f
+  Min()
+  {
+    return v2f(x, y);
+  }
 };
 
 namespace math

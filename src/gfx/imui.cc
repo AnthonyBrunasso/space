@@ -173,6 +173,8 @@ Render(uint32_t tag)
   for (int i = 0; i < kUsedPane[tag]; ++i) {
     Pane* pane = &kPane[tag][i];
     rgg::RenderRectangle(pane->rect, pane->options.color);
+    rgg::RenderLineRectangle(
+        pane->rect, 0.f, v4f(0.2f, 0.2f, 0.2f, 0.7f));
   }
 
   for (int i = 0; i < kUsedButton[tag]; ++i) {

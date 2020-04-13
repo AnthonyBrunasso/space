@@ -68,6 +68,15 @@ TextTest()
   imui::HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));
   imui::Text("Seperated");
   imui::Text("By a line!");
+  imui::ToggleSameLine();
+  imui::Text("This ");
+  imui::Text("is ");
+  imui::Text("the ");
+  imui::Text("same ");
+  imui::Text("line ");
+  imui::Button(25, 25, v4f(1.f, 0.5f, 0.3f, 1.f));
+  imui::ToggleNewLine();
+  imui::Text("Next line...");
   imui::End();
 }
 
@@ -87,6 +96,14 @@ main(int argc, char** argv)
         case MOUSE_DOWN: {
           if (event.button == BUTTON_LEFT) {
             imui::MouseClick(event.position, event.button, 0);
+          }
+        } break;
+        case KEY_DOWN: {
+          switch (event.key) {
+            case 27 /* ESC */: {
+              exit(1);
+            } break;
+            default: break;
           }
         } break;
         default: break;

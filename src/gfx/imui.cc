@@ -14,6 +14,11 @@ enum SpaceType {
   kVertical = 1,
 };
 
+enum FlowType {
+  kNewLine,
+  kSameLine,
+};
+
 constexpr int kMaxTextSize = 128;
 constexpr int kClickForFrames = 100;
 
@@ -21,6 +26,7 @@ constexpr float kTextScale = 0.8f;
 
 static const v4f kWhite(1.f, 1.f, 1.f, 1.f);
 static const v4f kPaneColor(0.0f, 0.0f, 0.0f, 0.4f);
+static const v4f kPaneHeaderColor(0.32f, 0.36f, 0.404f, 1.f);
 
 struct Result {
   Result() = default;
@@ -105,6 +111,11 @@ struct BeginMode {
   bool set = false;
   int text_calls = 0;
   uint32_t tag = 0;
+  // UI Element go one new line unless explcitly swapped.
+  FlowType flow_type = kNewLine;
+  bool flow_switch = false;
+  Rectf last_rect;
+  float x_reset;
   Pane* pane;
 };
 
@@ -134,8 +145,8 @@ static IMUI kIMUI;
 constexpr uint32_t kMaxTags = MAX_PLAYER + 1;
 constexpr uint32_t kEveryoneTag = MAX_PLAYER;
 
-DECLARE_2D_ARRAY(Text, kMaxTags, 64);
-DECLARE_2D_ARRAY(Line, kMaxTags, 64);
+DECLARE_2D_ARRAY(Text, kMaxTags, 128);
+DECLARE_2D_ARRAY(Line, kMaxTags, 8);
 DECLARE_2D_ARRAY(Button, kMaxTags, 16);
 DECLARE_2D_ARRAY(ButtonCircle, kMaxTags, 16);
 DECLARE_2D_ARRAY(UIClick, kMaxTags, 8);
@@ -199,7 +210,7 @@ Render(uint32_t tag)
           pane->rect.y + pane->rect.height - pane->options.header_rect.height;
       pane->options.header_rect.width = pane->rect.width;
       rgg::RenderRectangle(pane->options.header_rect,
-                           v4f(.2f, .2f, .2f, 1.f));
+                           kPaneHeaderColor);
     }
     rgg::RenderLineRectangle(
         pane->rect, 0.f, v4f(0.2f, 0.2f, 0.2f, 0.7f));
@@ -306,14 +317,27 @@ UpdatePane(float width, float height, Pane* pane)
   auto& begin_mode = kIMUI.begin_mode;
   // Must call Begin() before UI rendering starts and End() when it's done.
   assert(begin_mode.set);
-  begin_mode.pane->rect.y -= height;
-  begin_mode.pane->rect.height += height;
+  if (begin_mode.flow_switch || begin_mode.flow_type == kNewLine) {
+    begin_mode.pane->rect.y -= height;
+    begin_mode.pane->rect.height += height;
+  }
   float new_width = (begin_mode.pos.x + width) - begin_mode.pane->rect.x;
+  if (!begin_mode.flow_switch && begin_mode.flow_type == kSameLine) {
+    new_width += begin_mode.last_rect.width;
+  }
   if (new_width > begin_mode.pane->rect.width) {
     begin_mode.pane->rect.width = new_width;
   }
-  begin_mode.pos.y -= height;
-  return Rectf(begin_mode.pos.x, begin_mode.pos.y, width, height);
+  if (begin_mode.flow_switch || begin_mode.flow_type == kNewLine) {
+    begin_mode.pos.y -= height;
+  }
+  if (!begin_mode.flow_switch && begin_mode.flow_type == kSameLine) {
+    begin_mode.pos.x += begin_mode.last_rect.width;
+  }
+  begin_mode.flow_switch = false;
+  begin_mode.last_rect =
+      Rectf(begin_mode.pos.x, begin_mode.pos.y, width, height);
+  return begin_mode.last_rect;
 }
 
 void
@@ -424,6 +448,7 @@ Begin(v2f start, uint32_t tag, const PaneOptions& pane_options)
   begin_mode.set = true;
   begin_mode.text_calls = 0;
   begin_mode.tag = tag;
+  begin_mode.x_reset = start.x;
   begin_mode.pane = UsePane(tag);
   begin_mode.pane->rect.x = start.x;
   begin_mode.pane->rect.y = start.y;
@@ -449,7 +474,7 @@ void
 End()
 {
   UpdatePaneOnEnd(kIMUI.begin_mode.pane);
-  kIMUI.begin_mode.set = false;
+  kIMUI.begin_mode = {};
 }
 
 Result
@@ -523,6 +548,24 @@ MousePosition(v2f pos, uint32_t tag)
   }
   mp->pos = pos;
   return MouseInUI(pos, tag);
+}
+
+void
+ToggleSameLine()
+{
+  assert(kIMUI.begin_mode.set);
+  kIMUI.begin_mode.flow_type = kSameLine;
+  kIMUI.begin_mode.flow_switch = true;
+  kIMUI.begin_mode.x_reset = kIMUI.begin_mode.pos.x;
+}
+
+void
+ToggleNewLine()
+{
+  assert(kIMUI.begin_mode.set);
+  kIMUI.begin_mode.flow_type = kNewLine;
+  kIMUI.begin_mode.flow_switch = true;
+  kIMUI.begin_mode.pos.x = kIMUI.begin_mode.x_reset;
 }
 
 const char*

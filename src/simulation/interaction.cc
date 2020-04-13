@@ -570,15 +570,22 @@ GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
   imui::Result hud_result;
   v2f p(50.f, 10.f);
   for (int i = 3; i < kModCount; ++i) {
+    imui::Space(imui::kVertical, 8.f);
+    imui::ToggleSameLine();
     v3f c = ModuleColor((ModuleKind)i);
-    imui::Text(ModuleName((ModuleKind)i));
     hud_result = imui::Button(35.f, 35.f, v4f(c.x, c.y, c.z, .6f));
+    imui::Space(imui::kHorizontal, 5.f);
+    imui::Text(ModuleName((ModuleKind)i));
     p.x += 55.f;
     if (hud_result.clicked) {
       player->hud_mode = kHudModule;
       player->mod_placement = (ModuleKind)i;
     }
+    imui::ToggleNewLine();
   }
+  imui::Space(imui::kVertical, 2.f);
+  imui::HorizontalLine(v4f(0.4f, 0.4f, 0.4f, 1.f));
+  imui::Space(imui::kVertical, 13.f);
   if (player->ship_index < kUsedShip) {
     Ship* ship = &kShip[player->ship_index];
     snprintf(ui_buffer, sizeof(ui_buffer), "%.12s Deck", deck_name[ship->deck]);

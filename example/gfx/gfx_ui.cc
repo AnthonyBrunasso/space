@@ -96,11 +96,11 @@ main(int argc, char** argv)
     const v2f cursor = window::GetCursorPosition();
     static int i = 0;
     if (imui::MousePosition(cursor, 0)) {
-      printf("mouse in bounds %i\n", i++);
+      // printf("mouse in bounds %i\n", i++);
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(0.f, 0.5f, 0.5f, 1.0f);
+    glClearColor(0.f, 0.0f, 0.0f, 1.0f);
 
     TextTest();
     imui::Render(0);

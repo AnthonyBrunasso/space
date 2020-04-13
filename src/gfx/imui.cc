@@ -17,6 +17,8 @@ enum SpaceType {
 constexpr int kMaxTextSize = 128;
 constexpr int kClickForFrames = 100;
 
+constexpr float kTextScale = 0.8f;
+
 static const v4f kWhite(1.f, 1.f, 1.f, 1.f);
 static const v4f kPaneColor(0.0f, 0.0f, 0.0f, 0.4f);
 
@@ -39,7 +41,6 @@ struct Result {
 struct TextOptions {
   v4f color = kWhite;
   v4f highlight_color = v4f();
-  float scale = 0.8f;
 };
 
 struct PaneOptions {
@@ -58,6 +59,7 @@ struct PaneOptions {
   float height = 0.f;
   v4f color = kPaneColor;
   const char* title = nullptr;
+  Rectf header_rect;
 };
 
 struct Text {
@@ -191,6 +193,14 @@ Render(uint32_t tag)
   for (int i = 0; i < kUsedPane[tag]; ++i) {
     Pane* pane = &kPane[tag][i];
     rgg::RenderRectangle(pane->rect, pane->options.color);
+    if (pane->options.title) {
+      pane->options.header_rect.x = pane->rect.x;
+      pane->options.header_rect.y =
+          pane->rect.y + pane->rect.height - pane->options.header_rect.height;
+      pane->options.header_rect.width = pane->rect.width;
+      rgg::RenderRectangle(pane->options.header_rect,
+                           v4f(.2f, .2f, .2f, 1.f));
+    }
     rgg::RenderLineRectangle(
         pane->rect, 0.f, v4f(0.2f, 0.2f, 0.2f, 0.7f));
   }
@@ -207,7 +217,7 @@ Render(uint32_t tag)
 
   for (int i = 0; i < kUsedText[tag]; ++i) {
     Text* text = &kText[tag][i];
-    rgg::RenderText(text->msg, text->pos, text->options.scale, text->color);
+    rgg::RenderText(text->msg, text->pos, kTextScale, text->color);
   }
 
   for (int i = 0; i < kUsedLine[tag]; ++i) {
@@ -355,7 +365,7 @@ Text(const char* msg, TextOptions options)
     return data;
   }
   Rectf text_rect = 
-      rgg::GetTextRect(msg, strlen(msg), begin_mode.pos, options.scale);
+      rgg::GetTextRect(msg, strlen(msg), begin_mode.pos, kTextScale);
   Rectf rect =
       UpdatePane(text_rect.width, text_rect.height, begin_mode.pane);
   strcpy(text->msg, msg);
@@ -421,10 +431,9 @@ Begin(v2f start, uint32_t tag, const PaneOptions& pane_options)
   begin_mode.pane->rect.height = pane_options.height;
   begin_mode.pane->options = pane_options;
   if (pane_options.title) {
-    HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));
     Space(kVertical, 1.f);
-    Text(pane_options.title);
-    HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));
+    Rectf trect = Text(pane_options.title).rect;
+    begin_mode.pane->options.header_rect.height = trect.height;
   }
 }
 

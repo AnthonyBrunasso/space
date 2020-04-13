@@ -85,117 +85,90 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
 {
   static bool enable_debug = false;
   imui::PaneOptions options;
-  imui::Begin(v2f(3.f, screen.y), tag, options);
+  options.title = "Diagnostics Debug";
+  imui::Begin(v2f(3.f, screen.y), tag, options, &enable_debug);
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
-  if (imui::Text("Debug Menu", debug_options).clicked) {
-    enable_debug = !enable_debug;
-  }
-
-  if (enable_debug) {
-    imui::Indent(2);
-    snprintf(ui_buffer, sizeof(ui_buffer),
-             "Frame Time: %04.02f us [%02.02f%%] [%lu jerk] [%lu server_jerk]",
-             StatsMean(&stats), 100.f * StatsUnbiasedRsDev(&stats), jerk,
-             kNetworkState.server_jerk);
-    imui::Text(ui_buffer);
-    snprintf(ui_buffer, sizeof(ui_buffer),
-             "Network Rtt: [%06lu us to %06lu us] [%lu/%lu queue]",
-             kNetworkState.egress_min * frame_target_usec,
-             kNetworkState.egress_max * frame_target_usec, frame_queue,
-             MAX_NETQUEUE);
-    imui::Text(ui_buffer);
-    snprintf(ui_buffer, sizeof(ui_buffer),
-             "Network ft: %04.02f mean [%02.02f%%]", StatsMean(&kNetworkStats),
-             100.f * StatsUnbiasedRsDev(&kNetworkStats));
-    imui::Text(ui_buffer);
-    snprintf(ui_buffer, sizeof(ui_buffer),
-             "Network rsdev: [%04.02f 84th] [%04.02f 97th ] [%04.02f 99th]",
-             StatsRsDev(&kNetworkStats) * 1, StatsRsDev(&kNetworkStats) * 2,
-             StatsRsDev(&kNetworkStats) * 3);
-    imui::Text(ui_buffer);
-    snprintf(ui_buffer, sizeof(ui_buffer), "Network Queue: %lu [%1.0fx rsdev]",
-             NetworkQueueGoal(), kNetworkState.rsdev_const);
-    imui::Text(ui_buffer);
-    snprintf(ui_buffer, sizeof(ui_buffer), "Window Size: %04.0fx%04.0f",
-             screen.x, screen.y);
-    imui::Text(ui_buffer);
-    snprintf(ui_buffer, sizeof(ui_buffer), "Input hash: 0x%lx",
-             kDebugInputHash);
-    imui::Text(ui_buffer);
-    snprintf(ui_buffer, sizeof(ui_buffer), "Sim hash: 0x%lx",
-             kDebugSimulationHash);
-    imui::Text(ui_buffer);
-    const char* ui_err = imui::LastErrorString();
-    if (ui_err) imui::Text(ui_err);
-    imui::Indent(-2);
-  }
-
+  snprintf(ui_buffer, sizeof(ui_buffer),
+           "Frame Time: %04.02f us [%02.02f%%] [%lu jerk] [%lu server_jerk]",
+           StatsMean(&stats), 100.f * StatsUnbiasedRsDev(&stats), jerk,
+           kNetworkState.server_jerk);
+  imui::Text(ui_buffer);
+  snprintf(ui_buffer, sizeof(ui_buffer),
+           "Network Rtt: [%06lu us to %06lu us] [%lu/%lu queue]",
+           kNetworkState.egress_min * frame_target_usec,
+           kNetworkState.egress_max * frame_target_usec, frame_queue,
+           MAX_NETQUEUE);
+  imui::Text(ui_buffer);
+  snprintf(ui_buffer, sizeof(ui_buffer),
+           "Network ft: %04.02f mean [%02.02f%%]", StatsMean(&kNetworkStats),
+           100.f * StatsUnbiasedRsDev(&kNetworkStats));
+  imui::Text(ui_buffer);
+  snprintf(ui_buffer, sizeof(ui_buffer),
+           "Network rsdev: [%04.02f 84th] [%04.02f 97th ] [%04.02f 99th]",
+           StatsRsDev(&kNetworkStats) * 1, StatsRsDev(&kNetworkStats) * 2,
+           StatsRsDev(&kNetworkStats) * 3);
+  imui::Text(ui_buffer);
+  snprintf(ui_buffer, sizeof(ui_buffer), "Network Queue: %lu [%1.0fx rsdev]",
+           NetworkQueueGoal(), kNetworkState.rsdev_const);
+  imui::Text(ui_buffer);
+  snprintf(ui_buffer, sizeof(ui_buffer), "Window Size: %04.0fx%04.0f",
+           screen.x, screen.y);
+  imui::Text(ui_buffer);
+  snprintf(ui_buffer, sizeof(ui_buffer), "Input hash: 0x%lx",
+           kDebugInputHash);
+  imui::Text(ui_buffer);
+  snprintf(ui_buffer, sizeof(ui_buffer), "Sim hash: 0x%lx",
+           kDebugSimulationHash);
+  imui::Text(ui_buffer);
+  const char* ui_err = imui::LastErrorString();
+  if (ui_err) imui::Text(ui_err);
   imui::End();
 }
 
 void
 ReadOnlyUnits(v2f screen, uint32_t tag)
 {
-  static uint64_t unit_debug = 0;
+  static bool unit_debug = false;
   imui::PaneOptions options;
   options.width = 300.f;
-  imui::Begin(v2f(screen.x - 300.f, screen.y), tag, options);
+  options.title = "Unit Debug";
+  imui::Begin(v2f(screen.x - 300.f, screen.y), tag, options, &unit_debug);
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
-  snprintf(ui_buffer, sizeof(ui_buffer), "Unit Debug [%d]", unit_debug);
-  if (imui::Text(ui_buffer, debug_options).clicked) {
-    unit_debug = (unit_debug + 1) % 3;
-  }
-
-  if (unit_debug) {
-    imui::Indent(2);
-    for (int i = 0; i < kUsedEntity; ++i) {
-      snprintf(ui_buffer, sizeof(ui_buffer), "Entity %d", kEntity[i].id);
-      bool highlighted = imui::Text(ui_buffer, debug_options).highlighted;
-      if (highlighted || kEntity[i].control || unit_debug >= 2) {
-        imui::Indent(2);
-        if (kEntity[i].type_id == kEeUnit) {
-          snprintf(ui_buffer, sizeof(ui_buffer), "tile %u %u",
-                   kEntity[i].tile.cx, kEntity[i].tile.cy);
-          imui::Text(ui_buffer);
-          snprintf(ui_buffer, sizeof(ui_buffer), "position %04.0f %04.0f",
-                   kEntity[i].position.x, kEntity[i].position.y);
-          imui::Text(ui_buffer);
-          snprintf(ui_buffer, sizeof(ui_buffer), "action %d",
-                   kEntity[i].unit.uaction);
-          imui::Text(ui_buffer);
-          snprintf(ui_buffer, sizeof(ui_buffer), "persistent_action %d",
-                   kEntity[i].unit.persistent_uaction);
-          imui::Text(ui_buffer);
-          RenderBlackboard(&kEntity[i].unit);
-        }
-        imui::Indent(-2);
+  for (int i = 0; i < kUsedEntity; ++i) {
+    snprintf(ui_buffer, sizeof(ui_buffer), "Entity %d", kEntity[i].id);
+    bool highlighted = imui::Text(ui_buffer, debug_options).highlighted;
+    if (highlighted || kEntity[i].control || unit_debug) {
+      imui::Indent(2);
+      if (kEntity[i].type_id == kEeUnit) {
+        snprintf(ui_buffer, sizeof(ui_buffer), "tile %u %u",
+                 kEntity[i].tile.cx, kEntity[i].tile.cy);
+        imui::Text(ui_buffer);
+        snprintf(ui_buffer, sizeof(ui_buffer), "position %04.0f %04.0f",
+                 kEntity[i].position.x, kEntity[i].position.y);
+        imui::Text(ui_buffer);
+        snprintf(ui_buffer, sizeof(ui_buffer), "action %d",
+                 kEntity[i].unit.uaction);
+        imui::Text(ui_buffer);
+        snprintf(ui_buffer, sizeof(ui_buffer), "persistent_action %d",
+                 kEntity[i].unit.persistent_uaction);
+        imui::Text(ui_buffer);
+        RenderBlackboard(&kEntity[i].unit);
       }
-      // Draws a red line cube around the entity.
-      if (highlighted) {
-        gfx::PushDebugCube(
-            math::Cubef(
-                kEntity[i].position + v3f(0.f, 0.f, kEntity[i].bounds.z / 2.f),
-                kEntity[i].bounds),
-            gfx::kRed);
-#if 0
-        // Debug for hashing... If a red and green box show up around two
-        // different entities that means the array_index in the hash bucket
-        // is incorrect.
-        Entity* ent = FindEntity(kEntity[i].id);
-        gfx::PushDebugCube(math::Cubef(
-                  ent->position
-                      + v3f(0.f, 0.f, ent->bounds.z / 2.f),
-                  ent->bounds), gfx::kGreen);
-#endif
-      }
+      imui::Indent(-2);
     }
-    imui::Indent(-2);
+    // Draws a red line cube around the entity.
+    if (highlighted) {
+      gfx::PushDebugCube(
+          math::Cubef(
+              kEntity[i].position + v3f(0.f, 0.f, kEntity[i].bounds.z / 2.f),
+              kEntity[i].bounds),
+          gfx::kRed);
+    }
   }
-
   imui::End();
 }
 
@@ -203,42 +176,33 @@ void
 TilePanel(v2f screen, uint32_t tag, Player* player)
 {
   imui::PaneOptions options;
+  options.title = "Tile Debug";
   options.width = 300.f;
-  imui::Begin(v2f(screen.x - 600.f, screen.y), tag, options);
+  imui::Begin(v2f(screen.x - 600.f, screen.y), tag, options, &player->tile_menu);
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
-  snprintf(ui_buffer, sizeof(ui_buffer), "Tile Debug [%d]", player->tile_menu);
-  if (imui::Text(ui_buffer, debug_options).clicked) {
-    player->tile_menu = !player->tile_menu;
+  v2i tilepos;
+  if (TileValid(player->mouse_tile)) {
+    Tile tile = player->mouse_tile;
+    snprintf(ui_buffer, sizeof(ui_buffer), "%u X %u Y", tile.cx, tile.cy);
+    imui::Text(ui_buffer, debug_options);
+    snprintf(ui_buffer, sizeof(ui_buffer), "blocked %u", tile.blocked);
+    imui::Text(ui_buffer, debug_options);
+    snprintf(ui_buffer, sizeof(ui_buffer), "nooxygen %u", tile.nooxygen);
+    imui::Text(ui_buffer, debug_options);
+    snprintf(ui_buffer, sizeof(ui_buffer), "shroud %u", tile.shroud);
+    imui::Text(ui_buffer, debug_options);
+    snprintf(ui_buffer, sizeof(ui_buffer), "visible %u", tile.visible);
+    imui::Text(ui_buffer, debug_options);
+    snprintf(ui_buffer, sizeof(ui_buffer), "exterior %u", tile.exterior);
+    imui::Text(ui_buffer, debug_options);
+    snprintf(ui_buffer, sizeof(ui_buffer), "explored %u", tile.explored);
+    imui::Text(ui_buffer, debug_options);
+
+    rgg::RenderRectangle(FromShip(tile).Center(), gfx::kTileScale,
+                         gfx::kDefaultRotation, gfx::kGray);
   }
-
-  if (player->tile_menu) {
-    imui::Indent(2);
-    v2i tilepos;
-    if (TileValid(player->mouse_tile)) {
-      Tile tile = player->mouse_tile;
-      snprintf(ui_buffer, sizeof(ui_buffer), "%u X %u Y", tile.cx, tile.cy);
-      imui::Text(ui_buffer, debug_options);
-      snprintf(ui_buffer, sizeof(ui_buffer), "blocked %u", tile.blocked);
-      imui::Text(ui_buffer, debug_options);
-      snprintf(ui_buffer, sizeof(ui_buffer), "nooxygen %u", tile.nooxygen);
-      imui::Text(ui_buffer, debug_options);
-      snprintf(ui_buffer, sizeof(ui_buffer), "shroud %u", tile.shroud);
-      imui::Text(ui_buffer, debug_options);
-      snprintf(ui_buffer, sizeof(ui_buffer), "visible %u", tile.visible);
-      imui::Text(ui_buffer, debug_options);
-      snprintf(ui_buffer, sizeof(ui_buffer), "exterior %u", tile.exterior);
-      imui::Text(ui_buffer, debug_options);
-      snprintf(ui_buffer, sizeof(ui_buffer), "explored %u", tile.explored);
-      imui::Text(ui_buffer, debug_options);
-
-      rgg::RenderRectangle(FromShip(tile).Center(), gfx::kTileScale,
-                           gfx::kDefaultRotation, gfx::kGray);
-    }
-    imui::Indent(-2);
-  }
-
   imui::End();
 }
 
@@ -246,80 +210,62 @@ void
 AdminPanel(v2f screen, uint32_t tag, Player* player)
 {
   imui::PaneOptions options;
-  imui::Begin(v2f(3.f, screen.y - 300.f), tag, options);
-
+  options.width = 300.f;
+  options.title = "Admin Menu";
+  imui::Begin(v2f(screen.x - 900, screen.y), tag, options,
+              &player->admin_menu);
   imui::TextOptions text_options;
   text_options.color = gfx::kWhite;
   text_options.highlight_color = gfx::kRed;
-
-  if (imui::Text("Admin Menu", text_options).clicked) {
-    player->admin_menu = !player->admin_menu;
+  snprintf(ui_buffer, sizeof(ui_buffer), "Render Grid: %s",
+           gfx::kRenderGrid ? "Enabled" : "Disabled");
+  if (imui::Text(ui_buffer, text_options).clicked) {
+    gfx::kRenderGrid = !gfx::kRenderGrid;
   }
-
-  if (player->admin_menu) {
+  snprintf(ui_buffer, sizeof(ui_buffer), "Render Path: %s",
+           gfx::kRenderPath ? "Enabled" : "Disabled");
+  if (imui::Text(ui_buffer, text_options).clicked) {
+    gfx::kRenderPath = !gfx::kRenderPath;
+  }
+  snprintf(ui_buffer, sizeof(ui_buffer), "Mineral Cheat: %s",
+           player->mineral_cheat ? "Enabled" : "Disabled");
+  if (imui::Text(ui_buffer, text_options).clicked) {
+    player->mineral_cheat = !player->mineral_cheat;
+  }
+  if (imui::Text("Spawn Unit Cheat", text_options).clicked) {
+    SpawnCrew(TileRandom(), player - kPlayer);
+  }
+  if (imui::Text("Kill Random Unit Cheat", text_options).clicked) {
+    // Kill first unit in entity list.
+    int i = rand() % kUsedEntity;
+    for (; i < kUsedEntity; i = (i + 1) % kUsedEntity) {
+      Unit* unit = i2Unit(i);
+      if (!unit) continue;
+      LOGFMT("Kill unit %i", unit->id);
+      ZeroEntity(unit);
+      break;
+    }
+  }
+  if (imui::Text("Reset Game", text_options).clicked) {
+    Reset(kNetworkState.game_id);
+  }
+  if (imui::Text("Scenario", text_options).clicked) {
+    player->scenario_menu = !player->scenario_menu;
+  }
+  if (player->scenario_menu) {
     imui::Indent(2);
-    snprintf(ui_buffer, sizeof(ui_buffer), "Render Grid: %s",
-             gfx::kRenderGrid ? "Enabled" : "Disabled");
-    if (imui::Text(ui_buffer, text_options).clicked) {
-      gfx::kRenderGrid = !gfx::kRenderGrid;
-    }
-    snprintf(ui_buffer, sizeof(ui_buffer), "Render Path: %s",
-             gfx::kRenderPath ? "Enabled" : "Disabled");
-    if (imui::Text(ui_buffer, text_options).clicked) {
-      gfx::kRenderPath = !gfx::kRenderPath;
-    }
-    snprintf(ui_buffer, sizeof(ui_buffer), "Mineral Cheat: %s",
-             player->mineral_cheat ? "Enabled" : "Disabled");
-    if (imui::Text(ui_buffer, text_options).clicked) {
-      player->mineral_cheat = !player->mineral_cheat;
-    }
-    if (imui::Text("Spawn Unit Cheat", text_options).clicked) {
-      SpawnCrew(TileRandom(), player - kPlayer);
-    }
-    if (imui::Text("Kill Random Unit Cheat", text_options).clicked) {
-      // Kill first unit in entity list.
-      int i = rand() % kUsedEntity;
-      for (; i < kUsedEntity; i = (i + 1) % kUsedEntity) {
-        Unit* unit = i2Unit(i);
-        if (!unit) continue;
-        LOGFMT("Kill unit %i", unit->id);
-        ZeroEntity(unit);
-        break;
+    for (int i = 0; i < kMaxScenario; ++i) {
+      if (imui::Text(kScenarioNames[i], text_options).clicked) {
+        kScenario = (ScenarioType)i;
+        Reset(kNetworkState.game_id);
       }
-    }
-    if (imui::Text("Reset Game", text_options).clicked) {
-      Reset(kNetworkState.game_id);
-    }
-    if (imui::Text("Scenario", text_options).clicked) {
-      player->scenario_menu = !player->scenario_menu;
-    }
-    if (player->scenario_menu) {
-      imui::Indent(2);
-      for (int i = 0; i < kMaxScenario; ++i) {
-        if (imui::Text(kScenarioNames[i], text_options).clicked) {
-          kScenario = (ScenarioType)i;
-          Reset(kNetworkState.game_id);
-        }
-      }
-      imui::Indent(-2);
-    }
-    if (imui::Text("Exit", text_options).clicked) {
-      exit(1);
     }
     imui::Indent(-2);
   }
-
-  snprintf(ui_buffer, sizeof(ui_buffer), "Minerals: %.1f", player->mineral);
-  imui::Text(ui_buffer);
-  snprintf(ui_buffer, sizeof(ui_buffer), "Level: %lu", player->level);
-  imui::Text(ui_buffer);
-  snprintf(ui_buffer, sizeof(ui_buffer), "Player Index: %zu", player - kPlayer);
-  imui::Text(ui_buffer);
-
-  if (simulation::kSimulationOver) {
-    snprintf(ui_buffer, sizeof(ui_buffer), "Game Over");
-    imui::Text(ui_buffer);
+  if (imui::Text("Exit", text_options).clicked) {
+    exit(1);
   }
+  
 
   imui::End();
 }
@@ -589,6 +535,16 @@ GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
   if (player->ship_index < kUsedShip) {
     Ship* ship = &kShip[player->ship_index];
     snprintf(ui_buffer, sizeof(ui_buffer), "%.12s Deck", deck_name[ship->deck]);
+    imui::Text(ui_buffer);
+  }
+  snprintf(ui_buffer, sizeof(ui_buffer), "Minerals: %.1f", player->mineral);
+  imui::Text(ui_buffer);
+  snprintf(ui_buffer, sizeof(ui_buffer), "Level: %lu", player->level);
+  imui::Text(ui_buffer);
+  snprintf(ui_buffer, sizeof(ui_buffer), "Player Index: %zu", player - kPlayer);
+  imui::Text(ui_buffer);
+  if (simulation::kSimulationOver) {
+    snprintf(ui_buffer, sizeof(ui_buffer), "Game Over");
     imui::Text(ui_buffer);
   }
   imui::End();

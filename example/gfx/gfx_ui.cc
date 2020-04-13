@@ -56,7 +56,8 @@ TextTest()
   imui::End();
 
   pane_options.title = "Test";
-  imui::Begin(v2f(1000, 300), 0, pane_options);
+  static bool hide = false;
+  imui::Begin(v2f(1000, 300), 0, pane_options, &hide);
   static int i = 0;
   if (imui::ButtonCircle(15.f, v4f(1.f, 0.f, 0.f, 1.f)).clicked) {
     ++i;

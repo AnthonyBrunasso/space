@@ -26,7 +26,8 @@ constexpr float kTextScale = 0.8f;
 
 static const v4f kWhite(1.f, 1.f, 1.f, 1.f);
 static const v4f kPaneColor(0.0f, 0.0f, 0.0f, 0.4f);
-static const v4f kPaneHeaderColor(0.32f, 0.36f, 0.404f, 1.f);
+static const v4f kPaneHeaderColor(0.12f, 0.16f, 0.154f, 1.f);
+static const v4f kHeaderMinimizeColor(0.45f, 0.68f, 0.906f, 0.7f);
 
 struct Result {
   Result() = default;
@@ -116,6 +117,7 @@ struct BeginMode {
   bool flow_switch = false;
   Rectf last_rect;
   float x_reset;
+  bool* show = nullptr;
   Pane* pane;
 };
 
@@ -380,6 +382,7 @@ Text(const char* msg, TextOptions options)
   uint32_t tag = kIMUI.begin_mode.tag;
   struct Text* text = UseText(tag);
   Result data;
+  if (kIMUI.begin_mode.show && !(*kIMUI.begin_mode.show)) return data;
   if (!text) {
     imui_errno = 1;
     return data;
@@ -416,6 +419,7 @@ HorizontalLine(const v4f& color)
 {
   assert(kIMUI.begin_mode.set);
   uint32_t tag = kIMUI.begin_mode.tag;
+  if (kIMUI.begin_mode.show && !(*kIMUI.begin_mode.show)) return;
   Line* line = UseLine(tag);
   if (!line) {
     imui_errno = 5;
@@ -430,6 +434,8 @@ HorizontalLine(const v4f& color)
 void
 Space(SpaceType type, int count)
 {
+  assert(kIMUI.begin_mode.set);
+  if (kIMUI.begin_mode.show && !(*kIMUI.begin_mode.show)) return;
   if (type == kHorizontal) {
     UpdatePane(count, 0.f, kIMUI.begin_mode.pane);
   } else {
@@ -437,8 +443,67 @@ Space(SpaceType type, int count)
   }
 }
 
+Result
+Button(float width, float height, const v4f& color)
+{
+  // Call Begin() before imui elements.
+  assert(kIMUI.begin_mode.set);
+  uint32_t tag = kIMUI.begin_mode.tag;
+  struct Button* button = UseButton(tag);
+  Result result;
+  if (kIMUI.begin_mode.show && !(*kIMUI.begin_mode.show)) return result;
+  if (!button) {
+    imui_errno = 3;
+    return result;
+  }
+  Rectf rect = UpdatePane(width, height, kIMUI.begin_mode.pane);
+  button->rect = rect;
+  button->color = color;
+  return IMUI_RESULT(button->rect);
+}
+
+Result
+ButtonCircle(float radius, const v4f& color)
+{
+  // Call Begin() before imui elements.
+  assert(kIMUI.begin_mode.set);
+  Result result;
+  if (kIMUI.begin_mode.show && !(*kIMUI.begin_mode.show)) return result;
+  uint32_t tag = kIMUI.begin_mode.tag;
+  struct ButtonCircle* button = UseButtonCircle(tag);
+  if (!button) {
+    imui_errno = 3;
+    return result;
+  }
+  Rectf rect = UpdatePane(2.f * radius, 2.f * radius, kIMUI.begin_mode.pane);
+  // RenderButton renders from center.
+  button->position = v2f(rect.x, rect.y) + v2f(radius, radius);
+  button->radius = radius;
+  button->color = color;
+  return IMUI_RESULT_CIRCLE(button->position, radius);
+}
+
 void
-Begin(v2f start, uint32_t tag, const PaneOptions& pane_options)
+ToggleSameLine()
+{
+  assert(kIMUI.begin_mode.set);
+  kIMUI.begin_mode.flow_type = kSameLine;
+  kIMUI.begin_mode.flow_switch = true;
+  kIMUI.begin_mode.x_reset = kIMUI.begin_mode.pos.x;
+}
+
+void
+ToggleNewLine()
+{
+  assert(kIMUI.begin_mode.set);
+  kIMUI.begin_mode.flow_type = kNewLine;
+  kIMUI.begin_mode.flow_switch = true;
+  kIMUI.begin_mode.pos.x = kIMUI.begin_mode.x_reset;
+}
+
+void
+Begin(v2f start, uint32_t tag, const PaneOptions& pane_options,
+      bool* show = nullptr)
 {
   assert(tag < kMaxTags);
   auto& begin_mode = kIMUI.begin_mode;
@@ -456,14 +521,24 @@ Begin(v2f start, uint32_t tag, const PaneOptions& pane_options)
   begin_mode.pane->rect.height = pane_options.height;
   begin_mode.pane->options = pane_options;
   if (pane_options.title) {
-    Space(kVertical, 1.f);
+    ToggleSameLine();
+    begin_mode.pos.x += 5.f;
+    Rectf t = rgg::GetTextRect(
+        pane_options.title, strlen(pane_options.title), start, kTextScale);
+    if (ButtonCircle(10.f, kHeaderMinimizeColor).clicked) {
+      if (show) (*show) = !(*show);
+    }
+    begin_mode.pos.y -= 3.f;
+    begin_mode.pos.x += 5.f;
     Rectf trect = Text(pane_options.title).rect;
     begin_mode.pane->options.header_rect.height = trect.height;
+    ToggleNewLine();
   }
+  if (show) begin_mode.show = show;
 }
 
 void
-Begin(v2f start, uint32_t tag)
+Begin(v2f start, uint32_t tag, bool* show = nullptr)
 {
   PaneOptions pane_options;
   pane_options.color = v4f(0.f, 0.f, 0.f, 0.f);
@@ -475,44 +550,6 @@ End()
 {
   UpdatePaneOnEnd(kIMUI.begin_mode.pane);
   kIMUI.begin_mode = {};
-}
-
-Result
-Button(float width, float height, const v4f& color)
-{
-  // Call Begin() before imui elements.
-  assert(kIMUI.begin_mode.set);
-  uint32_t tag = kIMUI.begin_mode.tag;
-  struct Button* button = UseButton(tag);
-  Result result;
-  if (!button) {
-    imui_errno = 3;
-    return result;
-  }
-  Rectf rect = UpdatePane(width, height, kIMUI.begin_mode.pane);
-  button->rect = rect;
-  button->color = color;
-  return IMUI_RESULT(button->rect);
-}
-
-Result
-ButtonCircle(float radius, const v4f& color)
-{
-  // Call Begin() before imui elements.
-  assert(kIMUI.begin_mode.set);
-  uint32_t tag = kIMUI.begin_mode.tag;
-  struct ButtonCircle* button = UseButtonCircle(tag);
-  Result result;
-  if (!button) {
-    imui_errno = 3;
-    return result;
-  }
-  Rectf rect = UpdatePane(2.f * radius, 2.f * radius, kIMUI.begin_mode.pane);
-  // RenderButton renders from center.
-  button->position = v2f(rect.x, rect.y) + v2f(radius, radius);
-  button->radius = radius;
-  button->color = color;
-  return IMUI_RESULT_CIRCLE(button->position, radius);
 }
 
 void
@@ -548,24 +585,6 @@ MousePosition(v2f pos, uint32_t tag)
   }
   mp->pos = pos;
   return MouseInUI(pos, tag);
-}
-
-void
-ToggleSameLine()
-{
-  assert(kIMUI.begin_mode.set);
-  kIMUI.begin_mode.flow_type = kSameLine;
-  kIMUI.begin_mode.flow_switch = true;
-  kIMUI.begin_mode.x_reset = kIMUI.begin_mode.pos.x;
-}
-
-void
-ToggleNewLine()
-{
-  assert(kIMUI.begin_mode.set);
-  kIMUI.begin_mode.flow_type = kNewLine;
-  kIMUI.begin_mode.flow_switch = true;
-  kIMUI.begin_mode.pos.x = kIMUI.begin_mode.x_reset;
 }
 
 const char*

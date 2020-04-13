@@ -148,8 +148,8 @@ TileNeighbor(Tile tile, uint64_t index)
 {
   v2i n = kNeighbor[MOD_BUCKET(index, kMaxNeighbor)];
 
-  tile.cx = BITRANGE_WRAP(tile.xy_bitrange, tile.cx + n.x);
-  tile.cy = BITRANGE_WRAP(tile.xy_bitrange, tile.cy + n.y);
+  tile.cx = BITRANGE_WRAP(tile.bitrange_xy, tile.cx + n.x);
+  tile.cy = BITRANGE_WRAP(tile.bitrange_xy, tile.cy + n.y);
 
   return tile;
 }
@@ -217,18 +217,6 @@ WorldToTile(const v3f pos, Tile* t)
   if (!TileOk(grid)) return false;
 
   *t = kCurrentGrid->tilemap[grid.y][grid.x];
-  return true;
-}
-
-bool
-WorldToTilePos(const v3f pos, v2i* t)
-{
-  int64_t tidx = TilemapWorldToGrid(pos);
-  if (tidx == kInvalidIndex) return false;
-
-  TilemapModify tm(tidx);
-  v2f relpos = pos.xy() - kTilemapWorldOffset;
-  *t = v2i((int)(relpos.x / kTileWidth), (int)(relpos.y / kTileHeight));
   return true;
 }
 
@@ -321,6 +309,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
           *tile = kZeroTile;
           tile->cx = x;
           tile->cy = y;
+          tile->bitrange_xy = kMapBits;
         }
       }
     } break;
@@ -331,6 +320,7 @@ static int kDefaultMap[kMapHeight][kMapWidth] = {
           *tile = kZeroTile;
           tile->cx = x;
           tile->cy = y;
+          tile->bitrange_xy = kMapBits;
           tile->blocked = (kDefaultMap[y][x] == kTileBlock);
           tile->nooxygen = 0;
 

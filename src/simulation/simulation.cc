@@ -159,7 +159,7 @@ DecideInvasion()
     if (!v->docked && WorldToTile(v->transform.position, &tile)) {
       if (tile.blocked) {
         v->docked = true;
-        v->docked_tile = v2i(tile.cx, tile.cy);
+        v->docked_tile = tile;
       }
     }
     if (!v->docked) {
@@ -418,8 +418,8 @@ Decide()
         });
       } else {
         TilemapModify tm(TilemapWorldToGrid(c.destination));
-        v2i start;
-        if (!WorldToTilePos(c.destination, &start)) continue;
+        Tile start;
+        if (!WorldToTile(c.destination, &start)) continue;
         BfsIterator iter = BfsStart(start);
         FOR_EACH_ENTITY(Unit, unit, {
           // The issuer of a command must have a set bit

@@ -153,6 +153,7 @@ DECLARE_GAME_TYPE(Ship, 2);
 
 constexpr int kMapWidth = 64;
 constexpr int kMapHeight = 64;
+constexpr int kMapBits = 6;
 // Arrays of Tiles are everywhere: avoid specifying a constructor
 // Initialization requires:
 //   Tile t = kZeroTile;
@@ -169,7 +170,7 @@ struct Tile {
   };
   union {
     struct {
-      unsigned xy_bitrange : 4;
+      unsigned bitrange_xy : 4;
       // a wall, no movement
       unsigned blocked : 1;
       // tile does not support human life
@@ -327,6 +328,6 @@ struct Invasion {
   int unit_count;
 
   bool docked = false;
-  v2i docked_tile;
+  Tile docked_tile;
 };
 DECLARE_GAME_TYPE(Invasion, 2);

@@ -30,7 +30,7 @@ struct BfsIterator {
 static Search kSearch;
 
 BfsIterator
-BfsStart(v2i start)
+BfsStart(Tile tile)
 {
   constexpr int N = kMapHeight * kMapWidth;
   memset(kSearch.path_map, 0, sizeof(v2i) * N);
@@ -40,7 +40,8 @@ BfsStart(v2i start)
   itr.neighbor_index = 0;
   itr.queue_index = 0;
   itr.tile = nullptr;
-  if (!TileOk(start)) return itr;
+  if (!TileValid(tile)) return itr;
+  v2i start(tile.cx, tile.cy);
   kSearch.queue[kSearch.queue_size++] = start;
   kSearch.path_map[start.y][start.x] = start;
   itr.tile = TilePtr(start);
@@ -127,7 +128,7 @@ PathTo(Tile start_tile, Tile end_tile)
   if (!TileOk(start)) return nullptr;
 
   auto& path_map = kSearch.path_map;
-  BfsIterator iter = BfsStart(start);
+  BfsIterator iter = BfsStart(start_tile);
   while (BfsNextTile(&iter)) {
     if (path_map[end.y][end.x] != INVALID_TILE) {
       break;
@@ -163,7 +164,7 @@ BfsTileEnable(Tile set_tile, uint64_t tile_distance)
   auto& path_map = kSearch.path_map;
   int& qsz = kSearch.queue_size;
 
-  BfsIterator iter = BfsStart(v2i(set_tile.cx, set_tile.cy));
+  BfsIterator iter = BfsStart(set_tile);
   if (!iter.tile->blocked) {
     TileSet(iter.tile, set_tile.flags);
   }

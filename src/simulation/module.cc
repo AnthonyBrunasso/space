@@ -222,9 +222,7 @@ ModuleWarpUpdate(Module* module)
   LOGFMT("Warping crew to ship %i. control change %d->%d",
          target_module->ship_index, unit->control, target_module->control);
   TilemapModify mod(target_module->ship_index);
-  v2i tilepos;
-  if (!WorldToTilePos(target_module->position, &tilepos)) return;
-  BfsIterator iter = BfsStart(tilepos);
+  BfsIterator iter = BfsStart(target_module->tile);
   while (BfsNextTile(&iter)) {
     int i = 0;
     for (; i < kUsedEntity; ++i) {

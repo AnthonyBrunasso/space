@@ -332,7 +332,6 @@ LogPanel(v2f screen_dims, uint32_t tag)
   const float height = 100.0f;
   imui::PaneOptions pane_options(width, height);
   imui::TextOptions text_options;
-  text_options.scale = 0.7f;
   imui::Begin(v2f(screen_dims.x - width, 0.0f), tag, pane_options);
   for (int i = 0, imax = LogCount(); i < imax; ++i) {
     const char* log_msg = ReadLog(i);

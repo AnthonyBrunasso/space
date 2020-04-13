@@ -8,7 +8,7 @@ namespace simulation
 Rectf
 ShipBounds(uint64_t ship_index)
 {
-  Rectf bounds;
+  Rectf bounds = {};
   if (ship_index >= kUsedShip) return bounds;
 
   Ship* ship = &kShip[ship_index];
@@ -23,7 +23,7 @@ ShipBounds(uint64_t ship_index)
 Rectf
 FromShip(uint64_t ship_index, Tile tile)
 {
-  Rectf tile_bounds;
+  Rectf tile_bounds = {};
   if (ship_index >= kUsedShip) return tile_bounds;
 
   v3f ship_position = kShip[ship_index].transform.position;

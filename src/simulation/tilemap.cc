@@ -95,8 +95,8 @@ static const v2i kNeighbor[kMaxNeighbor] = {
 v2f
 TilePosToWorld(const v2i pos)
 {
-  return {kTilemapWorldOffset.x + (pos.x * kTileWidth) + .5 * kTileWidth,
-          kTilemapWorldOffset.y + (pos.y * kTileHeight) + .5 * kTileHeight};
+  return {kTilemapWorldOffset.x + (pos.x * kTileWidth) + .5f * kTileWidth,
+          kTilemapWorldOffset.y + (pos.y * kTileHeight) + .5f * kTileHeight};
 }
 
 // Returns the minimum position of the tile.

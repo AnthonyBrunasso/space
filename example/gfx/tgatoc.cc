@@ -8,8 +8,8 @@
 // tgatoc file.tga file.fnt src/asset/font.cc Font
 
 struct Kerning {
-  int second[32];
-  int amount[32];
+  int second[64];
+  int amount[64];
   int count = 0;
 };
 

@@ -6,7 +6,7 @@
 
 #include "math/vec.h"
 
-#include "ship/cruiser.cc"
+#include "ship/ship.cc"
 
 #include "entity.cc"
 
@@ -18,8 +18,6 @@ Rectf FromShip(Tile tile);                             // in ship.cc
 
 constexpr float kTileWidth = 25.0f;
 constexpr float kTileHeight = 25.0f;
-
-Grid* kCurrentGrid;
 
 enum TileType {
   kTileOpen = 0,
@@ -88,32 +86,6 @@ static const v2i kNeighbor[kMaxNeighbor] = {
     v2i(1, 1),  v2i(-1, 1), v2i(1, -1), v2i(-1, -1),
 };
 
-Tile*
-TilePtr(uint16_t x, uint16_t y)
-{
-  if (!kCurrentGrid) return nullptr;
-  if (x < 0) return nullptr;
-  if (x >= kMapWidth) return nullptr;
-  if (y < 0) return nullptr;
-  if (y >= kMapHeight) return nullptr;
-
-  return &kCurrentGrid->tilemap[y][x];
-}
-
-Tile*
-TilePtr(Tile t)
-{
-  v2i grid(t.cx, t.cy);
-  return &kCurrentGrid->tilemap[grid.y][grid.x];
-}
-
-Tile
-TileRandom()
-{
-  return *TilePtr(MOD_BUCKET(rand(), kMapWidth),
-                  MOD_BUCKET(rand(), kMapHeight));
-}
-
 Tile
 TileNeighbor(Tile tile, uint64_t index)
 {
@@ -126,63 +98,40 @@ TileNeighbor(Tile tile, uint64_t index)
 }
 
 void
-TilemapClear()
-{
-  kCurrentGrid = nullptr;
-}
-
-class TilemapModify
-{
- public:
-  TilemapModify(uint64_t ship_index)
-  {
-    prev_grid = kCurrentGrid;
-    // TODO (AN): For now grid_index is ship_index
-    ok = ship_index < kUsedGrid && ship_index < kUsedShip;
-
-    if (!ok) return;
-
-    // TODO (AN): For now grid_index is ship_index
-    kCurrentGrid = &kGrid[ship_index];
-  }
-
-  ~TilemapModify()
-  {
-    kCurrentGrid = prev_grid;
-  }
-
-  Grid* prev_grid;
-  bool ok;
-};
-
-void
 TilemapInitialize(uint64_t player_index)
 {
   assert(player_index < kUsedPlayer);
 
   uint64_t ship_index = kPlayer[player_index].ship_index;
   assert(ship_index < kUsedShip);
-  Ship* ship = &kShip[ship_index];
 
   if (kUsedGrid <= ship_index) UseGrid();
 
   uint8_t* ship_design = nullptr;
-  int ship_type = ship->type;
+  uint64_t bitrange_xy = kMapDefaultBits;
+  int ship_type = kShip[ship_index].type;
   switch (ship_type) {
+    case kShipShuttle:
+      ship_design = &kShuttleDesign[0][0];
+      bitrange_xy = kShuttleBits;
+      break;
     case kShipCruiser:
       ship_design = &kCruiserDesign[0][0];
+      bitrange_xy = kCruiserBits;
+      break;
   }
 
   Tile* tile = &kGrid[ship_index].tilemap[0][0];
-  for (int y = 0; y < kMapHeight; ++y) {
-    for (int x = 0; x < kMapWidth; ++x) {
+  for (int y = 0; y < (1 << bitrange_xy); ++y) {
+    for (int x = 0; x < (1 << bitrange_xy); ++x) {
       uint8_t tile_type = ship_design ? *ship_design : kTileOpen;
 
       *tile = kZeroTile;
       tile->cx = x;
       tile->cy = y;
       tile->ship_index = ship_index;
-      tile->bitrange_xy = kMapBits;
+      tile->bitrange_xy = bitrange_xy;
+      tile->ship_deck = 0;
 
       switch (tile_type) {
         case kTileBlock: {
@@ -207,6 +156,11 @@ TilemapInitialize(uint64_t player_index)
       ++tile;
     }
   }
+
+  Ship* ship = &kShip[ship_index];
+  ship->map = &kGrid[ship_index].tilemap[0][0];
+  ship->map_width = (1 << bitrange_xy);
+  ship->map_height = (1 << bitrange_xy);
 }
 
 v3f
@@ -224,27 +178,15 @@ TileAvoidWalls(Tile start)
 }
 
 void
-TilemapResetShroud()
-{
-  for (int i = 0; i < kUsedShip; ++i) {
-    TilemapModify tm(i);
-    Tile set_tile = kZeroTile;
-    set_tile.cx = kMapWidth / 2;
-    set_tile.cy = kMapHeight / 2;
-    set_tile.bitrange_xy = kMapBits;
-    set_tile.shroud = 1;
-    BfsTileEnable(set_tile, kMapWidth);
-  }
-}
-
-void
 TilemapResetVisible()
 {
   for (int i = 0; i < kUsedShip; ++i) {
-    TilemapModify tm(i);
-    for (int j = 0; j < kMapHeight; ++j) {
-      for (int k = 0; k < kMapWidth; ++k) {
-        kCurrentGrid->tilemap[j][k].visible = false;
+    Ship* ship = &kShip[i];
+    Tile* tile = ship->map;
+    for (int j = 0; j < ship->map_height; ++j) {
+      for (int k = 0; k < ship->map_width; ++k) {
+        tile->visible = false;
+        ++tile;
       }
     }
   }
@@ -254,11 +196,11 @@ void
 TilemapResetExterior()
 {
   for (int i = 0; i < kUsedShip; ++i) {
-    TilemapModify tm(i);
-    Tile set_tile = kZeroTile;
-    set_tile.bitrange_xy = kMapBits;
-    set_tile.exterior = 1;
-    BfsTileEnable(set_tile, kMapWidth);
+    Ship* ship = &kShip[i];
+    Tile tile = *ship->map;
+    tile.flags = 0;
+    tile.exterior = 1;
+    BfsTileEnable(tile, kMapMaxWidth);
   }
 }
 

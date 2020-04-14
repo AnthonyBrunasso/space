@@ -140,23 +140,9 @@ DECLARE_GAME_TYPE(Asteroid, 8);
 
 constexpr unsigned kNotifyAgeBits = 5;
 
-enum ShipEnum { kShipBlank, kShipCruiser };
-
-struct Ship {
-  Transform transform;
-  uint64_t level;
-  uint64_t deck = 1;
-  uint64_t pod_capacity;
-  ShipEnum type;
-  unsigned ftl_frame : 6;
-  unsigned engine_animation : 4;
-  unsigned PADDING : 22;
-};
-DECLARE_GAME_TYPE(Ship, 2);
-
-constexpr int kMapWidth = 64;
-constexpr int kMapHeight = 64;
-constexpr int kMapBits = 6;
+constexpr int kMapDefaultBits = 6;
+constexpr int kMapMaxWidth = 1 << kMapDefaultBits;
+constexpr int kMapMaxHeight = 1 << kMapDefaultBits;
 // Arrays of Tiles are everywhere: avoid specifying a constructor
 // Initialization requires:
 //   Tile t = kZeroTile;
@@ -171,16 +157,15 @@ struct Tile {
       uint16_t cy;
       // Reference to the ship
       uint8_t ship_index;
-      // for later
-      uint8_t reserved;
+      // number of bits used in cx and cy
+      uint16_t bitrange_xy : 4;
+      uint16_t ship_deck : 4;
     };
   };
   // Bitfields
   union {
     uint16_t flags;
     struct {
-      // number of bits used in cx and cy
-      uint16_t bitrange_xy : 4;
       // a wall, no movement
       uint16_t blocked : 1;
       // tile does not support human life
@@ -197,9 +182,26 @@ struct Tile {
   };
 };
 struct Grid {
-  Tile tilemap[kMapHeight][kMapWidth];
+  Tile tilemap[kMapMaxHeight][kMapMaxWidth];
 };
 DECLARE_GAME_TYPE(Grid, 2);
+
+enum ShipEnum { kShipBlank, kShipShuttle, kShipCruiser };
+
+struct Ship {
+  Transform transform;
+  uint64_t level;
+  uint64_t deck = 1;
+  uint64_t pod_capacity;
+  Tile* map;
+  uint16_t map_width;
+  uint16_t map_height;
+  ShipEnum type;
+  unsigned ftl_frame : 6;
+  unsigned engine_animation : 4;
+  unsigned PADDING : 22;
+};
+DECLARE_GAME_TYPE(Ship, 2);
 
 struct Projectile {
   v3f start;

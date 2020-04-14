@@ -155,7 +155,7 @@ ModulePowerUpdate(Module* module)
   tile.flags = 0;
   tile.visible = 1;
 
-  BfsTileEnable(tile, kMapWidth);
+  BfsTileEnable(tile, kMapMaxWidth);
 }
 
 void
@@ -229,7 +229,6 @@ ModuleWarpUpdate(Module* module)
 
   LOGFMT("Warping crew to ship %i. control change %d->%d",
          target_module->ship_index, unit->control, target_module->control);
-  TilemapModify mod(target_module->ship_index);
   BfsIterator iter = BfsStart(target_module->tile);
   while (BfsNextTile(&iter)) {
     int i = 0;

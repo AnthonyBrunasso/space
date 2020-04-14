@@ -150,7 +150,6 @@ DecideInvasion()
     if (!v->docked) {
       v->transform.position += v->invasion_dir;
     } else if (v->unit_count == 0) {
-      TilemapModify mod(v->docked_tile.ship_index);
       // Spawn the units from the invasion force!
       BfsIterator iter = BfsStart(v->docked_tile);
       int count = rand() % kMaxThisInvasion + 1;
@@ -283,9 +282,7 @@ UpdateUnit(uint64_t ship_index)
 
     // Reveal the shroud
     if (unit->alliance != kEnemy) {
-      Tile set_tile;
-      set_tile.cx = unit->tile.cx;
-      set_tile.cy = unit->tile.cy;
+      Tile set_tile = *ShipTile(unit->tile);
       set_tile.flags = 0;
       set_tile.visible = 1;
       set_tile.explored = 1;
@@ -389,7 +386,6 @@ Decide()
       } else {
         Tile start = ToAnyShip(c.destination);
         if (TileValid(start)) {
-          TilemapModify tm(start.ship_index);
           BfsIterator iter = BfsStart(start);
           FOR_EACH_ENTITY(Unit, unit, {
             // The issuer of a command must have a set bit
@@ -415,8 +411,6 @@ Decide()
   DecideInvasion();
 
   for (uint64_t i = 0; i < kUsedShip; ++i) {
-    TilemapModify tm(i);
-
     DecideShip(i);
     UpdateModule(i);
     UpdateUnit(i);
@@ -444,7 +438,6 @@ Update()
 
   TilemapUpdate();
   Decide();
-  TilemapClear();
 
   FOR_EACH_ENTITY(Unit, unit, {
     if (!unit) continue;

@@ -47,7 +47,6 @@ void
 ScenarioInitialize()
 {
   int sid = kScenario;
-  TilemapClear();
 
   // Build ship.
   switch (sid) {
@@ -113,22 +112,19 @@ ScenarioInitialize()
   // Spawn units / modules.
   switch (sid) {
     case kCombatScenario: {
-      TilemapModify tm(0);
-      SpawnCrew(*TilePtr(5, 12), 0);
-      SpawnEnemy(*TilePtr(10, 12));
+      SpawnCrew(*ShipTile(0, 5, 12), 0);
+      SpawnEnemy(*ShipTile(0, 10, 12));
     } break;
     case kSoloMission: {
-      TilemapModify tm(0);
-      SpawnCrew(*TilePtr(8, 12), 0);
-      SpawnEnemy(*TilePtr(10, 15));
-      SpawnEnemy(*TilePtr(10, 20));
-      SpawnEnemy(*TilePtr(4, 20));
+      SpawnCrew(*ShipTile(0, 8, 12), 0);
+      SpawnEnemy(*ShipTile(0, 10, 15));
+      SpawnEnemy(*ShipTile(0, 10, 20));
+      SpawnEnemy(*ShipTile(0, 4, 20));
     } break;
     case kTwoShip: {
       for (int i = 0; i < kPlayerCount; ++i) {
-        TilemapModify tm(i);
-        SpawnCrew(*TilePtr(5, 23), i);
-        SpawnAICrew(*TilePtr(15, 15), i);
+        SpawnCrew(*ShipTile(i, 5, 23), i);
+        SpawnAICrew(*ShipTile(i, 15, 15), i);
         ScenarioSpawnRandomModule(kModPower, i);
         ScenarioSpawnRandomModule(kModEngine, i, 5);
         ScenarioSpawnRandomModule(kModDoor, i, 12);

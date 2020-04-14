@@ -2,20 +2,20 @@
 
 #include <cstring>
 
-#include "tilemap.cc"
+#include "ship.cc"
 
 namespace simulation
 {
 struct Path {
-  Tile tile[kMapHeight * kMapWidth];
+  Tile tile[kMapMaxHeight * kMapMaxWidth];
   int size;
 };
 
 struct Search {
   // Visited Nodes
-  Tile path_map[kMapHeight][kMapWidth];
+  Tile path_map[kMapMaxHeight][kMapMaxWidth];
   // BFS queue.
-  Tile queue[kMapHeight * kMapWidth];
+  Tile queue[kMapMaxHeight * kMapMaxWidth];
   int queue_size;
   // The resulting path as calculated from the last call to PathTo.
   Path path;
@@ -42,7 +42,7 @@ BfsStart(Tile tile)
   if (!TileValid(tile)) return itr;
   kSearch.queue[kSearch.queue_size++] = tile;
   kSearch.path_map[tile.cy][tile.cx] = tile;
-  itr.tile = TilePtr(tile);
+  itr.tile = ShipTile(tile);
   return itr;
 }
 
@@ -55,7 +55,7 @@ BfsStep(Tile from, BfsIterator* iter)
   const auto& path_map = kSearch.path_map;
   const int neighbor_index = iter->neighbor_index;
   Tile neighbor = TileNeighbor(from, neighbor_index);
-  Tile* tile = TilePtr(neighbor);
+  Tile* tile = ShipTile(neighbor);
 
   iter->queue_index = (neighbor_index + 1) / kMaxNeighbor;
   iter->neighbor_index += 1;

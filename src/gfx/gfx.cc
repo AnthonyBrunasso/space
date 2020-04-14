@@ -271,9 +271,11 @@ RenderShip(uint64_t ship_index)
 
   float fft = kShip[ship_index].ftl_frame * (1.f / kFtlFrameTime);
   float ship_alpha = 1.f - fft;
-  for (int i = 0; i < kMapHeight; ++i) {
-    for (int j = 0; j < kMapWidth; ++j) {
-      const Tile* tile = TilePtr(j, i);
+  uint16_t ship_width = kShip[ship_index].map_width;
+  uint16_t ship_height = kShip[ship_index].map_height;
+  for (int i = 0; i < ship_height; ++i) {
+    for (int j = 0; j < ship_width; ++j) {
+      const Tile* tile = ShipTile(ship_index, j, i);
       v2f world_pos = FromShip(*tile).Center();
 
       v4f color;
@@ -400,7 +402,6 @@ Render(uint64_t player_index)
   for (int i = 0; i < kUsedShip; ++i) {
     if (kShip[i].level != kPlayer[player_index].level) continue;
 
-    simulation::TilemapModify tm(i);
     RenderShip(i);
     RenderCrew(i);
   }

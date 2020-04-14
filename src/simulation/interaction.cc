@@ -102,8 +102,8 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
            kNetworkState.egress_max * frame_target_usec, frame_queue,
            MAX_NETQUEUE);
   imui::Text(ui_buffer);
-  snprintf(ui_buffer, sizeof(ui_buffer),
-           "Network ft: %04.02f mean [%02.02f%%]", StatsMean(&kNetworkStats),
+  snprintf(ui_buffer, sizeof(ui_buffer), "Network ft: %04.02f mean [%02.02f%%]",
+           StatsMean(&kNetworkStats),
            100.f * StatsUnbiasedRsDev(&kNetworkStats));
   imui::Text(ui_buffer);
   snprintf(ui_buffer, sizeof(ui_buffer),
@@ -114,11 +114,10 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
   snprintf(ui_buffer, sizeof(ui_buffer), "Network Queue: %lu [%1.0fx rsdev]",
            NetworkQueueGoal(), kNetworkState.rsdev_const);
   imui::Text(ui_buffer);
-  snprintf(ui_buffer, sizeof(ui_buffer), "Window Size: %04.0fx%04.0f",
-           screen.x, screen.y);
+  snprintf(ui_buffer, sizeof(ui_buffer), "Window Size: %04.0fx%04.0f", screen.x,
+           screen.y);
   imui::Text(ui_buffer);
-  snprintf(ui_buffer, sizeof(ui_buffer), "Input hash: 0x%lx",
-           kDebugInputHash);
+  snprintf(ui_buffer, sizeof(ui_buffer), "Input hash: 0x%lx", kDebugInputHash);
   imui::Text(ui_buffer);
   snprintf(ui_buffer, sizeof(ui_buffer), "Sim hash: 0x%lx",
            kDebugSimulationHash);
@@ -146,8 +145,8 @@ ReadOnlyUnits(v2f screen, uint32_t tag)
     if (highlighted || kEntity[i].control || unit_debug) {
       imui::Indent(2);
       if (kEntity[i].type_id == kEeUnit) {
-        snprintf(ui_buffer, sizeof(ui_buffer), "tile %u %u",
-                 kEntity[i].tile.cx, kEntity[i].tile.cy);
+        snprintf(ui_buffer, sizeof(ui_buffer), "tile %u %u", kEntity[i].tile.cx,
+                 kEntity[i].tile.cy);
         imui::Text(ui_buffer);
         snprintf(ui_buffer, sizeof(ui_buffer), "position %04.0f %04.0f",
                  kEntity[i].position.x, kEntity[i].position.y);
@@ -240,7 +239,8 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
     player->mineral_cheat = !player->mineral_cheat;
   }
   if (imui::Text("Spawn Unit Cheat", text_options).clicked) {
-    SpawnCrew(TileRandom(), player - kPlayer);
+    v2f pos = math::RandomPointInRect(ShipBounds(player - kPlayer));
+    SpawnCrew(*ShipTile(player - kPlayer, pos.x, pos.y), player - kPlayer);
   }
   if (imui::Text("Kill Random Unit Cheat", text_options).clicked) {
     // Kill first unit in entity list.
@@ -272,7 +272,6 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
   if (imui::Text("Exit", text_options).clicked) {
     exit(1);
   }
-  
 
   imui::End();
 }
@@ -313,7 +312,8 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
     case MOUSE_DOWN: {
       imui::MouseDown(event.position, event.button, player_index);
       if (imui::MouseInUI(event.position, player_index) ||
-          imui::MouseInUI(event.position, imui::kEveryoneTag)) break;
+          imui::MouseInUI(event.position, imui::kEveryoneTag))
+        break;
 
       if (event.button == BUTTON_MIDDLE) {
         camera::Move(&player->camera, event_world);
@@ -373,7 +373,8 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
       imui::MouseUp(event.position, event.button, player_index);
       if (event.button == BUTTON_LEFT) {
         if (imui::MouseInUI(event.position, player_index) ||
-            imui::MouseInUI(event.position, imui::kEveryoneTag)) break;
+            imui::MouseInUI(event.position, imui::kEveryoneTag))
+          break;
         // TODO(abrunasso): Unconvinced this is the best way to check if a
         // selection occurred. Also unconvined that it's not....
         Unit* unit = nullptr;

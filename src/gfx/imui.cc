@@ -89,6 +89,12 @@ struct MouseDown {
   PlatformButton button;
 };
 
+struct MouseUp {
+  v2f pos;
+  PlatformButton button;
+};
+
+
 struct MousePosition {
   v2f pos;
 };
@@ -118,14 +124,17 @@ struct BeginMode {
   bool flow_switch = false;
   Rectf last_rect;
   float x_reset;
+  bool mouse_down;
   bool* show = nullptr;
   Pane* pane;
 };
 
+constexpr uint32_t kMaxTags = MAX_PLAYER + 1;
+constexpr uint32_t kEveryoneTag = MAX_PLAYER;
+
 struct IMUI {
   BeginMode begin_mode;
-  v2f last_mouse;
-  v2f current_mouse;
+  bool mouse_down[kMaxTags];
 };
 
 struct Box {
@@ -147,14 +156,12 @@ struct UIBound {
 
 static IMUI kIMUI;
 
-constexpr uint32_t kMaxTags = MAX_PLAYER + 1;
-constexpr uint32_t kEveryoneTag = MAX_PLAYER;
-
 DECLARE_2D_ARRAY(Text, kMaxTags, 128);
 DECLARE_2D_ARRAY(Line, kMaxTags, 8);
 DECLARE_2D_ARRAY(Button, kMaxTags, 16);
 DECLARE_2D_ARRAY(ButtonCircle, kMaxTags, 16);
 DECLARE_2D_ARRAY(MouseDown, kMaxTags, 8);
+DECLARE_2D_ARRAY(MouseUp, kMaxTags, 8);
 DECLARE_2D_ARRAY(MousePosition, kMaxTags, MAX_PLAYER);
 DECLARE_2D_ARRAY(LastMousePosition, kMaxTags, MAX_PLAYER);
 DECLARE_2D_ARRAY(Pane, kMaxTags, 8);
@@ -182,6 +189,7 @@ ResetAll()
   memset(kUsedButton, 0, sizeof(kUsedButton));
   memset(kUsedButtonCircle, 0, sizeof(kUsedButton));
   memset(kUsedMouseDown, 0, sizeof(kUsedMouseDown));
+  memset(kUsedMouseUp, 0, sizeof(kUsedMouseUp));
   memset(kUsedMousePosition, 0, sizeof(kUsedMousePosition));
   memset(kUsedPane, 0, sizeof(kUsedPane));
   memset(kUsedLine, 0, sizeof(kUsedLine));
@@ -197,6 +205,7 @@ ResetTag(uint32_t tag)
   kUsedButtonCircle[tag] = 0;
   kUsedPane[tag] = 0;
   kUsedMouseDown[tag] = 0;
+  kUsedMouseUp[tag] = 0;
   kUsedMousePosition[tag] = 0;
   kUsedLine[tag] = 0;
 }
@@ -299,6 +308,13 @@ IsCircleClicked(v2f center, float radius)
     if (math::PointInCircle(click->pos, center, radius)) return true;
   }
   return false;
+}
+
+bool
+IsMouseDown()
+{
+  uint32_t tag = kIMUI.begin_mode.tag;
+  return kIMUI.mouse_down[tag];
 }
 
 void
@@ -568,6 +584,20 @@ MouseDown(v2f pos, PlatformButton b, uint32_t tag)
   }
   click->pos = pos;
   click->button = b;
+  kIMUI.mouse_down[tag] = true;
+}
+
+void
+MouseUp(v2f pos, PlatformButton b, uint32_t tag)
+{
+  struct MouseUp* click = UseMouseUp(tag);
+  if (!click) {
+    imui_errno = 4;
+    return;
+  }
+  click->pos = pos;
+  click->button = b;
+  kIMUI.mouse_down[tag] = false;
 }
 
 bool

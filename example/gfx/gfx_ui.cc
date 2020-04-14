@@ -19,6 +19,8 @@ TextTest()
   v2f delta = imui::MouseDelta(0);
   snprintf(buffer, 64, "Mouse Delta(%.2f,%.2f)", delta.x, delta.y);
   imui::Text(buffer);
+  snprintf(buffer, 64, "Mouse Down(%i)", imui::IsMouseDown());
+  imui::Text(buffer);
   imui::End();
 
   imui::Begin(v2f(400.f, 400.f), 0, pane_options);
@@ -100,6 +102,11 @@ main(int argc, char** argv)
         case MOUSE_DOWN: {
           if (event.button == BUTTON_LEFT) {
             imui::MouseDown(event.position, event.button, 0);
+          }
+        } break;
+        case MOUSE_UP: {
+          if (event.button == BUTTON_LEFT) {
+            imui::MouseUp(event.position, event.button, 0);
           }
         } break;
         case KEY_DOWN: {

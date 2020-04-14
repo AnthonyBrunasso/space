@@ -62,8 +62,11 @@ TilemapUpdate()
 
   // Logical isolation for mapping v3f -> tile
   // Copying the tile introduces a frame delay when processing tile properties
-  FOR_EACH_ENTITY(Unit, unit,
-                  { unit->tile = ToShip(unit->ship_index, unit->position); });
+  for (int i = 0; i < kUsedEntity; ++i) {
+    Entity* ent = &kEntity[i];
+    if (ent->type_id == kEeInvalid) continue;
+    ent->tile = ToShip(ent->ship_index, ent->position);
+  }
 }
 
 void
@@ -97,7 +100,8 @@ DecideAsteroid()
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
 
-    if (asteroid->mineral_source < .5f || asteroid->transform.position.x <= 0.f) {
+    if (asteroid->mineral_source < .5f ||
+        asteroid->transform.position.x <= 0.f) {
       LOG("Asteroid imploded.");
       *asteroid = kZeroAsteroid;
       continue;

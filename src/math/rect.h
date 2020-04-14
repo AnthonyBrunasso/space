@@ -19,15 +19,21 @@ struct Rectf {
   float height;
 
   v2f
-  Center()
+  Center() const
   {
     return v2f(x + .5 * width, y + .5 * height);
   }
 
   v2f
-  Min()
+  Min() const
   {
     return v2f(x, y);
+  }
+
+  v2f
+  Max() const
+  {
+    return v2f(x + width, y + height);
   }
 };
 

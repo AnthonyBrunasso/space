@@ -71,18 +71,44 @@ struct PaneOptions {
   Rectf header_rect;
 };
 
+// imui elements.
+
+struct Pane {
+  Rectf rect;
+  PaneOptions options;
+};
+
 struct Text {
   char msg[kMaxTextSize];
   v2f pos;
   v4f color;  // TODO: This is duplicated in TextOptions
   Rectf rect;
   TextOptions options;
+  Pane* pane;
 };
 
-struct Pane {
+struct Button {
   Rectf rect;
-  PaneOptions options;
+  v4f color;
+  Pane* pane;
 };
+
+struct ButtonCircle {
+  v2f position;
+  float radius;
+  v4f color;
+  Pane* pane;
+};
+
+struct Line {
+  v2f start;
+  SpaceType type;
+  v4f color;
+  Pane* pane;
+};
+
+
+// imui metadata.
 
 struct MouseDown {
   v2f pos;
@@ -103,15 +129,8 @@ struct LastMousePosition {
   v2f pos;
 };
 
-struct Button {
+struct UIBound {
   Rectf rect;
-  v4f color;
-};
-
-struct ButtonCircle {
-  v2f position;
-  float radius;
-  v4f color;
 };
 
 struct BeginMode {
@@ -136,23 +155,6 @@ constexpr uint32_t kEveryoneTag = MAX_PLAYER;
 struct IMUI {
   BeginMode begin_mode;
   bool mouse_down[kMaxTags];
-};
-
-struct Box {
-  Rectf rect;
-  v4f color;
-  v4f outline_color;
-};
-
-struct Line {
-  v2f start;
-  SpaceType type;
-  v4f color;
-  Pane* pane;
-};
-
-struct UIBound {
-  Rectf rect;
 };
 
 static IMUI kIMUI;
@@ -436,6 +438,7 @@ Text(const char* msg, TextOptions options)
   }
   text->options = options;
   text->rect = rect;
+  text->pane = begin_mode.pane;
   ++begin_mode.text_calls;
   return IMUI_RESULT(rect);
 }
@@ -461,6 +464,7 @@ HorizontalLine(const v4f& color)
   line->start = kIMUI.begin_mode.pos;
   line->pane = kIMUI.begin_mode.pane;
   line->color = color;
+  line->pane = kIMUI.begin_mode.pane;
   UpdatePane(line->pane->rect.width, 1.f);
 }
 
@@ -492,6 +496,7 @@ Button(float width, float height, const v4f& color)
   Rectf rect = UpdatePane(width, height);
   button->rect = rect;
   button->color = color;
+  button->pane = kIMUI.begin_mode.pane;
   return IMUI_RESULT(button->rect);
 }
 
@@ -513,6 +518,7 @@ ButtonCircle(float radius, const v4f& color)
   button->position = v2f(rect.x, rect.y) + v2f(radius, radius);
   button->radius = radius;
   button->color = color;
+  button->pane = kIMUI.begin_mode.pane;
   return IMUI_RESULT_CIRCLE(button->position, radius);
 }
 

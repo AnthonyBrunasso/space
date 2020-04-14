@@ -606,9 +606,20 @@ End()
   kIMUI.begin_mode = {};
 }
 
+bool
+MouseInUI(v2f pos, uint32_t tag)
+{
+  for (int i = 0; i < kUsedUIBound[tag]; ++i) {
+    if (math::PointInRect(pos, kUIBound[tag][i].rect)) return true;
+  }
+  return false;
+}
+
 void
 MouseDown(v2f pos, PlatformButton b, uint32_t tag)
 {
+  // Only record mouse down events if they occurred in the UI.
+  if (!MouseInUI(pos, tag)) return;
   struct MouseDown* click = UseMouseDown(tag);
   if (!click) {
     imui_errno = 4;
@@ -630,15 +641,6 @@ MouseUp(v2f pos, PlatformButton b, uint32_t tag)
   click->pos = pos;
   click->button = b;
   kIMUI.mouse_down[tag] = false;
-}
-
-bool
-MouseInUI(v2f pos, uint32_t tag)
-{
-  for (int i = 0; i < kUsedUIBound[tag]; ++i) {
-    if (math::PointInRect(pos, kUIBound[tag][i].rect)) return true;
-  }
-  return false;
 }
 
 // Returns true if the mouse is contained within UI given bounds of last

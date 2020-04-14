@@ -47,7 +47,6 @@ void
 ScenarioInitialize()
 {
   int sid = kScenario;
-  TilemapType tilemap_type = kTilemapEmpty;
   TilemapClear();
 
   // Build ship.
@@ -57,13 +56,15 @@ ScenarioInitialize()
       Ship* ship = UseShip();
       ship->pod_capacity = 1;
       ship->level = 1;
+      ship->type = kShipBlank;
     } break;
     case kTwoShip: {
       while (kUsedShip < kPlayerCount) {
         Ship* ship = UseShip();
+        ship->transform.position = v2f(0.f, (kUsedShip - 1) * 1600.f);
         ship->pod_capacity = 1;
         ship->level = 1;
-        ship->transform.position = v2f(0.f, (kUsedShip - 1) * 1600.f);
+        ship->type = kShipCruiser;
       }
     } break;
     case kSoloMission: {
@@ -71,12 +72,14 @@ ScenarioInitialize()
       Ship* ship = UseShip();
       ship->pod_capacity = 1;
       ship->level = 1;
+      ship->type = kShipCruiser;
     } break;
     case kEmptyScenario: {
       // At least one ship
       Ship* ship = UseShip();
       ship->pod_capacity = 1;
       ship->level = 1;
+      ship->type = kShipBlank;
     } break;
   }
 
@@ -87,7 +90,7 @@ ScenarioInitialize()
     player->camera.viewport.x = kNetworkState.player_info[i].window_width;
     player->camera.viewport.y = kNetworkState.player_info[i].window_height;
     player->mineral = 400;
-    player->admin_menu_pos = 
+    player->admin_menu_pos =
         v2f(player->camera.viewport.x - 900, player->camera.viewport.y);
     player->tile_menu_pos =
         v2f(player->camera.viewport.x - 600, player->camera.viewport.y);
@@ -98,11 +101,11 @@ ScenarioInitialize()
     switch (sid) {
       case kEmptyScenario:
       case kCombatScenario:
-        TilemapInitialize(i, kTilemapEmpty);
+        TilemapInitialize(i);
         break;
       case kSoloMission:
       case kTwoShip:
-        TilemapInitialize(i, kTilemapShip);
+        TilemapInitialize(i);
         break;
     }
   }

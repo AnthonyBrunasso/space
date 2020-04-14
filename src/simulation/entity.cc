@@ -140,14 +140,17 @@ DECLARE_GAME_TYPE(Asteroid, 8);
 
 constexpr unsigned kNotifyAgeBits = 5;
 
+enum ShipEnum { kShipBlank, kShipCruiser };
+
 struct Ship {
   Transform transform;
   uint64_t level;
   uint64_t deck = 1;
   uint64_t pod_capacity;
+  ShipEnum type;
   unsigned ftl_frame : 6;
   unsigned engine_animation : 4;
-  uint64_t PADDING : 22;
+  unsigned PADDING : 22;
 };
 DECLARE_GAME_TYPE(Ship, 2);
 

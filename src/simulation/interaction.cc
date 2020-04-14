@@ -522,7 +522,8 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
 void
 GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
 {
-  imui::Begin(&player->game_menu_pos, tag);
+  imui::PaneOptions options;
+  imui::Begin(&player->game_menu_pos, tag, options);
   imui::Result hud_result;
   v2f p(50.f, 10.f);
   for (int i = 3; i < kModCount; ++i) {

@@ -97,7 +97,7 @@ DecideAsteroid()
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
 
-    if (asteroid->mineral_source < .5f) {
+    if (asteroid->mineral_source < .5f || asteroid->transform.position.x <= 0.f) {
       LOG("Asteroid imploded.");
       *asteroid = kZeroAsteroid;
       continue;
@@ -107,9 +107,6 @@ DecideAsteroid()
     asteroid->transform.scale =
         v3f(1.f, 1.f, 1.f) * (asteroid->mineral_source / 200.f);
     asteroid->transform.position.x -= 1.0f;
-    if (asteroid->transform.position.x < 50.f) {
-      asteroid->transform.position.x = 800.f;
-    }
   }
 }
 

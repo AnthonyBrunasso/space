@@ -164,43 +164,37 @@ TilemapInitialize(uint64_t player_index)
   assert(ship_index < kUsedShip);
   Ship* ship = &kShip[ship_index];
 
-  if (kUsedGrid <= ship_index) 
-    UseGrid();
+  if (kUsedGrid <= ship_index) UseGrid();
 
-  TilemapModify tm(ship_index);
-  if (ship->type == kShipBlank) {
-    for (int y = 0; y < kMapHeight; ++y) {
-      for (int x = 0; x < kMapWidth; ++x) {
-        Tile* tile = TilePtr(x, y);
-        *tile = kZeroTile;
-        tile->cx = x;
-        tile->cy = y;
-        tile->ship_index = ship_index;
-        tile->bitrange_xy = kMapBits;
-      }
-    }
-    return;
+  uint8_t* ship_design = nullptr;
+  int ship_type = ship->type;
+  switch (ship_type) {
+    case kShipCruiser:
+      ship_design = &kCruiserDesign[0][0];
   }
 
+  Tile* tile = &kGrid[ship_index].tilemap[0][0];
   for (int y = 0; y < kMapHeight; ++y) {
     for (int x = 0; x < kMapWidth; ++x) {
-      Tile* tile = TilePtr(x, y);
+      uint8_t tile_type = ship_design ? *ship_design : kTileOpen;
+
       *tile = kZeroTile;
       tile->cx = x;
       tile->cy = y;
       tile->ship_index = ship_index;
       tile->bitrange_xy = kMapBits;
-      tile->blocked = (kCruiserGrid[y][x] == kTileBlock);
-      tile->nooxygen = 0;
 
-      switch (kCruiserGrid[y][x]) {
+      switch (tile_type) {
+        case kTileBlock: {
+          tile->blocked = 1;
+        } break;
         case kTilePower:
         case kTileEngine:
         case kTileMine:
         case kTileDoor:
         case kTileTurret: {
           Module* mod = UseEntityModule();
-          mod->mkind = (ModuleKind)(kCruiserGrid[y][x] - kTileModule);
+          mod->mkind = (ModuleKind)(tile_type - kTileModule);
           mod->bounds = ModuleBounds(mod->mkind);
           mod->ship_index = ship_index;
           mod->player_index = player_index;
@@ -208,6 +202,9 @@ TilemapInitialize(uint64_t player_index)
               v3f(0.f, 0.f, mod->bounds.z / 2.f) + FromShip(*tile).Center();
         } break;
       };
+
+      ship_design += (ship_design != nullptr);
+      ++tile;
     }
   }
 }

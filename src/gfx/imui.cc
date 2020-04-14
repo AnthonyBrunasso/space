@@ -564,7 +564,7 @@ Begin(v2f* start, uint32_t tag, const PaneOptions& pane_options,
     if (ButtonCircle(10.f, kHeaderMinimizeColor).clicked) {
       if (show) (*show) = !(*show);
     }
-    begin_mode.pos.y -= 3.f;
+    begin_mode.pos.y -= 2.f;
     begin_mode.pos.x += 5.f;
     Rectf trect = Text(pane_options.title).rect;
     begin_mode.pane->options.header_rect.height = trect.height;

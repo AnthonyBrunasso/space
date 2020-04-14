@@ -303,6 +303,7 @@ TilemapResetShroud()
     Tile set_tile = kZeroTile;
     set_tile.cx = kMapWidth / 2;
     set_tile.cy = kMapHeight / 2;
+    set_tile.bitrange_xy = kMapBits;
     set_tile.shroud = 1;
     BfsTileEnable(set_tile, kMapWidth);
   }
@@ -327,6 +328,7 @@ TilemapResetExterior()
   for (int i = 0; i < kUsedShip; ++i) {
     TilemapModify tm(i);
     Tile set_tile = kZeroTile;
+    set_tile.bitrange_xy = kMapBits;
     set_tile.exterior = 1;
     BfsTileEnable(set_tile, kMapWidth);
   }

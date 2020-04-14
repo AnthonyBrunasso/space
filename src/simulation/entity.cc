@@ -188,7 +188,7 @@ struct Tile {
       uint16_t visible : 1;
       // tile is exterior to the ship walls ('blocked' flag)
       uint16_t exterior : 1;
-      // tile has ever been visible to a player (disabled by AN 4/11/20)
+      // tile has ever been visible to a player
       uint16_t explored : 1;
     };
   };

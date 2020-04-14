@@ -2,61 +2,72 @@
 #include <cstdio>
 
 struct Tile {
-  unsigned cx : 8;
-  unsigned cy : 8;
-  unsigned blocked : 1;
-  unsigned nooxygen : 1;
-  unsigned shroud : 1;
-  unsigned explored : 1;
-  unsigned exterior : 1;
+  union {
+    char position[6];
+    struct {
+      uint16_t cx;
+      uint16_t cy;
+      // Reference to the ship
+      uint8_t ship_index;
+      // for later
+      uint8_t reserved;
+    };
+  };
+  // Bitfields
+  union {
+    uint16_t flags;
+    struct {
+      // number of bits used in cx and cy
+      uint16_t bitrange_xy : 4;
+      // a wall, no movement
+      uint16_t blocked : 1;
+      // tile does not support human life
+      uint16_t nooxygen : 1;
+      // tile contents are 'unknown' unless marked visible
+      uint16_t shroud : 1;
+      // tile is visible to all players
+      uint16_t visible : 1;
+      // tile is exterior to the ship walls ('blocked' flag)
+      uint16_t exterior : 1;
+      // tile has ever been visible to a player
+      uint16_t explored : 1;
+    };
+  };
 };
-
-Tile
-TileAND(Tile lhs, Tile rhs)
-{
-  uint32_t res = *(uint32_t *)&lhs & *(uint32_t *)&rhs;
-  return *(Tile *)&res;
-}
-
-Tile
-TileOR(Tile lhs, Tile rhs)
-{
-  uint32_t res = *(uint32_t *)&lhs | *(uint32_t *)&rhs;
-  return *(Tile *)&res;
-}
 
 void
 ptile(Tile t)
 {
   printf(
-      "%ux %uy: [ blocked %d ] [ nooxygen %d ] [ shroud %d ] [ explored %d ]\n",
-      t.cx, t.cy, t.blocked, t.nooxygen, t.shroud, t.explored);
+      "%ux %uy: "
+      "[ blocked %d ] "
+      "[ nooxygen %d ] "
+      "[ shroud %d ] "
+      "[ visible %d ] "
+      "[ exterior %d ] "
+      "[ explored %d ] "
+      "[ flags %04x ] "
+      "\n",
+      t.cx, t.cy, t.blocked, t.nooxygen, t.shroud, t.visible, t.exterior, t.explored, t.flags);
 }
 
 int
 main()
 {
-  Tile normal = {3, 3, 0, 0, 1, 1};
-  Tile hull = {7, 7, 1, 0, 1, 1};
-  Tile no_mutation = {0xff, 0xff, 1, 1, 1, 1};
-  Tile no_shroud = {0xff, 0xff, 1, 1, 0, 1};
-  Tile unexplored = {0xff, 0xff, 1, 1, 1, 0};
-  Tile explored = {0x00, 0x00, 0, 0, 0, 1};
+  Tile normal = {.cx = 7, .cy = 7, .ship_index = 0, .bitrange_xy = 4};
 
   puts("normal tile");
   ptile(normal);
-  ptile(TileAND(normal, no_mutation));
-  ptile(TileAND(normal, no_shroud));
 
-  puts("hull tile");
-  ptile(hull);
-  ptile(TileAND(hull, no_mutation));
-  ptile(TileAND(hull, no_shroud));
-
-  puts("exploration");
+  normal.exterior = 1;
   ptile(normal);
-  ptile(TileAND(normal, unexplored));
-  ptile(TileOR(normal, explored));
+
+  normal.blocked = 1;
+  ptile(normal);
+
+  normal.explored = 1;
+  normal.shroud = 1;
+  ptile(normal);
 
   return 0;
 }

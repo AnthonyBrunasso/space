@@ -87,6 +87,11 @@ ScenarioInitialize()
     player->camera.viewport.x = kNetworkState.player_info[i].window_width;
     player->camera.viewport.y = kNetworkState.player_info[i].window_height;
     player->mineral = 400;
+    player->admin_menu_pos = 
+        v2f(player->camera.viewport.x - 900, player->camera.viewport.y);
+    player->tile_menu_pos =
+        v2f(player->camera.viewport.x - 600, player->camera.viewport.y);
+    player->game_menu_pos = v2f(0.f, 400.f);
   }
 
   for (int i = 0; i < kUsedPlayer; ++i) {

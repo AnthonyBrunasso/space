@@ -16,7 +16,7 @@ TextTest()
   char buffer[64];
   snprintf(buffer, 64, "Mouse(%.2f,%.2f)", cursor.x, cursor.y);
   imui::Text(buffer);
-  v2f delta = imui::MouseDelta(0);
+  v2f delta = imui::MouseDelta();
   snprintf(buffer, 64, "Mouse Delta(%.2f,%.2f)", delta.x, delta.y);
   imui::Text(buffer);
   snprintf(buffer, 64, "Mouse Down(%i)", imui::IsMouseDown());
@@ -62,7 +62,8 @@ TextTest()
 
   pane_options.title = "Test";
   static bool hide = false;
-  imui::Begin(v2f(1000, 300), 0, pane_options, &hide);
+  static v2f pos(1000, 300);
+  imui::Begin(&pos, 0, pane_options, &hide);
   static int i = 0;
   if (imui::ButtonCircle(15.f, v4f(1.f, 0.f, 0.f, 1.f)).clicked) {
     ++i;

@@ -126,6 +126,7 @@ struct BeginMode {
   float x_reset;
   bool mouse_down;
   bool* show = nullptr;
+  v2f* start = nullptr;
   Pane* pane;
 };
 
@@ -211,8 +212,9 @@ ResetTag(uint32_t tag)
 }
 
 v2f
-MouseDelta(uint32_t tag)
+MouseDelta()
 {
+  uint32_t tag = kIMUI.begin_mode.tag;
   if (kUsedMousePosition[tag] < 1 || kUsedLastMousePosition[tag] < 1)
     return {};
   return kMousePosition[tag][0].pos - kLastMousePosition[tag][0].pos;
@@ -272,6 +274,17 @@ IsRectHighlighted(Rectf rect)
   uint32_t tag = kIMUI.begin_mode.tag;
   for (int i = 0; i < kUsedMousePosition[tag]; ++i) {
     MousePosition* mp = &kMousePosition[tag][i];
+    if (math::PointInRect(mp->pos, rect)) return true;
+  }
+  return false;
+}
+
+bool
+IsRectPreviouslyHighlighted(Rectf rect)
+{
+  uint32_t tag = kIMUI.begin_mode.tag;
+  for (int i = 0; i < kUsedLastMousePosition[tag]; ++i) {
+    LastMousePosition* mp = &kLastMousePosition[tag][i];
     if (math::PointInRect(mp->pos, rect)) return true;
   }
   return false;
@@ -524,21 +537,22 @@ ToggleNewLine()
 }
 
 void
-Begin(v2f start, uint32_t tag, const PaneOptions& pane_options,
+Begin(v2f* start, uint32_t tag, const PaneOptions& pane_options,
       bool* show = nullptr)
 {
   assert(tag < kMaxTags);
   auto& begin_mode = kIMUI.begin_mode;
   // End must be called before Begin.
   assert(!begin_mode.set);
-  begin_mode.pos = start;
+  begin_mode.pos = *start;
   begin_mode.set = true;
   begin_mode.text_calls = 0;
   begin_mode.tag = tag;
-  begin_mode.x_reset = start.x;
+  begin_mode.x_reset = start->x;
+  begin_mode.start = start;
   begin_mode.pane = UsePane(tag);
-  begin_mode.pane->rect.x = start.x;
-  begin_mode.pane->rect.y = start.y;
+  begin_mode.pane->rect.x = start->x;
+  begin_mode.pane->rect.y = start->y;
   begin_mode.pane->rect.width = pane_options.width;
   begin_mode.pane->rect.height = pane_options.height;
   begin_mode.pane->options = pane_options;
@@ -546,7 +560,7 @@ Begin(v2f start, uint32_t tag, const PaneOptions& pane_options,
     ToggleSameLine();
     begin_mode.pos.x += 5.f;
     Rectf t = rgg::GetTextRect(
-        pane_options.title, strlen(pane_options.title), start, kTextScale);
+        pane_options.title, strlen(pane_options.title), *start, kTextScale);
     if (ButtonCircle(10.f, kHeaderMinimizeColor).clicked) {
       if (show) (*show) = !(*show);
     }
@@ -560,7 +574,7 @@ Begin(v2f start, uint32_t tag, const PaneOptions& pane_options,
 }
 
 void
-Begin(v2f start, uint32_t tag, bool* show = nullptr)
+Begin(v2f* start, uint32_t tag, bool* show = nullptr)
 {
   PaneOptions pane_options;
   pane_options.color = v4f(0.f, 0.f, 0.f, 0.f);
@@ -568,9 +582,27 @@ Begin(v2f start, uint32_t tag, bool* show = nullptr)
 }
 
 void
+Begin(v2f start, uint32_t tag, const PaneOptions& pane_options,
+      bool* show = nullptr)
+{
+  Begin(&start, tag, pane_options, show);
+}
+
+void
+Begin(v2f start, uint32_t tag, bool* show = nullptr)
+{
+  Begin(&start, tag, show);
+}
+
+void
 End()
 {
   UpdatePaneOnEnd(kIMUI.begin_mode.pane);
+  // Move around panes if a user has click and held in them.
+  if (kIMUI.begin_mode.start && IsMouseDown() &&
+      IsRectPreviouslyHighlighted(kIMUI.begin_mode.pane->rect)) {
+    (*kIMUI.begin_mode.start) += MouseDelta();
+  }
   kIMUI.begin_mode = {};
 }
 

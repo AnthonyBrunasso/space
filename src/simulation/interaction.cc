@@ -84,9 +84,10 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
               uint64_t frame_queue)
 {
   static bool enable_debug = false;
+  static v2f read_only_pos(3.f, screen.y);
   imui::PaneOptions options;
   options.title = "Diagnostics Debug";
-  imui::Begin(v2f(3.f, screen.y), tag, options, &enable_debug);
+  imui::Begin(&read_only_pos, tag, options, &enable_debug);
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
@@ -131,10 +132,11 @@ void
 ReadOnlyUnits(v2f screen, uint32_t tag)
 {
   static bool unit_debug = false;
+  static v2f unit_debug_pos(screen.x - 300.f, screen.y);
   imui::PaneOptions options;
   options.width = 300.f;
   options.title = "Unit Debug";
-  imui::Begin(v2f(screen.x - 300.f, screen.y), tag, options, &unit_debug);
+  imui::Begin(&unit_debug_pos, tag, options, &unit_debug);
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
@@ -178,7 +180,7 @@ TilePanel(v2f screen, uint32_t tag, Player* player)
   imui::PaneOptions options;
   options.title = "Tile Debug";
   options.width = 300.f;
-  imui::Begin(v2f(screen.x - 600.f, screen.y), tag, options, &player->tile_menu);
+  imui::Begin(&player->tile_menu_pos, tag, options, &player->tile_menu);
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
@@ -213,8 +215,7 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
   imui::PaneOptions options;
   options.width = 300.f;
   options.title = "Admin Menu";
-  imui::Begin(v2f(screen.x - 900, screen.y), tag, options,
-              &player->admin_menu);
+  imui::Begin(&player->admin_menu_pos, tag, options, &player->admin_menu);
   imui::TextOptions text_options;
   text_options.color = gfx::kWhite;
   text_options.highlight_color = gfx::kRed;
@@ -310,7 +311,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
       player->camera.motion.z = -10.f * event.wheel_delta;
     } break;
     case MOUSE_DOWN: {
-      imui::MouseClick(event.position, event.button, player_index);
+      imui::MouseDown(event.position, event.button, player_index);
       if (imui::MouseInUI(event.position, player_index) ||
           imui::MouseInUI(event.position, imui::kEveryoneTag)) break;
 
@@ -369,6 +370,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
       player->hud_mode = kHudDefault;
     } break;
     case MOUSE_UP: {
+      imui::MouseUp(event.position, event.button, player_index);
       if (event.button == BUTTON_LEFT) {
         if (imui::MouseInUI(event.position, player_index) ||
             imui::MouseInUI(event.position, imui::kEveryoneTag)) break;
@@ -520,7 +522,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
 void
 GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
 {
-  imui::Begin(v2f(0.f, 400.f), tag);
+  imui::Begin(&player->game_menu_pos, tag);
   imui::Result hud_result;
   v2f p(50.f, 10.f);
   for (int i = 3; i < kModCount; ++i) {

@@ -64,7 +64,10 @@ GatherWindowInput(InputBuffer* input_buffer)
     }
     switch (type) {
       case MOUSE_DOWN:
-        imui::MouseClick(pevent.position, pevent.button, imui::kEveryoneTag);
+        imui::MouseDown(pevent.position, pevent.button, imui::kEveryoneTag);
+        break;
+      case MOUSE_UP:
+        imui::MouseUp(pevent.position, pevent.button, imui::kEveryoneTag);
         break;
     }
   }

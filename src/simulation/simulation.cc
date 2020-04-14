@@ -69,21 +69,16 @@ TilemapUpdate()
 void
 DecideShip(uint64_t ship_index)
 {
-  // Advance engine animation
-  kShip[ship_index].engine_animation += 1;
-  // Advance ftl_frame, if active
-  kShip[ship_index].ftl_frame += (kShip[ship_index].ftl_frame > 0);
-
   Ship* ship = &kShip[ship_index];
-  FOR_EACH_ENTITY(Module, module, {
-    if (module->ship_index != ship_index) continue;
-    if (!ModuleBuilt(module)) continue;
-    ModuleUpdate(module);
-  });
+
+  // Advance engine animation
+  ship->engine_animation += 1;
+  // Advance ftl_frame, if active
+  ship->ftl_frame += (ship->ftl_frame > 0);
 
   const bool jumped = (FtlSimulation(ship) == 0);
   // Jump side effects
-  kShip[ship_index].level += jumped;
+  ship->level += jumped;
 }
 
 void
@@ -267,25 +262,16 @@ ApplyCommand(Unit* unit, const Command& c)
 void
 UpdateModule(uint64_t ship_index)
 {
-  TilemapModify tm(ship_index);
-  FOR_EACH_ENTITY(Module, m, {
-    if (m->ship_index != ship_index) continue;
-    if (m->mkind != kModPower) continue;
-
-    Tile tile;
-    tile.cx = m->tile.cx;
-    tile.cy = m->tile.cy;
-    tile.flags = 0;
-    tile.visible = 1;
-    BfsTileEnable(tile, kMapWidth);
-    break;
+  FOR_EACH_ENTITY(Module, module, {
+    if (module->ship_index != ship_index) continue;
+    if (!ModuleBuilt(module)) continue;
+    ModuleUpdate(module);
   });
 }
 
 void
 UpdateUnit(uint64_t ship_index)
 {
-  TilemapModify tm(ship_index);
   FOR_EACH_ENTITY(Unit, unit, {
     if (unit->ship_index != ship_index) continue;
 
@@ -402,7 +388,7 @@ Decide()
       } else {
         Tile start = ToAnyShip(c.destination);
         if (TileValid(start)) {
-		  TilemapModify tm(start.ship_index);
+          TilemapModify tm(start.ship_index);
           BfsIterator iter = BfsStart(start);
           FOR_EACH_ENTITY(Unit, unit, {
             // The issuer of a command must have a set bit
@@ -428,6 +414,8 @@ Decide()
   DecideInvasion();
 
   for (uint64_t i = 0; i < kUsedShip; ++i) {
+    TilemapModify tm(i);
+
     DecideShip(i);
     UpdateModule(i);
     UpdateUnit(i);

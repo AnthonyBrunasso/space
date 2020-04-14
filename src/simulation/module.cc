@@ -4,7 +4,6 @@
 
 namespace simulation
 {
-
 bool
 ModuleBuilt(Module* module)
 {
@@ -143,8 +142,20 @@ bool
 ModuleNearXY(Module* module, v3f loc)
 {
   // TODO: Take into consideration module bounds.
-  if (LengthSquared(loc.xy() - module->position.xy()) < 50.f * 38.f) return true;
+  if (LengthSquared(loc.xy() - module->position.xy()) < 50.f * 38.f)
+    return true;
   return false;
+}
+
+void
+ModulePowerUpdate(Module* module)
+{
+  Tile tile = module->tile;
+
+  tile.flags = 0;
+  tile.visible = 1;
+
+  BfsTileEnable(tile, kMapWidth);
 }
 
 void
@@ -156,7 +167,8 @@ ModuleMineUpdate(Module* module)
   Asteroid* a = nullptr;
   for (int i = 0; i < kUsedAsteroid; ++i) {
     Asteroid* asteroid = &kAsteroid[i];
-    float nd = math::LengthSquared(asteroid->transform.position - module->position);
+    float nd =
+        math::LengthSquared(asteroid->transform.position - module->position);
     if (nd < d) {
       d = nd;
       p = asteroid->transform.position;
@@ -260,6 +272,9 @@ void
 ModuleUpdate(Module* module)
 {
   switch (module->mkind) {
+    case kModPower: {
+      ModulePowerUpdate(module);
+    } break;
     case kModMine: {
       ModuleMineUpdate(module);
     } break;

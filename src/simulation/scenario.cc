@@ -63,7 +63,7 @@ ScenarioInitialize()
         ship->transform.position = v2f(0.f, (kUsedShip - 1) * 1600.f);
         ship->pod_capacity = 1;
         ship->level = 1;
-        ship->type = kShipCruiser;
+        ship->type = kUsedShip == 1 ? kShipCruiser : kShipShuttle;
       }
     } break;
     case kSoloMission: {

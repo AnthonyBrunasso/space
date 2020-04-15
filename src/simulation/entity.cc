@@ -235,6 +235,8 @@ enum EntityEnum {
 struct Unit {
   COMMON_MEMBER_DECL = kEeUnit;
   Blackboard bb;
+  // This will teleport unit position to the warp_tile at beginning of frame
+  Tile warp_tile;
   UnitKind kind;
   Alliance alliance = kCrew;
 

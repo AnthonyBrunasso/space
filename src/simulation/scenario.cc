@@ -139,13 +139,6 @@ ScenarioInitialize()
 
   for (int i = 0; i < kUsedPlayer; ++i) {
     camera::InitialCamera(&kPlayer[i].camera);
-
-    FOR_EACH_ENTITY(Unit, unit, {
-      if (unit->player_index == i) {
-        camera::Move(&kPlayer[i].camera, unit->position);
-        break;
-      }
-    });
   }
 
   TilemapResetExterior();

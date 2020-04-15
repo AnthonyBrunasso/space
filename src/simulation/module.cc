@@ -209,7 +209,7 @@ void
 ModuleWarpUpdate(Module* module)
 {
   Unit* unit = GetNearestUnit(module->position);
-  if (!ModuleNear(module, unit->position)) return;
+  if (module->tile != unit->tile) return;
 
   // Find the nearest warp on a seperate tilemap from this one.
   Module* target_module = nullptr;
@@ -239,8 +239,7 @@ ModuleWarpUpdate(Module* module)
       if (unit->tile == *iter.tile) break;
     }
     if (i != kUsedEntity) continue;
-    unit->position = FromShip(*iter.tile).Center();
-    unit->ship_index = target_module->ship_index;
+    unit->warp_tile = *iter.tile;
     unit->player_index = target_module->player_index;
     unit->persistent_uaction = unit->uaction = kUaNone;
     unit->control = 0;

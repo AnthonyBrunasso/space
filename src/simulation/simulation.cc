@@ -60,6 +60,14 @@ TilemapUpdate()
     TilemapResetVisible();
   }
 
+  // Abnormal "jumps" in unit position defying the laws of physics
+  FOR_EACH_ENTITY(Unit, unit, {
+    if (unit->warp_tile != kZeroTile) {
+      unit->position = FromShip(unit->warp_tile).Center();
+      unit->ship_index = unit->warp_tile.ship_index;
+      unit->warp_tile = kZeroTile;
+    }
+  });
   // Logical isolation for mapping v3f -> tile
   // Copying the tile introduces a frame delay when processing tile properties
   for (int i = 0; i < kUsedEntity; ++i) {
@@ -444,10 +452,24 @@ Update()
   if (kSimulationOver) return;
 
   TilemapUpdate();
+
+  // Frame 1 assigns player camera
+  if (kFrame == 1) {
+    for (int i = 0; i < kUsedPlayer; ++i) {
+      FOR_EACH_ENTITY(Unit, unit, {
+        if (unit->player_index == i) {
+          camera::Move(&kPlayer[i].camera, unit->position);
+          break;
+        }
+      });
+    }
+  }
+
   Decide();
 
   FOR_EACH_ENTITY(Unit, unit, {
-    unit->notify = BITRANGE_WRAP(kNotifyAgeBits, unit->notify + (unit->notify > 0));
+    unit->notify =
+        BITRANGE_WRAP(kNotifyAgeBits, unit->notify + (unit->notify > 0));
   });
 
   ProjectileSimulation();

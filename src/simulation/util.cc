@@ -150,7 +150,7 @@ uint32_t
 SpawnEnemy(Tile tile)
 {
   Unit* enemy = UseEntityUnit();
-  enemy->tile = tile;
+  enemy->position = FromShip(tile).Center();
   enemy->scale = v3f(0.25f, 0.25f, 0.f);
   enemy->ship_index = tile.ship_index;
   enemy->player_index = kInvalidIndex;
@@ -167,7 +167,7 @@ void
 SpawnAICrew(Tile tile, uint64_t player_index)
 {
   Unit* unit = UseEntityUnit();
-  unit->tile = tile;
+  unit->position = FromShip(tile).Center();
   unit->scale = v3f(0.25f, 0.25f, 0.f);
   unit->ship_index = tile.ship_index;
   unit->player_index = player_index;
@@ -182,7 +182,7 @@ void
 SpawnCrew(Tile tile, uint64_t player_index)
 {
   Unit* unit = UseEntityUnit();
-  unit->tile = tile;
+  unit->position = FromShip(tile).Center();
   unit->scale = v3f(0.25f, 0.25f, 0.f);
   unit->ship_index = tile.ship_index;
   unit->player_index = player_index;

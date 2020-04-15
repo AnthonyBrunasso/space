@@ -87,7 +87,7 @@ DecideShip(uint64_t ship_index)
 void
 DecideAsteroid()
 {
-  if (kUsedAsteroid != kUsedShip) {
+  if (kUsedAsteroid < kUsedShip) {
     for (int i = 0; i < kUsedShip; ++i) {
       Asteroid* asteroid = UseAsteroid();
       Rectf ship_bounds = ShipBounds(i);
@@ -277,6 +277,10 @@ UpdateUnit(uint64_t ship_index)
 
     if (unit->health < 0.f) {
       unit->dead = 1;
+      continue;
+    }
+
+    if (unit->tile == kZeroTile) {
       continue;
     }
 

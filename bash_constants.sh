@@ -23,7 +23,7 @@ if [ -z "$CC" ]; then
 fi
 
 if [ -z "$CXXFLAGS" ]; then
-  CXXFLAGS="-O0 -fno-omit-frame-pointer -std=c++17 -ffp-contract=off -Wno-format "
+  CXXFLAGS="-O1 -fno-omit-frame-pointer -std=c++17 -ffp-contract=off -Wno-format "
 fi
 
 if [ -n "$DEV_FLAGS" ]; then

@@ -240,13 +240,14 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
   }
   if (imui::Text("Spawn Unit Cheat", text_options).clicked) {
     v2f pos = math::RandomPointInRect(ShipBounds(player - kPlayer));
-    SpawnCrew(*ShipTile(player - kPlayer, pos.x, pos.y), player - kPlayer);
+    SpawnCrew(ToShip(player->ship_index, pos), player - kPlayer);
   }
   if (imui::Text("Kill Random Unit Cheat", text_options).clicked) {
     // Kill first unit in entity list.
-    int i = rand() % kUsedEntity;
-    for (; i < kUsedEntity; i = (i + 1) % kUsedEntity) {
-      Unit* unit = i2Unit(i);
+    int rand_val = rand() % kUsedEntity;
+    for (int i = 0; i < kUsedEntity; ++i) {
+      uint64_t idx = (rand_val + i) % kUsedEntity;
+      Unit* unit = i2Unit(idx);
       if (!unit) continue;
       LOGFMT("Kill unit %i", unit->id);
       ZeroEntity(unit);

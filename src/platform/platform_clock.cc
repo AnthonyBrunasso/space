@@ -2,6 +2,10 @@
 #include <cstdint>
 #include <ctime>
 
+#ifdef __APPLE__
+#include <sys/sysctl.h>
+#endif
+
 #include "rdtsc.h"
 
 EXTERN(uint64_t median_tsc_per_usec);
@@ -87,6 +91,16 @@ __init_tsc_per_usec()
       printf("using tsc_freq_khz %d\n", kernel_tsc_khz);
     }
   }
+#elif __APPLE__
+  uint64_t mac_kernel_tsc;
+  size_t sysctl_len = sizeof(mac_kernel_tsc);
+  int ret = sysctlbyname("machdep.tsc.frequency", &mac_kernel_tsc, &sysctl_len, NULL, 0);
+  if (ret < 0) {
+    puts("This mac does not support hardware tsc?");
+    exit(5);
+  }
+  kernel_tsc_khz = mac_kernel_tsc/1e6;
+  printf("%d kernel_tsc_khz\n", kernel_tsc_khz);
 #endif
 
   if (kernel_tsc_khz) {
@@ -96,13 +110,14 @@ __init_tsc_per_usec()
     __estimate_tsc_per_usec();
   }
   // inverse
-  median_usec_per_tsc = ((uint64_t)1 << 33) / median_tsc_per_usec;
+  const uint64_t numerator = 1ull << 33ull;
+  median_usec_per_tsc = numerator / median_tsc_per_usec;
 }
 
 static uint64_t
 __tscdelta_to_usec(uint64_t delta_tsc)
 {
-  return (delta_tsc * median_usec_per_tsc) >> 33;
+  return (delta_tsc * median_usec_per_tsc) >> 33ull;
 }
 
 void

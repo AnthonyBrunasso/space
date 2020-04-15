@@ -215,6 +215,8 @@ Create(const char* name, int width, int height, bool fullscreen)
     return 0;
   }
 
+  glViewport(0, 0, surface_width, surface_height);
+
   return 1;
 }
 

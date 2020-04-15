@@ -119,9 +119,10 @@ AICrewMember(Unit* unit)
 
   // Find a random module.
   if (!target_mod) {
-    for (int i = rand() % kUsedEntity; i < kUsedEntity;
-         i = (i + 1) % kUsedEntity) {
-      Module* mod = i2Module(i);
+    int rand_val = rand() % kUsedEntity;
+    for (int i = 0; i < kUsedEntity; ++i) {
+      uint64_t idx = (rand_val + i) % kUsedEntity;
+      Module* mod = i2Module(idx);
       if (!mod) continue;
       if (mod->ship_index != unit->ship_index) continue;
       if (mod->mkind == kModEngine || mod->mkind == kModMine ||

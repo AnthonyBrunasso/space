@@ -33,25 +33,25 @@ RenderBlackboard(const Unit* unit)
     UnitBbEntry bb_entry = (UnitBbEntry)i;
     switch (bb_entry) {
       case kUnitDestination: {
-        const Tile* d = nullptr;
-        if (!BB_GET(unit->bb, kUnitDestination, d)) continue;
-        snprintf(ui_buffer, sizeof(ui_buffer), "dest: %.0f,%.0f", d->cx, d->cy);
+        const Tile* t = nullptr;
+        if (!BB_GET(unit->bb, kUnitDestination, t)) continue;
+        snprintf(ui_buffer, sizeof(ui_buffer), "dest: %u,%u", t->cx, t->cy);
         imui::Text(ui_buffer);
       } break;
       case kUnitAttackDestination: {
-        const v3f* d = nullptr;
-        if (!BB_GET(unit->bb, kUnitAttackDestination, d)) continue;
-        snprintf(ui_buffer, sizeof(ui_buffer), "adest: %.0f,%.0f", d->x, d->y);
+        const Tile* t = nullptr;
+        if (!BB_GET(unit->bb, kUnitAttackDestination, t)) continue;
+        snprintf(ui_buffer, sizeof(ui_buffer), "adest: %u,%u", t->cx, t->cy);
         imui::Text(ui_buffer);
       } break;
       case kUnitTarget: {
-        const int* t = nullptr;
+        const uint32_t* t = nullptr;
         if (!BB_GET(unit->bb, kUnitTarget, t)) continue;
         snprintf(ui_buffer, sizeof(ui_buffer), "target: %i", *t);
         imui::Text(ui_buffer);
       } break;
       case kUnitBehavior: {
-        const int* b = nullptr;
+        const uint32_t* b = nullptr;
         if (!BB_GET(unit->bb, kUnitBehavior, b)) continue;
         snprintf(ui_buffer, sizeof(ui_buffer), "behavior: %i", *b);
         imui::Text(ui_buffer);

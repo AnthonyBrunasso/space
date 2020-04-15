@@ -183,27 +183,27 @@ TilePanel(v2f screen, uint32_t tag, Player* player)
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
-  v2i tilepos;
+  Tile tile = kZeroTile;
   if (TileValid(player->mouse_tile)) {
-    Tile tile = player->mouse_tile;
-    snprintf(ui_buffer, sizeof(ui_buffer), "%u X %u Y", tile.cx, tile.cy);
-    imui::Text(ui_buffer, debug_options);
-    snprintf(ui_buffer, sizeof(ui_buffer), "blocked %u", tile.blocked);
-    imui::Text(ui_buffer, debug_options);
-    snprintf(ui_buffer, sizeof(ui_buffer), "nooxygen %u", tile.nooxygen);
-    imui::Text(ui_buffer, debug_options);
-    snprintf(ui_buffer, sizeof(ui_buffer), "shroud %u", tile.shroud);
-    imui::Text(ui_buffer, debug_options);
-    snprintf(ui_buffer, sizeof(ui_buffer), "visible %u", tile.visible);
-    imui::Text(ui_buffer, debug_options);
-    snprintf(ui_buffer, sizeof(ui_buffer), "exterior %u", tile.exterior);
-    imui::Text(ui_buffer, debug_options);
-    snprintf(ui_buffer, sizeof(ui_buffer), "explored %u", tile.explored);
-    imui::Text(ui_buffer, debug_options);
-    if (player->tile_menu) {
-      rgg::RenderRectangle(FromShip(tile).Center(), gfx::kTileScale,
-                           gfx::kDefaultRotation, gfx::kGray);
-    }
+    tile = player->mouse_tile;
+  }
+  snprintf(ui_buffer, sizeof(ui_buffer), "%u X %u Y", tile.cx, tile.cy);
+  imui::Text(ui_buffer, debug_options);
+  snprintf(ui_buffer, sizeof(ui_buffer), "blocked %u", tile.blocked);
+  imui::Text(ui_buffer, debug_options);
+  snprintf(ui_buffer, sizeof(ui_buffer), "nooxygen %u", tile.nooxygen);
+  imui::Text(ui_buffer, debug_options);
+  snprintf(ui_buffer, sizeof(ui_buffer), "shroud %u", tile.shroud);
+  imui::Text(ui_buffer, debug_options);
+  snprintf(ui_buffer, sizeof(ui_buffer), "visible %u", tile.visible);
+  imui::Text(ui_buffer, debug_options);
+  snprintf(ui_buffer, sizeof(ui_buffer), "exterior %u", tile.exterior);
+  imui::Text(ui_buffer, debug_options);
+  snprintf(ui_buffer, sizeof(ui_buffer), "explored %u", tile.explored);
+  imui::Text(ui_buffer, debug_options);
+  if (player->tile_menu) {
+    rgg::RenderRectangle(FromShip(tile).Center(), gfx::kTileScale,
+                         gfx::kDefaultRotation, gfx::kGray);
   }
   imui::End();
 }

@@ -346,8 +346,7 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
             mod->ship_index = player->ship_index;
             mod->player_index = player_index;
             // Rase module to have bottom touch 0,0.
-            mod->position = v3f(0.f, 0.f, mod->bounds.z / 2.f) +
-                            FromShip(event_tile).Center();
+            mod->tile = event_tile;
             player->mineral -= ModuleCost(mkind);
             LOGFMT("Order build [%i] [%i,%i]", mkind, event_tile.cx,
                    event_tile.cy);

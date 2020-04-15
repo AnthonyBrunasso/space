@@ -149,8 +149,7 @@ TilemapInitialize(uint64_t player_index)
           mod->bounds = ModuleBounds(mod->mkind);
           mod->ship_index = ship_index;
           mod->player_index = player_index;
-          mod->position =
-              v3f(0.f, 0.f, mod->bounds.z / 2.f) + FromShip(*tile).Center();
+          mod->tile = *tile;
         } break;
       };
 

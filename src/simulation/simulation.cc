@@ -65,7 +65,7 @@ TilemapUpdate()
   for (int i = 0; i < kUsedEntity; ++i) {
     Entity* ent = &kEntity[i];
     if (ent->type_id == kEeInvalid) continue;
-    ent->tile = ToShip(ent->ship_index, ent->position);
+    ent->position = FromShip(ent->tile).Center();
   }
 }
 
@@ -82,6 +82,8 @@ DecideShip(uint64_t ship_index)
   const bool jumped = (FtlSimulation(ship) == 0);
   // Jump side effects
   ship->level += jumped;
+
+  ship->transform.position.y += ((kFrame & 0x3)==0) * sinf((kFrame>>2)/15.0f);
 }
 
 void
@@ -185,7 +187,6 @@ MoveTowards(Unit* unit, Tile dest, UnitAction set_on_arrival)
   if (unit->tile == dest) return true;
 
   Tile incremental_dest = dest;
-  v3f avoidance_vec = {};
   if (!unit->inspace) {
     auto* path = PathTo(unit->tile, dest);
     if (!path) {
@@ -196,15 +197,10 @@ MoveTowards(Unit* unit, Tile dest, UnitAction set_on_arrival)
 
     if (path->size > 1) {
       incremental_dest = path->tile[1];
-      avoidance_vec = TileAvoidWalls(unit->tile) * kAvoidanceScaling;
     }
   }
 
-  v3f delta(incremental_dest.cx - unit->tile.cx,
-            incremental_dest.cy - unit->tile.cy, 0.f);
-  v3f move_vec = delta * unit->speed;
-
-  unit->position += (move_vec + avoidance_vec);
+  unit->tile = incremental_dest;
 
   return false;
 }

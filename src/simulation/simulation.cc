@@ -447,8 +447,7 @@ Update()
   Decide();
 
   FOR_EACH_ENTITY(Unit, unit, {
-    if (!unit) continue;
-    unit->notify += (unit->notify > 0);
+    unit->notify = BITRANGE_WRAP(kNotifyAgeBits, unit->notify + (unit->notify > 0));
   });
 
   ProjectileSimulation();

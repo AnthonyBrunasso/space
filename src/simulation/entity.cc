@@ -249,10 +249,10 @@ struct Unit {
   float speed = 1.f;
   UnitAction uaction;
   UnitAction persistent_uaction;
+  uint32_t notify;
   bool dead;
   bool spacesuit;
   bool inspace;
-  int notify;
 };
 
 constexpr int kTrainIdle = -1;

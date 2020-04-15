@@ -70,8 +70,10 @@ TileSet(Tile* t, uint16_t set)
 
 // Integer math to measure the distance squred to the center of a tile
 bool
-TileDsq(int64_t dx, int64_t dy, uint64_t tile_distance)
+TileDsq(Tile lhs, Tile rhs, uint64_t tile_distance)
 {
+  int64_t dx = rhs.cx-lhs.cx;
+  int64_t dy = rhs.cy-lhs.cy;
   const uint64_t dt = (tile_distance * 2) + 2;
   const uint64_t dsq = (dt * dt);
   uint64_t dx2 = ABS64(dx) * 2 + 1;

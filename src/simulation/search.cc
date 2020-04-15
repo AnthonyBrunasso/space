@@ -165,9 +165,7 @@ BfsTileEnable(Tile set_tile, uint64_t tile_distance)
     if (BfsStep(from, &iter)) {
       if (iter.tile->blocked) continue;
 
-      int64_t dx = iter.tile->cx - set_tile.cx;
-      int64_t dy = iter.tile->cy - set_tile.cy;
-      if (TileDsq(dx, dy, tile_distance)) {
+      if (TileDsq(*iter.tile, set_tile, tile_distance)) {
         TileSet(iter.tile, set_tile.flags);
 
         path_map[iter.tile->cy][iter.tile->cx] = from;

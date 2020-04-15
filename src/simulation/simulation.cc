@@ -182,7 +182,10 @@ DecideInvasion()
 bool
 MoveTowards(Unit* unit, Tile dest, UnitAction set_on_arrival)
 {
-  if (unit->tile == dest) return true;
+  if (unit->tile == dest) {
+    unit->uaction = set_on_arrival;
+    return true;
+  }
 
   Tile incremental_dest = dest;
   v3f avoidance_vec = {};

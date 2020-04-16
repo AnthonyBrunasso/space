@@ -579,6 +579,10 @@ ProcessSimulation(int player_index, uint64_t event_count,
                   const PlatformEvent* event)
 {
   Player* p = &kPlayer[player_index];
+  // This is done here due to MOUSE_SCROLL relying on having a mouse position
+  // in UI check done. If this is not done before ControlEvent it is possible
+  // to get events in such an order that camera would zoom when a user means
+  // to scroll up or down on a UI pane.
   for (int i = 0; i < event_count; ++i) {
     const PlatformEvent* pevent = &event[i];
     switch (pevent->type) {

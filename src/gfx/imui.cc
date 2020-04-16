@@ -85,6 +85,7 @@ struct Pane {
   Rectf rect;
   PaneOptions options;
   bool hidden = false;
+  bool debug_show_details = false;
   char title[kMaxHashKeyLength];
 };
 
@@ -689,19 +690,25 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
   Indent(2);
   for (int i = 0; i < kUsedPane; ++i) {
     Pane* pane = &kPane[i];
-    Text(pane->title);
+    TextOptions toptions;
+    toptions.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
+    if (Text(pane->title, toptions).clicked) {
+      pane->debug_show_details = !pane->debug_show_details;
+    }
     HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
-    Indent(2);
-    TITLE_WITH_TAG(pane->title, pane->tag);
-    uint32_t hash = GetHash(title_with_tag, strlen(title_with_tag));
-    snprintf(buffer, 64, "tag: %u hash_idx: %u hidden: %i",
-             pane->tag, hash % kMaxHashPane, pane->hidden);
-    Text(buffer);
-    snprintf(buffer, 64, "rect(%.2f,%.2f,%.2f,%.2f)",
-             pane->rect.x, pane->rect.y, pane->rect.width, pane->rect.height);
-    Text(buffer);
-    Indent(-2);
-    HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
+    if (pane->debug_show_details) {
+      Indent(2);
+      TITLE_WITH_TAG(pane->title, pane->tag);
+      uint32_t hash = GetHash(title_with_tag, strlen(title_with_tag));
+      snprintf(buffer, 64, "tag: %u hash_idx: %u hidden: %i",
+               pane->tag, hash % kMaxHashPane, pane->hidden);
+      Text(buffer);
+      snprintf(buffer, 64, "rect(%.2f,%.2f,%.2f,%.2f)",
+               pane->rect.x, pane->rect.y, pane->rect.width, pane->rect.height);
+      Text(buffer);
+      Indent(-2);
+      HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
+    }
   }
   Indent(-2);
   v2f mouse_pos = GetMousePosition();

@@ -700,8 +700,13 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
       Indent(2);
       TITLE_WITH_TAG(pane->title, pane->tag);
       uint32_t hash = GetHash(title_with_tag, strlen(title_with_tag));
-      snprintf(buffer, 64, "tag: %u hash_idx: %u hidden: %i",
-               pane->tag, hash % kMaxHashPane, pane->hidden);
+      snprintf(buffer, 64, "tag: %u", pane->tag);
+      Text(buffer);
+      snprintf(buffer, 64, "hash: %u", hash);
+      Text(buffer);
+      snprintf(buffer, 64, "hash_idx: %u", hash % kMaxHashPane);
+      Text(buffer);
+      snprintf(buffer, 64, "hidden: %i", pane->hidden);
       Text(buffer);
       snprintf(buffer, 64, "rect (%.2f,%.2f,%.2f,%.2f)",
                pane->rect.x, pane->rect.y, pane->rect.width, pane->rect.height);

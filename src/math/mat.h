@@ -281,7 +281,6 @@ operator-(const Mat4<T>& lhs, const Mat4<T>& rhs)
   return r;
 }
 
-using Mat4f = Mat4<float>;
 
 // Ths matrix vector multiplication is written as if the vector was
 // augmented with a 1 (x, y, z, 1). And mutiplied against a matrix
@@ -343,3 +342,5 @@ v4f operator*(const Mat4<T>& lhs, const v4f& rhs)
 
 // clang-format on
 }  // namespace math
+
+using Mat4f = math::Mat4<float>;

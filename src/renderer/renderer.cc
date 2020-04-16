@@ -57,8 +57,8 @@ struct CircleProgram {
 };
 
 struct Observer {
-  math::Mat4f projection;
-  math::Mat4f view = math::Identity();
+  Mat4f projection;
+  Mat4f view = math::Identity();
   v3f position;
 };
 
@@ -94,7 +94,7 @@ static RGG kRGG;
 class ModifyObserver
 {
  public:
-  ModifyObserver(const math::Mat4f& proj, const math::Mat4f& view)
+  ModifyObserver(const Mat4f& proj, const Mat4f& view)
   {
     projection_ = kObserver.projection;
     view_ = kObserver.view;
@@ -109,8 +109,8 @@ class ModifyObserver
   }
 
  private:
-  math::Mat4f projection_;
-  math::Mat4f view_;
+  Mat4f projection_;
+  Mat4f view_;
 };
 
 Observer*
@@ -370,8 +370,8 @@ RenderTag(const RenderTag& tag, const v3f& position, const v3f& scale,
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(tag.vao_reference);
   // Translate and rotate the triangle appropriately.
-  math::Mat4f model = math::Model(position, scale, orientation);
-  math::Mat4f matrix = kObserver.projection * kObserver.view * model;
+  Mat4f model = math::Model(position, scale, orientation);
+  Mat4f matrix = kObserver.projection * kObserver.view * model;
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
@@ -386,8 +386,8 @@ RenderTriangle(const v3f& position, const v3f& scale,
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.triangle_vao_reference);
   // Translate and rotate the triangle appropriately.
-  math::Mat4f model = math::Model(position, scale, orientation);
-  math::Mat4f matrix = kObserver.projection * kObserver.view * model;
+  Mat4f model = math::Model(position, scale, orientation);
+  Mat4f matrix = kObserver.projection * kObserver.view * model;
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
@@ -402,8 +402,8 @@ RenderRectangle(const v3f& position, const v3f& scale,
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.rectangle_vao_reference);
   // Translate and rotate the rectangle appropriately.
-  math::Mat4f model = math::Model(position, scale, orientation);
-  math::Mat4f matrix = kObserver.projection * kObserver.view * model;
+  Mat4f model = math::Model(position, scale, orientation);
+  Mat4f matrix = kObserver.projection * kObserver.view * model;
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
@@ -420,8 +420,8 @@ RenderRectangle(const Rectf& rect, float z, const v4f& color)
   glBindVertexArray(kTextureState.vao_reference);
   v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, z);
   v3f scale(rect.width, rect.height, 1.f);
-  math::Mat4f model = math::Model(pos, scale);
-  math::Mat4f matrix = kObserver.projection * kObserver.view * model;
+  Mat4f model = math::Model(pos, scale);
+  Mat4f matrix = kObserver.projection * kObserver.view * model;
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
@@ -444,8 +444,8 @@ RenderLineRectangle(const Rectf& rect, float z, const v4f& color)
   glBindVertexArray(kTextureState.vao_reference);
   v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, z);
   v3f scale(rect.width, rect.height, 1.f);
-  math::Mat4f model = math::Model(pos, scale);
-  math::Mat4f matrix = kObserver.projection * kObserver.view * model;
+  Mat4f model = math::Model(pos, scale);
+  Mat4f matrix = kObserver.projection * kObserver.view * model;
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
@@ -467,8 +467,8 @@ RenderSmoothRectangle(const Rectf& rect, float smoothing_radius,
   glBindVertexArray(kTextureState.vao_reference);
   v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, 0.0f);
   v3f scale(rect.width, rect.height, 1.f);
-  math::Mat4f model = math::Model(pos, scale);
-  math::Mat4f view_projection = kObserver.projection * kObserver.view;
+  Mat4f model = math::Model(pos, scale);
+  Mat4f view_projection = kObserver.projection * kObserver.view;
   glUniform1f(kRGG.smooth_rectangle_program.smoothing_radius_uniform,
               rect.width - smoothing_radius);
   glUniform4f(kRGG.smooth_rectangle_program.color_uniform, color.x, color.y,
@@ -487,9 +487,9 @@ RenderCircle(const v3f& position, float inner_radius, float outer_radius,
   glUseProgram(kRGG.circle_program.reference);
   glBindVertexArray(kTextureState.vao_reference);
   // Translate and rotate the circle appropriately.
-  math::Mat4f model =
+  Mat4f model =
       math::Model(position, v3f(outer_radius * 2.f, outer_radius * 2.f, 0.0f));
-  math::Mat4f view_pojection = kObserver.projection * kObserver.view;
+  Mat4f view_pojection = kObserver.projection * kObserver.view;
   glUniform1f(kRGG.circle_program.inner_radius_uniform, inner_radius);
   glUniform1f(kRGG.circle_program.outer_radius_uniform, outer_radius);
   glUniform4f(kRGG.circle_program.color_uniform, color.x, color.y, color.z,
@@ -513,7 +513,7 @@ RenderLine(const v3f& start, const v3f& end, const v4f& color)
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.line_vao_reference);
   // Model matrix unneeded here due to verts being set directly.
-  math::Mat4f view_pojection = kObserver.projection * kObserver.view;
+  Mat4f view_pojection = kObserver.projection * kObserver.view;
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
@@ -559,7 +559,7 @@ Render3d(const v3f& pos, const v3f& scale, const v4f& color, GLuint vao,
 {
   glUseProgram(kRGG.geometry_program_3d.reference);
   glBindVertexArray(vao);
-  math::Mat4f model = math::Model(pos, scale);
+  Mat4f model = math::Model(pos, scale);
   glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program_3d.projection_uniform, 1, GL_FALSE,
@@ -580,7 +580,7 @@ Render3dWithRotation(const v3f& pos, const v3f& scale, const math::Quatf& quat,
 {
   glUseProgram(kRGG.geometry_program_3d.reference);
   glBindVertexArray(vao);
-  math::Mat4f model = math::Model(pos, scale, quat);
+  Mat4f model = math::Model(pos, scale, quat);
   glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program_3d.projection_uniform, 1, GL_FALSE,
@@ -672,7 +672,7 @@ void
 RenderLineCube(const Cubef& cube, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
-  math::Mat4f matrix = kObserver.view * kObserver.projection;
+  Mat4f matrix = kObserver.view * kObserver.projection;
   glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y,
               color.z, color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,

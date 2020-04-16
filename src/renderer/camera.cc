@@ -172,7 +172,7 @@ CameraUpdateEvent(const PlatformEvent& event)
   CameraUpdateEvent(event, kLocalCameraTag);
 }
 
-math::Mat4f
+Mat4f
 CameraView()
 {
   Camera* c = CameraGetCurrent();

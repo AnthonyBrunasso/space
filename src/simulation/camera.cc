@@ -51,7 +51,7 @@ Update(Camera* cam)
 }
 
 void
-SetView(const Camera* cam, math::Mat4f* view)
+SetView(const Camera* cam, Mat4f* view)
 {
   *view = math::LookAt(cam->position, cam->target, v3f(0.f, 1.f, 0.f));
 }

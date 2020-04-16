@@ -88,15 +88,6 @@ struct Pane {
   char title[kMaxHashKeyLength];
 };
 
-
-struct PaneTest {
-  uint32_t id;
-  Rectf rect;
-  PaneOptions options;
-};
-
-//DECLARE_HASH_ARRAY(PaneTest, 16);
-
 struct Text {
   char msg[kMaxTextSize];
   v2f pos;

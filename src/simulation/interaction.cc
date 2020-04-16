@@ -168,7 +168,7 @@ ReadOnlyUnits(v2f screen, uint32_t tag)
     // Draws a red line cube around the entity.
     if (highlighted) {
       gfx::PushDebugCube(
-          math::Cubef(
+          Cubef(
               kEntity[i].position + v3f(0.f, 0.f, kEntity[i].bounds.z / 2.f),
               kEntity[i].bounds),
           gfx::kRed);

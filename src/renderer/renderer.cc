@@ -610,7 +610,7 @@ RenderAsteroid(v3f pos, v3f scale, const math::Quatf& quat, const v4f& color)
 }
 
 void
-RenderCube(const math::Cubef& cube, const v4f& color)
+RenderCube(const Cubef& cube, const v4f& color)
 {
   Render3d(cube.pos, v3f(cube.width, cube.height, cube.depth), color,
            kRGG.cube_vao_reference, kCubeVertCount);
@@ -669,7 +669,7 @@ RenderCrew(v3f pos, v3f scale, const math::Quatf& quat, const v4f& color)
 }
 
 void
-RenderLineCube(const math::Cubef& cube, const v4f& color)
+RenderLineCube(const Cubef& cube, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   math::Mat4f matrix = kObserver.view * kObserver.projection;

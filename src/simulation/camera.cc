@@ -30,7 +30,7 @@ struct Camera {
 namespace gfx
 {
 void
-PushDebugCube(const math::Cubef& cube, const v4f& color);
+PushDebugCube(const Cubef& cube, const v4f& color);
 }
 
 namespace camera
@@ -45,7 +45,7 @@ Update(Camera* cam)
   cam->position += cam->motion;
   if (kShowCameraDebugTarget) {
     // TODO: Remove this or add a debug setting for it...
-    gfx::PushDebugCube(math::Cubef(cam->target, v3f(15.f, 15.f, 15.f)),
+    gfx::PushDebugCube(Cubef(cam->target, v3f(15.f, 15.f, 15.f)),
                        v4f(1.f, 0.f, 0.f, 1.f));
   }
 }

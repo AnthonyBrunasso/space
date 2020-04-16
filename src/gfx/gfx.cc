@@ -30,7 +30,7 @@ static bool kRenderGrid = false;
 static bool kRenderPath = false;
 
 struct DebugCube {
-  math::Cubef cube;
+  Cubef cube;
   v4f color;
 };
 
@@ -221,11 +221,11 @@ RenderShip(uint64_t ship_index)
     v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
     if (ModuleBuilt(mod)) {
       rgg::RenderCube(
-          math::Cubef(mod->position + v3f(0.f, 0.f, 15.f / 2.f), mod->bounds),
+          Cubef(mod->position + v3f(0.f, 0.f, 15.f / 2.f), mod->bounds),
           color);
     } else {
       rgg::RenderLineCube(
-          math::Cubef(mod->position + v3f(0.f, 0.f, 15.f / 2.f), mod->bounds),
+          Cubef(mod->position + v3f(0.f, 0.f, 15.f / 2.f), mod->bounds),
           v4f(color.x, color.y, color.z, 1.f));
       glDisable(GL_DEPTH_TEST);
       rgg::RenderProgressBar(
@@ -284,7 +284,7 @@ RenderShip(uint64_t ship_index)
         rgg::RenderRectangle(world_pos, kTileScale, kDefaultRotation, color);
       } else if (tile->blocked) {
         color = v4f(.15f, .15f, .15f, 1.f);
-        rgg::RenderCube(math::Cubef(v3f(0.f, 0.f, 50.f) + world_pos, kTileWidth,
+        rgg::RenderCube(Cubef(v3f(0.f, 0.f, 50.f) + world_pos, kTileWidth,
                                     kTileHeight, 100.f),
                         color);
       } else if (tile->nooxygen) {
@@ -321,7 +321,7 @@ RenderShip(uint64_t ship_index)
         v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
         v3f bounds = ModuleBounds(p->mod_placement);
         v3f mgw = FromShip(p->mouse_tile).Center();
-        rgg::RenderLineCube(math::Cubef(mgw + v3f(0.f, 0.f, bounds.z / 2.f),
+        rgg::RenderLineCube(Cubef(mgw + v3f(0.f, 0.f, bounds.z / 2.f),
                                         bounds.x, bounds.y, bounds.z),
                             color);
       } break;
@@ -388,7 +388,7 @@ RenderSpaceObjects()
 
   for (int i = 0; i < kUsedInvasion; ++i) {
     Invasion* v = &kInvasion[i];
-    rgg::RenderCube(math::Cubef(v->transform.position + v3f(0.f, 0.f, 5.f),
+    rgg::RenderCube(Cubef(v->transform.position + v3f(0.f, 0.f, 5.f),
                                 20.f, 20.f, 20.f),
                     v4f(.7f, .1f, .1f, 1.f));
   }
@@ -425,7 +425,7 @@ Reset()
 }
 
 void
-PushDebugCube(const math::Cubef& cube, const v4f& color)
+PushDebugCube(const Cubef& cube, const v4f& color)
 {
   DebugCube* dcube = UseDebugCube();
   dcube->cube = cube;

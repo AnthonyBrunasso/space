@@ -1,7 +1,5 @@
 #pragma once
 
-namespace math {
-
 struct Cubef {
   Cubef() = default;
   Cubef(v3f pos, float width, float height, float depth) :
@@ -13,5 +11,9 @@ struct Cubef {
   float height;
   float depth;
 };
+
+
+namespace math {
+
 
 }  // namespace math

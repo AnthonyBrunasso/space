@@ -237,14 +237,12 @@ Render(uint32_t tag)
     Pane* pane = &kPane[i];
     if (pane->tag != tag) continue;
     rgg::RenderRectangle(pane->rect, pane->options.color);
-    if (pane->title) {
-      pane->options.header_rect.x = pane->rect.x;
-      pane->options.header_rect.y =
-          pane->rect.y + pane->rect.height - pane->options.header_rect.height;
-      pane->options.header_rect.width = pane->rect.width;
-      rgg::RenderRectangle(pane->options.header_rect,
-                           kPaneHeaderColor);
-    }
+    pane->options.header_rect.x = pane->rect.x;
+    pane->options.header_rect.y =
+        pane->rect.y + pane->rect.height - pane->options.header_rect.height;
+    pane->options.header_rect.width = pane->rect.width;
+    rgg::RenderRectangle(pane->options.header_rect,
+                         kPaneHeaderColor);
     rgg::RenderLineRectangle(
         pane->rect, 0.f, v4f(0.2f, 0.2f, 0.2f, 0.7f));
   }

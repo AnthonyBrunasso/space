@@ -2,11 +2,6 @@
 
 #include "vec.h"
 
-struct AxisAlignedRect {
-  v3f min;
-  v3f max;
-};
-
 struct Rectf {
   Rectf() = default;
   Rectf(float x, float y, float width, float height)
@@ -109,13 +104,6 @@ RandomPointOnRect(const Rectf& rect)
     return nkeep + v2f(r.width, r.height) + t;
   }
   return pkeep + t;
-}
-
-bool
-PointInRect(const v2f& point, const AxisAlignedRect& rect)
-{
-  return (point.x >= rect.min.x && point.x <= rect.max.x) &&
-         (point.y >= rect.min.y && point.y <= rect.max.y);
 }
 
 bool

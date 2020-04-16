@@ -61,19 +61,12 @@ struct TextOptions {
 };
 
 struct PaneOptions {
-  enum SizeMode {
-    kAutoResize,
-    kFixedSize,
-  };
-  PaneOptions() = default;
-  PaneOptions(float width, float height)
-      : size_mode(kFixedSize), width(width), height(height)
-  {
-  }
-
-  SizeMode size_mode = kAutoResize;
+  // Starting with and height of pane.
   float width = 0.f;
   float height = 0.f;
+  // If set the pane will not expand these dimensions.
+  float max_width = 0.f;
+  float max_height = 0.f;
   v4f color = kPaneColor;
   Rectf header_rect;
 };
@@ -367,8 +360,10 @@ UpdatePane(float width, float height)
   assert(begin_mode.set);
   assert(begin_mode.pane);
   if (begin_mode.flow_switch || begin_mode.flow_type == kNewLine) {
-    begin_mode.pane->rect.y -= height;
-    begin_mode.pane->rect.height += height;
+    if (begin_mode.pos.y < begin_mode.pane->rect.y) {
+      begin_mode.pane->rect.y -= height;
+      begin_mode.pane->rect.height += height;
+    }
   }
   float new_width = (begin_mode.pos.x + width) - begin_mode.pane->rect.x;
   if (!begin_mode.flow_switch && begin_mode.flow_type == kSameLine) {
@@ -397,29 +392,6 @@ UpdatePaneOnEnd(Pane* pane)
   auto& begin_mode = kIMUI.begin_mode;
   uint32_t tag = begin_mode.tag;
   assert(begin_mode.set);
-  switch (pane->options.size_mode) {
-    case PaneOptions::kAutoResize:
-      break;
-    case PaneOptions::kFixedSize: {
-      int start = kUsedText[tag] - 1;
-      int end = kUsedText[tag] - begin_mode.text_calls;
-      assert(start < kMaxText);
-      assert(end >= 0);
-      int move_text = begin_mode.text_calls - 1;
-      for (; start >= end; --start) {
-        struct Text* text = &kText[tag][start];
-        text->pos.y += text->rect.height * move_text;
-        v2f text_top_left = text->pos + v2f(0.f, text->rect.height);
-        // Discard the text element if it is outside of the pane.
-        if (!math::PointInRect(text_top_left, pane->rect)) {
-          CompressText(tag, start);
-          continue;
-        }
-      }
-    } break;
-    default:
-      break;
-  }
 }
 
 Result
@@ -559,9 +531,13 @@ void
 Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
       v2f* start, bool* show = nullptr)
 {
-  TITLE_WITH_TAG(title, tag);
   assert(tag < kMaxTags);
   assert(title);
+  if (pane_options.max_width)
+    assert(pane_options.width <= pane_options.max_width);
+  if (pane_options.max_height)
+    assert(pane_options.height <= pane_options.max_height);
+  TITLE_WITH_TAG(title, tag);
   uint32_t title_with_tag_len = strlen(title_with_tag);
   assert(title_with_tag_len < kMaxHashKeyLength);
   auto& begin_mode = kIMUI.begin_mode;
@@ -581,7 +557,7 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
   strcpy(begin_mode.pane->title, title);
   begin_mode.pane->tag = tag;
   begin_mode.pane->rect.x = start->x;
-  begin_mode.pane->rect.y = start->y;
+  begin_mode.pane->rect.y = start->y - pane_options.height;
   begin_mode.pane->rect.width = pane_options.width;
   begin_mode.pane->rect.height = pane_options.height;
   begin_mode.pane->options = pane_options;

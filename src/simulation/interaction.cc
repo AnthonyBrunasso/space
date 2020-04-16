@@ -284,11 +284,11 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
 void
 LogPanel(v2f screen_dims, uint32_t tag)
 {
-  const float width = 300.0f;
-  const float height = 100.0f;
-  imui::PaneOptions pane_options(width, height);
+  imui::PaneOptions pane_options;
+  pane_options.width = pane_options.max_width = 300.f;
+  pane_options.height = pane_options.max_height = 100.f;
   imui::TextOptions text_options;
-  static v2f pos(screen_dims.x - width, 0.0f);
+  static v2f pos(screen_dims.x - pane_options.width, pane_options.height);
   static bool show = true;
   imui::Begin("Console Log", tag, pane_options, &pos, &show);
   for (int i = 0, imax = LogCount(); i < imax; ++i) {

@@ -32,15 +32,10 @@ TextTest()
 
   {
     imui::PaneOptions pane_options;
+    pane_options.max_height = 300.f;
     static bool show = true;
     static v2f pos(1000, 1000);
-    imui::Begin("button test", 0, pane_options, &pos, &show);
-    static int i = 0;
-    if (imui::ButtonCircle(15.f, v4f(1.f, 0.f, 0.f, 1.f)).clicked) {
-      ++i;
-    }
-    snprintf(buffer, 64, "Button Click: %i", i);
-    imui::Text(buffer);
+    imui::Begin("scroll test", 0, pane_options, &pos, &show);
     imui::Text("Some text");
     imui::Text("That is going to be");
     imui::HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));
@@ -57,6 +52,14 @@ TextTest()
     imui::Button(25, 25, v4f(1.f, 0.5f, 0.3f, 1.f));
     imui::ToggleNewLine();
     imui::Text("Next line...");
+    imui::ToggleSameLine();
+    if (imui::ButtonCircle(15.f, v4f(1.f, 0.f, 0.f, 1.f)).clicked) {
+      imui::VerticalScrollDelta(-1.f);
+    }
+    if (imui::ButtonCircle(15.f, v4f(0.f, 0.f, 1.f, 1.f)).clicked) {
+      imui::VerticalScrollDelta(1.f);
+    }
+    imui::ToggleNewLine();
     imui::Text("Stuff.");
     imui::Text("Stuff.");
     imui::Text("Stuff.");
@@ -122,6 +125,9 @@ main(int argc, char** argv)
             } break;
             default: break;
           }
+        } break;
+        case MOUSE_WHEEL: {
+          imui::MouseWheel(event.wheel_delta, 0);
         } break;
         default: break;
       }

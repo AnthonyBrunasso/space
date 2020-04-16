@@ -58,6 +58,12 @@ struct Result {
 struct TextOptions {
   v4f color = kWhite;
   v4f highlight_color = v4f();
+  // If true the text will render regardless of clipping options.
+  bool ignore_scissor_test = false;
+};
+
+struct ButtonCircleOptions {
+  bool ignore_scissor_test = false;
 };
 
 struct PaneOptions {
@@ -77,6 +83,13 @@ struct Pane {
   uint32_t tag;
   Rectf rect;
   PaneOptions options;
+  // Now far up or down the user has scrolled.
+  // 0 indicates no scroll.
+  // A value greater than 0 means the user has scrolled down. All text ui
+  // elements should be positioned accordingly.
+  float vertical_scroll = 0.f;
+  bool element_off_pane = false;
+  Rectf header_rect;
   bool hidden = false;
   bool debug_show_details = false;
   char title[kMaxHashKeyLength];
@@ -101,6 +114,7 @@ struct ButtonCircle {
   v2f position;
   float radius;
   v4f color;
+  ButtonCircleOptions options;
   Pane* pane;
 };
 
@@ -124,6 +138,9 @@ struct MouseUp {
   PlatformButton button;
 };
 
+struct MouseWheel {
+  float delta;
+};
 
 struct MousePosition {
   v2f pos;
@@ -144,6 +161,8 @@ struct BeginMode {
   Rectf last_rect;
   float x_reset;
   bool mouse_down;
+  // A bit of a hack?
+  bool ignore_vertical_scroll = false;
   bool* show = nullptr;
   v2f* start = nullptr;
   Pane* pane;
@@ -165,6 +184,7 @@ DECLARE_2D_ARRAY(Button, kMaxTags, 16);
 DECLARE_2D_ARRAY(ButtonCircle, kMaxTags, 16);
 DECLARE_2D_ARRAY(MouseDown, kMaxTags, 8);
 DECLARE_2D_ARRAY(MouseUp, kMaxTags, 8);
+DECLARE_2D_ARRAY(MouseWheel, kMaxTags, 8);
 DECLARE_2D_ARRAY(MousePosition, kMaxTags, MAX_PLAYER);
 DECLARE_2D_ARRAY(LastMousePosition, kMaxTags, MAX_PLAYER);
 // Panes exist as a global UI element that persist per imui begin / end calls.
@@ -192,6 +212,7 @@ ResetAll()
   memset(kUsedMouseDown, 0, sizeof(kUsedMouseDown));
   memset(kUsedMouseUp, 0, sizeof(kUsedMouseUp));
   memset(kUsedMousePosition, 0, sizeof(kUsedMousePosition));
+  memset(kUsedMouseWheel, 0, sizeof(kUsedMouseWheel));
   memset(kUsedLine, 0, sizeof(kUsedLine));
 }
 
@@ -206,6 +227,7 @@ ResetTag(uint32_t tag)
   kUsedMouseDown[tag] = 0;
   kUsedMouseUp[tag] = 0;
   kUsedMousePosition[tag] = 0;
+  kUsedMouseWheel[tag] = 0;
   kUsedLine[tag] = 0;
 }
 
@@ -216,6 +238,18 @@ MouseDelta()
   if (kUsedMousePosition[tag] < 1 || kUsedLastMousePosition[tag] < 1)
     return {};
   return kMousePosition[tag][0].pos - kLastMousePosition[tag][0].pos;
+}
+
+void
+SetScissorWithPane(const Pane& pane, const v2f& viewport, bool ignore_scissor)
+{
+  if (ignore_scissor) {
+    glScissor(0, 0, viewport.x, viewport.y);
+  } else {
+    // Scissor from header down.
+    glScissor(pane.rect.x, pane.rect.y, pane.rect.width,
+              pane.rect.height - pane.header_rect.height);
+  }
 }
 
 void
@@ -233,42 +267,56 @@ Render(uint32_t tag)
     Pane* pane = &kPane[i];
     if (pane->tag != tag) continue;
     rgg::RenderRectangle(pane->rect, pane->options.color);
-    pane->options.header_rect.x = pane->rect.x;
-    pane->options.header_rect.y =
-        pane->rect.y + pane->rect.height - pane->options.header_rect.height;
-    pane->options.header_rect.width = pane->rect.width;
-    rgg::RenderRectangle(pane->options.header_rect,
-                         kPaneHeaderColor);
+    rgg::RenderRectangle(pane->header_rect, kPaneHeaderColor);
     rgg::RenderLineRectangle(
         pane->rect, 0.f, v4f(0.2f, 0.2f, 0.2f, 0.7f));
   }
 
   for (int i = 0; i < kUsedButton[tag]; ++i) {
     Button* button = &kButton[tag][i];
+    SetScissorWithPane(*button->pane, dims, false);
     rgg::RenderButton("test", button->rect, button->color);
   }
 
   for (int i = 0; i < kUsedButtonCircle[tag]; ++i) {
     ButtonCircle* button = &kButtonCircle[tag][i];
+    SetScissorWithPane(*button->pane, dims,
+                       button->options.ignore_scissor_test);
     rgg::RenderCircle(button->position, button->radius, button->color);
   }
 
   for (int i = 0; i < kUsedText[tag]; ++i) {
     Text* text = &kText[tag][i];
+    SetScissorWithPane(*text->pane, dims, text->options.ignore_scissor_test);
     rgg::RenderText(text->msg, text->pos, kTextScale, text->color);
   }
 
   for (int i = 0; i < kUsedLine[tag]; ++i) {
     Line* line = &kLine[tag][i];
+    SetScissorWithPane(*line->pane, dims, false);
     if (line->type == kHorizontal) {
       v2f end(line->start.x + line->pane->rect.width, line->start.y);
       rgg::RenderLine(line->start, end, line->color);
     }
   }
+  glScissor(0, 0, dims.x, dims.y);
   glEnable(GL_DEPTH_TEST);
 }
 
-v2f GetMousePosition()
+float
+GetMouseWheel()
+{
+  uint32_t tag = kIMUI.begin_mode.tag;
+  if (!kUsedMouseWheel[tag]) return 0.f;
+  float d = 0.f;
+  for (int i = 0; i < kUsedMouseWheel[tag]; ++i) {
+    d += kMouseWheel[tag][i].delta;
+  }
+  return d;
+}
+
+v2f
+GetMousePosition()
 {
   uint32_t tag = kIMUI.begin_mode.tag;
   if (!kUsedMousePosition[tag]) return {};
@@ -392,21 +440,17 @@ UpdatePane(float width, float height, bool* element_in_pane)
     begin_mode.pos.x += begin_mode.last_rect.width;
   }
   begin_mode.flow_switch = false;
-  begin_mode.last_rect =
-      Rectf(begin_mode.pos.x, begin_mode.pos.y, width, height);
+  begin_mode.last_rect = Rectf(
+      begin_mode.pos.x, begin_mode.pos.y, width, height);
+  if (!begin_mode.ignore_vertical_scroll) {
+    begin_mode.last_rect.y += begin_mode.pane->vertical_scroll;
+  }
   *element_in_pane =
       math::IntersectRect(begin_mode.last_rect, begin_mode.pane->rect);
+  // Elements off the pane mean that the pane can scroll. Or if the user has
+  // scrolled down.
+  begin_mode.pane->element_off_pane = !(*element_in_pane);
   return begin_mode.last_rect;
-}
-
-void
-UpdatePaneOnEnd(Pane* pane)
-{
-  if (!pane) return;
-  IF_HIDDEN(return);
-  auto& begin_mode = kIMUI.begin_mode;
-  uint32_t tag = begin_mode.tag;
-  assert(begin_mode.set);
 }
 
 Result
@@ -458,7 +502,7 @@ HorizontalLine(const v4f& color)
   uint32_t tag = kIMUI.begin_mode.tag;
   IF_HIDDEN(return);
   bool in_pane = false;
-  UpdatePane(kIMUI.begin_mode.pane->rect.width, 1.f, &in_pane);
+  Rectf rect = UpdatePane(kIMUI.begin_mode.pane->rect.width, 1.f, &in_pane);
   // TODO(abrunass): Not working for horizontal lines - not sure why.
   //if (!in_pane) return;
   Line* line = UseLine(tag);
@@ -466,8 +510,8 @@ HorizontalLine(const v4f& color)
     imui_errno = 5;
     return;
   }
-  line->start.x = kIMUI.begin_mode.pane->rect.x;
-  line->start.y = kIMUI.begin_mode.pos.y;
+  line->start.x = rect.x;
+  line->start.y = rect.y;
   line->pane = kIMUI.begin_mode.pane;
   line->color = color;
   line->pane = kIMUI.begin_mode.pane;
@@ -511,7 +555,8 @@ Button(float width, float height, const v4f& color)
 }
 
 Result
-ButtonCircle(float radius, const v4f& color)
+ButtonCircle(float radius, const v4f& color,
+             const ButtonCircleOptions& options)
 {
   // Call Begin() before imui elements.
   assert(kIMUI.begin_mode.set);
@@ -531,7 +576,15 @@ ButtonCircle(float radius, const v4f& color)
   button->radius = radius;
   button->color = color;
   button->pane = kIMUI.begin_mode.pane;
+  button->options = options;
   return IMUI_RESULT_CIRCLE(button->position, radius);
+}
+
+Result
+ButtonCircle(float radius, const v4f& color)
+{
+  ButtonCircleOptions options;
+  return ButtonCircle(radius, color, options);
 }
 
 void
@@ -596,13 +649,20 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
   begin_mode.pane->rect.y = start->y - begin_mode.pane->rect.height;
   begin_mode.pane->options = pane_options;
   begin_mode.pane->hidden = show ? !(*show) : false;
-  if (ButtonCircle(10.f, kHeaderMinimizeColor).clicked) {
+  // Header is not effect by vertical scroll - it's kinda special.
+  begin_mode.ignore_vertical_scroll = true;
+  ButtonCircleOptions button_options;
+  button_options.ignore_scissor_test = true;
+  if (ButtonCircle(10.f, kHeaderMinimizeColor, button_options).clicked) {
     if (show) (*show) = !(*show);
   }
   begin_mode.pos.y -= 2.f;
   begin_mode.pos.x += 5.f;
-  Rectf trect = Text(title).rect;
-  begin_mode.pane->options.header_rect.height = trect.height;
+  TextOptions text_options; 
+  text_options.ignore_scissor_test = true;
+  Rectf trect = Text(title, text_options).rect;
+  begin_mode.ignore_vertical_scroll = false;
+  begin_mode.pane->header_rect.height = trect.height;
   ToggleNewLine();
   if (show) begin_mode.show = show;
 }
@@ -618,13 +678,32 @@ Begin(const char* title, uint32_t tag, v2f* start, bool* show = nullptr)
 void
 End()
 {
-  UpdatePaneOnEnd(kIMUI.begin_mode.pane);
+  assert(kIMUI.begin_mode.set);
+  Pane* pane = kIMUI.begin_mode.pane;
+  pane->header_rect.x = pane->rect.x;
+  pane->header_rect.y =
+      pane->rect.y + pane->rect.height - pane->header_rect.height;
+  pane->header_rect.width = pane->rect.width;
   // Move around panes if a user has click and held in them.
   if (kIMUI.begin_mode.start && IsMouseDown() &&
       IsRectPreviouslyHighlighted(kIMUI.begin_mode.pane->rect)) {
     *kIMUI.begin_mode.start += MouseDelta();
   }
+  float d = GetMouseWheel();
+  if (pane->element_off_pane && IsRectHighlighted(pane->rect) && d != 0.f) {
+    pane->vertical_scroll += d;
+  }
   kIMUI.begin_mode = {};
+}
+
+void
+VerticalScrollDelta(float delta)
+{
+  assert(kIMUI.begin_mode.set);
+  kIMUI.begin_mode.pane->vertical_scroll += delta;
+  if (kIMUI.begin_mode.pane->vertical_scroll < 0.f) {
+    kIMUI.begin_mode.pane->vertical_scroll = 0.f;
+  }
 }
 
 bool
@@ -634,6 +713,16 @@ MouseInUI(v2f pos, uint32_t tag)
     Pane* pane = &kPane[i];
     if (pane->tag != tag) continue;
     if (math::PointInRect(pos, pane->rect)) return true;
+  }
+  return false;
+}
+
+bool
+MouseInUI(uint32_t tag)
+{
+  for (int i = 0; i < kUsedMousePosition[tag]; ++i) {
+    MousePosition* mp = &kMousePosition[tag][i];
+    if (MouseInUI(mp->pos, tag)) return true;
   }
   return false;
 }
@@ -664,6 +753,17 @@ MouseUp(v2f pos, PlatformButton b, uint32_t tag)
   click->pos = pos;
   click->button = b;
   kIMUI.mouse_down[tag] = false;
+}
+
+void
+MouseWheel(float delta, uint32_t tag)
+{
+  struct MouseWheel* wheel = UseMouseWheel(tag);
+  if (!wheel) {
+    imui_errno = 4;
+    return;
+  }
+  wheel->delta = -delta * 5.f;
 }
 
 // Returns true if the mouse is contained within UI given bounds of last
@@ -716,6 +816,8 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
       Text(buffer);
       snprintf(buffer, 64, "rect (%.2f,%.2f,%.2f,%.2f)",
                pane->rect.x, pane->rect.y, pane->rect.width, pane->rect.height);
+      Text(buffer);
+      snprintf(buffer, 64, "vscroll (%.2f)", pane->vertical_scroll);
       Text(buffer);
       Indent(-2);
       HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));

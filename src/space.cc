@@ -69,6 +69,9 @@ GatherWindowInput(InputBuffer* input_buffer)
       case MOUSE_UP:
         imui::MouseUp(pevent.position, pevent.button, imui::kEveryoneTag);
         break;
+      case MOUSE_WHEEL:
+        imui::MouseWheel(pevent.wheel_delta, imui::kEveryoneTag);
+        break;
     }
   }
 

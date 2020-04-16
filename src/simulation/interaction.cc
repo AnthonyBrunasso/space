@@ -308,18 +308,22 @@ ControlEvent(const PlatformEvent event, uint64_t player_index, Player* player)
   djb2_hash_more((const uint8_t*)&event, sizeof(PlatformEvent), &kInputHash);
   switch (event.type) {
     case MOUSE_POSITION: {
-      imui::MousePosition(event.position, player_index);
       player->mouse_world = event_world;
       player->mouse_tile = event_tile;
     } break;
     case MOUSE_WHEEL: {
+      imui::MouseWheel(event.wheel_delta, player_index);
+      if (imui::MouseInUI(player_index) ||
+          imui::MouseInUI(imui::kEveryoneTag)) {
+        break;
+      }
       // TODO(abrunasso): Why does this need to be negative?
       player->camera.motion.z = -10.f * event.wheel_delta;
     } break;
     case MOUSE_DOWN: {
       imui::MouseDown(event.position, event.button, player_index);
-      if (imui::MouseInUI(event.position, player_index) ||
-          imui::MouseInUI(event.position, imui::kEveryoneTag))
+      if (imui::MouseInUI(player_index) ||
+          imui::MouseInUI(imui::kEveryoneTag))
         break;
 
       if (event.button == BUTTON_MIDDLE) {
@@ -575,6 +579,14 @@ ProcessSimulation(int player_index, uint64_t event_count,
                   const PlatformEvent* event)
 {
   Player* p = &kPlayer[player_index];
+  for (int i = 0; i < event_count; ++i) {
+    const PlatformEvent* pevent = &event[i];
+    switch (pevent->type) {
+      case MOUSE_POSITION: {
+        imui::MousePosition(pevent->position, player_index);
+      } break;
+    }
+  }
   for (int i = 0; i < event_count; ++i) {
     ControlEvent(event[i], player_index, p);
   }

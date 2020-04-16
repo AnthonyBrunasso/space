@@ -33,7 +33,7 @@ TextTest()
   {
     imui::PaneOptions pane_options;
     static bool show = true;
-    static v2f pos(1000, 300);
+    static v2f pos(1000, 1000);
     imui::Begin("button test", 0, pane_options, &pos, &show);
     static int i = 0;
     if (imui::ButtonCircle(15.f, v4f(1.f, 0.f, 0.f, 1.f)).clicked) {
@@ -55,6 +55,21 @@ TextTest()
     imui::Button(25, 25, v4f(1.f, 0.5f, 0.3f, 1.f));
     imui::ToggleNewLine();
     imui::Text("Next line...");
+    imui::Text("Stuff.");
+    imui::Text("Stuff.");
+    imui::Text("Stuff.");
+    imui::Text("More Stuff.");
+    imui::Text("MoreMore  Stuff.");
+    imui::Text("MoreMoreMoreMoreMore     Stuff.");
+    imui::Text("MoreMore  Stuff.");
+    imui::Text("The");
+    imui::Text("Brown");
+    imui::Text("Fox");
+    imui::Text("Jumps");
+    imui::Text("Over");
+    imui::Text("The");
+    imui::Text("Lazy");
+    imui::Text("Fox");
     imui::End();
   }
 

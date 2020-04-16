@@ -680,15 +680,6 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
   char buffer[64];
   PaneOptions pane_options;
   Begin(title, tag, pane_options, pos, show);
-  v2f mouse_pos = GetMousePosition();
-  snprintf(buffer, 64, "Mouse Pos(%.2f,%.2f)", mouse_pos.x, mouse_pos.y);
-  Text(buffer);
-  v2f delta = MouseDelta();
-  snprintf(buffer, 64, "Mouse Delta(%.2f,%.2f)", delta.x, delta.y);
-  Text(buffer);
-  snprintf(buffer, 64, "Mouse Down(%i)", imui::IsMouseDown());
-  Text(buffer);
-  Text("Pane hash info");
   snprintf(buffer, 64, "Pane Count(%u) Max Hash Count(%u) Collision (%.2f%%)",
            kUsedPane, kMaxHashPane,
            ((float)(kFindCollisionsPane) / kFindCallsPane) * 100.f);
@@ -712,6 +703,24 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
     Indent(-2);
     HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
   }
+  Indent(-2);
+  v2f mouse_pos = GetMousePosition();
+  snprintf(buffer, 64, "Mouse Pos(%.2f,%.2f)", mouse_pos.x, mouse_pos.y);
+  Text(buffer);
+  v2f delta = MouseDelta();
+  snprintf(buffer, 64, "Mouse Delta(%.2f,%.2f)", delta.x, delta.y);
+  Text(buffer);
+  snprintf(buffer, 64, "Mouse Down(%i)", imui::IsMouseDown());
+  Text(buffer);
+  // This needs to run last else MouseInUI won't run correctly against this
+  // panels bounds...
+  ToggleSameLine();
+  Text("Mouse in UI (Tag, IsInUI) -> ");
+  for (int i = 0; i < kMaxTags; ++i) {
+    snprintf(buffer, 64, "{%i, %u} ", i, imui::MouseInUI(mouse_pos, i));
+    Text(buffer);
+  }
+  ToggleNewLine();
   End();
 }
 

@@ -425,9 +425,9 @@ Text(const char* msg, TextOptions options)
   assert(kIMUI.begin_mode.set);
   auto& begin_mode = kIMUI.begin_mode;
   uint32_t tag = kIMUI.begin_mode.tag;
-  struct Text* text = UseText(tag);
   Result data;
   IF_HIDDEN(return data);
+  struct Text* text = UseText(tag);
   if (!text) {
     imui_errno = 1;
     return data;
@@ -496,9 +496,9 @@ Button(float width, float height, const v4f& color)
   // Call Begin() before imui elements.
   assert(kIMUI.begin_mode.set);
   uint32_t tag = kIMUI.begin_mode.tag;
-  struct Button* button = UseButton(tag);
   Result result;
   IF_HIDDEN(return result);
+  struct Button* button = UseButton(tag);
   if (!button) {
     imui_errno = 3;
     return result;

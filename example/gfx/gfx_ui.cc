@@ -10,7 +10,7 @@ TextTest()
   auto dims = window::GetWindowSize();
 
   char buffer[64];
-
+#if 1
   {
     imui::PaneOptions pane_options;
     static bool show = true;
@@ -43,6 +43,8 @@ TextTest()
     imui::Text(buffer);
     imui::Text("Some text");
     imui::Text("That is going to be");
+    imui::HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));
+    imui::Text("Panes");
     imui::HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));
     imui::Text("Seperated");
     imui::Text("By a line!");
@@ -83,28 +85,11 @@ TextTest()
   }
 
   {
-    imui::PaneOptions pane_options;
-    static bool show = true;
-    static v2f pos(1100, 100);
-    imui::Begin("pane again!", 0, pane_options, &pos, &show);
-    imui::Text("Test..");
-    imui::End();
-  }
-
-  {
-    imui::PaneOptions pane_options;
-    static bool show = true;
-    static v2f pos(300, 230);
-    imui::Begin("pane again!!", 0, pane_options, &pos, &show);
-    imui::Text("Test..");
-    imui::End();
-  }
-
-  {
     static v2f start(0.f, 400.f);
     static bool show = true;
     imui::DebugPane("DEBUG TAG 0", 0, &start, &show);
   }
+#endif
 }
 
 int

@@ -34,6 +34,13 @@ struct Rectf {
 
 namespace math
 {
+void
+PrintRect(const Rectf& rect)
+{
+  printf("Rect(%.2f,%.2f,%.2f,%.2f)\n",
+         rect.x, rect.y, rect.width, rect.height);
+}
+
 // Orients a rect so that it has positive widths and heights.
 Rectf
 OrientToAabb(const Rectf& rect)

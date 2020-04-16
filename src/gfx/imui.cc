@@ -353,16 +353,25 @@ Indent(int spaces)
 // Set begin_mode.pos to point to the bottom left of where the current element
 // should draw.
 Rectf
-UpdatePane(float width, float height)
+UpdatePane(float width, float height, bool* element_in_pane)
 {
+  assert(element_in_pane);
   IF_HIDDEN(return Rectf());
   auto& begin_mode = kIMUI.begin_mode;
   assert(begin_mode.set);
   assert(begin_mode.pane);
   if (begin_mode.flow_switch || begin_mode.flow_type == kNewLine) {
-    if (begin_mode.pos.y < begin_mode.pane->rect.y) {
+    if (begin_mode.pos.y <= begin_mode.pane->rect.y) {
       begin_mode.pane->rect.y -= height;
       begin_mode.pane->rect.height += height;
+      if (begin_mode.pane->options.max_height) {
+        if (begin_mode.pane->rect.height >
+            begin_mode.pane->options.max_height) {
+          begin_mode.pane->rect.height = begin_mode.pane->options.max_height;
+          begin_mode.pane->rect.y =
+              begin_mode.start->y - begin_mode.pane->rect.height;
+        }
+      }
     }
   }
   float new_width = (begin_mode.pos.x + width) - begin_mode.pane->rect.x;
@@ -371,6 +380,10 @@ UpdatePane(float width, float height)
   }
   if (new_width > begin_mode.pane->rect.width) {
     begin_mode.pane->rect.width = new_width;
+    if (begin_mode.pane->options.max_width &&
+        begin_mode.pane->rect.width > begin_mode.pane->options.max_width) {
+      begin_mode.pane->rect.width = begin_mode.pane->options.max_width;
+    }
   }
   if (begin_mode.flow_switch || begin_mode.flow_type == kNewLine) {
     begin_mode.pos.y -= height;
@@ -381,6 +394,8 @@ UpdatePane(float width, float height)
   begin_mode.flow_switch = false;
   begin_mode.last_rect =
       Rectf(begin_mode.pos.x, begin_mode.pos.y, width, height);
+  *element_in_pane =
+      math::IntersectRect(begin_mode.last_rect, begin_mode.pane->rect);
   return begin_mode.last_rect;
 }
 
@@ -402,18 +417,20 @@ Text(const char* msg, TextOptions options)
   uint32_t tag = kIMUI.begin_mode.tag;
   Result data;
   IF_HIDDEN(return data);
-  struct Text* text = UseText(tag);
-  if (!text) {
-    imui_errno = 1;
-    return data;
-  }
   if (strlen(msg) > kMaxTextSize) {
     imui_errno = 2;
     return data;
   }
   Rectf text_rect = 
       rgg::GetTextRect(msg, strlen(msg), begin_mode.pos, kTextScale);
-  Rectf rect = UpdatePane(text_rect.width, text_rect.height);
+  bool in_pane = false;
+  Rectf rect = UpdatePane(text_rect.width, text_rect.height, &in_pane);
+  if (!in_pane) return data;
+  struct Text* text = UseText(tag);
+  if (!text) {
+    imui_errno = 1;
+    return data;
+  }
   strcpy(text->msg, msg);
   text->pos = v2f(rect.x, rect.y);
   text->color = options.color;
@@ -440,6 +457,10 @@ HorizontalLine(const v4f& color)
   assert(kIMUI.begin_mode.set);
   uint32_t tag = kIMUI.begin_mode.tag;
   IF_HIDDEN(return);
+  bool in_pane = false;
+  UpdatePane(kIMUI.begin_mode.pane->rect.width, 1.f, &in_pane);
+  // TODO(abrunass): Not working for horizontal lines - not sure why.
+  //if (!in_pane) return;
   Line* line = UseLine(tag);
   if (!line) {
     imui_errno = 5;
@@ -450,7 +471,6 @@ HorizontalLine(const v4f& color)
   line->pane = kIMUI.begin_mode.pane;
   line->color = color;
   line->pane = kIMUI.begin_mode.pane;
-  UpdatePane(line->pane->rect.width, 1.f);
 }
 
 void
@@ -458,10 +478,13 @@ Space(SpaceType type, int count)
 {
   assert(kIMUI.begin_mode.set);
   IF_HIDDEN(return);
+  bool in_pane = false;
   if (type == kHorizontal) {
-    UpdatePane(count, 0.f);
+    UpdatePane(count, 0.f, &in_pane);
+    if (!in_pane) return;
   } else {
-    UpdatePane(0.f, count);
+    UpdatePane(0.f, count, &in_pane);
+    if (!in_pane) return;
   }
 }
 
@@ -473,12 +496,14 @@ Button(float width, float height, const v4f& color)
   uint32_t tag = kIMUI.begin_mode.tag;
   Result result;
   IF_HIDDEN(return result);
+  bool in_pane = false;
+  Rectf rect = UpdatePane(width, height, &in_pane);
+  if (!in_pane) return result;
   struct Button* button = UseButton(tag);
   if (!button) {
     imui_errno = 3;
     return result;
   }
-  Rectf rect = UpdatePane(width, height);
   button->rect = rect;
   button->color = color;
   button->pane = kIMUI.begin_mode.pane;
@@ -493,12 +518,14 @@ ButtonCircle(float radius, const v4f& color)
   Result result;
   IF_HIDDEN(return result);
   uint32_t tag = kIMUI.begin_mode.tag;
+  bool in_pane = false;
+  Rectf rect = UpdatePane(2.f * radius, 2.f * radius, &in_pane);
+  if (!in_pane) return result;
   struct ButtonCircle* button = UseButtonCircle(tag);
   if (!button) {
     imui_errno = 3;
     return result;
   }
-  Rectf rect = UpdatePane(2.f * radius, 2.f * radius);
   // RenderButton renders from center.
   button->position = v2f(rect.x, rect.y) + v2f(radius, radius);
   button->radius = radius;
@@ -555,18 +582,20 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
   }
   uint32_t title_len = strlen(begin_mode.pane->title);
   strcpy(begin_mode.pane->title, title);
-  begin_mode.pane->tag = tag;
-  begin_mode.pane->rect.x = start->x;
-  begin_mode.pane->rect.y = start->y - pane_options.height;
-  begin_mode.pane->rect.width = pane_options.width;
-  begin_mode.pane->rect.height = pane_options.height;
-  begin_mode.pane->options = pane_options;
-  begin_mode.pane->hidden = show ? !(*show) : false;
   // Header. TODO(abrunasso): imui now relies on hashing header title for pane
   // persistence - but it is worth adding a pane option to hide it here.
   ToggleSameLine();
   begin_mode.pos.x += 5.f;
   Rectf t = rgg::GetTextRect(title, title_len, *start, kTextScale);
+  begin_mode.pane->tag = tag;
+  begin_mode.pane->rect.width =
+      pane_options.width > 0.f ? pane_options.width : t.width;
+  begin_mode.pane->rect.height =
+      pane_options.height > 0.f ? pane_options.height : 0.f;
+  begin_mode.pane->rect.x = start->x;
+  begin_mode.pane->rect.y = start->y - begin_mode.pane->rect.height;
+  begin_mode.pane->options = pane_options;
+  begin_mode.pane->hidden = show ? !(*show) : false;
   if (ButtonCircle(10.f, kHeaderMinimizeColor).clicked) {
     if (show) (*show) = !(*show);
   }

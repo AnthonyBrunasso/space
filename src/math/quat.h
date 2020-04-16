@@ -73,6 +73,6 @@ struct Quat {
   float angle_degrees;
 };
 
-using Quatf = Quat<float>;
-
 }  // namespace math
+
+using Quatf = math::Quat<float>;

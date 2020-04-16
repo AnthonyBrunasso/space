@@ -365,7 +365,7 @@ CreateRenderable(int vert_count, GLfloat* verts, GLenum mode)
 
 void
 RenderTag(const RenderTag& tag, const v3f& position, const v3f& scale,
-          const math::Quatf& orientation, const v4f& color)
+          const Quatf& orientation, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(tag.vao_reference);
@@ -381,7 +381,7 @@ RenderTag(const RenderTag& tag, const v3f& position, const v3f& scale,
 
 void
 RenderTriangle(const v3f& position, const v3f& scale,
-               const math::Quatf& orientation, const v4f& color)
+               const Quatf& orientation, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.triangle_vao_reference);
@@ -397,7 +397,7 @@ RenderTriangle(const v3f& position, const v3f& scale,
 
 void
 RenderRectangle(const v3f& position, const v3f& scale,
-                const math::Quatf& orientation, const v4f& color)
+                const Quatf& orientation, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.rectangle_vao_reference);
@@ -575,7 +575,7 @@ Render3d(const v3f& pos, const v3f& scale, const v4f& color, GLuint vao,
 }
 
 void
-Render3dWithRotation(const v3f& pos, const v3f& scale, const math::Quatf& quat,
+Render3dWithRotation(const v3f& pos, const v3f& scale, const Quatf& quat,
                      const v4f& color, GLuint vao, int verts)
 {
   glUseProgram(kRGG.geometry_program_3d.reference);
@@ -603,7 +603,7 @@ RenderAsteroid(v3f pos, v3f scale, const v4f& color)
 }
 
 void
-RenderAsteroid(v3f pos, v3f scale, const math::Quatf& quat, const v4f& color)
+RenderAsteroid(v3f pos, v3f scale, const Quatf& quat, const v4f& color)
 {
   Render3dWithRotation(pos, scale, quat, color, kRGG.asteroid_vao_reference,
                        kAsteroidVertCount);
@@ -629,14 +629,14 @@ RenderGear(v3f pos, v3f scale, const v4f& color)
 }
 
 void
-RenderGear(v3f pos, v3f scale, const math::Quatf& quat, const v4f& color)
+RenderGear(v3f pos, v3f scale, const Quatf& quat, const v4f& color)
 {
   Render3dWithRotation(pos, scale, quat, color, kRGG.gear_vao_reference,
                        kGearVertCount);
 }
 
 void
-RenderPod(v3f pos, v3f scale, const math::Quatf& quat, const v4f& color)
+RenderPod(v3f pos, v3f scale, const Quatf& quat, const v4f& color)
 {
   Render3dWithRotation(pos, scale, quat, color, kRGG.pod_vao_reference,
                        kPodVertCount);
@@ -649,7 +649,7 @@ RenderSphere(v3f pos, v3f scale, const v4f& color)
 }
 
 void
-RenderExhaust(v3f pos, v3f scale, const math::Quatf& quat, const v4f& color)
+RenderExhaust(v3f pos, v3f scale, const Quatf& quat, const v4f& color)
 {
   Render3dWithRotation(pos, scale, quat, color, kRGG.exhaust_vao_reference,
                        kExhaustVertCount);
@@ -662,7 +662,7 @@ RenderCrew(v3f pos, v3f scale, const v4f& color)
 }
 
 void
-RenderCrew(v3f pos, v3f scale, const math::Quatf& quat, const v4f& color)
+RenderCrew(v3f pos, v3f scale, const Quatf& quat, const v4f& color)
 {
   Render3dWithRotation(pos, scale, quat, color, kRGG.crew_vao_reference,
                        kCrewVertCount);

@@ -240,8 +240,7 @@ Ortho2(float right, float left, float top, float bottom, float far_clip,
 }
 
 Mat4f
-Model(const v3f& position, const v3f& scale,
-      const math::Quatf& quat) {
+Model(const v3f& position, const v3f& scale, const Quatf& quat) {
   Mat4f model;
   model.data_[0] = scale.x * (1.f - 2.f * quat.y * quat.y - 2.f * quat.z * quat.z);
   model.data_[1] = scale.y * (2.f * quat.x * quat.y - 2.f * quat.w * quat.z);

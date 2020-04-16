@@ -23,7 +23,7 @@ static v4f kGreen = v4f(0.f, 1.f, 0.f, 1.f);
 static v4f kBlue = v4f(0.f, 0.f, 1.f, 1.f);
 static v4f kWhite = v4f(1.f, 1.f, 1.f, 1.f);
 static v4f kGray = v4f(.6f, .6f, .6f, 1.f);
-static const math::Quatf kDefaultRotation = math::Quatf(0.f, 0.f, 0.f, 1.f);
+static const Quatf kDefaultRotation = Quatf(0.f, 0.f, 0.f, 1.f);
 static v3f kDefaultScale = v3f(1.f, 1.f, 1.f);
 static v3f kTileScale = v3f(0.5f, 0.5f, 1.f);
 static bool kRenderGrid = false;
@@ -85,7 +85,7 @@ RenderCrew(uint64_t ship_index)
     if (unit->ship_index != ship_index) continue;
     if (unit->inspace) {
       rgg::RenderPod(unit->position, v3f(20.f, 20.f, 20.f),
-                     math::Quatf(-90.f, v3f(1.f, 0.f, 0.f)),
+                     Quatf(-90.f, v3f(1.f, 0.f, 0.f)),
                      v4f(1.f, 1.f, 1.f, 1.f));
 
       continue;
@@ -134,7 +134,7 @@ RenderCrew(uint64_t ship_index)
         rgg::RenderGear(
             unit->position + v3f(-unit->bounds.x - 6.f, unit->bounds.y + 2.f,
                                  unit->bounds.z + .1f),
-            v3f(8.f, 8.f, 8.f), math::Quatf(r, v3f(0.f, 0.f, 1.f)),
+            v3f(8.f, 8.f, 8.f), Quatf(r, v3f(0.f, 0.f, 1.f)),
             v4f(0.7f, 0.7f, 0.7f, 1.f));
         r += 0.3f;
       }
@@ -148,7 +148,7 @@ RenderCrew(uint64_t ship_index)
       color = v4f(color.x * .8f, color.y * .8f, color.z * .8f, color.w);
     }
     rgg::RenderCrew(unit->position + v3f(0.f, 0.f, 20.f), crew_bounds,
-                    math::Quatf(-90, v3f(0.f, 0.f, 1.f)), color);
+                    Quatf(-90, v3f(0.f, 0.f, 1.f)), color);
 
     if (unit->spacesuit) {
       // rgg::RenderSphere(unit->position + v3f(0.f, 0.f, 7.5f),
@@ -259,7 +259,7 @@ RenderShip(uint64_t ship_index)
       v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
       float engine_scale = kShip[ship_index].engine_animation * .1f;
       rgg::RenderExhaust(world + v3f(-40.f, -20.f, 0.f), v3f(22.f, 22.f, 22.f),
-                         math::Quatf(180, v3f(0.f, 0.f, 1.f)),
+                         Quatf(180, v3f(0.f, 0.f, 1.f)),
                          v4f(0.4f, 0.4f, 0.4f, 1.f));
       rgg::RenderTag(kGfx.exhaust_tag, world + v3f(-50.f, 3.f, 0.f),
                      v3f(engine_scale, 1.f, 1.f), kDefaultRotation, color);
@@ -356,7 +356,7 @@ RenderSpaceObjects()
     static float r = 0.1f;
     static float nr = .1f;
     rgg::RenderAsteroid(asteroid->transform.position, v3f(20.f, 20.f, 20.f),
-                        math::Quatf(90.f + r, v3f(nr, 0.f, 1.f - nr)),
+                        Quatf(90.f + r, v3f(nr, 0.f, 1.f - nr)),
                         v4f(.4f, .4f, .4f, 1.f));
     r += .3f;
     nr += .05f;

@@ -16,7 +16,7 @@ struct Rectf {
   v2f
   Center() const
   {
-    return v2f(x + .5 * width, y + .5 * height);
+    return v2f(x + .5f * width, y + .5f * height);
   }
 
   v2f

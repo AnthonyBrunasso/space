@@ -582,7 +582,7 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
   begin_mode.pane->rect.width = pane_options.width;
   begin_mode.pane->rect.height = pane_options.height;
   begin_mode.pane->options = pane_options;
-  begin_mode.pane->hidden = show ? *show : true;
+  begin_mode.pane->hidden = show ? !(*show) : false;
   // Header. TODO(abrunasso): imui now relies on hashing header title for pane
   // persistence - but it is worth adding a pane option to hide it here.
   ToggleSameLine();

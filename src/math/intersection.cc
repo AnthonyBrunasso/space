@@ -116,35 +116,9 @@ PointInPolygon(const v2f& point, const uint64_t polygon_size, v2f* polygon)
 }
 
 bool
-PointInRect(const v2f& point, const AxisAlignedRect& rect)
-{
-  return (point.x >= rect.min.x && point.x <= rect.max.x) &&
-         (point.y >= rect.min.y && point.y <= rect.max.y);
-}
-
-bool
-PointInRect(const v2f& point, const Rectf& rect)
-{
-  return (point.x >= rect.x && point.x <= rect.x + rect.width) &&
-         (point.y >= rect.y && point.y <= rect.y + rect.height);
-}
-
-bool
 PointInCircle(const v2f& point, const v2f& center, float radius)
 {
   return LengthSquared(point - center) < radius * radius;
-}
-
-bool
-IntersectRect(const Rectf& a, const Rectf& b)
-{
-  v2f amin = a.Min();
-  v2f amax = a.Max();
-  v2f bmin = b.Min();
-  v2f bmax = b.Max();
-  if (amin.x >= bmax.x || bmin.x >= amax.x) return false;
-  if (amin.y >= bmax.y || bmin.y >= amax.y) return false;
-  return true;
 }
 
 }  // namespace math

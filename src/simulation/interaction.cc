@@ -126,10 +126,9 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
   imui::End();
 
 #if 1
-  snprintf(ui_buffer, 64, "IMUI Debug Pane Tag: %u", tag);
   static v2f pos(3.f, screen.y - 300.f);
   static bool show = false;
-  imui::DebugPane(ui_buffer, tag, &pos, &show);
+  imui::DebugPane("Diagnostics UI", tag, &pos, &show);
 #endif
 }
 

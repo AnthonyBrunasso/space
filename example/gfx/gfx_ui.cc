@@ -13,10 +13,28 @@ TextTest()
 
   {
     imui::PaneOptions pane_options;
-    pane_options.title = "Button Test";
+    static bool show = true;
+    static v2f pos(1200, 500);
+    imui::Begin("imui test", 0, pane_options, &pos, &show);
+    imui::Text("Other stuff...");
+    v2f cursor = window::GetCursorPosition();
+    snprintf(buffer, 64, "Mouse(%.2f,%.2f)", cursor.x, cursor.y);
+    imui::Text(buffer);
+    v2f delta = imui::MouseDelta();
+    snprintf(buffer, 64, "Mouse Delta(%.2f,%.2f)", delta.x, delta.y);
+    imui::Text(buffer);
+    snprintf(buffer, 64, "Mouse Down(%i)", imui::IsMouseDown());
+    imui::Text(buffer);
+    snprintf(buffer, 64, "IMUI Panes(%i)", imui::kUsedPane);
+    imui::Text(buffer);
+    imui::End();
+  }
+
+  {
+    imui::PaneOptions pane_options;
     static bool show = true;
     static v2f pos(1000, 300);
-    imui::Begin(&pos, 0, pane_options, &show);
+    imui::Begin("button test", 0, pane_options, &pos, &show);
     static int i = 0;
     if (imui::ButtonCircle(15.f, v4f(1.f, 0.f, 0.f, 1.f)).clicked) {
       ++i;
@@ -42,20 +60,35 @@ TextTest()
 
   {
     imui::PaneOptions pane_options;
-    pane_options.title = "Mouse Test";
     static bool show = true;
-    static v2f pos(1200, 500);
-    imui::Begin(&pos, 0, pane_options, &show);
-    imui::Text("Other stuff...");
-    v2f cursor = window::GetCursorPosition();
-    snprintf(buffer, 64, "Mouse(%.2f,%.2f)", cursor.x, cursor.y);
-    imui::Text(buffer);
-    v2f delta = imui::MouseDelta();
-    snprintf(buffer, 64, "Mouse Delta(%.2f,%.2f)", delta.x, delta.y);
-    imui::Text(buffer);
-    snprintf(buffer, 64, "Mouse Down(%i)", imui::IsMouseDown());
-    imui::Text(buffer);
+    static v2f pos(1500, 300);
+    imui::Begin("another pane", 0, pane_options, &pos, &show);
+    imui::Text("Test..");
     imui::End();
+  }
+
+  {
+    imui::PaneOptions pane_options;
+    static bool show = true;
+    static v2f pos(1100, 100);
+    imui::Begin("pane again!", 0, pane_options, &pos, &show);
+    imui::Text("Test..");
+    imui::End();
+  }
+
+  {
+    imui::PaneOptions pane_options;
+    static bool show = true;
+    static v2f pos(300, 230);
+    imui::Begin("pane again!!", 0, pane_options, &pos, &show);
+    imui::Text("Test..");
+    imui::End();
+  }
+
+  {
+    static v2f start(0.f, 400.f);
+    static bool show = true;
+    imui::DebugPane("DEBUG TAG 0", 0, &start, &show);
   }
 }
 

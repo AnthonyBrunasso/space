@@ -47,6 +47,14 @@ struct Result {
 #define IF_HIDDEN(jmp) \
   if (kIMUI.begin_mode.show && !(*kIMUI.begin_mode.show)) jmp;
 
+#define TITLE_WITH_TAG(title, tag)             \
+  char title_with_tag[kMaxHashKeyLength] = {}; \
+  char tag_append[2] = {};                     \
+  snprintf(tag_append, 2, "%u", tag);          \
+  strcat(title_with_tag, title);               \
+  strcat(title_with_tag, tag_append);          \
+
+
 struct TextOptions {
   v4f color = kWhite;
   v4f highlight_color = v4f();
@@ -67,16 +75,27 @@ struct PaneOptions {
   float width = 0.f;
   float height = 0.f;
   v4f color = kPaneColor;
-  const char* title = nullptr;
   Rectf header_rect;
 };
 
 // imui elements.
 
 struct Pane {
+  uint32_t tag;
+  Rectf rect;
+  PaneOptions options;
+  bool hidden = false;
+  char title[kMaxHashKeyLength];
+};
+
+
+struct PaneTest {
+  uint32_t id;
   Rectf rect;
   PaneOptions options;
 };
+
+//DECLARE_HASH_ARRAY(PaneTest, 16);
 
 struct Text {
   char msg[kMaxTextSize];
@@ -129,10 +148,6 @@ struct LastMousePosition {
   v2f pos;
 };
 
-struct UIBound {
-  Rectf rect;
-};
-
 struct BeginMode {
   v2f pos;
   bool set = false;
@@ -160,23 +175,21 @@ struct IMUI {
 static IMUI kIMUI;
 
 DECLARE_2D_ARRAY(Text, kMaxTags, 128);
-DECLARE_2D_ARRAY(Line, kMaxTags, 8);
+DECLARE_2D_ARRAY(Line, kMaxTags, 16);
 DECLARE_2D_ARRAY(Button, kMaxTags, 16);
 DECLARE_2D_ARRAY(ButtonCircle, kMaxTags, 16);
 DECLARE_2D_ARRAY(MouseDown, kMaxTags, 8);
 DECLARE_2D_ARRAY(MouseUp, kMaxTags, 8);
 DECLARE_2D_ARRAY(MousePosition, kMaxTags, MAX_PLAYER);
 DECLARE_2D_ARRAY(LastMousePosition, kMaxTags, MAX_PLAYER);
-DECLARE_2D_ARRAY(Pane, kMaxTags, 8);
-DECLARE_2D_ARRAY(UIBound, kMaxTags, 8);
+// Panes exist as a global UI element that persist per imui begin / end calls.
+// This allows for panes to stick around for bounds check, docking and imui
+// debugability.
+DECLARE_HASH_MAP_STR(Pane, 64);
 
 void
 GenerateUIMetadata(uint32_t tag)
 {
-  for (int i = 0; i < kUsedPane[tag]; ++i) {
-    kUIBound[tag][i].rect = kPane[tag][i].rect;
-  }
-  kUsedUIBound[tag] = kUsedPane[tag];
   memcpy(kLastMousePosition[tag], kMousePosition[tag],
          sizeof(kMousePosition[tag]));
   kUsedLastMousePosition[tag] = kUsedMousePosition[tag];
@@ -194,7 +207,6 @@ ResetAll()
   memset(kUsedMouseDown, 0, sizeof(kUsedMouseDown));
   memset(kUsedMouseUp, 0, sizeof(kUsedMouseUp));
   memset(kUsedMousePosition, 0, sizeof(kUsedMousePosition));
-  memset(kUsedPane, 0, sizeof(kUsedPane));
   memset(kUsedLine, 0, sizeof(kUsedLine));
 }
 
@@ -206,7 +218,6 @@ ResetTag(uint32_t tag)
   kUsedText[tag] = 0;
   kUsedButton[tag] = 0;
   kUsedButtonCircle[tag] = 0;
-  kUsedPane[tag] = 0;
   kUsedMouseDown[tag] = 0;
   kUsedMouseUp[tag] = 0;
   kUsedMousePosition[tag] = 0;
@@ -230,10 +241,11 @@ Render(uint32_t tag)
   rgg::ModifyObserver mod(math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f),
                           math::Identity());
 
-  for (int i = 0; i < kUsedPane[tag]; ++i) {
-    Pane* pane = &kPane[tag][i];
+  for (int i = 0; i < kUsedPane; ++i) {
+    Pane* pane = &kPane[i];
+    if (pane->tag != tag) continue;
     rgg::RenderRectangle(pane->rect, pane->options.color);
-    if (pane->options.title) {
+    if (pane->title) {
       pane->options.header_rect.x = pane->rect.x;
       pane->options.header_rect.y =
           pane->rect.y + pane->rect.height - pane->options.header_rect.height;
@@ -268,6 +280,13 @@ Render(uint32_t tag)
     }
   }
   glEnable(GL_DEPTH_TEST);
+}
+
+v2f GetMousePosition()
+{
+  uint32_t tag = kIMUI.begin_mode.tag;
+  if (!kUsedMousePosition[tag]) return {};
+  return kMousePosition[tag][0].pos;
 }
 
 bool
@@ -461,7 +480,8 @@ HorizontalLine(const v4f& color)
     imui_errno = 5;
     return;
   }
-  line->start = kIMUI.begin_mode.pos;
+  line->start.x = kIMUI.begin_mode.pane->rect.x;
+  line->start.y = kIMUI.begin_mode.pos.y;
   line->pane = kIMUI.begin_mode.pane;
   line->color = color;
   line->pane = kIMUI.begin_mode.pane;
@@ -543,10 +563,14 @@ ToggleNewLine()
 }
 
 void
-Begin(v2f* start, uint32_t tag, const PaneOptions& pane_options,
-      bool* show = nullptr)
+Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
+      v2f* start, bool* show = nullptr)
 {
+  TITLE_WITH_TAG(title, tag);
   assert(tag < kMaxTags);
+  assert(title);
+  uint32_t title_with_tag_len = strlen(title_with_tag);
+  assert(title_with_tag_len < kMaxHashKeyLength);
   auto& begin_mode = kIMUI.begin_mode;
   // End must be called before Begin.
   assert(!begin_mode.set);
@@ -556,48 +580,41 @@ Begin(v2f* start, uint32_t tag, const PaneOptions& pane_options,
   begin_mode.tag = tag;
   begin_mode.x_reset = start->x;
   begin_mode.start = start;
-  begin_mode.pane = UsePane(tag);
+  begin_mode.pane = FindPane(title, title_with_tag_len);
+  if (!begin_mode.pane) {
+    begin_mode.pane = UsePane(title, title_with_tag_len);
+  }
+  uint32_t title_len = strlen(begin_mode.pane->title);
+  strcpy(begin_mode.pane->title, title);
+  begin_mode.pane->tag = tag;
   begin_mode.pane->rect.x = start->x;
   begin_mode.pane->rect.y = start->y;
   begin_mode.pane->rect.width = pane_options.width;
   begin_mode.pane->rect.height = pane_options.height;
   begin_mode.pane->options = pane_options;
-  if (pane_options.title) {
-    ToggleSameLine();
-    begin_mode.pos.x += 5.f;
-    Rectf t = rgg::GetTextRect(
-        pane_options.title, strlen(pane_options.title), *start, kTextScale);
-    if (ButtonCircle(10.f, kHeaderMinimizeColor).clicked) {
-      if (show) (*show) = !(*show);
-    }
-    begin_mode.pos.y -= 2.f;
-    begin_mode.pos.x += 5.f;
-    Rectf trect = Text(pane_options.title).rect;
-    begin_mode.pane->options.header_rect.height = trect.height;
-    ToggleNewLine();
+  begin_mode.pane->hidden = show ? *show : true;
+  // Header. TODO(abrunasso): imui now relies on hashing header title for pane
+  // persistence - but it is worth adding a pane option to hide it here.
+  ToggleSameLine();
+  begin_mode.pos.x += 5.f;
+  Rectf t = rgg::GetTextRect(title, title_len, *start, kTextScale);
+  if (ButtonCircle(10.f, kHeaderMinimizeColor).clicked) {
+    if (show) (*show) = !(*show);
   }
+  begin_mode.pos.y -= 2.f;
+  begin_mode.pos.x += 5.f;
+  Rectf trect = Text(title).rect;
+  begin_mode.pane->options.header_rect.height = trect.height;
+  ToggleNewLine();
   if (show) begin_mode.show = show;
 }
 
 void
-Begin(v2f* start, uint32_t tag, bool* show = nullptr)
+Begin(const char* title, uint32_t tag, v2f* start, bool* show = nullptr)
 {
   PaneOptions pane_options;
   pane_options.color = v4f(0.f, 0.f, 0.f, 0.f);
-  Begin(start, tag, pane_options);
-}
-
-void
-Begin(v2f start, uint32_t tag, const PaneOptions& pane_options,
-      bool* show = nullptr)
-{
-  Begin(&start, tag, pane_options, show);
-}
-
-void
-Begin(v2f start, uint32_t tag, bool* show = nullptr)
-{
-  Begin(&start, tag, show);
+  Begin(title, tag, pane_options, start, show);
 }
 
 void
@@ -607,7 +624,7 @@ End()
   // Move around panes if a user has click and held in them.
   if (kIMUI.begin_mode.start && IsMouseDown() &&
       IsRectPreviouslyHighlighted(kIMUI.begin_mode.pane->rect)) {
-    (*kIMUI.begin_mode.start) += MouseDelta();
+    *kIMUI.begin_mode.start += MouseDelta();
   }
   kIMUI.begin_mode = {};
 }
@@ -615,8 +632,10 @@ End()
 bool
 MouseInUI(v2f pos, uint32_t tag)
 {
-  for (int i = 0; i < kUsedUIBound[tag]; ++i) {
-    if (math::PointInRect(pos, kUIBound[tag][i].rect)) return true;
+  for (int i = 0; i < kUsedPane; ++i) {
+    Pane* pane = &kPane[i];
+    if (pane->tag != tag) continue;
+    if (math::PointInRect(pos, pane->rect)) return true;
   }
   return false;
 }
@@ -661,6 +680,48 @@ MousePosition(v2f pos, uint32_t tag)
   }
   mp->pos = pos;
   return MouseInUI(pos, tag);
+}
+
+// Prints useful imui internals for debugging.
+void
+DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
+{
+  char buffer[64];
+  PaneOptions pane_options;
+  Begin(title, tag, pane_options, pos, show);
+  v2f mouse_pos = GetMousePosition();
+  snprintf(buffer, 64, "Mouse Pos(%.2f,%.2f)", mouse_pos.x, mouse_pos.y);
+  Text(buffer);
+  v2f delta = MouseDelta();
+  snprintf(buffer, 64, "Mouse Delta(%.2f,%.2f)", delta.x, delta.y);
+  Text(buffer);
+  snprintf(buffer, 64, "Mouse Down(%i)", imui::IsMouseDown());
+  Text(buffer);
+  Text("Pane hash info");
+  snprintf(buffer, 64, "Pane Count(%u) Max Hash Count(%u) Collision (%.2f%%)",
+           kUsedPane, kMaxHashPane,
+           ((float)(kFindCollisionsPane) / kFindCallsPane) * 100.f);
+  Text(buffer);
+  Text("Panes");
+  HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
+  Indent(2);
+  for (int i = 0; i < kUsedPane; ++i) {
+    Pane* pane = &kPane[i];
+    Text(pane->title);
+    HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
+    Indent(2);
+    TITLE_WITH_TAG(pane->title, pane->tag);
+    uint32_t hash = GetHash(title_with_tag, strlen(title_with_tag));
+    snprintf(buffer, 64, "tag: %u hash_idx: %u hidden: %i",
+             pane->tag, hash % kMaxHashPane, pane->hidden);
+    Text(buffer);
+    snprintf(buffer, 64, "rect(%.2f,%.2f,%.2f,%.2f)",
+             pane->rect.x, pane->rect.y, pane->rect.width, pane->rect.height);
+    Text(buffer);
+    Indent(-2);
+    HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
+  }
+  End();
 }
 
 const char*

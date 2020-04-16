@@ -86,8 +86,7 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
   static bool enable_debug = false;
   static v2f read_only_pos(3.f, screen.y);
   imui::PaneOptions options;
-  options.title = "Diagnostics Debug";
-  imui::Begin(&read_only_pos, tag, options, &enable_debug);
+  imui::Begin("Diagnostics Debug", tag, options, &read_only_pos, &enable_debug);
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
@@ -125,6 +124,13 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
   const char* ui_err = imui::LastErrorString();
   if (ui_err) imui::Text(ui_err);
   imui::End();
+
+#if 1
+  snprintf(ui_buffer, 64, "IMUI Debug Pane Tag: %u", tag);
+  static v2f pos(3.f, screen.y - 300.f);
+  static bool show = false;
+  imui::DebugPane(ui_buffer, tag, &pos, &show);
+#endif
 }
 
 void
@@ -134,8 +140,7 @@ ReadOnlyUnits(v2f screen, uint32_t tag)
   static v2f unit_debug_pos(screen.x - 300.f, screen.y);
   imui::PaneOptions options;
   options.width = 300.f;
-  options.title = "Unit Debug";
-  imui::Begin(&unit_debug_pos, tag, options, &unit_debug);
+  imui::Begin("Unit Debug", tag, options, &unit_debug_pos, &unit_debug);
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
@@ -177,9 +182,9 @@ void
 TilePanel(v2f screen, uint32_t tag, Player* player)
 {
   imui::PaneOptions options;
-  options.title = "Tile Debug";
   options.width = 300.f;
-  imui::Begin(&player->tile_menu_pos, tag, options, &player->tile_menu);
+  imui::Begin("Tile Debug", tag, options, &player->tile_menu_pos,
+              &player->tile_menu);
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
@@ -213,8 +218,8 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
 {
   imui::PaneOptions options;
   options.width = 300.f;
-  options.title = "Admin Menu";
-  imui::Begin(&player->admin_menu_pos, tag, options, &player->admin_menu);
+  imui::Begin("Admin Menu", tag, options, &player->admin_menu_pos,
+              &player->admin_menu);
   imui::TextOptions text_options;
   text_options.color = gfx::kWhite;
   text_options.highlight_color = gfx::kRed;
@@ -284,7 +289,9 @@ LogPanel(v2f screen_dims, uint32_t tag)
   const float height = 100.0f;
   imui::PaneOptions pane_options(width, height);
   imui::TextOptions text_options;
-  imui::Begin(v2f(screen_dims.x - width, 0.0f), tag, pane_options);
+  static v2f pos(screen_dims.x - width, 0.0f);
+  static bool show = true;
+  imui::Begin("Console Log", tag, pane_options, &pos, &show);
   for (int i = 0, imax = LogCount(); i < imax; ++i) {
     const char* log_msg = ReadLog(i);
     if (!log_msg) continue;
@@ -525,7 +532,8 @@ void
 GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
 {
   imui::PaneOptions options;
-  imui::Begin(&player->game_menu_pos, tag, options);
+  bool show = true;
+  imui::Begin("Game UI", tag, options, &player->game_menu_pos, &show);
   imui::Result hud_result;
   v2f p(50.f, 10.f);
   for (int i = 3; i < kModCount; ++i) {

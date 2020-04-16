@@ -8,7 +8,7 @@ struct HashEntry {
   uint32_t array_idx;
 };
 
-#define DECLARE_HASH_ARRAY(type, max_count)                                   \
+#define DECLARE_HASH_ARRAY(type, max_count)                                \
   constexpr uint32_t kMax##type = max_count;                                  \
   constexpr uint32_t kMaxHash##type = (max_count * 2);                        \
   static_assert(POWEROF2(kMaxHash##type), "kMaxHash must be a power of 2");   \

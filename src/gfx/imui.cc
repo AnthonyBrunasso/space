@@ -156,7 +156,6 @@ struct LastMousePosition {
 struct BeginMode {
   v2f pos;
   bool set = false;
-  int text_calls = 0;
   uint32_t tag = 0;
   // UI Element go one new line unless explcitly swapped.
   FlowType flow_type = kNewLine;
@@ -487,7 +486,6 @@ Text(const char* msg, TextOptions options)
   text->options = options;
   text->rect = rect;
   text->pane = begin_mode.pane;
-  ++begin_mode.text_calls;
   return IMUI_RESULT(rect);
 }
 
@@ -628,7 +626,6 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
   assert(!begin_mode.set);
   begin_mode.pos = *start;
   begin_mode.set = true;
-  begin_mode.text_calls = 0;
   begin_mode.tag = tag;
   begin_mode.x_reset = start->x;
   begin_mode.start = start;

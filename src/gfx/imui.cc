@@ -713,8 +713,8 @@ End()
   float d = GetMouseWheel();
   if (CanScroll(*pane, d) && IsRectHighlighted(pane->rect) && d != 0.f) {
     pane->vertical_scroll += d;
-    ClampVerticalScroll();
   }
+  ClampVerticalScroll();
   kIMUI.begin_mode = {};
 }
 
@@ -726,7 +726,6 @@ VerticalScrollDelta(float delta)
   if (kIMUI.begin_mode.pane->vertical_scroll < 0.f) {
     kIMUI.begin_mode.pane->vertical_scroll = 0.f;
   }
-  ClampVerticalScroll();
 }
 
 bool

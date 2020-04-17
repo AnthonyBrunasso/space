@@ -860,6 +860,18 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
   Text(buffer);
   snprintf(buffer, 64, "Mouse Wheel (%.2f)", imui::GetMouseWheel());
   Text(buffer);
+  for (int i = 0; i < kMaxTags; ++i) {
+    snprintf(buffer, 64, "Tag %i", i);
+    Text(buffer);
+    Indent(2);
+    snprintf(buffer, 64, "Text Used (%u / %u)", kUsedText[tag], kMaxText);
+    Text(buffer);
+    snprintf(buffer, 64, "Button Used (%u / %u) circle(%u / %u)",
+             kUsedButton[tag], kMaxButton, kUsedButtonCircle[tag],
+             kMaxButtonCircle);
+    Text(buffer);
+    Indent(-2);
+  }
   // This needs to run last else MouseInUI won't run correctly against this
   // panels bounds...
   ToggleSameLine();

@@ -90,7 +90,9 @@ struct Pane {
   float vertical_scroll = 0.f;
   bool element_off_pane = false;
   Rectf header_rect;
-  float max_height = 0.f;
+  // The height the pane would be if constraints like max_height screen
+  // clipping where done. This is used for scrolling.
+  float theoretical_height = 0.f;
   bool hidden = false;
   bool debug_show_details = false;
   char title[kMaxHashKeyLength];
@@ -413,7 +415,7 @@ UpdatePane(float width, float height, bool* element_in_pane)
     if (begin_mode.pos.y <= begin_mode.pane->rect.y) {
       begin_mode.pane->rect.y -= height;
       begin_mode.pane->rect.height += height;
-      begin_mode.pane->max_height += height;
+      begin_mode.pane->theoretical_height += height;
       if (begin_mode.pane->options.max_height) {
         if (begin_mode.pane->rect.height >
             begin_mode.pane->options.max_height) {
@@ -646,7 +648,7 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
       pane_options.width > 0.f ? pane_options.width : t.width;
   begin_mode.pane->rect.height =
       pane_options.height > 0.f ? pane_options.height : 0.f;
-  begin_mode.pane->max_height = begin_mode.pane->rect.height;
+  begin_mode.pane->theoretical_height = begin_mode.pane->rect.height;
   begin_mode.pane->rect.x = start->x;
   begin_mode.pane->rect.y = start->y - begin_mode.pane->rect.height;
   begin_mode.pane->options = pane_options;
@@ -692,8 +694,8 @@ ClampVerticalScroll()
   Pane* pane = kIMUI.begin_mode.pane;
   // Clamp the vertical scroll to the min and max possible scroll.
   if (pane->vertical_scroll < 0.f) pane->vertical_scroll = 0.f;
-  if (pane->rect.height + pane->vertical_scroll > pane->max_height) {
-    pane->vertical_scroll = pane->max_height - pane->rect.height;
+  if (pane->rect.height + pane->vertical_scroll > pane->theoretical_height) {
+    pane->vertical_scroll = pane->theoretical_height - pane->rect.height;
   }
 }
 
@@ -839,9 +841,11 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
       snprintf(buffer, 64, "hidden: %i", pane->hidden);
       Text(buffer);
       snprintf(buffer, 64, "rect (%.2f,%.2f,%.2f,%.2f)",
-               pane->rect.x, pane->rect.y, pane->rect.width, pane->rect.height);
+               pane->rect.x, pane->rect.y, pane->rect.width,
+               pane->rect.height);
       Text(buffer);
-      snprintf(buffer, 64, "max_height (%.2f)", pane->max_height);
+      snprintf(buffer, 64, "theoretical_height (%.2f)",
+               pane->theoretical_height);
       Text(buffer);
       snprintf(buffer, 64, "vscroll (%.2f)", pane->vertical_scroll);
       Text(buffer);

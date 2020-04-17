@@ -139,6 +139,8 @@ ReadOnlyUnits(v2f screen, uint32_t tag)
   static v2f unit_debug_pos(screen.x - 300.f, screen.y);
   imui::PaneOptions options;
   options.width = 300.f;
+  options.max_width = 300.f;
+  options.max_height = 700.f;
   imui::Begin("Unit Debug", tag, options, &unit_debug_pos, &unit_debug);
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;

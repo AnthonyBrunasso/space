@@ -414,7 +414,8 @@ Render(uint64_t player_index)
   }
 
   // Ui
-  imui::ResetRenderData();  // must be called before imui::Render.
+  imui::ResetRenderData(player_index);
+  imui::ResetRenderData(imui::kEveryoneTag);
   imui::Render(player_index);
   imui::Render(imui::kEveryoneTag);
 }

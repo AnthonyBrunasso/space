@@ -176,9 +176,10 @@ constexpr uint32_t kEveryoneTag = MAX_PLAYER;
 struct IMUI {
   BeginMode begin_mode;
   bool mouse_down[kMaxTags];
-  uint32_t text_renders;
-  uint32_t button_renders;
-  uint32_t button_circle_renders;
+  uint32_t text_exhaustion[kMaxTags];
+  uint32_t button_exhaustion[kMaxTags];
+  uint32_t button_circle_exhaustion[kMaxTags];
+  bool debug_show_details[kMaxTags];
 };
 
 static IMUI kIMUI;
@@ -258,11 +259,11 @@ SetScissorWithPane(const Pane& pane, const v2f& viewport, bool ignore_scissor)
 }
 
 void
-ResetRenderData()
+ResetRenderData(uint32_t tag)
 {
-  kIMUI.text_renders = 0;
-  kIMUI.button_renders = 0;
-  kIMUI.button_circle_renders = 0;
+  kIMUI.text_exhaustion[tag] = 0;
+  kIMUI.button_exhaustion[tag] = 0;
+  kIMUI.button_circle_exhaustion[tag] = 0;
 }
 
 void
@@ -275,6 +276,10 @@ Render(uint32_t tag)
   auto dims = window::GetWindowSize();
   rgg::ModifyObserver mod(math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f),
                           math::Identity());
+
+  kIMUI.text_exhaustion[tag] = kUsedText[tag];
+  kIMUI.button_exhaustion[tag] = kUsedButton[tag];
+  kIMUI.button_circle_exhaustion[tag] = kUsedButtonCircle[tag];
 
   for (int i = 0; i < kUsedPane; ++i) {
     Pane* pane = &kPane[i];
@@ -289,7 +294,6 @@ Render(uint32_t tag)
     Button* button = &kButton[tag][i];
     SetScissorWithPane(*button->pane, dims, false);
     rgg::RenderButton("test", button->rect, button->color);
-    ++kIMUI.button_renders;
   }
 
   for (int i = 0; i < kUsedButtonCircle[tag]; ++i) {
@@ -297,14 +301,12 @@ Render(uint32_t tag)
     SetScissorWithPane(*button->pane, dims,
                        button->options.ignore_scissor_test);
     rgg::RenderCircle(button->position, button->radius, button->color);
-    ++kIMUI.button_circle_renders;
   }
 
   for (int i = 0; i < kUsedText[tag]; ++i) {
     Text* text = &kText[tag][i];
     SetScissorWithPane(*text->pane, dims, text->options.ignore_scissor_test);
     rgg::RenderText(text->msg, text->pos, kTextScale, text->color);
-    ++kIMUI.text_renders;
   }
 
   for (int i = 0; i < kUsedLine[tag]; ++i) {
@@ -864,6 +866,33 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
     }
   }
   Indent(-2);
+
+  Text("Tags");
+  HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
+  Indent(2);
+  for (int i = 0; i < kMaxTags; ++i) {
+    snprintf(buffer, 64, "Tag %i", i);
+    TextOptions toptions;
+    toptions.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
+    if (Text(buffer, toptions).clicked) {
+      kIMUI.debug_show_details[i] = !kIMUI.debug_show_details[i];
+    }
+    HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
+    if (kIMUI.debug_show_details[i]) {
+      Indent(2);
+      snprintf(buffer, 64, "Text Exhaustion (%u / %u)",
+               kIMUI.text_exhaustion[i], kMaxText);
+      Text(buffer);
+      snprintf(buffer, 64, "Button Exhaustion (%u / %u) Circle (%u / %u)",
+               kIMUI.button_exhaustion[i], kMaxButton,
+               kIMUI.button_circle_exhaustion[i], kMaxButtonCircle);
+      Text(buffer);
+      Indent(-2);
+      HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
+    }
+  }
+  Indent(-2);
+
   v2f mouse_pos = GetMousePosition();
   snprintf(buffer, 64, "Mouse Pos (%.2f,%.2f)", mouse_pos.x, mouse_pos.y);
   Text(buffer);
@@ -874,11 +903,7 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
   Text(buffer);
   snprintf(buffer, 64, "Mouse Wheel (%.2f)", imui::GetMouseWheel());
   Text(buffer);
-  snprintf(buffer, 64, "Render Text Calls (%u)", kIMUI.text_renders);
-  Text(buffer);
-  snprintf(buffer, 64, "Render Button (%u) Circle (%u)", kIMUI.button_renders,
-           kIMUI.button_circle_renders);
-  Text(buffer);
+  
   // This needs to run last else MouseInUI won't run correctly against this
   // panels bounds...
   ToggleSameLine();

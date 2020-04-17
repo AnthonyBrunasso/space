@@ -27,6 +27,7 @@ constexpr float kTextScale = 0.8f;
 static const v4f kWhite(1.f, 1.f, 1.f, 1.f);
 static const v4f kPaneColor(0.0f, 0.0f, 0.0f, 0.4f);
 static const v4f kPaneHeaderColor(0.12f, 0.16f, 0.154f, 1.f);
+static const v4f kScrollColor(0.32f, 0.36f, 0.354f, .7f);
 static const v4f kHeaderMinimizeColor(0.45f, 0.68f, 0.906f, 0.7f);
 
 struct Result {
@@ -95,6 +96,8 @@ struct Pane {
   float theoretical_height = 0.f;
   bool hidden = false;
   bool debug_show_details = false;
+  bool has_scroll_bar = false;
+  Rectf scroll_rect;
   char title[kMaxHashKeyLength];
 };
 
@@ -299,6 +302,22 @@ Render(uint32_t tag)
     rgg::RenderRectangle(pane->header_rect, kPaneHeaderColor);
     rgg::RenderLineRectangle(
         pane->rect, 0.f, v4f(0.2f, 0.2f, 0.2f, 0.7f));
+    if (pane->has_scroll_bar) {
+      Rectf scroll_bar(pane->rect.x + pane->rect.width - 15.f, pane->rect.y,
+                        15.f, pane->rect.height - pane->header_rect.height);
+      float hdiff = pane->theoretical_height - pane->rect.height;
+      float p_off = pane->rect.height / pane->theoretical_height;
+      float scroll_rect_height =
+          (pane->rect.height - pane->header_rect.height) * p_off;
+      Rectf scroll_cursor(scroll_bar);
+      scroll_cursor.height = scroll_rect_height;
+      scroll_cursor.y += (scroll_bar.height - scroll_rect_height);
+      float p_diff = pane->vertical_scroll /
+          (pane->theoretical_height - pane->rect.height);
+      float p_bar_diff_to_bot = fabs(scroll_cursor.y) - fabs(pane->rect.y);
+      scroll_cursor.y -= (p_bar_diff_to_bot * p_diff);
+      rgg::RenderRectangle(scroll_cursor, kScrollColor);
+    }
   }
 
   for (int i = 0; i < kUsedButton[tag]; ++i) {
@@ -776,6 +795,7 @@ End()
   if (CanScroll(*pane, d) && IsRectHighlighted(pane->rect) && d != 0.f) {
     pane->vertical_scroll += d;
   }
+  pane->has_scroll_bar = pane->theoretical_height > pane->rect.height;
   ClampVerticalScroll();
   kIMUI.begin_mode = {};
 }

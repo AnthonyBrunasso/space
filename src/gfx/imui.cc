@@ -686,6 +686,18 @@ CanScroll(const Pane& pane, float delta)
 }
 
 void
+ClampVerticalScroll()
+{
+  assert(kIMUI.begin_mode.set);
+  Pane* pane = kIMUI.begin_mode.pane;
+  // Clamp the vertical scroll to the min and max possible scroll.
+  if (pane->vertical_scroll < 0.f) pane->vertical_scroll = 0.f;
+  if (pane->rect.height + pane->vertical_scroll > pane->max_height) {
+    pane->vertical_scroll = pane->max_height - pane->rect.height;
+  }
+}
+
+void
 End()
 {
   assert(kIMUI.begin_mode.set);
@@ -702,11 +714,7 @@ End()
   float d = GetMouseWheel();
   if (CanScroll(*pane, d) && IsRectHighlighted(pane->rect) && d != 0.f) {
     pane->vertical_scroll += d;
-    // Clamp the vertical scroll to the min and max possible scroll.
-    if (pane->vertical_scroll < 0.f) pane->vertical_scroll = 0.f;
-    if (pane->rect.height + pane->vertical_scroll > pane->max_height) {
-      pane->vertical_scroll = pane->max_height - pane->rect.height;
-    }
+    ClampVerticalScroll();
   }
   kIMUI.begin_mode = {};
 }
@@ -719,6 +727,7 @@ VerticalScrollDelta(float delta)
   if (kIMUI.begin_mode.pane->vertical_scroll < 0.f) {
     kIMUI.begin_mode.pane->vertical_scroll = 0.f;
   }
+  ClampVerticalScroll();
 }
 
 bool

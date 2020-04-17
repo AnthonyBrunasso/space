@@ -296,6 +296,9 @@ LogPanel(v2f screen_dims, uint32_t tag)
     if (!log_msg) continue;
     imui::Text(log_msg, text_options);
   }
+  // Set vertical scroll to a value larger than past the what the full
+  // bounds could ever be. imui will clamp to the bottom.
+  imui::VerticalScrollDelta(1000.f);
   imui::End();
 }
 

@@ -128,6 +128,14 @@ struct Line {
   Pane* pane;
 };
 
+struct ProgressBar {
+  Rectf rect;
+  float current_progress;
+  float max_progress;
+  v4f fill_color;
+  v4f outline_color;
+  Pane* pane;
+};
 
 // imui metadata.
 
@@ -191,6 +199,7 @@ DECLARE_2D_ARRAY(ButtonCircle, kMaxTags, 16);
 DECLARE_2D_ARRAY(MouseDown, kMaxTags, 8);
 DECLARE_2D_ARRAY(MouseUp, kMaxTags, 8);
 DECLARE_2D_ARRAY(MouseWheel, kMaxTags, 8);
+DECLARE_2D_ARRAY(ProgressBar, kMaxTags, 8);
 DECLARE_2D_ARRAY(MousePosition, kMaxTags, MAX_PLAYER);
 DECLARE_2D_ARRAY(LastMousePosition, kMaxTags, MAX_PLAYER);
 // Panes exist as a global UI element that persist per imui begin / end calls.
@@ -219,6 +228,7 @@ ResetAll()
   memset(kUsedMouseUp, 0, sizeof(kUsedMouseUp));
   memset(kUsedMousePosition, 0, sizeof(kUsedMousePosition));
   memset(kUsedMouseWheel, 0, sizeof(kUsedMouseWheel));
+  memset(kUsedProgressBar, 0, sizeof(kUsedProgressBar));
   memset(kUsedLine, 0, sizeof(kUsedLine));
 }
 
@@ -234,6 +244,7 @@ ResetTag(uint32_t tag)
   kUsedMouseUp[tag] = 0;
   kUsedMousePosition[tag] = 0;
   kUsedMouseWheel[tag] = 0;
+  kUsedProgressBar[tag] = 0;
   kUsedLine[tag] = 0;
 }
 
@@ -316,6 +327,14 @@ Render(uint32_t tag)
       v2f end(line->start.x + line->pane->rect.width, line->start.y);
       rgg::RenderLine(line->start, end, line->color);
     }
+  }
+
+  for (int i = 0; i < kUsedProgressBar[tag]; ++i) {
+    ProgressBar* pb = &kProgressBar[tag][i];
+    SetScissorWithPane(*pb->pane, dims, false);
+    rgg::RenderProgressBar(
+        pb->rect, 0.f, pb->current_progress, pb->max_progress, pb->fill_color,
+        pb->outline_color);
   }
   glScissor(0, 0, dims.x, dims.y);
   glEnable(GL_DEPTH_TEST);
@@ -604,6 +623,33 @@ ButtonCircle(float radius, const v4f& color)
   return ButtonCircle(radius, color, options);
 }
 
+Result
+ProgressBar(float width, float height, float current_progress,
+            float max_progress, const v4f& fill_color,
+            const v4f& outline_color)
+{
+  // Call Begin() before imui elements.
+  assert(kIMUI.begin_mode.set);
+  uint32_t tag = kIMUI.begin_mode.tag;
+  Result result;
+  IF_HIDDEN(return result);
+  bool in_pane = false;
+  Rectf rect = UpdatePane(width, height, &in_pane);
+  if (!in_pane) return result;
+  struct ProgressBar* pb = UseProgressBar(tag);
+  if (!pb) {
+    imui_errno = 3;
+    return result;
+  }
+  pb->rect = rect;
+  pb->current_progress = current_progress;
+  pb->max_progress = max_progress;
+  pb->outline_color = outline_color;
+  pb->fill_color = fill_color;
+  pb->pane = kIMUI.begin_mode.pane;
+  return IMUI_RESULT(pb->rect);
+}
+
 void
 ToggleSameLine()
 {
@@ -880,9 +926,11 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
     HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
     if (kIMUI.debug_show_details[i]) {
       Indent(2);
-      snprintf(buffer, 64, "Text Exhaustion (%u / %u)",
+      snprintf(buffer, 64, "Text Exhaustion (%u / %u)  ",
                kIMUI.text_exhaustion[i], kMaxText);
       Text(buffer);
+      ProgressBar(100.f, 8.f, kIMUI.text_exhaustion[i], kMaxText,
+                  v4f(1.f, 0.f, 0.f, 1.f), v4f(.3f, .3f, .3f, 1.f));
       snprintf(buffer, 64, "Button Exhaustion (%u / %u) Circle (%u / %u)",
                kIMUI.button_exhaustion[i], kMaxButton,
                kIMUI.button_circle_exhaustion[i], kMaxButtonCircle);

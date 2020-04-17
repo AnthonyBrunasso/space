@@ -132,4 +132,17 @@ IntersectRect(const Rectf& a, const Rectf& b)
   return true;
 }
 
+// Check if a is full contained in b.
+bool
+IsContainedInRect(const Rectf& a, const Rectf& b)
+{
+  v2f amin = a.Min();
+  v2f amax = a.Max();
+  v2f bmin = b.Min();
+  v2f bmax = b.Max();
+  if (amin.x < bmin.x || amax.x > bmax.x) return false;
+  if (amin.y < bmin.y || amax.y > bmax.y) return false;
+  return true;
+}
+
 }  // namespace math

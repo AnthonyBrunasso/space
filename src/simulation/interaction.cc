@@ -594,6 +594,7 @@ ProcessSimulation(int player_index, uint64_t event_count,
       case MOUSE_POSITION: {
         imui::MousePosition(pevent->position, player_index);
       } break;
+      default: break;
     }
   }
   for (int i = 0; i < event_count; ++i) {

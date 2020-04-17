@@ -303,20 +303,7 @@ Render(uint32_t tag)
     rgg::RenderLineRectangle(
         pane->rect, 0.f, v4f(0.2f, 0.2f, 0.2f, 0.7f));
     if (pane->has_scroll_bar) {
-      Rectf scroll_bar(pane->rect.x + pane->rect.width - 15.f, pane->rect.y,
-                        15.f, pane->rect.height - pane->header_rect.height);
-      float hdiff = pane->theoretical_height - pane->rect.height;
-      float p_off = pane->rect.height / pane->theoretical_height;
-      float scroll_rect_height =
-          (pane->rect.height - pane->header_rect.height) * p_off;
-      Rectf scroll_cursor(scroll_bar);
-      scroll_cursor.height = scroll_rect_height;
-      scroll_cursor.y += (scroll_bar.height - scroll_rect_height);
-      float p_diff = pane->vertical_scroll /
-          (pane->theoretical_height - pane->rect.height);
-      float p_bar_diff_to_bot = fabs(scroll_cursor.y) - fabs(pane->rect.y);
-      scroll_cursor.y -= (p_bar_diff_to_bot * p_diff);
-      rgg::RenderRectangle(scroll_cursor, kScrollColor);
+      rgg::RenderRectangle(pane->scroll_rect, kScrollColor);
     }
   }
 
@@ -786,16 +773,40 @@ End()
   pane->header_rect.y =
       pane->rect.y + pane->rect.height - pane->header_rect.height;
   pane->header_rect.width = pane->rect.width;
+  bool scroll_highlighted =
+    pane->has_scroll_bar && IsRectPreviouslyHighlighted(pane->scroll_rect);
   // Move around panes if a user has click and held in them.
   if (kIMUI.begin_mode.start && IsMouseDown() &&
-      IsRectPreviouslyHighlighted(kIMUI.begin_mode.pane->rect)) {
+      IsRectPreviouslyHighlighted(kIMUI.begin_mode.pane->rect) &&
+      !scroll_highlighted) {
     *kIMUI.begin_mode.start += MouseDelta();
   }
   float d = GetMouseWheel();
-  if (CanScroll(*pane, d) && IsRectHighlighted(pane->rect) && d != 0.f) {
+  bool pane_highlighted = IsRectHighlighted(pane->rect);
+  if (CanScroll(*pane, d) && pane_highlighted && d != 0.f) {
     pane->vertical_scroll += d;
   }
+  ClampVerticalScroll();
   pane->has_scroll_bar = pane->theoretical_height > pane->rect.height;
+  if (pane->has_scroll_bar) {
+    Rectf scroll_bar(pane->rect.x + pane->rect.width - 15.f, pane->rect.y,
+                      15.f, pane->rect.height - pane->header_rect.height);
+    float hdiff = pane->theoretical_height - pane->rect.height;
+    float p_off = pane->rect.height / pane->theoretical_height;
+    float scroll_rect_height =
+        (pane->rect.height - pane->header_rect.height) * p_off;
+    Rectf scroll_cursor(scroll_bar);
+    scroll_cursor.height = scroll_rect_height;
+    scroll_cursor.y += (scroll_bar.height - scroll_rect_height);
+    float p_diff = pane->vertical_scroll /
+        (pane->theoretical_height - pane->rect.height);
+    float p_bar_diff_to_bot = fabs(scroll_cursor.y) - fabs(pane->rect.y);
+    scroll_cursor.y -= (p_bar_diff_to_bot * p_diff);
+    pane->scroll_rect = scroll_cursor;
+    if (IsMouseDown() && scroll_highlighted) {
+      pane->vertical_scroll -= MouseDelta().y;
+    }
+  }
   ClampVerticalScroll();
   kIMUI.begin_mode = {};
 }

@@ -292,9 +292,6 @@ void
 Render(uint32_t tag)
 {
   glDisable(GL_DEPTH_TEST);
-  // TODO(abrunasso): Use glScissor for clipping panes so that when scrolling
-  // text nicely gets clipped regardless of location in pane.
-  // https://www.khronos.org/registry/OpenGL-Refpages/es2.0/xhtml/glScissor.xml
   auto dims = window::GetWindowSize();
   rgg::ModifyObserver mod(math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f),
                           math::Identity());

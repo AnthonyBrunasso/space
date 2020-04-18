@@ -85,42 +85,74 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
 {
   static bool enable_debug = false;
   static v2f read_only_pos(3.f, screen.y);
+  static float right_align = 155.f;
   imui::PaneOptions options;
   imui::Begin("Diagnostics Debug", tag, options, &read_only_pos, &enable_debug);
   imui::TextOptions debug_options;
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
+  imui::ToggleSameLine();
+  imui::SetWidth(right_align);
+  imui::Text("Frame Time");
   snprintf(ui_buffer, sizeof(ui_buffer),
-           "Frame Time: %04.02f us [%02.02f%%] [%lu jerk] [%lu server_jerk]",
+           "%04.02f us [%02.02f%%] [%lu jerk] [%lu server_jerk]",
            StatsMean(&stats), 100.f * StatsUnbiasedRsDev(&stats), jerk,
            kNetworkState.server_jerk);
   imui::Text(ui_buffer);
+  imui::ToggleNewLine();
+  imui::ToggleSameLine();
+  imui::SetWidth(right_align);
+  imui::Text("Network Rtt");
   snprintf(ui_buffer, sizeof(ui_buffer),
-           "Network Rtt: [%06lu us to %06lu us] [%lu/%lu queue]",
+           "[%06lu us to %06lu us] [%lu/%lu queue]",
            kNetworkState.egress_min * frame_target_usec,
            kNetworkState.egress_max * frame_target_usec, frame_queue,
            MAX_NETQUEUE);
   imui::Text(ui_buffer);
+  imui::ToggleNewLine();
+  imui::ToggleSameLine();
+  imui::SetWidth(right_align);
+  imui::Text("Network ft");
   snprintf(ui_buffer, sizeof(ui_buffer), "Network ft: %04.02f mean [%02.02f%%]",
            StatsMean(&kNetworkStats),
            100.f * StatsUnbiasedRsDev(&kNetworkStats));
   imui::Text(ui_buffer);
+  imui::ToggleNewLine();
+  imui::ToggleSameLine();
+  imui::SetWidth(right_align);
+  imui::Text("Network rsdev");
   snprintf(ui_buffer, sizeof(ui_buffer),
-           "Network rsdev: [%04.02f 84th] [%04.02f 97th ] [%04.02f 99th]",
+           "[%04.02f 84th] [%04.02f 97th ] [%04.02f 99th]",
            StatsRsDev(&kNetworkStats) * 1, StatsRsDev(&kNetworkStats) * 2,
            StatsRsDev(&kNetworkStats) * 3);
   imui::Text(ui_buffer);
-  snprintf(ui_buffer, sizeof(ui_buffer), "Network Queue: %lu [%1.0fx rsdev]",
+  imui::ToggleNewLine();
+  imui::ToggleSameLine();
+  imui::SetWidth(right_align);
+  imui::Text("Network Queue");
+  snprintf(ui_buffer, sizeof(ui_buffer), "%lu [%1.0fx rsdev]",
            NetworkQueueGoal(), kNetworkState.rsdev_const);
   imui::Text(ui_buffer);
-  snprintf(ui_buffer, sizeof(ui_buffer), "Window Size: %04.0fx%04.0f", screen.x,
-           screen.y);
+  imui::ToggleNewLine();
+  imui::ToggleSameLine();
+  imui::SetWidth(right_align);
+  imui::Text("Window Size");
+  snprintf(ui_buffer, sizeof(ui_buffer), "%04.0fx%04.0f", screen.x, screen.y);
   imui::Text(ui_buffer);
-  snprintf(ui_buffer, sizeof(ui_buffer), "Input hash: 0x%lx", kDebugInputHash);
+  imui::ToggleNewLine();
+  imui::ToggleSameLine();
+  imui::SetWidth(right_align);
+  imui::Text("Input hash");
+  snprintf(ui_buffer, sizeof(ui_buffer), "0x%lx", kDebugInputHash);
   imui::Text(ui_buffer);
-  snprintf(ui_buffer, sizeof(ui_buffer), "Sim hash: 0x%lx",
-           kDebugSimulationHash);
+  imui::ToggleNewLine();
+  imui::ToggleSameLine();
+  imui::SetWidth(right_align);
+  imui::Text("Sim hash");
+  snprintf(ui_buffer, sizeof(ui_buffer), "0x%lx", kDebugSimulationHash);
   imui::Text(ui_buffer);
+  imui::ToggleNewLine();
+  imui::ToggleSameLine();
   const char* ui_err = imui::LastErrorString();
   if (ui_err) imui::Text(ui_err);
   imui::End();

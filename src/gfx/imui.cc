@@ -177,6 +177,7 @@ struct BeginMode {
   bool mouse_down;
   // A bit of a hack?
   bool ignore_vertical_scroll = false;
+  float overwrite_width;
   bool* show = nullptr;
   v2f* start = nullptr;
   Pane* pane;
@@ -444,6 +445,8 @@ UpdatePane(float width, float height, bool* element_in_pane)
   auto& begin_mode = kIMUI.begin_mode;
   assert(begin_mode.set);
   assert(begin_mode.pane);
+  if (begin_mode.overwrite_width) width = begin_mode.overwrite_width;
+  begin_mode.overwrite_width = 0.f;
   if (begin_mode.flow_switch || begin_mode.flow_type == kNewLine) {
     if (begin_mode.pos.y <= begin_mode.pane->rect.y) {
       begin_mode.pane->rect.y -= height;
@@ -657,6 +660,15 @@ ToggleSameLine()
   kIMUI.begin_mode.flow_type = kSameLine;
   kIMUI.begin_mode.flow_switch = true;
   kIMUI.begin_mode.x_reset = kIMUI.begin_mode.pos.x;
+}
+
+// Overwrite width to a certain value for the next imui call.
+void
+SetWidth(float width)
+{
+  assert(kIMUI.begin_mode.set);
+  IF_HIDDEN(return);
+  kIMUI.begin_mode.overwrite_width = width;
 }
 
 void

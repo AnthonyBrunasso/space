@@ -723,6 +723,7 @@ RenderProgressBar(const Rectf& rect, float z, float current_progress,
         rect.x, rect.y,
         rect.width * fmodf(current_progress, max_progress) / max_progress,
         rect.height);
+    if (current_progress == max_progress) fill_rect.width = rect.width;
     RenderRectangle(fill_rect, z, fill_color);
   }
 }

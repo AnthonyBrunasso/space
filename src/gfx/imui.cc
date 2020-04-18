@@ -207,7 +207,7 @@ DECLARE_2D_ARRAY(ButtonCircle, kMaxTags, 16);
 DECLARE_2D_ARRAY(MouseDown, kMaxTags, 8);
 DECLARE_2D_ARRAY(MouseUp, kMaxTags, 8);
 DECLARE_2D_ARRAY(MouseWheel, kMaxTags, 8);
-DECLARE_2D_ARRAY(ProgressBar, kMaxTags, 8);
+DECLARE_2D_ARRAY(ProgressBar, kMaxTags, 16);
 DECLARE_2D_ARRAY(MousePosition, kMaxTags, MAX_PLAYER);
 DECLARE_2D_ARRAY(LastMousePosition, kMaxTags, MAX_PLAYER);
 // Panes exist as a global UI element that persist per imui begin / end calls.

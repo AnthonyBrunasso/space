@@ -164,6 +164,54 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
 #endif
 }
 
+bool
+ReadOnlyEntity(int idx)
+{
+  Entity* entity = &kEntity[idx];
+  Unit* unit = i2Unit(idx);
+  Module* module = i2Module(idx);
+  const char* entity_type = unit ? "Unit" : module ? "Module" : "Unknown";
+  snprintf(ui_buffer, sizeof(ui_buffer), "%s %d", entity_type, entity->id);
+  imui::Text(ui_buffer);
+  bool highlighted = false;
+  imui::Indent(2);
+  if (entity) {
+    snprintf(ui_buffer, sizeof(ui_buffer), "tile %u %u", entity->tile.cx,
+             entity->tile.cy);
+    highlighted = imui::Text(ui_buffer).highlighted;
+    snprintf(ui_buffer, sizeof(ui_buffer), "position %04.0f %04.0f",
+             entity->position.x, entity->position.y);
+    imui::Text(ui_buffer);
+
+  }
+  if (unit) {
+    snprintf(ui_buffer, sizeof(ui_buffer), "action %d",
+             unit->uaction);
+    imui::Text(ui_buffer);
+    snprintf(ui_buffer, sizeof(ui_buffer), "persistent_action %d",
+             unit->persistent_uaction);
+    imui::Text(ui_buffer);
+    RenderBlackboard(unit);
+  }
+  if (module) {
+    snprintf(ui_buffer, sizeof(ui_buffer), "mkind %s", ModuleName(module->mkind));
+    imui::Text(ui_buffer);
+    imui::Text("build progress");
+    imui::Indent(1);
+    imui::ProgressBar(170.f, 5.f, module->frames_building, module->frames_to_build,
+                      v4f(0.f, 1.f, 0.f, .7f), v4f(.2f, .2f, .2f, 1.f));
+    imui::Indent(-1);
+    imui::Text("train progress");
+    imui::Indent(1);
+    imui::ProgressBar(170.f, 5.f, module->frames_training, module->frames_to_train,
+                      v4f(0.f, 1.f, 0.f, .7f), v4f(.2f, .2f, .2f, 1.f));
+    imui::Indent(-1);
+
+  }
+  imui::Indent(-2);
+  return highlighted;
+}
+
 void
 ReadOnlyEntityViewer(v2f screen, uint32_t tag)
 {
@@ -182,27 +230,9 @@ ReadOnlyEntityViewer(v2f screen, uint32_t tag)
                     v4f(.3f, .3f, .3f, 1.f));
   imui::Space(imui::kVertical, 5.f);
   for (int i = 0; i < kUsedEntity; ++i) {
-    snprintf(ui_buffer, sizeof(ui_buffer), "Entity %d", kEntity[i].id);
-    bool highlighted = imui::Text(ui_buffer).highlighted;
-    if (highlighted || kEntity[i].control || unit_debug) {
-      imui::Indent(2);
-      if (kEntity[i].type_id == kEeUnit) {
-        snprintf(ui_buffer, sizeof(ui_buffer), "tile %u %u", kEntity[i].tile.cx,
-                 kEntity[i].tile.cy);
-        imui::Text(ui_buffer);
-        snprintf(ui_buffer, sizeof(ui_buffer), "position %04.0f %04.0f",
-                 kEntity[i].position.x, kEntity[i].position.y);
-        imui::Text(ui_buffer);
-        snprintf(ui_buffer, sizeof(ui_buffer), "action %d",
-                 kEntity[i].unit.uaction);
-        imui::Text(ui_buffer);
-        snprintf(ui_buffer, sizeof(ui_buffer), "persistent_action %d",
-                 kEntity[i].unit.persistent_uaction);
-        imui::Text(ui_buffer);
-        RenderBlackboard(&kEntity[i].unit);
-      }
-      imui::Indent(-2);
-    }
+    imui::Indent(2);
+    bool highlighted = ReadOnlyEntity(i);
+    imui::Indent(-2);
     // Draws a red line cube around the entity.
     if (highlighted) {
       gfx::PushDebugCube(

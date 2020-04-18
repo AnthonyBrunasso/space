@@ -165,7 +165,7 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
 }
 
 void
-ReadOnlyUnits(v2f screen, uint32_t tag)
+ReadOnlyEntityViewer(v2f screen, uint32_t tag)
 {
   static bool unit_debug = false;
   static v2f unit_debug_pos(screen.x - 300.f, screen.y);
@@ -173,13 +173,17 @@ ReadOnlyUnits(v2f screen, uint32_t tag)
   options.width = 300.f;
   options.max_width = 300.f;
   options.max_height = 700.f;
-  imui::Begin("Unit Debug", tag, options, &unit_debug_pos, &unit_debug);
-  imui::TextOptions debug_options;
-  debug_options.color = gfx::kWhite;
-  debug_options.highlight_color = gfx::kRed;
+  imui::Begin("Entity Viewer", tag, options, &unit_debug_pos, &unit_debug);
+  snprintf(ui_buffer, sizeof(ui_buffer), "Entity Count (%u / %u)",
+           kUsedEntity, kMaxEntity);
+  imui::Text(ui_buffer);
+  imui::Space(imui::kVertical, 1.f);
+  imui::ProgressBar(200.f, 8.f, kUsedEntity, kMaxEntity, gfx::kRed,
+                    v4f(.3f, .3f, .3f, 1.f));
+  imui::Space(imui::kVertical, 5.f);
   for (int i = 0; i < kUsedEntity; ++i) {
     snprintf(ui_buffer, sizeof(ui_buffer), "Entity %d", kEntity[i].id);
-    bool highlighted = imui::Text(ui_buffer, debug_options).highlighted;
+    bool highlighted = imui::Text(ui_buffer).highlighted;
     if (highlighted || kEntity[i].control || unit_debug) {
       imui::Indent(2);
       if (kEntity[i].type_id == kEeUnit) {

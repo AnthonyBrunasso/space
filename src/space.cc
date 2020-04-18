@@ -317,7 +317,8 @@ main(int argc, char** argv)
                               kGameStats, kGameState.frame_target_usec,
                               kGameState.logic_updates,
                               kGameState.game_clock.jerk, frame_queue);
-    simulation::ReadOnlyUnits(window::GetWindowSize(), imui::kEveryoneTag);
+    simulation::ReadOnlyEntityViewer(
+        window::GetWindowSize(), imui::kEveryoneTag);
 
     gfx::Render(kNetworkState.player_index);
 #endif

@@ -173,6 +173,11 @@ Create(const char* name, int width, int height, bool fullscreen)
   ProcessSerialNumber psn = {0, kCurrentProcess};
   OSStatus status =
     TransformProcessType(&psn, kProcessTransformToForegroundApplication);
+
+  // Bring window to forefront.
+  NSApplication* app = [NSApplication sharedApplication];
+  [app activateIgnoringOtherApps:YES];
+
   return 1;
 }
 

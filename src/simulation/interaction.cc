@@ -174,7 +174,7 @@ ReadOnlyEntityViewer(v2f screen, uint32_t tag)
   options.max_width = 300.f;
   options.max_height = 700.f;
   imui::Begin("Entity Viewer", tag, options, &unit_debug_pos, &unit_debug);
-  snprintf(ui_buffer, sizeof(ui_buffer), "Entity Count (%u / %u)",
+  snprintf(ui_buffer, sizeof(ui_buffer), "Entity Capacity (%u / %u)",
            kUsedEntity, kMaxEntity);
   imui::Text(ui_buffer);
   imui::Space(imui::kVertical, 1.f);

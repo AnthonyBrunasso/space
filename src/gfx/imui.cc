@@ -24,6 +24,7 @@ constexpr int kClickForFrames = 100;
 
 constexpr float kTextScale = 0.8f;
 constexpr float kScrollBarWidth = 15.f;
+constexpr float kCheckboxOffset = 2.f;
 
 static const v4f kWhite(1.f, 1.f, 1.f, 1.f);
 static const v4f kPaneColor(0.0f, 0.0f, 0.0f, 0.4f);
@@ -32,6 +33,8 @@ static const v4f kScrollColor(0.32f, 0.36f, 0.354f, .4f);
 static const v4f kScrollHighlightedColor(0.32f, 0.36f, 0.354f, .55f);
 static const v4f kScrollSelectedColor(0.32f, 0.36f, 0.354f, .7f);
 static const v4f kHeaderMinimizeColor(0.45f, 0.68f, 0.906f, 0.7f);
+static const v4f kCheckboxColor(0.32f, 0.36f, 0.54f, 1.0f);
+static const v4f kCheckboxCheckedColor(0.32f, 0.36f, 0.954f, 1.f);
 
 struct Result {
   Result() = default;
@@ -144,6 +147,12 @@ struct ProgressBar {
   Pane* pane;
 };
 
+struct Checkbox {
+  Rectf rect;
+  bool checked;
+  Pane* pane;
+};
+
 // imui metadata.
 
 struct MouseDown {
@@ -204,6 +213,7 @@ DECLARE_2D_ARRAY(Text, kMaxTags, 128);
 DECLARE_2D_ARRAY(Line, kMaxTags, 32);
 DECLARE_2D_ARRAY(Button, kMaxTags, 16);
 DECLARE_2D_ARRAY(ButtonCircle, kMaxTags, 16);
+DECLARE_2D_ARRAY(Checkbox, kMaxTags, 16);
 DECLARE_2D_ARRAY(MouseDown, kMaxTags, 8);
 DECLARE_2D_ARRAY(MouseUp, kMaxTags, 8);
 DECLARE_2D_ARRAY(MouseWheel, kMaxTags, 8);
@@ -232,6 +242,7 @@ ResetAll()
   memset(kUsedText, 0, sizeof(kUsedText));
   memset(kUsedButton, 0, sizeof(kUsedButton));
   memset(kUsedButtonCircle, 0, sizeof(kUsedButton));
+  memset(kUsedCheckbox, 0, sizeof(kUsedCheckbox));
   memset(kUsedMouseDown, 0, sizeof(kUsedMouseDown));
   memset(kUsedMouseUp, 0, sizeof(kUsedMouseUp));
   memset(kUsedMousePosition, 0, sizeof(kUsedMousePosition));
@@ -247,6 +258,7 @@ ResetTag(uint32_t tag)
   GenerateUIMetadata(tag);
   kUsedText[tag] = 0;
   kUsedButton[tag] = 0;
+  kUsedButtonCircle[tag] = 0;
   kUsedButtonCircle[tag] = 0;
   kUsedMouseDown[tag] = 0;
   kUsedMouseUp[tag] = 0;
@@ -329,6 +341,20 @@ Render(uint32_t tag)
     SetScissorWithPane(*button->pane, dims,
                        button->options.ignore_scissor_test);
     rgg::RenderCircle(button->position, button->radius, button->color);
+  }
+
+  for (int i = 0; i < kUsedCheckbox[tag]; ++i) {
+    Checkbox* cb = &kCheckbox[tag][i];
+    SetScissorWithPane(*cb->pane, dims, false);
+    rgg::RenderLineRectangle(cb->rect, 0.f, kCheckboxColor);
+    if (cb->checked) {
+      Rectf crect(cb->rect);
+      crect.width /= 1.25f;
+      crect.height /= 1.25f;
+      crect.x  += (cb->rect.width - crect.width) / 2.f;
+      crect.y  += (cb->rect.height - crect.height) / 2.f;
+      rgg::RenderRectangle(crect, 0.f, kCheckboxCheckedColor);
+    }
   }
 
   for (int i = 0; i < kUsedText[tag]; ++i) {
@@ -629,6 +655,28 @@ ButtonCircle(float radius, const v4f& color)
 {
   ButtonCircleOptions options;
   return ButtonCircle(radius, color, options);
+}
+
+Result
+Checkbox(float width, float height, bool* checked)
+{
+  assert(kIMUI.begin_mode.set);
+  Result result;
+  IF_HIDDEN(return result);
+  uint32_t tag = kIMUI.begin_mode.tag;
+  bool in_pane = false;
+  Rectf rect = UpdatePane(width, height, &in_pane);
+  if (!in_pane) return result;
+  struct Checkbox* checkbox = UseCheckbox(tag);
+  if (!checkbox) {
+    imui_errno = 3;
+    return result;
+  }
+  checkbox->rect = rect;
+  if (IsRectClicked(rect)) (*checked) = !(*checked);
+  checkbox->checked = *checked;
+  checkbox->pane = kIMUI.begin_mode.pane;
+  return IMUI_RESULT(checkbox->rect);
 }
 
 Result

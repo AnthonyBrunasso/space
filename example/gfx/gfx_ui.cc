@@ -41,6 +41,8 @@ TextTest()
     //imui::HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));
     imui::Text("Panes");
     //imui::HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));
+    static bool checked = false;
+    imui::Checkbox(16.f, 16.f, &checked);
     imui::Text("Seperated");
     imui::Text("By a line!");
     imui::SameLine();
@@ -49,7 +51,7 @@ TextTest()
     imui::Text("the ");
     imui::Text("same ");
     imui::Text("line ");
-    imui::Button(25, 25, v4f(1.f, 0.5f, 0.3f, 1.f));
+    imui::Button(26, 26, v4f(1.f, 0.5f, 0.3f, 1.f));
     imui::NewLine();
     imui::Text("Next line...");
     imui::SameLine();

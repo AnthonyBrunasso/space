@@ -165,11 +165,14 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
 }
 
 bool
-EntityView(int idx, Player* player)
+EntityView(int idx, Player* player, bool show_modules, bool show_units)
 {
   Entity* entity = &kEntity[idx];
   Unit* unit = i2Unit(idx);
   Module* module = i2Module(idx);
+  if (module && !show_modules) return false;
+  if (unit && !show_units) return false;
+
   const char* entity_type = unit ? "Unit" : module ? "Module" : "Unknown";
   snprintf(ui_buffer, sizeof(ui_buffer), "%s %d", entity_type, entity->id);
   imui::TextOptions toptions;
@@ -188,7 +191,7 @@ EntityView(int idx, Player* player)
     imui::Text(ui_buffer);
 
   }
-  if (unit) {
+  if (show_units && unit) {
     snprintf(ui_buffer, sizeof(ui_buffer), "action %d",
              unit->uaction);
     imui::Text(ui_buffer);
@@ -197,7 +200,7 @@ EntityView(int idx, Player* player)
     imui::Text(ui_buffer);
     RenderBlackboard(unit);
   }
-  if (module) {
+  if (show_modules && module) {
     snprintf(ui_buffer, sizeof(ui_buffer), "mkind %s", ModuleName(module->mkind));
     imui::Text(ui_buffer);
 #if 0
@@ -235,9 +238,24 @@ EntityViewer(v2f screen, uint32_t tag, Player* player)
   imui::ProgressBar(200.f, 8.f, kUsedEntity, kMaxEntity, gfx::kRed,
                     v4f(.3f, .3f, .3f, 1.f));
   imui::Space(imui::kVertical, 5.f);
+  imui::Text("Filter");
+  imui::Indent(2);
+  imui::SameLine();
+  static bool show_modules = true;
+  imui::SetWidth(100.f);
+  imui::Text("Modules");
+  imui::Checkbox(16.f, 16.f, &show_modules);
+  imui::NewLine();
+  imui::SameLine();
+  static bool show_units = true;
+  imui::SetWidth(100.f);
+  imui::Text("Units");
+  imui::Checkbox(16.f, 16.f, &show_units);
+  imui::NewLine();
+  imui::Indent(-2);
   for (int i = 0; i < kUsedEntity; ++i) {
     // Draws a red line cube around the entity.
-    if (EntityView(i, player)) {
+    if (EntityView(i, player, show_modules, show_units)) {
       gfx::PushDebugCube(
           Cubef(
               kEntity[i].position + v3f(0.f, 0.f, kEntity[i].bounds.z / 2.f),

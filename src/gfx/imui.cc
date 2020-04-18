@@ -260,6 +260,7 @@ ResetTag(uint32_t tag)
   kUsedButton[tag] = 0;
   kUsedButtonCircle[tag] = 0;
   kUsedButtonCircle[tag] = 0;
+  kUsedCheckbox[tag] = 0;
   kUsedMouseDown[tag] = 0;
   kUsedMouseUp[tag] = 0;
   kUsedMousePosition[tag] = 0;

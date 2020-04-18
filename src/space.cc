@@ -300,6 +300,8 @@ main(int argc, char** argv)
         simulation::AdminPanel(dims, i, player);
         simulation::TilePanel(dims, i, player);
         simulation::GameUI(dims, i, i, player);
+        simulation::EntityViewer(
+          window::GetWindowSize(), i, player);
       }
 #endif
 
@@ -317,9 +319,7 @@ main(int argc, char** argv)
                               kGameStats, kGameState.frame_target_usec,
                               kGameState.logic_updates,
                               kGameState.game_clock.jerk, frame_queue);
-    simulation::ReadOnlyEntityViewer(
-        window::GetWindowSize(), imui::kEveryoneTag);
-
+    
     gfx::Render(kNetworkState.player_index);
 #endif
 

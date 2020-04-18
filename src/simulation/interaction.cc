@@ -165,20 +165,24 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
 }
 
 bool
-ReadOnlyEntity(int idx)
+EntityView(int idx, Player* player)
 {
   Entity* entity = &kEntity[idx];
   Unit* unit = i2Unit(idx);
   Module* module = i2Module(idx);
   const char* entity_type = unit ? "Unit" : module ? "Module" : "Unknown";
   snprintf(ui_buffer, sizeof(ui_buffer), "%s %d", entity_type, entity->id);
-  imui::Text(ui_buffer);
-  bool highlighted = false;
+  imui::TextOptions toptions;
+  toptions.highlight_color = gfx::kRed;
+  imui::Result imresult = imui::Text(ui_buffer, toptions);
+  if (imresult.clicked) {
+    camera::Move(&player->camera, entity->position);
+  }
   imui::Indent(2);
   if (entity) {
     snprintf(ui_buffer, sizeof(ui_buffer), "tile %u %u", entity->tile.cx,
              entity->tile.cy);
-    highlighted = imui::Text(ui_buffer).highlighted;
+    imui::Text(ui_buffer);
     snprintf(ui_buffer, sizeof(ui_buffer), "position %04.0f %04.0f",
              entity->position.x, entity->position.y);
     imui::Text(ui_buffer);
@@ -196,24 +200,26 @@ ReadOnlyEntity(int idx)
   if (module) {
     snprintf(ui_buffer, sizeof(ui_buffer), "mkind %s", ModuleName(module->mkind));
     imui::Text(ui_buffer);
-    imui::Text("build progress");
-    imui::Indent(1);
+#if 0
+    // Not super useful right now.
+    imui::SameLine();
+    imui::Text("build");
     imui::ProgressBar(170.f, 5.f, module->frames_building, module->frames_to_build,
                       v4f(0.f, 1.f, 0.f, .7f), v4f(.2f, .2f, .2f, 1.f));
-    imui::Indent(-1);
-    imui::Text("train progress");
-    imui::Indent(1);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Text("train");
     imui::ProgressBar(170.f, 5.f, module->frames_training, module->frames_to_train,
                       v4f(0.f, 1.f, 0.f, .7f), v4f(.2f, .2f, .2f, 1.f));
-    imui::Indent(-1);
-
+    imui::NewLine();
+#endif
   }
   imui::Indent(-2);
-  return highlighted;
+  return imresult.highlighted;
 }
 
 void
-ReadOnlyEntityViewer(v2f screen, uint32_t tag)
+EntityViewer(v2f screen, uint32_t tag, Player* player)
 {
   static bool unit_debug = false;
   static v2f unit_debug_pos(screen.x - 300.f, screen.y);
@@ -230,11 +236,8 @@ ReadOnlyEntityViewer(v2f screen, uint32_t tag)
                     v4f(.3f, .3f, .3f, 1.f));
   imui::Space(imui::kVertical, 5.f);
   for (int i = 0; i < kUsedEntity; ++i) {
-    imui::Indent(2);
-    bool highlighted = ReadOnlyEntity(i);
-    imui::Indent(-2);
     // Draws a red line cube around the entity.
-    if (highlighted) {
+    if (EntityView(i, player)) {
       gfx::PushDebugCube(
           Cubef(
               kEntity[i].position + v3f(0.f, 0.f, kEntity[i].bounds.z / 2.f),

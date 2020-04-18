@@ -23,6 +23,7 @@ constexpr int kMaxTextSize = 128;
 constexpr int kClickForFrames = 100;
 
 constexpr float kTextScale = 0.8f;
+constexpr float kScrollBarWidth = 15.f;
 
 static const v4f kWhite(1.f, 1.f, 1.f, 1.f);
 static const v4f kPaneColor(0.0f, 0.0f, 0.0f, 0.4f);
@@ -270,14 +271,6 @@ SetScissorWithPane(const Pane& pane, const v2f& viewport, bool ignore_scissor)
     glScissor(pane.rect.x, pane.rect.y, pane.rect.width,
               pane.rect.height - pane.header_rect.height);
   }
-}
-
-void
-ResetRenderData(uint32_t tag)
-{
-  kIMUI.text_exhaustion[tag] = 0;
-  kIMUI.button_exhaustion[tag] = 0;
-  kIMUI.button_circle_exhaustion[tag] = 0;
 }
 
 void
@@ -789,8 +782,9 @@ End()
   ClampVerticalScroll();
   pane->has_scroll_bar = pane->theoretical_height > pane->rect.height;
   if (pane->has_scroll_bar) {
-    Rectf scroll_bar(pane->rect.x + pane->rect.width - 15.f, pane->rect.y,
-                      15.f, pane->rect.height - pane->header_rect.height);
+    Rectf scroll_bar(
+        pane->rect.x + pane->rect.width - kScrollBarWidth, pane->rect.y,
+        kScrollBarWidth, pane->rect.height - pane->header_rect.height);
     float hdiff = pane->theoretical_height - pane->rect.height;
     float p_off = pane->rect.height / pane->theoretical_height;
     float scroll_rect_height =

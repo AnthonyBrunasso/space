@@ -28,7 +28,7 @@ constexpr float kScrollBarWidth = 15.f;
 static const v4f kWhite(1.f, 1.f, 1.f, 1.f);
 static const v4f kPaneColor(0.0f, 0.0f, 0.0f, 0.4f);
 static const v4f kPaneHeaderColor(0.12f, 0.16f, 0.154f, 1.f);
-static const v4f kScrollColor(0.32f, 0.36f, 0.354f, .7f);
+static const v4f kScrollColor(0.32f, 0.36f, 0.354f, .4f);
 static const v4f kHeaderMinimizeColor(0.45f, 0.68f, 0.906f, 0.7f);
 
 struct Result {

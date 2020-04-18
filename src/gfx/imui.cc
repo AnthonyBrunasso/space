@@ -98,6 +98,7 @@ struct Pane {
   bool hidden = false;
   bool debug_show_details = false;
   bool has_scroll_bar = false;
+  bool is_scrolling = false;
   Rectf scroll_rect;
   char title[kMaxHashKeyLength];
 };
@@ -779,12 +780,10 @@ End()
   pane->header_rect.y =
       pane->rect.y + pane->rect.height - pane->header_rect.height;
   pane->header_rect.width = pane->rect.width;
-  bool scroll_highlighted =
-    pane->has_scroll_bar && IsRectPreviouslyHighlighted(pane->scroll_rect);
   // Move around panes if a user has click and held in them.
   if (kIMUI.begin_mode.start && IsMouseDown() &&
       IsRectPreviouslyHighlighted(kIMUI.begin_mode.pane->rect) &&
-      !scroll_highlighted) {
+      !pane->is_scrolling) {
     *kIMUI.begin_mode.start += MouseDelta();
   }
   float d = GetMouseWheel();
@@ -810,7 +809,7 @@ End()
     float p_bar_diff_to_bot = fabs(scroll_cursor.y) - fabs(pane->rect.y);
     scroll_cursor.y -= (p_bar_diff_to_bot * p_diff);
     pane->scroll_rect = scroll_cursor;
-    if (IsMouseDown() && scroll_highlighted) {
+    if (pane->is_scrolling) {
       float bar_to_bot = pane->scroll_rect.y - pane->rect.y;
       float vscroll_to_bot =
           pane->theoretical_height - pane->rect.height - pane->vertical_scroll;
@@ -868,6 +867,15 @@ MouseDown(v2f pos, PlatformButton b, uint32_t tag)
   click->pos = pos;
   click->button = b;
   kIMUI.mouse_down[tag] = true;
+  for (int i = 0; i < kUsedPane; ++i) {
+    Pane* pane = &kPane[i];
+    if (pane->tag != tag) continue;
+    if (!pane->has_scroll_bar) continue;
+    if (math::PointInRect(pos, pane->scroll_rect)) {
+      pane->is_scrolling = true;
+      break;
+    }
+  }
 }
 
 void
@@ -881,6 +889,12 @@ MouseUp(v2f pos, PlatformButton b, uint32_t tag)
   click->pos = pos;
   click->button = b;
   kIMUI.mouse_down[tag] = false;
+  for (int i = 0; i < kUsedPane; ++i) {
+    Pane* pane = &kPane[i];
+    if (pane->tag != tag) continue;
+    if (!pane->has_scroll_bar) continue;
+    pane->is_scrolling = false;
+  }
 }
 
 void

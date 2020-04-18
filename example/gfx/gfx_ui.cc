@@ -38,28 +38,28 @@ TextTest()
     imui::Begin("scroll test", 0, pane_options, &pos, &show);
     imui::Text("Some text");
     imui::Text("That is going to be");
-    imui::HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));
+    //imui::HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));
     imui::Text("Panes");
-    imui::HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));
+    //imui::HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));
     imui::Text("Seperated");
     imui::Text("By a line!");
-    imui::ToggleSameLine();
+    imui::SameLine();
     imui::Text("This ");
     imui::Text("is ");
     imui::Text("the ");
     imui::Text("same ");
     imui::Text("line ");
     imui::Button(25, 25, v4f(1.f, 0.5f, 0.3f, 1.f));
-    imui::ToggleNewLine();
+    imui::NewLine();
     imui::Text("Next line...");
-    imui::ToggleSameLine();
+    imui::SameLine();
     if (imui::ButtonCircle(15.f, v4f(1.f, 0.f, 0.f, 1.f)).clicked) {
       imui::VerticalScrollDelta(-1.f);
     }
     if (imui::ButtonCircle(15.f, v4f(0.f, 0.f, 1.f, 1.f)).clicked) {
       imui::VerticalScrollDelta(1.f);
     }
-    imui::ToggleNewLine();
+    imui::NewLine();
     imui::Text("Stuff.");
     imui::Text("Stuff.");
     imui::Text("Stuff.");

@@ -765,7 +765,8 @@ ClampVerticalScroll()
   // Clamp the vertical scroll to the min and max possible scroll.
   if (pane->vertical_scroll < 0.f) pane->vertical_scroll = 0.f;
   if (pane->rect.height + pane->vertical_scroll > pane->theoretical_height) {
-    pane->vertical_scroll = pane->theoretical_height - pane->rect.height;
+    // HACK: - .1f to allow scrolling up once the bar has reached the bottom.
+    pane->vertical_scroll = (pane->theoretical_height - pane->rect.height) - .1f;
   }
 }
 
@@ -810,7 +811,13 @@ End()
     scroll_cursor.y -= (p_bar_diff_to_bot * p_diff);
     pane->scroll_rect = scroll_cursor;
     if (IsMouseDown() && scroll_highlighted) {
-      pane->vertical_scroll -= MouseDelta().y;
+      float bar_to_bot = pane->scroll_rect.y - pane->rect.y;
+      float vscroll_to_bot =
+          pane->theoretical_height - pane->rect.height - pane->vertical_scroll;
+      if (vscroll_to_bot > FLT_EPSILON) {
+        pane->vertical_scroll -= math::ScaleRange(
+            MouseDelta().y, bar_to_bot, vscroll_to_bot);
+      }
     }
   }
   ClampVerticalScroll();

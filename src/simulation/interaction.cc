@@ -311,26 +311,26 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
   imui::TextOptions text_options;
   text_options.color = gfx::kWhite;
   text_options.highlight_color = gfx::kRed;
-  snprintf(ui_buffer, sizeof(ui_buffer), "Render Grid: %s",
-           gfx::kRenderGrid ? "Enabled" : "Disabled");
-  if (imui::Text(ui_buffer, text_options).clicked) {
-    gfx::kRenderGrid = !gfx::kRenderGrid;
-  }
-  snprintf(ui_buffer, sizeof(ui_buffer), "Render Path: %s",
-           gfx::kRenderPath ? "Enabled" : "Disabled");
-  if (imui::Text(ui_buffer, text_options).clicked) {
-    gfx::kRenderPath = !gfx::kRenderPath;
-  }
-  snprintf(ui_buffer, sizeof(ui_buffer), "Render Cam Target: %s",
-           camera::kShowCameraDebugTarget ? "Enabled" : "Disabled");
-  if (imui::Text(ui_buffer, text_options).clicked) {
-    camera::kShowCameraDebugTarget = !camera::kShowCameraDebugTarget;
-  }
-  snprintf(ui_buffer, sizeof(ui_buffer), "Mineral Cheat: %s",
-           player->mineral_cheat ? "Enabled" : "Disabled");
-  if (imui::Text(ui_buffer, text_options).clicked) {
-    player->mineral_cheat = !player->mineral_cheat;
-  }
+  imui::SameLine();
+  imui::SetWidth(160.f);
+  imui::Text("Render Grid");
+  imui::Checkbox(16.f, 16.f, &gfx::kRenderGrid);
+  imui::NewLine();
+  imui::SameLine();
+  imui::SetWidth(160.f);
+  imui::Text("Render Path");
+  imui::Checkbox(16.f, 16.f, &gfx::kRenderPath);
+  imui::NewLine();
+  imui::SameLine();
+  imui::SetWidth(160.f);
+  imui::Text("Render Cam Tgt");
+  imui::Checkbox(16.f, 16.f, &camera::kShowCameraDebugTarget);
+  imui::NewLine();
+  imui::SameLine();
+  imui::SetWidth(160.f);
+  imui::Text("Mineral Cheat");
+  imui::Checkbox(16.f, 16.f, &player->mineral_cheat);
+  imui::NewLine();
   if (imui::Text("Spawn Unit Cheat", text_options).clicked) {
     v2f pos = math::RandomPointInRect(ShipBounds(player - kPlayer));
     SpawnCrew(ToShip(player->ship_index, pos), player - kPlayer);

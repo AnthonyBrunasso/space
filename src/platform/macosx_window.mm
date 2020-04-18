@@ -71,6 +71,7 @@ acceptsFirstResponder
 {
   return YES;
 }
+
 @end
 
 namespace window
@@ -145,6 +146,12 @@ Create(const char* name, int width, int height, bool fullscreen)
   [kWindow.nswindow center];
   [kWindow.nswindow makeKeyAndOrderFront:nil];
   [kWindow.nswindow setAcceptsMouseMovedEvents:YES];
+  if (fullscreen) {
+    [kWindow.nswindow
+        setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+    [kWindow.nswindow toggleFullScreen:nil];
+    [NSMenu setMenuBarVisible:NO];
+  }
 
   [kWindow.gl_context makeCurrentContext];
   [kWindow.gl_context setView:kWindow.nsview];

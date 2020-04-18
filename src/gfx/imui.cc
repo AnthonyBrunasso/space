@@ -702,9 +702,9 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
   begin_mode.tag = tag;
   begin_mode.x_reset = start->x;
   begin_mode.start = start;
-  begin_mode.pane = FindPane(title, title_with_tag_len);
+  begin_mode.pane = FindPane(title_with_tag, title_with_tag_len);
   if (!begin_mode.pane) {
-    begin_mode.pane = UsePane(title, title_with_tag_len);
+    begin_mode.pane = UsePane(title_with_tag, title_with_tag_len);
   }
   uint32_t title_len = strlen(begin_mode.pane->title);
   strcpy(begin_mode.pane->title, title);

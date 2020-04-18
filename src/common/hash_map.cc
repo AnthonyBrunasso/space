@@ -16,7 +16,7 @@ CompareHashMapEntry(const char* str, uint32_t len,
                     const HashMapStrEntry& entry)
 {
   if (len != entry.len) return false;
-  return memcmp(str, entry.str, len) == 0;
+  return strncmp(str, entry.str, len) == 0;
 }
 
 uint32_t
@@ -24,7 +24,7 @@ GetHash(const char* str, uint32_t len)
 {
   // djb2_hash_more collides a lot for some reason - using this instead.
   // Call imui::DebugPane to see hash collisions on panes.
-  int hash = 7;
+  uint32_t hash = 7;
   for (int i = 0; i < len; ++i) {
     hash = hash * 31 + str[i];
   }

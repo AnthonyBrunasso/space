@@ -653,7 +653,7 @@ ProgressBar(float width, float height, float current_progress,
 }
 
 void
-ToggleSameLine()
+SameLine()
 {
   assert(kIMUI.begin_mode.set);
   IF_HIDDEN(return);
@@ -672,7 +672,7 @@ SetWidth(float width)
 }
 
 void
-ToggleNewLine()
+NewLine()
 {
   assert(kIMUI.begin_mode.set);
   IF_HIDDEN(return);
@@ -710,7 +710,7 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
   strcpy(begin_mode.pane->title, title);
   // Header. TODO(abrunasso): imui now relies on hashing header title for pane
   // persistence - but it is worth adding a pane option to hide it here.
-  ToggleSameLine();
+  SameLine();
   begin_mode.pos.x += 5.f;
   Rectf t = rgg::GetTextRect(title, title_len, *start, kTextScale);
   begin_mode.pane->tag = tag;
@@ -737,7 +737,7 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
   Rectf trect = Text(title, text_options).rect;
   begin_mode.ignore_vertical_scroll = false;
   begin_mode.pane->header_rect.height = trect.height;
-  ToggleNewLine();
+  NewLine();
   if (show) begin_mode.show = show;
 }
 
@@ -991,14 +991,14 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
   
   // This needs to run last else MouseInUI won't run correctly against this
   // panels bounds...
-  ToggleSameLine();
+  SameLine();
   Text("Mouse in UI ");
   for (int i = 0; i < kMaxTags; ++i) {
     snprintf(buffer, 64, "(tag:%i, in_ui:%u) ", i, imui::MouseInUI(mouse_pos, i));
     Text(buffer);
   }
   Text(")");
-  ToggleNewLine();
+  NewLine();
   End();
 }
 

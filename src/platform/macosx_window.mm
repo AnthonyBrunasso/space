@@ -4,14 +4,8 @@
 #import <OpenGL/OpenGL.h>
 #import <OpenGL/gl3.h>
 
-@interface OpenGLView : NSView {
-@private
-  NSOpenGLContext* gl_context_;
-}
-
-  //@property (readonly, retain) NSOpenGLContext* gl_context;
+@interface OpenGLView : NSView
 - (id) init;
-- (id) initWithFrame:(NSRect)rect glContext:(NSOpenGLContext*)ctx;
 - (BOOL) isOpaque;
 - (BOOL) canBecomeKeyView;
 - (BOOL) acceptsFirstResponder;
@@ -22,16 +16,6 @@
 init
 {
   return nil;
-}
-
-- (id)
-initWithFrame:(NSRect)rect glContext:(NSOpenGLContext*)ctx
-{
-  self = [super initWithFrame:rect];
-  if (self == nil)
-    return nil;
-  gl_context_ = ctx;
-  return self;
 }
 
 - (BOOL)
@@ -55,6 +39,9 @@ acceptsFirstResponder
 - (void)
 keyDown:(NSEvent*)theEvent
 {
+  // Capture this event and do nothing with it because the default behavior
+  // is to make some macos specific noise that indicates the user did something
+  // incorrectly - or the app performed no action. It kinda sounds like <bloop>.
 }
 
 @end
@@ -90,10 +77,6 @@ namespace window
 {
 
 struct Window {
-  // TODO: Verify this is needed. Likely doesn't matter though since
-  // few allocations should be going on in here.
-  NSAutoreleasePool* nspool;
-
   NSView* nsview;
 
   NSWindow* nswindow;
@@ -147,8 +130,7 @@ Create(const char* name, int width, int height, bool fullscreen)
                             NSClosableWindowMask |
                             NSWindowStyleMaskResizable;
   kWindow.nsview = [[OpenGLView alloc]
-                  initWithFrame:NSMakeRect(0,0, width, height)
-                      glContext:kWindow.gl_context]; // TODO: Remove context.
+                  initWithFrame:NSMakeRect(0,0, width, height)];
 
   kWindow.nswindow = [[BaseWindow alloc]
                       initWithContentRect:[kWindow.nsview frame]

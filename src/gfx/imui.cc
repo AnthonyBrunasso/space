@@ -29,6 +29,8 @@ static const v4f kWhite(1.f, 1.f, 1.f, 1.f);
 static const v4f kPaneColor(0.0f, 0.0f, 0.0f, 0.4f);
 static const v4f kPaneHeaderColor(0.12f, 0.16f, 0.154f, 1.f);
 static const v4f kScrollColor(0.32f, 0.36f, 0.354f, .4f);
+static const v4f kScrollHighlightedColor(0.32f, 0.36f, 0.354f, .55f);
+static const v4f kScrollSelectedColor(0.32f, 0.36f, 0.354f, .7f);
 static const v4f kHeaderMinimizeColor(0.45f, 0.68f, 0.906f, 0.7f);
 
 struct Result {
@@ -275,6 +277,17 @@ SetScissorWithPane(const Pane& pane, const v2f& viewport, bool ignore_scissor)
   }
 }
 
+bool
+IsRectHighlighted(Rectf rect)
+{
+  uint32_t tag = kIMUI.begin_mode.tag;
+  for (int i = 0; i < kUsedMousePosition[tag]; ++i) {
+    MousePosition* mp = &kMousePosition[tag][i];
+    if (math::PointInRect(mp->pos, rect)) return true;
+  }
+  return false;
+}
+
 void
 Render(uint32_t tag)
 {
@@ -298,7 +311,13 @@ Render(uint32_t tag)
     rgg::RenderLineRectangle(
         pane->rect, 0.f, v4f(0.2f, 0.2f, 0.2f, 0.7f));
     if (pane->has_scroll_bar) {
-      rgg::RenderRectangle(pane->scroll_rect, kScrollColor);
+      if (pane->is_scrolling) {
+        rgg::RenderRectangle(pane->scroll_rect, kScrollSelectedColor);
+      } else if (IsRectHighlighted(pane->scroll_rect)) {
+        rgg::RenderRectangle(pane->scroll_rect, kScrollHighlightedColor);
+      } else {
+        rgg::RenderRectangle(pane->scroll_rect, kScrollColor);
+      }
     }
   }
 
@@ -359,17 +378,6 @@ GetMousePosition()
   uint32_t tag = kIMUI.begin_mode.tag;
   if (!kUsedMousePosition[tag]) return {};
   return kMousePosition[tag][0].pos;
-}
-
-bool
-IsRectHighlighted(Rectf rect)
-{
-  uint32_t tag = kIMUI.begin_mode.tag;
-  for (int i = 0; i < kUsedMousePosition[tag]; ++i) {
-    MousePosition* mp = &kMousePosition[tag][i];
-    if (math::PointInRect(mp->pos, rect)) return true;
-  }
-  return false;
 }
 
 bool

@@ -165,14 +165,16 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
 }
 
 bool
-EntityView(int idx, Player* player, bool show_modules, bool show_units)
+EntityView(int idx, Player* player, uint32_t player_index,
+           bool show_modules, bool show_units, bool show_selected)
 {
   Entity* entity = &kEntity[idx];
   Unit* unit = i2Unit(idx);
   Module* module = i2Module(idx);
   if (module && !show_modules) return false;
   if (unit && !show_units) return false;
-
+  if (show_selected && (entity->control & (1 << player_index)) == 0)
+    return false;
   const char* entity_type = unit ? "Unit" : module ? "Module" : "Unknown";
   snprintf(ui_buffer, sizeof(ui_buffer), "%s %d", entity_type, entity->id);
   imui::TextOptions toptions;
@@ -252,10 +254,17 @@ EntityViewer(v2f screen, uint32_t tag, Player* player)
   imui::Text("Units");
   imui::Checkbox(16.f, 16.f, &show_units);
   imui::NewLine();
+  imui::SameLine();
+  static bool show_selected = false;
+  imui::SetWidth(100.f);
+  imui::Text("Selected");
+  imui::Checkbox(16.f, 16.f, &show_selected);
+  imui::NewLine();
   imui::Indent(-2);
   for (int i = 0; i < kUsedEntity; ++i) {
     // Draws a red line cube around the entity.
-    if (EntityView(i, player, show_modules, show_units)) {
+    // NOTE: assuming tag == player_index
+    if (EntityView(i, player, tag, show_modules, show_units, show_selected)) {
       gfx::PushDebugCube(
           Cubef(
               kEntity[i].position + v3f(0.f, 0.f, kEntity[i].bounds.z / 2.f),

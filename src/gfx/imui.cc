@@ -35,6 +35,7 @@ static const v4f kScrollSelectedColor(0.32f, 0.36f, 0.354f, .7f);
 static const v4f kHeaderMinimizeColor(0.45f, 0.68f, 0.906f, 0.7f);
 static const v4f kCheckboxColor(0.32f, 0.36f, 0.54f, 1.0f);
 static const v4f kCheckboxCheckedColor(0.32f, 0.36f, 0.954f, 1.f);
+static const v4f kCheckboxHighlightedColor(0.32f, 0.36f, 0.954f, .3f);
 
 struct Result {
   Result() = default;
@@ -150,6 +151,7 @@ struct ProgressBar {
 struct Checkbox {
   Rectf rect;
   bool checked;
+  bool is_highlighted;
   Pane* pane;
 };
 
@@ -355,6 +357,13 @@ Render(uint32_t tag)
       crect.x  += (cb->rect.width - crect.width) / 2.f;
       crect.y  += (cb->rect.height - crect.height) / 2.f;
       rgg::RenderRectangle(crect, 0.f, kCheckboxCheckedColor);
+    } else if (cb->is_highlighted) {
+      Rectf crect(cb->rect);
+      crect.width /= 1.25f;
+      crect.height /= 1.25f;
+      crect.x  += (cb->rect.width - crect.width) / 2.f;
+      crect.y  += (cb->rect.height - crect.height) / 2.f;
+      rgg::RenderRectangle(crect, 0.f, kCheckboxHighlightedColor);
     }
   }
 
@@ -676,6 +685,7 @@ Checkbox(float width, float height, bool* checked)
   checkbox->rect = rect;
   if (IsRectClicked(rect)) (*checked) = !(*checked);
   checkbox->checked = *checked;
+  checkbox->is_highlighted = IsRectHighlighted(rect);
   checkbox->pane = kIMUI.begin_mode.pane;
   return IMUI_RESULT(checkbox->rect);
 }

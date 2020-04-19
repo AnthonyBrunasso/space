@@ -23,7 +23,12 @@ TextTest()
     imui::Text("Panes");
     //imui::HorizontalLine(v4f(1.f, 1.f, 1.f, 1.f));
     static bool checked = false;
+    imui::SameLine();
+    imui::TextOptions o;
+    o.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
+    imui::Text("Test", o);
     imui::Checkbox(16.f, 16.f, &checked);
+    imui::NewLine();
     imui::Text("Seperated");
     imui::Text("By a line!");
     imui::SameLine();
@@ -70,7 +75,7 @@ TextTest()
     static bool show = true;
     static v2f pos(1200, 500);
     imui::Begin("imui test", 0, pane_options, &pos, &show);
-    //imui::DockWith("scroll test");
+    imui::DockWith("scroll test");
     imui::Text("Other stuff...");
     v2f cursor = window::GetCursorPosition();
     snprintf(buffer, 64, "Mouse(%.2f,%.2f)", cursor.x, cursor.y);

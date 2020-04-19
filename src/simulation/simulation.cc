@@ -26,6 +26,7 @@ constexpr float kAvoidanceScaling = 0.15f;
 constexpr uint64_t kTileVisibleDistance = 3;
 static uint64_t kSimulationHash = DJB2_CONST;
 static bool kSimulationOver = false;
+static bool kInvasionsDisabled = true;
 
 void
 Reset(uint64_t seed)
@@ -125,12 +126,7 @@ DecideAsteroid()
 void
 DecideInvasion()
 {
-  /*if (kFrame < 1500) {
-    return;
-  } else if (kFrame == 1500) {
-    LOG("Invasions have begun");
-  }*/
-
+  if (kInvasionsDisabled) return;
   if (kUsedInvasion != kMaxPlayer) {
     Rectf r = FleetBounds();
     // Spawn the invasion at a random point on the exterior of a rect

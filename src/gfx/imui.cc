@@ -1003,6 +1003,7 @@ DockWith(const char* title)
   SBIT(begin_mode.pane->flags, kPaneHidden);
   begin_mode.pane->rect = pane->rect;
   (*begin_mode.start) = pane->rect.Min() + v2f(0.f, pane->rect.height);
+  (*begin_mode.show) = false;
 }
 
 void
@@ -1110,7 +1111,7 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
 {
   char buffer[64];
   PaneOptions pane_options;
-  pane_options.max_height = 400.f;
+  pane_options.max_height = 600.f;
   Begin(title, tag, pane_options, pos, show);
   snprintf(buffer, 64, "Pane Count (%u) Max Hash Count (%u) Collision (%.2f%%)",
            kUsedPane, kMaxHashPane,
@@ -1149,7 +1150,7 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
       snprintf(buffer, 64, "vscroll (%.2f)", pane->vertical_scroll);
       Text(buffer);
       imui::SameLine();
-      Text("Flags: "); Bitfield8(pane->flags);
+      Text("flags: "); Bitfield8(pane->flags);
       imui::NewLine();
       Indent(-2);
       HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));

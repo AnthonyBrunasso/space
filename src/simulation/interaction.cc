@@ -8,6 +8,7 @@
 namespace simulation
 {
 #define UIBUFFER_SIZE 64
+#define UIDEBUG 0
 static char ui_buffer[UIBUFFER_SIZE];
 static uint64_t kInputHash = DJB2_CONST;
 static uint64_t kDebugInputHash;
@@ -157,7 +158,7 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
   if (ui_err) imui::Text(ui_err);
   imui::End();
 
-#if 1
+#if UIDEBUG
   static v2f pos(3.f, screen.y - 300.f);
   static bool show = false;
   imui::DebugPane("Diagnostics UI", tag, &pos, &show);
@@ -343,6 +344,11 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
   imui::Width(160.f);
   imui::Text("Mineral Cheat");
   imui::Checkbox(16.f, 16.f, &player->mineral_cheat);
+  imui::NewLine();
+  imui::SameLine();
+  imui::Width(160.f);
+  imui::Text("Invasions Off");
+  imui::Checkbox(16.f, 16.f, &kInvasionsDisabled);
   imui::NewLine();
   if (imui::Text("Spawn Unit Cheat", text_options).clicked) {
     v2f pos = math::RandomPointInRect(ShipBounds(player - kPlayer));

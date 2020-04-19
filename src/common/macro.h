@@ -32,6 +32,11 @@
 #define FLAG(x) (1 << x)
 #define FLAGGED(value, bit) ((value & FLAG(bit)) != 0)
 
+// Bit set/clear/flip.
+#define SBIT(b, n) ((b) |= (1 << n))
+#define CBIT(b, n) ((b) &= (~(1 << (n))))
+#define FBIT(b, n) ((b) ^= (1 << (n)))
+
 // System memory block
 #define PAGE (4 * 1024)
 

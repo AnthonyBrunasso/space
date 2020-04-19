@@ -87,8 +87,22 @@ struct PaneOptions {
 
 // imui elements.
 
+enum PaneBitfield {
+  // Set if the pane exists but should be minimized.
+  kPaneHidden      = 0x0,
+  // If set will render information about the pane via imui::DebugPane.
+  kPaneDebug       = 0x1,
+  // Set if the pane has a scroll bar.
+  kPaneHasScroll   = 0x2,
+  // Set if the user is scrolling the pane with their mouse.
+  kPaneIsScrolling = 0x4,
+  // Used to cleanup the pane when the user does not call Begin() on the pane.
+  kPaneActive      = 0x8,
+};
+
 struct Pane {
   uint32_t tag;
+  uint32_t flags;
   Rectf rect;
   PaneOptions options;
   // Now far up or down the user has scrolled.
@@ -101,14 +115,6 @@ struct Pane {
   // The height the pane would be if constraints like max_height screen
   // clipping where done. This is used for scrolling.
   float theoretical_height = 0.f;
-  bool hidden = false;
-  bool debug_show_details = false;
-  bool has_scroll_bar = false;
-  bool is_scrolling = false;
-  // Begin will set active to true and Reset will set it to false. Panes
-  // will be deleted from persistent storage when if it arrives at a Render
-  // call and active is set to false.
-  bool active = false;
   Rectf scroll_rect;
   char title[kMaxHashKeyLength];
   // Docked panes as linked lists with forward and backward pane pointers.
@@ -260,7 +266,7 @@ ResetAll()
   memset(kUsedLine, 0, sizeof(kUsedLine));
   for (int i = 0; i < kUsedPane; ++i) {
     Pane* pane = &kPane[i];
-    pane->active = false;
+    CBIT(pane->flags, kPaneActive);
   }
 }
 
@@ -282,7 +288,7 @@ ResetTag(uint32_t tag)
   for (int i = 0; i < kUsedPane; ++i) {
     Pane* pane = &kPane[i];
     if (pane->tag != tag) continue;
-    pane->active = false;
+    CBIT(pane->flags, kPaneActive);
   }
 }
 
@@ -304,7 +310,8 @@ SetScissorWithPane(const Pane& pane, const v2f& viewport, bool ignore_scissor)
     // Scissor from header down.
     glScissor(
         pane.rect.x, pane.rect.y,
-        pane.rect.width - (pane.has_scroll_bar ? pane.scroll_rect.width : 0.f),
+        pane.rect.width - (FLAGGED(pane.flags, kPaneHasScroll) ?
+            pane.scroll_rect.width : 0.f),
         pane.rect.height - pane.header_rect.height);
   }
 }
@@ -333,7 +340,7 @@ Render(uint32_t tag)
   for (int i = 0; i < kUsedPane;) {
     Pane* pane = &kPane[i];
     if (pane->tag != tag) continue;
-    if (!pane->active) {
+    if (!FLAGGED(pane->flags, kPaneActive)) {
       TITLE_WITH_TAG(pane->title, tag);
       ErasePane(title_with_tag, strlen(title_with_tag));
       continue;
@@ -352,8 +359,8 @@ Render(uint32_t tag)
     rgg::RenderRectangle(pane->header_rect, kPaneHeaderColor);
     rgg::RenderLineRectangle(
         pane->rect, 0.f, v4f(0.2f, 0.2f, 0.2f, 0.7f));
-    if (pane->has_scroll_bar) {
-      if (pane->is_scrolling) {
+    if (FLAGGED(pane->flags, kPaneHasScroll)) {
+      if (FLAGGED(pane->flags, kPaneIsScrolling)) {
         rgg::RenderRectangle(pane->scroll_rect, kScrollSelectedColor);
       } else if (IsRectHighlighted(pane->scroll_rect)) {
         rgg::RenderRectangle(pane->scroll_rect, kScrollHighlightedColor);
@@ -817,8 +824,8 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
   begin_mode.pane->rect.x = start->x;
   begin_mode.pane->rect.y = start->y - begin_mode.pane->rect.height;
   begin_mode.pane->options = pane_options;
-  begin_mode.pane->hidden = show ? !(*show) : false;
-  begin_mode.pane->active = true;
+  if (show && !(*show)) SBIT(begin_mode.pane->flags, kPaneHidden);
+  SBIT(begin_mode.pane->flags, kPaneActive);
   // Header is not effect by vertical scroll - it's kinda special.
   begin_mode.ignore_vertical_scroll = true;
   ButtonCircleOptions button_options;
@@ -878,7 +885,7 @@ End()
   // Move around panes if a user has click and held in them.
   if (kIMUI.begin_mode.start && IsMouseDown() &&
       IsRectPreviouslyHighlighted(kIMUI.begin_mode.pane->rect) &&
-      !pane->is_scrolling) {
+      !FLAGGED(pane->flags, kPaneIsScrolling)) {
     *kIMUI.begin_mode.start += MouseDelta();
   }
   float d = GetMouseWheel();
@@ -887,8 +894,8 @@ End()
     pane->vertical_scroll += d;
   }
   ClampVerticalScroll();
-  pane->has_scroll_bar = pane->theoretical_height > pane->rect.height;
-  if (pane->has_scroll_bar) {
+  if (pane->theoretical_height > pane->rect.height) {
+    SBIT(pane->flags, kPaneHasScroll);
     Rectf scroll_bar(
         pane->rect.x + pane->rect.width - kScrollBarWidth, pane->rect.y,
         kScrollBarWidth, pane->rect.height - pane->header_rect.height);
@@ -904,7 +911,7 @@ End()
     float p_bar_diff_to_bot = fabs(scroll_cursor.y) - fabs(pane->rect.y);
     scroll_cursor.y -= (p_bar_diff_to_bot * p_diff);
     pane->scroll_rect = scroll_cursor;
-    if (pane->is_scrolling) {
+    if (FLAGGED(pane->flags, kPaneIsScrolling)) {
       float bar_to_bot = pane->scroll_rect.y - pane->rect.y;
       float vscroll_to_bot =
           pane->theoretical_height - pane->rect.height - pane->vertical_scroll;
@@ -930,7 +937,7 @@ DockWith(const char* title)
   if (!pane) return;
   pane->next_pane = kIMUI.begin_mode.pane;
   begin_mode.pane->prev_pane = pane->next_pane;
-  begin_mode.pane->hidden = true;
+  SBIT(begin_mode.pane->flags, kPaneHidden);
   begin_mode.pane->rect = pane->rect;
   (*begin_mode.start) = pane->rect.Min() + v2f(0.f, pane->rect.height);
 }
@@ -982,9 +989,9 @@ MouseDown(v2f pos, PlatformButton b, uint32_t tag)
   for (int i = 0; i < kUsedPane; ++i) {
     Pane* pane = &kPane[i];
     if (pane->tag != tag) continue;
-    if (!pane->has_scroll_bar) continue;
+    if (!FLAGGED(pane->flags, kPaneHasScroll)) continue;
     if (math::PointInRect(pos, pane->scroll_rect)) {
-      pane->is_scrolling = true;
+      SBIT(pane->flags, kPaneIsScrolling);
       break;
     }
   }
@@ -1004,8 +1011,8 @@ MouseUp(v2f pos, PlatformButton b, uint32_t tag)
   for (int i = 0; i < kUsedPane; ++i) {
     Pane* pane = &kPane[i];
     if (pane->tag != tag) continue;
-    if (!pane->has_scroll_bar) continue;
-    pane->is_scrolling = false;
+    if (!FLAGGED(pane->flags, kPaneHasScroll)) continue;
+    CBIT(pane->flags, kPaneIsScrolling);
   }
 }
 
@@ -1054,10 +1061,10 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
     TextOptions toptions;
     toptions.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
     if (Text(pane->title, toptions).clicked) {
-      pane->debug_show_details = !pane->debug_show_details;
+      FBIT(pane->flags, kPaneDebug);
     }
     HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
-    if (pane->debug_show_details) {
+    if (FLAGGED(pane->flags, kPaneDebug)) {
       Indent(2);
       TITLE_WITH_TAG(pane->title, pane->tag);
       uint32_t hash = GetHash(title_with_tag, strlen(title_with_tag));
@@ -1067,7 +1074,7 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
       Text(buffer);
       snprintf(buffer, 64, "hash_idx: %u", hash % kMaxHashPane);
       Text(buffer);
-      snprintf(buffer, 64, "hidden: %i", pane->hidden);
+      snprintf(buffer, 64, "hidden: %i", FLAGGED(pane->flags, kPaneHidden));
       Text(buffer);
       snprintf(buffer, 64, "rect (%.2f,%.2f,%.2f,%.2f)",
                pane->rect.x, pane->rect.y, pane->rect.width,

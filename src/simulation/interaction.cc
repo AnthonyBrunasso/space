@@ -307,6 +307,10 @@ TilePanel(v2f screen, uint32_t tag, Player* player)
     rgg::RenderRectangle(FromShip(tile).Center(), gfx::kTileScale,
                          gfx::kDefaultRotation, gfx::kGray);
   }
+  imui::SameLine();
+  imui::Text("flags ");
+  imui::Bitfield16(tile.flags);
+  imui::NewLine();
   imui::End();
 }
 

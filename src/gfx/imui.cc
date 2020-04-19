@@ -28,7 +28,7 @@ constexpr float kCheckboxOffset = 2.f;
 
 static const v4f kWhite(1.f, 1.f, 1.f, 1.f);
 static const v4f kPaneColor(0.0f, 0.0f, 0.0f, 0.4f);
-static const v4f kPaneHeaderColor(0.12f, 0.16f, 0.154f, 1.f);
+static const v4f kPaneHeaderColor(0.08f, 0.08f, 0.08f, 1.f);
 static const v4f kScrollColor(0.32f, 0.36f, 0.354f, .4f);
 static const v4f kScrollHighlightedColor(0.32f, 0.36f, 0.354f, .55f);
 static const v4f kScrollSelectedColor(0.32f, 0.36f, 0.354f, .7f);
@@ -107,6 +107,9 @@ struct Pane {
   bool is_scrolling = false;
   Rectf scroll_rect;
   char title[kMaxHashKeyLength];
+  // Docked panes as linked lists with forward and backward pane pointers.
+  Pane* next_pane = nullptr;
+  Pane* prev_pane = nullptr;
 };
 
 struct Text {
@@ -886,6 +889,22 @@ End()
   }
   ClampVerticalScroll();
   kIMUI.begin_mode = {};
+}
+
+void
+DockWith(const char* title)
+{
+  if (!title) return;
+  assert(kIMUI.begin_mode.set);
+  auto& begin_mode = kIMUI.begin_mode;
+  uint32_t tag = kIMUI.begin_mode.tag;
+  TITLE_WITH_TAG(title, tag);
+  Pane* pane = FindPane(title_with_tag, strlen(title_with_tag));
+  if (!pane) return;
+  pane->next_pane = kIMUI.begin_mode.pane;
+  begin_mode.pane->prev_pane = pane->next_pane;
+  begin_mode.pane->hidden = true;
+  begin_mode.pane->rect = pane->rect;
 }
 
 void

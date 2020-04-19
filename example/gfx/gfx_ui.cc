@@ -13,28 +13,9 @@ TextTest()
 #if 1
   {
     imui::PaneOptions pane_options;
-    static bool show = true;
-    static v2f pos(1200, 500);
-    imui::Begin("imui test", 0, pane_options, &pos, &show);
-    imui::Text("Other stuff...");
-    v2f cursor = window::GetCursorPosition();
-    snprintf(buffer, 64, "Mouse(%.2f,%.2f)", cursor.x, cursor.y);
-    imui::Text(buffer);
-    v2f delta = imui::MouseDelta();
-    snprintf(buffer, 64, "Mouse Delta(%.2f,%.2f)", delta.x, delta.y);
-    imui::Text(buffer);
-    snprintf(buffer, 64, "Mouse Down(%i)", imui::IsMouseDown());
-    imui::Text(buffer);
-    snprintf(buffer, 64, "IMUI Panes(%i)", imui::kUsedPane);
-    imui::Text(buffer);
-    imui::End();
-  }
-
-  {
-    imui::PaneOptions pane_options;
     pane_options.max_height = 300.f;
     static bool show = true;
-    static v2f pos(1000, 1000);
+    static v2f pos(800, 800);
     imui::Begin("scroll test", 0, pane_options, &pos, &show);
     imui::Text("Some text");
     imui::Text("That is going to be");
@@ -77,6 +58,28 @@ TextTest()
     imui::Text("The");
     imui::Text("Lazy");
     imui::Text("Fox");
+    imui::End();
+  }
+
+  {
+    imui::PaneOptions pane_options;
+    pane_options.height = 300.f;
+    pane_options.width = 300.f;
+    static bool show = true;
+    static v2f pos(1200, 500);
+    imui::Begin("imui test", 0, pane_options, &pos, &show);
+    imui::Text("Other stuff...");
+    v2f cursor = window::GetCursorPosition();
+    snprintf(buffer, 64, "Mouse(%.2f,%.2f)", cursor.x, cursor.y);
+    imui::Text(buffer);
+    v2f delta = imui::MouseDelta();
+    snprintf(buffer, 64, "Mouse Delta(%.2f,%.2f)", delta.x, delta.y);
+    imui::Text(buffer);
+    snprintf(buffer, 64, "Mouse Down(%i)", imui::IsMouseDown());
+    imui::Text(buffer);
+    snprintf(buffer, 64, "IMUI Panes(%i)", imui::kUsedPane);
+    imui::Text(buffer);
+    imui::DockWith("scroll test");
     imui::End();
   }
 

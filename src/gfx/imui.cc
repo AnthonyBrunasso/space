@@ -932,6 +932,7 @@ End()
     pane->vertical_scroll += d;
   }
   ClampVerticalScroll();
+  CBIT(pane->flags, kPaneHasScroll);
   if (pane->theoretical_height > pane->rect.height) {
     SBIT(pane->flags, kPaneHasScroll);
     Rectf scroll_bar(

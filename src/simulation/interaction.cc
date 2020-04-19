@@ -387,8 +387,9 @@ void
 LogPanel(v2f screen_dims, uint32_t tag)
 {
   imui::PaneOptions pane_options;
-  pane_options.width = pane_options.max_width = 300.f;
-  pane_options.height = pane_options.max_height = 100.f;
+  pane_options.width = pane_options.max_width = 450.f;
+  pane_options.height = pane_options.max_height = 160.f;
+  pane_options.enable_console_mode = true;
   imui::TextOptions text_options;
   static v2f pos(screen_dims.x - pane_options.width, pane_options.height);
   static bool show = true;
@@ -398,9 +399,6 @@ LogPanel(v2f screen_dims, uint32_t tag)
     if (!log_msg) continue;
     imui::Text(log_msg, text_options);
   }
-  // Set vertical scroll to a value larger than past the what the full
-  // bounds could ever be. imui will clamp to the bottom.
-  imui::VerticalScrollDelta(1000.f);
   imui::End();
 }
 

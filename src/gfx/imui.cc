@@ -82,6 +82,7 @@ struct PaneOptions {
   float max_width = 0.f;
   float max_height = 0.f;
   v4f color = kPaneColor;
+  bool enable_console_mode;
   Rectf header_rect;
 };
 
@@ -98,6 +99,9 @@ enum PaneFlag {
   kPaneIsScrolling,
   // Used to cleanup the pane when the user does not call Begin() on the pane.
   kPaneActive,
+  // Console mode causes the pane to clamp to it's max scroll while it's at
+  // max scroll but will allow scrolling up to see history.
+  kPaneConsoleMode,
 };
 
 struct Pane {
@@ -110,6 +114,9 @@ struct Pane {
   // A value greater than 0 means the user has scrolled down. All text ui
   // elements should be positioned accordingly.
   float vertical_scroll = 0.f;
+  // Current max scroll can be calculated as theoretical_height - rect.height.
+  // This value is the max scroll allowed from the previous call to Begin.
+  float previous_max_scroll = 0.f;
   bool element_off_pane = false;
   Rectf header_rect;
   // The height the pane would be if constraints like max_height screen
@@ -861,6 +868,9 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
   begin_mode.pane->rect.x = start->x;
   begin_mode.pane->rect.y = start->y - begin_mode.pane->rect.height;
   begin_mode.pane->options = pane_options;
+  if (pane_options.enable_console_mode) {
+    SBIT(begin_mode.pane->flags, kPaneConsoleMode);
+  } else CBIT(begin_mode.pane->flags, kPaneConsoleMode);
   if (show && !(*show)) SBIT(begin_mode.pane->flags, kPaneHidden);
   else CBIT(begin_mode.pane->flags, kPaneHidden);
   SBIT(begin_mode.pane->flags, kPaneActive);
@@ -898,6 +908,13 @@ CanScroll(const Pane& pane, float delta)
   return false;
 }
 
+float
+GetMaxScroll(const Pane& pane)
+{
+  // HACK: - .1f to allow scrolling up once the bar has reached the bottom.
+  return (pane.theoretical_height - pane.rect.height) - .1f;
+}
+
 void
 ClampVerticalScroll()
 {
@@ -906,8 +923,7 @@ ClampVerticalScroll()
   // Clamp the vertical scroll to the min and max possible scroll.
   if (pane->vertical_scroll < 0.f) pane->vertical_scroll = 0.f;
   if (pane->rect.height + pane->vertical_scroll > pane->theoretical_height) {
-    // HACK: - .1f to allow scrolling up once the bar has reached the bottom.
-    pane->vertical_scroll = (pane->theoretical_height - pane->rect.height) - .1f;
+    pane->vertical_scroll = GetMaxScroll(*pane);
   }
 }
 
@@ -928,6 +944,9 @@ End()
   }
   float d = GetMouseWheel();
   bool pane_highlighted = IsRectHighlighted(pane->rect);
+  float original_scroll = pane->vertical_scroll;
+  bool original_scroll_at_max =
+      pane->vertical_scroll >= pane->previous_max_scroll;
   if (CanScroll(*pane, d) && pane_highlighted && d != 0.f) {
     pane->vertical_scroll += d;
   }
@@ -960,6 +979,11 @@ End()
       }
     }
   }
+  if (FLAGGED(pane->flags, kPaneConsoleMode) &&
+      original_scroll_at_max && original_scroll <= pane->vertical_scroll) {
+    pane->vertical_scroll = GetMaxScroll(*pane);
+  }
+  pane->previous_max_scroll = GetMaxScroll(*pane);
   ClampVerticalScroll();
   kIMUI.begin_mode = {};
 }

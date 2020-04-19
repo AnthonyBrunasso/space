@@ -343,7 +343,6 @@ Render(uint32_t tag)
     if (!FLAGGED(pane->flags, kPaneActive)) {
       TITLE_WITH_TAG(pane->title, tag);
       ErasePane(title_with_tag, strlen(title_with_tag));
-      printf("erasing.. %s\n", pane->title);
       continue;
     }
     ++i;

@@ -87,17 +87,17 @@ struct PaneOptions {
 
 // imui elements.
 
-enum PaneBitfield {
+enum PaneFlag {
   // Set if the pane exists but should be minimized.
-  kPaneHidden      = 0,
+  kPaneHidden,
   // If set will render information about the pane via imui::DebugPane.
-  kPaneDebug       = 1,
+  kPaneDebug,
   // Set if the pane has a scroll bar.
-  kPaneHasScroll   = 2,
+  kPaneHasScroll,
   // Set if the user is scrolling the pane with their mouse.
-  kPaneIsScrolling = 3,
+  kPaneIsScrolling,
   // Used to cleanup the pane when the user does not call Begin() on the pane.
-  kPaneActive      = 4,
+  kPaneActive,
 };
 
 struct Pane {

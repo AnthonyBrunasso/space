@@ -99,6 +99,15 @@ TileNeighbor(Tile tile, uint64_t index)
   return tile;
 }
 
+Tile
+TileNeighbor(Tile tile, v2i n)
+{
+  tile.cx = BITRANGE_WRAP(tile.bitrange_xy, tile.cx + n.x);
+  tile.cy = BITRANGE_WRAP(tile.bitrange_xy, tile.cy + n.y);
+
+  return tile;
+}
+
 void
 TilemapInitialize(uint64_t player_index)
 {
@@ -163,20 +172,6 @@ TilemapInitialize(uint64_t player_index)
   ship->map = &kGrid[ship_index].tilemap[0][0];
   ship->map_width = (1 << bitrange_xy);
   ship->map_height = (1 << bitrange_xy);
-}
-
-v3f
-TileAvoidWalls(Tile start)
-{
-  v2i avoidance = {};
-  for (int i = 0; i < kMaxNeighbor; ++i) {
-    Tile neighbor = TileNeighbor(start, i);
-    if (neighbor.blocked) {
-      avoidance -= kNeighbor[i];
-    }
-  }
-
-  return v3f(avoidance.x, avoidance.y, 0.0f);
 }
 
 void

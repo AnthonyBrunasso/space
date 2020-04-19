@@ -21,10 +21,17 @@ struct Search {
   Path path;
 };
 
+enum BfsIteratorFlag {
+  // Don't allow searching that would travel diagnol through a blocked tile.
+  // For example if travling from 5,2 to 6,3 but 5,3 is blocked.
+  kAvoidBlockedDiagnol,
+};
+
 struct BfsIterator {
   int neighbor_index = 0;
   int queue_index = 0;
   Tile* tile = nullptr;
+  uint32_t flags;
 };
 
 static Search kSearch;
@@ -80,7 +87,28 @@ BfsNextTile(BfsIterator* iter)
     Tile from = queue[iter->queue_index];
     if (BfsStep(from, iter)) {
       if (iter->tile->blocked) continue;
-
+      if (FLAGGED(iter->flags, kAvoidBlockedDiagnol)) {
+        Tile* right_tile = ShipTile(TileNeighbor(from, v2i(1, 0)));
+        Tile* left_tile = ShipTile(TileNeighbor(from, v2i(-1, 0)));
+        Tile* bottom_tile = ShipTile(TileNeighbor(from, v2i(0, -1)));
+        Tile* top_tile = ShipTile(TileNeighbor(from, v2i(0, 1)));
+        if (iter->tile->cx == from.cx + 1 && iter->tile->cy == from.cy + 1 &&
+            (right_tile->blocked || top_tile->blocked)) {
+          continue;
+        }
+        if (iter->tile->cx == from.cx + 1 && iter->tile->cy == from.cy - 1 &&
+            (right_tile->blocked || bottom_tile->blocked)) {
+          continue;
+        }
+        if (iter->tile->cx == from.cx - 1 && iter->tile->cy == from.cy + 1 &&
+            (left_tile->blocked || top_tile->blocked)) {
+          continue;
+        }
+        if (iter->tile->cx == from.cx - 1 && iter->tile->cy == from.cy - 1 &&
+            (left_tile->blocked || bottom_tile->blocked)) {
+          continue;
+        }
+      }
       path_map[iter->tile->cy][iter->tile->cx] = from;
       queue[qsz++] = *iter->tile;
       break;
@@ -120,6 +148,7 @@ PathTo(Tile start, Tile end)
 
   auto& path_map = kSearch.path_map;
   BfsIterator iter = BfsStart(start);
+  SBIT(iter.flags, kAvoidBlockedDiagnol);
   while (BfsNextTile(&iter)) {
     if (TileValid(path_map[end.cy][end.cx])) {
       break;

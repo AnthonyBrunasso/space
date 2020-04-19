@@ -92,7 +92,7 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
   debug_options.color = gfx::kWhite;
   debug_options.highlight_color = gfx::kRed;
   imui::SameLine();
-  imui::SetWidth(right_align);
+  imui::Width(right_align);
   imui::Text("Frame Time");
   snprintf(ui_buffer, sizeof(ui_buffer),
            "%04.02f us [%02.02f%%] [%lu jerk] [%lu server_jerk]",
@@ -101,7 +101,7 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
   imui::Text(ui_buffer);
   imui::NewLine();
   imui::SameLine();
-  imui::SetWidth(right_align);
+  imui::Width(right_align);
   imui::Text("Network Rtt");
   snprintf(ui_buffer, sizeof(ui_buffer),
            "[%06lu us to %06lu us] [%lu/%lu queue]",
@@ -111,7 +111,7 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
   imui::Text(ui_buffer);
   imui::NewLine();
   imui::SameLine();
-  imui::SetWidth(right_align);
+  imui::Width(right_align);
   imui::Text("Network ft");
   snprintf(ui_buffer, sizeof(ui_buffer), "Network ft: %04.02f mean [%02.02f%%]",
            StatsMean(&kNetworkStats),
@@ -119,7 +119,7 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
   imui::Text(ui_buffer);
   imui::NewLine();
   imui::SameLine();
-  imui::SetWidth(right_align);
+  imui::Width(right_align);
   imui::Text("Network rsdev");
   snprintf(ui_buffer, sizeof(ui_buffer),
            "[%04.02f 84th] [%04.02f 97th ] [%04.02f 99th]",
@@ -128,26 +128,26 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
   imui::Text(ui_buffer);
   imui::NewLine();
   imui::SameLine();
-  imui::SetWidth(right_align);
+  imui::Width(right_align);
   imui::Text("Network Queue");
   snprintf(ui_buffer, sizeof(ui_buffer), "%lu [%1.0fx rsdev]",
            NetworkQueueGoal(), kNetworkState.rsdev_const);
   imui::Text(ui_buffer);
   imui::NewLine();
   imui::SameLine();
-  imui::SetWidth(right_align);
+  imui::Width(right_align);
   imui::Text("Window Size");
   snprintf(ui_buffer, sizeof(ui_buffer), "%04.0fx%04.0f", screen.x, screen.y);
   imui::Text(ui_buffer);
   imui::NewLine();
   imui::SameLine();
-  imui::SetWidth(right_align);
+  imui::Width(right_align);
   imui::Text("Input hash");
   snprintf(ui_buffer, sizeof(ui_buffer), "0x%lx", kDebugInputHash);
   imui::Text(ui_buffer);
   imui::NewLine();
   imui::SameLine();
-  imui::SetWidth(right_align);
+  imui::Width(right_align);
   imui::Text("Sim hash");
   snprintf(ui_buffer, sizeof(ui_buffer), "0x%lx", kDebugSimulationHash);
   imui::Text(ui_buffer);
@@ -244,19 +244,19 @@ EntityViewer(v2f screen, uint32_t tag, Player* player)
   imui::Indent(2);
   imui::SameLine();
   static bool show_modules = true;
-  imui::SetWidth(100.f);
+  imui::Width(100.f);
   imui::Text("Modules");
   imui::Checkbox(16.f, 16.f, &show_modules);
   imui::NewLine();
   imui::SameLine();
   static bool show_units = true;
-  imui::SetWidth(100.f);
+  imui::Width(100.f);
   imui::Text("Units");
   imui::Checkbox(16.f, 16.f, &show_units);
   imui::NewLine();
   imui::SameLine();
   static bool show_selected = false;
-  imui::SetWidth(100.f);
+  imui::Width(100.f);
   imui::Text("Selected");
   imui::Checkbox(16.f, 16.f, &show_selected);
   imui::NewLine();
@@ -321,22 +321,22 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
   text_options.color = gfx::kWhite;
   text_options.highlight_color = gfx::kRed;
   imui::SameLine();
-  imui::SetWidth(160.f);
+  imui::Width(160.f);
   imui::Text("Render Grid");
   imui::Checkbox(16.f, 16.f, &gfx::kRenderGrid);
   imui::NewLine();
   imui::SameLine();
-  imui::SetWidth(160.f);
+  imui::Width(160.f);
   imui::Text("Render Path");
   imui::Checkbox(16.f, 16.f, &gfx::kRenderPath);
   imui::NewLine();
   imui::SameLine();
-  imui::SetWidth(160.f);
+  imui::Width(160.f);
   imui::Text("Render Cam Tgt");
   imui::Checkbox(16.f, 16.f, &camera::kShowCameraDebugTarget);
   imui::NewLine();
   imui::SameLine();
-  imui::SetWidth(160.f);
+  imui::Width(160.f);
   imui::Text("Mineral Cheat");
   imui::Checkbox(16.f, 16.f, &player->mineral_cheat);
   imui::NewLine();

@@ -733,7 +733,7 @@ SameLine()
 
 // Overwrite width to a certain value for the next imui call.
 void
-SetWidth(float width)
+Width(float width)
 {
   assert(kIMUI.begin_mode.set);
   IF_HIDDEN(return);

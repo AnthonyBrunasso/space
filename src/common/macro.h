@@ -11,7 +11,8 @@
 
 #define MIN(x, y) (y ^ ((x ^ y) & -(x < y)))
 #define MAX(x, y) (x ^ ((x ^ y) & -(x < y)))
-#define MAXF(x, y) x > y ? x : y;
+#define MINF(x, y) x < y ? x : y
+#define MAXF(x, y) x > y ? x : y
 #define ABS64(val) ((val+(val>>63))^(val>>63))
 #define CLAMP(x, min, max) MIN(MAX(x, min), max)
 #define CLAMPF(x, low, high) ((x < low) ? low : ((x > high) ? high : x))

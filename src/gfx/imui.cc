@@ -286,8 +286,10 @@ SetScissorWithPane(const Pane& pane, const v2f& viewport, bool ignore_scissor)
     glScissor(0, 0, viewport.x, viewport.y);
   } else {
     // Scissor from header down.
-    glScissor(pane.rect.x, pane.rect.y, pane.rect.width,
-              pane.rect.height - pane.header_rect.height);
+    glScissor(
+        pane.rect.x, pane.rect.y,
+        pane.rect.width - (pane.has_scroll_bar ? pane.scroll_rect.width : 0.f),
+        pane.rect.height - pane.header_rect.height);
   }
 }
 
@@ -991,6 +993,7 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
 {
   char buffer[64];
   PaneOptions pane_options;
+  pane_options.max_height = 400.f;
   Begin(title, tag, pane_options, pos, show);
   snprintf(buffer, 64, "Pane Count (%u) Max Hash Count (%u) Collision (%.2f%%)",
            kUsedPane, kMaxHashPane,

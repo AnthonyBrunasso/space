@@ -8,7 +8,7 @@ constexpr uint32_t kMaxHashKeyLength = 32;
 struct HashMapStrEntry {
   char str[kMaxHashKeyLength];
   uint32_t len = 0;
-  uint32_t array_index;
+  uint32_t array_index = 0;
 };
 
 bool
@@ -68,8 +68,8 @@ GetHash(const char* str, uint32_t len)
     return u;                                                       \
   }                                                                 \
                                                                     \
-  type*                                                             \
-  Find##type(const char* key, uint32_t key_len)                     \
+  HashMapStrEntry*                                                  \
+  FindHashEntry##type(const char* key, uint32_t key_len)            \
   {                                                                 \
     uint32_t idx = GetHash(key, key_len) % kMaxHash##type;          \
     HashMapStrEntry* hash_entry = &kHashEntry##type[idx];           \
@@ -87,5 +87,33 @@ GetHash(const char* str, uint32_t len)
       ++kFindCollisions##type;                                      \
     }                                                               \
     if (n >= kMaxHash##type) return nullptr;                        \
+    return hash_entry;                                              \
+  }                                                                 \
+                                                                    \
+  type*                                                             \
+  Find##type(const char* key, uint32_t key_len)                     \
+  {                                                                 \
+    HashMapStrEntry* hash_entry = FindHashEntry##type(key, key_len);\
+    if (!hash_entry) return nullptr;                                \
     return &k##type[hash_entry->array_index];                       \
   }                                                                 \
+                                                                    \
+  void                                                              \
+  Erase##type(const char* key, uint32_t key_len)                    \
+  {                                                                 \
+    HashMapStrEntry* hash_entry = FindHashEntry##type(key, key_len);\
+    if (!hash_entry) return;                                        \
+    uint32_t arr_idx = hash_entry->array_index;                     \
+    *hash_entry = {};                                               \
+    for (int i = arr_idx; i < kUsed##type; ++i) {                   \
+      k##type[i] = k##type[i + 1];                                  \
+    }                                                               \
+    k##type[kUsed##type - 1] = {};                                  \
+    --kUsed##type;                                                  \
+    for (int i = 0; i < kMaxHash##type; ++i) {                      \
+      HashMapStrEntry* hash_entry = &kHashEntry##type[i];           \
+      if (!hash_entry->len) continue;                               \
+      if (hash_entry->array_index > arr_idx)                        \
+        --hash_entry->array_index;                                  \
+    }                                                               \
+  }

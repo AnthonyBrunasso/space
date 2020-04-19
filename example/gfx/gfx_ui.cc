@@ -61,13 +61,16 @@ TextTest()
     imui::End();
   }
 
+  static bool show_window = false;
+
   {
     imui::PaneOptions pane_options;
-    pane_options.height = 300.f;
+    pane_options.height = 170.f;
     pane_options.width = 300.f;
     static bool show = true;
     static v2f pos(1200, 500);
     imui::Begin("imui test", 0, pane_options, &pos, &show);
+    //imui::DockWith("scroll test");
     imui::Text("Other stuff...");
     v2f cursor = window::GetCursorPosition();
     snprintf(buffer, 64, "Mouse(%.2f,%.2f)", cursor.x, cursor.y);
@@ -79,17 +82,23 @@ TextTest()
     imui::Text(buffer);
     snprintf(buffer, 64, "IMUI Panes(%i)", imui::kUsedPane);
     imui::Text(buffer);
-    imui::DockWith("scroll test");
+    if (imui::Button(32.f, 32.f, v4f(1.f, 0.f, 0.f, 1.f)).clicked) {
+      show_window = !show_window;
+    }
     imui::End();
   }
 
   {
-    imui::PaneOptions pane_options;
-    static bool show = true;
-    static v2f pos(1500, 300);
-    imui::Begin("another pane", 0, pane_options, &pos, &show);
-    imui::Text("Test..");
-    imui::End();
+    if (show_window) {
+      imui::PaneOptions pane_options;
+      static bool show = true;
+      static v2f pos(1500, 300);
+      imui::Begin("dynamically created pane", 0, pane_options, &pos, &show);
+      imui::Text("Test..");
+      imui::Text("Test 2");
+      imui::Text("Test 3");
+      imui::End();
+    }
   }
 
   {

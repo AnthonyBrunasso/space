@@ -105,6 +105,10 @@ struct Pane {
   bool debug_show_details = false;
   bool has_scroll_bar = false;
   bool is_scrolling = false;
+  // Begin will set active to true and Reset will set it to false. Panes
+  // will be deleted from persistent storage when if it arrives at a Render
+  // call and active is set to false.
+  bool active = false;
   Rectf scroll_rect;
   char title[kMaxHashKeyLength];
   // Docked panes as linked lists with forward and backward pane pointers.
@@ -254,6 +258,10 @@ ResetAll()
   memset(kUsedMouseWheel, 0, sizeof(kUsedMouseWheel));
   memset(kUsedProgressBar, 0, sizeof(kUsedProgressBar));
   memset(kUsedLine, 0, sizeof(kUsedLine));
+  for (int i = 0; i < kUsedPane; ++i) {
+    Pane* pane = &kPane[i];
+    pane->active = false;
+  }
 }
 
 void
@@ -271,6 +279,11 @@ ResetTag(uint32_t tag)
   kUsedMouseWheel[tag] = 0;
   kUsedProgressBar[tag] = 0;
   kUsedLine[tag] = 0;
+  for (int i = 0; i < kUsedPane; ++i) {
+    Pane* pane = &kPane[i];
+    if (pane->tag != tag) continue;
+    pane->active = false;
+  }
 }
 
 v2f
@@ -314,6 +327,19 @@ Render(uint32_t tag)
   auto dims = window::GetWindowSize();
   rgg::ModifyObserver mod(math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f),
                           math::Identity());
+
+  // Free inactive panes - this is a pretty rare event. Ok to perform in
+  // Render step.
+  for (int i = 0; i < kUsedPane;) {
+    Pane* pane = &kPane[i];
+    if (pane->tag != tag) continue;
+    if (!pane->active) {
+      TITLE_WITH_TAG(pane->title, tag);
+      ErasePane(title_with_tag, strlen(title_with_tag));
+      continue;
+    }
+    ++i;
+  }
 
   kIMUI.text_exhaustion[tag] = kUsedText[tag];
   kIMUI.button_exhaustion[tag] = kUsedButton[tag];
@@ -792,6 +818,7 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
   begin_mode.pane->rect.y = start->y - begin_mode.pane->rect.height;
   begin_mode.pane->options = pane_options;
   begin_mode.pane->hidden = show ? !(*show) : false;
+  begin_mode.pane->active = true;
   // Header is not effect by vertical scroll - it's kinda special.
   begin_mode.ignore_vertical_scroll = true;
   ButtonCircleOptions button_options;
@@ -905,6 +932,7 @@ DockWith(const char* title)
   begin_mode.pane->prev_pane = pane->next_pane;
   begin_mode.pane->hidden = true;
   begin_mode.pane->rect = pane->rect;
+  (*begin_mode.start) = pane->rect.Min() + v2f(0.f, pane->rect.height);
 }
 
 void

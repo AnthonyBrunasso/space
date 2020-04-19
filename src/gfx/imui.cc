@@ -339,10 +339,11 @@ Render(uint32_t tag)
   // Render step.
   for (int i = 0; i < kUsedPane;) {
     Pane* pane = &kPane[i];
-    if (pane->tag != tag) continue;
+    if (pane->tag != tag) { ++i; continue; }
     if (!FLAGGED(pane->flags, kPaneActive)) {
       TITLE_WITH_TAG(pane->title, tag);
       ErasePane(title_with_tag, strlen(title_with_tag));
+      printf("erasing.. %s\n", pane->title);
       continue;
     }
     ++i;

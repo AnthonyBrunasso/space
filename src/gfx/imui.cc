@@ -89,15 +89,15 @@ struct PaneOptions {
 
 enum PaneBitfield {
   // Set if the pane exists but should be minimized.
-  kPaneHidden      = 0x0,
+  kPaneHidden      = 0,
   // If set will render information about the pane via imui::DebugPane.
-  kPaneDebug       = 0x1,
+  kPaneDebug       = 1,
   // Set if the pane has a scroll bar.
-  kPaneHasScroll   = 0x2,
+  kPaneHasScroll   = 2,
   // Set if the user is scrolling the pane with their mouse.
-  kPaneIsScrolling = 0x4,
+  kPaneIsScrolling = 3,
   // Used to cleanup the pane when the user does not call Begin() on the pane.
-  kPaneActive      = 0x8,
+  kPaneActive      = 4,
 };
 
 struct Pane {
@@ -359,7 +359,8 @@ Render(uint32_t tag)
     rgg::RenderRectangle(pane->header_rect, kPaneHeaderColor);
     rgg::RenderLineRectangle(
         pane->rect, 0.f, v4f(0.2f, 0.2f, 0.2f, 0.7f));
-    if (FLAGGED(pane->flags, kPaneHasScroll)) {
+    if (FLAGGED(pane->flags, kPaneHasScroll) &&
+        !FLAGGED(pane->flags, kPaneHidden)) {
       if (FLAGGED(pane->flags, kPaneIsScrolling)) {
         rgg::RenderRectangle(pane->scroll_rect, kScrollSelectedColor);
       } else if (IsRectHighlighted(pane->scroll_rect)) {
@@ -612,6 +613,42 @@ Text(const char* msg)
   return Text(msg, {kWhite, kWhite});
 }
 
+Result
+Bitfield32(uint32_t bitfield)
+{
+  char bstr[33];
+  for (int i = 31; i > -1; --i) {
+    if (FLAGGED(bitfield, 31 - i)) bstr[i] = '1';
+    else bstr[i] = '0';
+  }
+  bstr[32] = '\0';
+  return Text(bstr);
+}
+
+Result
+Bitfield16(uint8_t bitfield)
+{
+  char bstr[17];
+  for (int i = 15; i > -1; --i) {
+    if (FLAGGED(bitfield, 15 - i)) bstr[i] = '1';
+    else bstr[i] = '0';
+  }
+  bstr[16] = '\0';
+  return Text(bstr);
+}
+
+Result
+Bitfield8(uint8_t bitfield)
+{
+  char bstr[9];
+  for (int i = 7; i > -1; --i) {
+    if (FLAGGED(bitfield, 7 - i)) bstr[i] = '1';
+    else bstr[i] = '0';
+  }
+  bstr[8] = '\0';
+  return Text(bstr);
+}
+
 void
 HorizontalLine(const v4f& color)
 {
@@ -825,6 +862,7 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
   begin_mode.pane->rect.y = start->y - begin_mode.pane->rect.height;
   begin_mode.pane->options = pane_options;
   if (show && !(*show)) SBIT(begin_mode.pane->flags, kPaneHidden);
+  else CBIT(begin_mode.pane->flags, kPaneHidden);
   SBIT(begin_mode.pane->flags, kPaneActive);
   // Header is not effect by vertical scroll - it's kinda special.
   begin_mode.ignore_vertical_scroll = true;
@@ -1085,6 +1123,9 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
       Text(buffer);
       snprintf(buffer, 64, "vscroll (%.2f)", pane->vertical_scroll);
       Text(buffer);
+      imui::SameLine();
+      Text("Flags: "); Bitfield8(pane->flags);
+      imui::NewLine();
       Indent(-2);
       HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
     }

@@ -125,6 +125,8 @@ ScenarioInitialize()
       for (int i = 0; i < kPlayerCount; ++i) {
         SpawnCrew(*ShipTile(i, 5, 23), i);
         SpawnAICrew(*ShipTile(i, 15, 15), i);
+        SpawnAICrew(*ShipTile(i, 30, 10), i);
+        SpawnAICrew(*ShipTile(i, 50, 20), i);
         ScenarioSpawnRandomModule(kModPower, i);
         ScenarioSpawnRandomModule(kModEngine, i, 5);
         ScenarioSpawnRandomModule(kModDoor, i, 12);

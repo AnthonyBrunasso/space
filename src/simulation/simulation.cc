@@ -186,32 +186,25 @@ DecideInvasion()
 bool
 MoveTowards(Unit* unit, Tile dest, UnitAction set_on_arrival)
 {
-  if (unit->tile == dest) {
-    unit->uaction = set_on_arrival;
-    return true;
-  }
+  v3f world_dest = FromShip(dest).Center();
 
-  Tile incremental_dest = dest;
-  v3f avoidance_vec = {};
   if (!unit->inspace) {
     auto* path = PathTo(unit->tile, dest);
     if (!path) {
+      // Move to center of tile.
       unit->uaction = set_on_arrival;
       BB_REM(unit->bb, kUnitDestination);
       return true;
     }
 
     if (path->size > 1) {
-      incremental_dest = path->tile[1];
-      avoidance_vec = TileAvoidWalls(unit->tile) * kAvoidanceScaling;
+      world_dest = FromShip(path->tile[1]).Center();
     }
   }
 
-  v3f delta(incremental_dest.cx - unit->tile.cx,
-            incremental_dest.cy - unit->tile.cy, 0.f);
-  v3f move_vec = delta * unit->speed;
-
-  unit->position += (move_vec + avoidance_vec);
+  v3f dir = math::Normalize(world_dest - unit->position);
+  v3f move_vec = dir * unit->speed;
+  unit->position += move_vec;
 
   return false;
 }

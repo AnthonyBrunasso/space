@@ -82,7 +82,7 @@ struct PaneOptions {
   float max_width = 0.f;
   float max_height = 0.f;
   v4f color = kPaneColor;
-  bool enable_console_mode;
+  bool enable_console_mode = false;
   Rectf header_rect;
 };
 

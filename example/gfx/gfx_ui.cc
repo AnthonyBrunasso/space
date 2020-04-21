@@ -10,6 +10,9 @@ TextTest()
   auto dims = window::GetWindowSize();
 
   char buffer[64];
+
+
+#if 1
   imui::PaneOptions pane_options;
   pane_options.max_height = 200.f;
   static bool show = true;
@@ -24,10 +27,14 @@ TextTest()
   imui::Text(" Sguff...", o);
   imui::NewLine();
   imui::SameLine();
-  imui::Button(35.f, 35.f, v4f(1.f, 0.f, 0.f, 1.f));
+  imui::Button(35.f, 35.f, v4f(1.f, 0.f, 0.f, .5f));
   imui::Text("test..");
+  imui::NewLine();
+  imui::SameLine();
+  imui::Button(35.f, 35.f, v4f(1.f, 0.f, 0.f, .5f));
+  imui::Text("test 2..");
   imui::End();
-
+#endif
 
 #if 0
   {
@@ -55,11 +62,7 @@ TextTest()
     imui::Text("Seperated");
     imui::Text("By a line!");
     imui::SameLine();
-    imui::Text("This ");
-    imui::Text("is ");
-    imui::Text("the ");
-    imui::Text("same ");
-    imui::Text("line ");
+    imui::Text("This is the same line ");
     imui::Button(26, 26, v4f(1.f, 0.5f, 0.3f, 1.f));
     imui::NewLine();
     imui::Text("Next line...");

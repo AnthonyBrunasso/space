@@ -63,7 +63,7 @@ struct Result {
   strcat(title_with_tag, tag_append);          \
 
 #define DEBUG_POINT(pos) \
-  rgg::DebugPushPoint(pos, 3.5f, v4f(1.f, 0.f, 0.f, 1.f));
+  rgg::DebugPushPoint(pos, 3.5f, v4f(0.f, .5f, 0.5f, 1.f));
 
 #define DEBUG_RECT(rect) \
   rgg::DebugPushRect(rect, v4f(0.f, 0.f, 1.f, 1.f));
@@ -127,6 +127,7 @@ struct Pane {
   // The height the pane would be if constraints like max_height screen
   // clipping where done. This is used for scrolling.
   float theoretical_height = 0.f;
+  float theoretical_y;
   Rectf scroll_rect;
   char title[kMaxHashKeyLength];
   // Docked panes as linked lists with forward and backward pane pointers.
@@ -547,33 +548,33 @@ UpdatePane(float width, float height, bool* element_in_pane)
   if (begin_mode.overwrite_width) width = begin_mode.overwrite_width;
   begin_mode.overwrite_width = 0.f;
   if (begin_mode.flow_switch || begin_mode.flow_type == kNewLine) {
-    begin_mode.pos.y -= height;
+    begin_mode.pos.y = begin_mode.pane->theoretical_y - height;
   }
   float height_growth = height;
   if (!begin_mode.flow_switch && begin_mode.flow_type == kSameLine) {
     begin_mode.pos.x += begin_mode.last_rect.width;
     // If the new element is larger than the last align them
     // s.t. their max y aligns & update pane bounds.
-    if (height > begin_mode.last_rect.height) {
-      begin_mode.pos.y -= (height - begin_mode.last_rect.height);
-      height_growth = (height - begin_mode.last_rect.height);
-    }
+    begin_mode.pos.y -= (height - begin_mode.last_rect.height);
+    height_growth = (height - begin_mode.last_rect.height);
   }
   if ((begin_mode.flow_switch || begin_mode.flow_type == kNewLine) ||
        begin_mode.pos.y < begin_mode.pane->rect.y) {
       // Grow enough to show begin_mode.pos.y
-      begin_mode.pane->rect.y = begin_mode.pos.y;
-      begin_mode.pane->rect.height += height_growth;
-      begin_mode.pane->theoretical_height += height_growth;
-      if (begin_mode.pane->options.max_height) {
-        if (begin_mode.pane->rect.height >
-            begin_mode.pane->options.max_height) {
-          begin_mode.pane->rect.height = begin_mode.pane->options.max_height;
-          begin_mode.pane->rect.y =
-              begin_mode.start->y - begin_mode.pane->rect.height;
-        }
+    begin_mode.pane->rect.y = begin_mode.pos.y;
+    begin_mode.pane->rect.height += height_growth;
+    begin_mode.pane->theoretical_height += height_growth;
+    if (begin_mode.pane->options.max_height) {
+      if (begin_mode.pane->rect.height >
+          begin_mode.pane->options.max_height) {
+        begin_mode.pane->rect.height = begin_mode.pane->options.max_height;
+        begin_mode.pane->rect.y =
+            begin_mode.start->y - begin_mode.pane->rect.height;
       }
+    }
   }
+  begin_mode.pane->theoretical_y =
+        MINF(begin_mode.pos.y, begin_mode.pane->theoretical_y);
   float new_width = (begin_mode.pos.x + width) - begin_mode.pane->rect.x;
   if (!begin_mode.flow_switch && begin_mode.flow_type == kSameLine) {
     new_width += begin_mode.last_rect.width;
@@ -596,7 +597,7 @@ UpdatePane(float width, float height, bool* element_in_pane)
   begin_mode.pane->element_off_pane =
       !math::IsContainedInRect(begin_mode.last_rect, begin_mode.pane->rect);
   if (kIMUI.debug_enabled) {
-    DEBUG_POINT(begin_mode.pos);
+    DEBUG_POINT(v2f(begin_mode.last_rect.x, begin_mode.last_rect.y));
     DEBUG_RECT(begin_mode.last_rect);
   }
   return begin_mode.last_rect;
@@ -891,6 +892,7 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
   begin_mode.pane->rect.x = start->x;
   begin_mode.pane->rect.y = start->y - begin_mode.pane->rect.height;
   begin_mode.pane->options = pane_options;
+  begin_mode.pane->theoretical_y = start->y;
   if (pane_options.enable_console_mode) {
     SBIT(begin_mode.pane->flags, kPaneConsoleMode);
   } else CBIT(begin_mode.pane->flags, kPaneConsoleMode);
@@ -1185,10 +1187,9 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
   }
   Indent(-2);
   imui::SameLine();
-  Width(180.f);
-  Text("Debug Enabled");
   Checkbox(16.f, 16.f, &kIMUI.debug_enabled);
-  imui::NewLine();
+  Text(" Debug Enabled");
+  NewLine();
   Text("Tags");
   HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
   Indent(2);

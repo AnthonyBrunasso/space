@@ -651,7 +651,7 @@ GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
       player->mod_placement = (ModuleKind)i;
     }
     imui::NewLine();
-    imui::Space(imui::kVertical, 5.f);
+    //imui::Space(imui::kVertical, 5.f);
   }
   imui::Space(imui::kVertical, 2.f);
   imui::HorizontalLine(v4f(0.4f, 0.4f, 0.4f, 1.f));

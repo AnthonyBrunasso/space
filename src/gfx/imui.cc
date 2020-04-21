@@ -62,6 +62,11 @@ struct Result {
   strcat(title_with_tag, title);               \
   strcat(title_with_tag, tag_append);          \
 
+#define DEBUG_POINT(pos) \
+  rgg::DebugPushPoint(pos, 3.5f, v4f(1.f, 0.f, 0.f, 1.f));
+
+#define DEBUG_RECT(rect) \
+  rgg::DebugPushRect(rect, v4f(1.f, 0.f, 0.f, 1.f));
 
 struct TextOptions {
   v4f color = kWhite;
@@ -535,7 +540,6 @@ UpdatePane(float width, float height, bool* element_in_pane)
   if (begin_mode.overwrite_width) width = begin_mode.overwrite_width;
   begin_mode.overwrite_width = 0.f;
   if (begin_mode.flow_switch || begin_mode.flow_type == kNewLine) {
-    if (begin_mode.pos.y <= begin_mode.pane->rect.y) {
       begin_mode.pane->rect.y -= height;
       begin_mode.pane->rect.height += height;
       begin_mode.pane->theoretical_height += height;
@@ -547,7 +551,6 @@ UpdatePane(float width, float height, bool* element_in_pane)
               begin_mode.start->y - begin_mode.pane->rect.height;
         }
       }
-    }
   }
   float new_width = (begin_mode.pos.x + width) - begin_mode.pane->rect.x;
   if (!begin_mode.flow_switch && begin_mode.flow_type == kSameLine) {

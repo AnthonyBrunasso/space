@@ -10,7 +10,26 @@ TextTest()
   auto dims = window::GetWindowSize();
 
   char buffer[64];
-#if 1
+  imui::PaneOptions pane_options;
+  pane_options.max_height = 300.f;
+  static bool show = true;
+  static v2f pos(800, 800);
+  imui::TextOptions o;
+  o.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
+  imui::Begin("scroll test", 0, pane_options, &pos, &show);
+  imui::Text("Some text", o);
+  imui::SameLine();
+  static bool checked = false;
+  imui::Checkbox(16.f, 16.f, &checked);
+  imui::Text(" Sguff...", o);
+  imui::NewLine();
+  imui::SameLine();
+  imui::Checkbox(16.f, 16.f, &checked);
+  imui::Text(" glory...", o);
+
+  imui::End();
+
+#if 0
   {
     imui::PaneOptions pane_options;
     pane_options.max_height = 300.f;
@@ -28,6 +47,10 @@ TextTest()
     o.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
     imui::Text("Test", o);
     imui::Checkbox(16.f, 16.f, &checked);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Checkbox(16.f, 16.f, &checked);
+    imui::Text("Test", o);
     imui::NewLine();
     imui::Text("Seperated");
     imui::Text("By a line!");
@@ -69,13 +92,14 @@ TextTest()
   static bool show_window = false;
 
   {
+#if 0
     imui::PaneOptions pane_options;
     pane_options.height = 170.f;
     pane_options.width = 300.f;
     static bool show = true;
     static v2f pos(1200, 500);
     imui::Begin("imui test", 0, pane_options, &pos, &show);
-    imui::DockWith("scroll test");
+    // imui::DockWith("scroll test");
     imui::Text("Other stuff...");
     v2f cursor = window::GetCursorPosition();
     snprintf(buffer, 64, "Mouse(%.2f,%.2f)", cursor.x, cursor.y);
@@ -91,6 +115,7 @@ TextTest()
       show_window = !show_window;
     }
     imui::End();
+#endif
   }
 
   {
@@ -106,12 +131,13 @@ TextTest()
     }
   }
 
+#endif
   {
     static v2f start(0.f, 400.f);
     static bool show = true;
     imui::DebugPane("DEBUG TAG 0", 0, &start, &show);
   }
-#endif
+
 }
 
 int
@@ -121,7 +147,7 @@ main(int argc, char** argv)
   create_info.window_width = 1920;
   create_info.window_height = 1080;
   gfx::Initialize(create_info);
-
+  v2f dims = window::GetWindowSize();
 
   while (!window::ShouldClose()) {
     PlatformEvent event;
@@ -162,9 +188,13 @@ main(int argc, char** argv)
     glClearColor(0.f, 0.0f, 0.0f, 1.0f);
 
     TextTest();
+    rgg::ModifyObserver mod(math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f),
+                            math::Identity());
+    rgg::DebugRenderPrimitives();
     imui::Render(0);
     imui::ResetAll();
     window::SwapBuffers();
+    rgg::DebugReset();
     platform::sleep_usec(10*1000);
   }
 

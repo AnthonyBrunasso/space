@@ -10,6 +10,7 @@
 #include "asset/gear.cc"
 #include "asset/pod.cc"
 #include "asset/sphere.cc"
+#include "common/common.cc"
 #include "gl/gl.cc"
 #include "math/math.cc"
 #include "platform/platform.cc"
@@ -84,6 +85,27 @@ struct RGG {
 
   int meter_size = 50;
 };
+
+struct DebugCube {
+  Cubef cube;
+  v4f color;
+};
+
+struct DebugPoint {
+  v3f position;
+  float radius;
+  v4f color;
+};
+
+struct DebugRect {
+  Rectf rect;
+  v4f color;
+};
+
+DECLARE_ARRAY(DebugCube, 16);
+DECLARE_ARRAY(DebugPoint, 128);
+DECLARE_ARRAY(DebugRect, 32);
+
 
 static Observer kObserver;
 static RGG kRGG;
@@ -263,6 +285,14 @@ SetupCircleProgram()
       glGetUniformLocation(kRGG.circle_program.reference, "color");
   assert(kRGG.circle_program.color_uniform != uint32_t(-1));
   return true;
+}
+
+void
+DebugReset()
+{
+  kUsedDebugCube = 0;
+  kUsedDebugPoint = 0;
+  kUsedDebugRect = 0;
 }
 
 bool
@@ -726,6 +756,50 @@ RenderProgressBar(const Rectf& rect, float z, float current_progress,
     if (current_progress == max_progress) fill_rect.width = rect.width;
     RenderRectangle(fill_rect, z, fill_color);
   }
+}
+
+void
+DebugRenderPrimitives()
+{
+  // Render debug graphics.
+  for (int i = 0; i < kUsedDebugCube; ++i) {
+    rgg::RenderLineCube(kDebugCube[i].cube, kDebugCube[i].color);
+  }
+
+  for (int i = 0; i < kUsedDebugPoint; ++i) {
+    DebugPoint* point = &kDebugPoint[i];
+    rgg::RenderCircle(point->position, point->radius, point->color);
+  }
+
+  for (int i = 0; i < kUsedDebugRect; ++i) {
+    DebugRect* rect = &kDebugRect[i];
+    rgg::RenderRectangle(rect->rect, rect->color);
+  }
+}
+
+void
+DebugPushCube(const Cubef& cube, const v4f& color)
+{
+  DebugCube* dcube = UseDebugCube();
+  dcube->cube = cube;
+  dcube->color = color;
+}
+
+void
+DebugPushPoint(const v3f& position, float radius, const v4f& color)
+{
+  DebugPoint* dpoint = UseDebugPoint();
+  dpoint->position = position;
+  dpoint->radius = radius;
+  dpoint->color = color;
+}
+
+void
+DebugPushRect(const Rectf& rect, const v4f& color)
+{
+  DebugRect* drect = UseDebugRect();
+  drect->rect = rect;
+  drect->color = color;
 }
 
 }  // namespace rgg

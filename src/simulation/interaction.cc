@@ -266,7 +266,7 @@ EntityViewer(v2f screen, uint32_t tag, Player* player)
     // Draws a red line cube around the entity.
     // NOTE: assuming tag == player_index
     if (EntityView(i, player, tag, show_modules, show_units, show_selected)) {
-      gfx::PushDebugCube(
+      rgg::DebugPushCube(
           Cubef(
               kEntity[i].position + v3f(0.f, 0.f, kEntity[i].bounds.z / 2.f),
               kEntity[i].bounds),

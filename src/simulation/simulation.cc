@@ -191,13 +191,12 @@ MoveTowards(Unit* unit, Tile dest, UnitAction set_on_arrival)
   if (!unit->inspace) {
     auto* path = PathTo(unit->tile, dest);
     if (!path) {
-      // Move to center of tile.
       unit->uaction = set_on_arrival;
       BB_REM(unit->bb, kUnitDestination);
       return true;
     }
 
-    if (path->size > 1) {
+    if (path->size) {
       world_dest = FromShip(path->tile[1]).Center();
     }
   }

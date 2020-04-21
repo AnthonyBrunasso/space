@@ -27,12 +27,6 @@ struct Camera {
   v2i viewport;
 };
 
-namespace gfx
-{
-void
-PushDebugCube(const Cubef& cube, const v4f& color);
-}
-
 namespace camera
 {
 
@@ -44,8 +38,7 @@ Update(Camera* cam)
   cam->target += cam->motion.xy();
   cam->position += cam->motion;
   if (kShowCameraDebugTarget) {
-    // TODO: Remove this or add a debug setting for it...
-    gfx::PushDebugCube(Cubef(cam->target, v3f(15.f, 15.f, 15.f)),
+    rgg::DebugPushCube(Cubef(cam->target, v3f(15.f, 15.f, 15.f)),
                        v4f(1.f, 0.f, 0.f, 1.f));
   }
 }

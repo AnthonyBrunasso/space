@@ -29,13 +29,6 @@ static v3f kTileScale = v3f(0.5f, 0.5f, 1.f);
 static bool kRenderGrid = false;
 static bool kRenderPath = false;
 
-struct DebugCube {
-  Cubef cube;
-  v4f color;
-};
-
-DECLARE_ARRAY(DebugCube, 64);
-
 bool
 Initialize(const window::CreateInfo& window_create_info)
 {
@@ -407,29 +400,11 @@ Render(uint64_t player_index)
   }
 
   RenderSpaceObjects();
-
-  // Render debug graphics.
-  for (int i = 0; i < kUsedDebugCube; ++i) {
-    rgg::RenderLineCube(kDebugCube[i].cube, kDebugCube[i].color);
-  }
+  rgg::DebugRenderPrimitives();
 
   // Ui
   imui::Render(player_index);
   imui::Render(imui::kEveryoneTag);
-}
-
-void
-Reset()
-{
-  kUsedDebugCube = 0;
-}
-
-void
-PushDebugCube(const Cubef& cube, const v4f& color)
-{
-  DebugCube* dcube = UseDebugCube();
-  dcube->cube = cube;
-  dcube->color = color;
 }
 
 }  // namespace gfx

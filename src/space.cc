@@ -98,19 +98,6 @@ GatherInput()
 #endif
 }
 
-void
-SetProjection()
-{
-  // TODO (AN): revisit camera assumptions
-#ifdef HEADLESS
-  v2f size = {1920.0f, 1080.0f};
-#else
-  v2f size = window::GetWindowSize();
-#endif
-  rgg::GetObserver()->projection =
-      math::Perspective(67.f, size.x / size.y, .1f, 2000.f);
-}
-
 int
 main(int argc, char** argv)
 {
@@ -182,7 +169,13 @@ main(int argc, char** argv)
                   &rgg::GetObserver()->view);
 
   // Projection init
-  SetProjection();
+#ifdef HEADLESS
+  rgg::GetObserver()->projection = DefaultPerspective(1280.f, 720.f);
+#else
+  rgg::GetObserver()->projection =
+      rgg::DefaultPerspective(window::GetWindowSize());
+#endif
+
 
   // main thread affinity set to core 0
   if (platform::thread_affinity_count() > 1) {

@@ -86,6 +86,8 @@ struct RGG {
   int meter_size = 50;
 };
 
+
+
 struct DebugCube {
   Cubef cube;
   v4f color;
@@ -112,6 +114,12 @@ static RGG kRGG;
 
 #include "texture.cc"
 #include "ui.cc"
+
+Mat4f
+DefaultPerspective(const v2f& dims)
+{
+  return math::Perspective(67.f, dims.x / dims.y, .1f, 2000.f);
+}
 
 class ModifyObserver
 {

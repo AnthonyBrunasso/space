@@ -545,6 +545,12 @@ using v3f = math::Vec3<float>;
 
 using v4f = math::Vec4<float>;
 
+v2f
+to_v2f(const v2i& v)
+{
+  return v2f((float)v.x, (float)v.y);
+}
+
 void
 Printv3f(v3f v)
 {

@@ -11,9 +11,9 @@ TextTest()
 
   char buffer[64];
   imui::PaneOptions pane_options;
-  pane_options.max_height = 300.f;
+  pane_options.max_height = 200.f;
   static bool show = true;
-  static v2f pos(800, 800);
+  static v2f pos(800, dims.y);
   imui::TextOptions o;
   o.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
   imui::Begin("scroll test", 0, pane_options, &pos, &show);
@@ -26,7 +26,17 @@ TextTest()
   imui::SameLine();
   imui::Checkbox(16.f, 16.f, &checked);
   imui::Text(" glory...", o);
-
+  imui::NewLine();
+  imui::Text("This");
+  imui::Text("Is");
+  imui::Text("To");
+  imui::Text("Allow");
+  imui::Text("Scrolling");
+  imui::Text("And");
+  imui::Text("Scrolling");
+  imui::Text("And");
+  imui::Text("More");
+  imui::Text("Scrolling");
   imui::End();
 
 #if 0

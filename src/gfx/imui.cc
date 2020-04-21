@@ -547,9 +547,24 @@ UpdatePane(float width, float height, bool* element_in_pane)
   if (begin_mode.overwrite_width) width = begin_mode.overwrite_width;
   begin_mode.overwrite_width = 0.f;
   if (begin_mode.flow_switch || begin_mode.flow_type == kNewLine) {
-      begin_mode.pane->rect.y -= height;
-      begin_mode.pane->rect.height += height;
-      begin_mode.pane->theoretical_height += height;
+    begin_mode.pos.y -= height;
+  }
+  float height_growth = height;
+  if (!begin_mode.flow_switch && begin_mode.flow_type == kSameLine) {
+    begin_mode.pos.x += begin_mode.last_rect.width;
+    // If the new element is larger than the last align them
+    // s.t. their max y aligns & update pane bounds.
+    if (height > begin_mode.last_rect.height) {
+      begin_mode.pos.y -= (height - begin_mode.last_rect.height);
+      height_growth = (height - begin_mode.last_rect.height);
+    }
+  }
+  if ((begin_mode.flow_switch || begin_mode.flow_type == kNewLine) ||
+       begin_mode.pos.y < begin_mode.pane->rect.y) {
+      // Grow enough to show begin_mode.pos.y
+      begin_mode.pane->rect.y = begin_mode.pos.y;
+      begin_mode.pane->rect.height += height_growth;
+      begin_mode.pane->theoretical_height += height_growth;
       if (begin_mode.pane->options.max_height) {
         if (begin_mode.pane->rect.height >
             begin_mode.pane->options.max_height) {
@@ -569,12 +584,6 @@ UpdatePane(float width, float height, bool* element_in_pane)
         begin_mode.pane->rect.width > begin_mode.pane->options.max_width) {
       begin_mode.pane->rect.width = begin_mode.pane->options.max_width;
     }
-  }
-  if (begin_mode.flow_switch || begin_mode.flow_type == kNewLine) {
-    begin_mode.pos.y -= height;
-  }
-  if (!begin_mode.flow_switch && begin_mode.flow_type == kSameLine) {
-    begin_mode.pos.x += begin_mode.last_rect.width;
   }
   begin_mode.flow_switch = false;
   begin_mode.last_rect = Rectf(

@@ -8,7 +8,7 @@
 namespace simulation
 {
 #define UIBUFFER_SIZE 64
-#define UIDEBUG 0
+#define UIDEBUG 1
 static char ui_buffer[UIBUFFER_SIZE];
 static uint64_t kInputHash = DJB2_CONST;
 static uint64_t kDebugInputHash;

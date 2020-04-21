@@ -86,7 +86,10 @@ struct RGG {
   int meter_size = 50;
 };
 
-
+enum DebugType {
+  kDebugWorld,
+  kDebugUI,
+};
 
 struct DebugCube {
   Cubef cube;
@@ -97,16 +100,18 @@ struct DebugPoint {
   v3f position;
   float radius;
   v4f color;
+  DebugType type;
 };
 
 struct DebugRect {
   Rectf rect;
   v4f color;
+  DebugType type;
 };
 
 DECLARE_ARRAY(DebugCube, 16);
 DECLARE_ARRAY(DebugPoint, 128);
-DECLARE_ARRAY(DebugRect, 64);
+DECLARE_ARRAY(DebugRect, 128);
 
 
 static Observer kObserver;
@@ -769,17 +774,36 @@ RenderProgressBar(const Rectf& rect, float z, float current_progress,
 void
 DebugRenderPrimitives()
 {
-  // Render debug graphics.
+  // Perspetive / world debugging.
   for (int i = 0; i < kUsedDebugCube; ++i) {
     rgg::RenderLineCube(kDebugCube[i].cube, kDebugCube[i].color);
   }
 
   for (int i = 0; i < kUsedDebugPoint; ++i) {
+    if (kDebugPoint[i].type != kDebugWorld) continue;
     DebugPoint* point = &kDebugPoint[i];
     rgg::RenderCircle(point->position, point->radius, point->color);
   }
 
   for (int i = 0; i < kUsedDebugRect; ++i) {
+    if (kDebugRect[i].type != kDebugWorld) continue;
+    DebugRect* rect = &kDebugRect[i];
+    rgg::RenderLineRectangle(rect->rect, rect->color);
+  }
+
+  // Orthographic / UI debugging
+  auto dims = window::GetWindowSize();
+  rgg::ModifyObserver mod(math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f),
+                          math::Identity());
+
+  for (int i = 0; i < kUsedDebugPoint; ++i) {
+    if (kDebugPoint[i].type != kDebugUI) continue;
+    DebugPoint* point = &kDebugPoint[i];
+    rgg::RenderCircle(point->position, point->radius, point->color);
+  }
+
+  for (int i = 0; i < kUsedDebugRect; ++i) {
+    if (kDebugRect[i].type != kDebugUI) continue;
     DebugRect* rect = &kDebugRect[i];
     rgg::RenderLineRectangle(rect->rect, rect->color);
   }
@@ -794,20 +818,23 @@ DebugPushCube(const Cubef& cube, const v4f& color)
 }
 
 void
-DebugPushPoint(const v3f& position, float radius, const v4f& color)
+DebugPushPoint(const v3f& position, float radius, const v4f& color,
+               DebugType type)
 {
   DebugPoint* dpoint = UseDebugPoint();
   dpoint->position = position;
   dpoint->radius = radius;
   dpoint->color = color;
+  dpoint->type = type;
 }
 
 void
-DebugPushRect(const Rectf& rect, const v4f& color)
+DebugPushRect(const Rectf& rect, const v4f& color, DebugType type)
 {
   DebugRect* drect = UseDebugRect();
   drect->rect = rect;
   drect->color = color;
+  drect->type = type;
 }
 
 }  // namespace rgg

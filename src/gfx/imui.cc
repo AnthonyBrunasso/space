@@ -63,10 +63,10 @@ struct Result {
   strcat(title_with_tag, tag_append);          \
 
 #define DEBUG_POINT(pos) \
-  rgg::DebugPushPoint(pos, 3.5f, v4f(0.f, .5f, 0.5f, 1.f));
+  rgg::DebugPushPoint(pos, 3.5f, v4f(0.f, .5f, 0.5f, 1.f), rgg::kDebugUI);
 
 #define DEBUG_RECT(rect) \
-  rgg::DebugPushRect(rect, v4f(0.f, 0.f, 1.f, 1.f));
+  rgg::DebugPushRect(rect, v4f(0.f, 0.f, 1.f, 1.f), rgg::kDebugUI);
 
 struct TextOptions {
   v4f color = kWhite;
@@ -596,7 +596,7 @@ UpdatePane(float width, float height, bool* element_in_pane)
       math::IntersectRect(begin_mode.last_rect, begin_mode.pane->rect);
   begin_mode.pane->element_off_pane =
       !math::IsContainedInRect(begin_mode.last_rect, begin_mode.pane->rect);
-  if (kIMUI.debug_enabled) {
+  if (FLAGGED(begin_mode.pane->flags, kPaneDebug)) {
     DEBUG_POINT(v2f(begin_mode.last_rect.x, begin_mode.last_rect.y));
     DEBUG_RECT(begin_mode.last_rect);
   }
@@ -1186,9 +1186,9 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
     }
   }
   Indent(-2);
-  imui::SameLine();
-  Checkbox(16.f, 16.f, &kIMUI.debug_enabled);
-  Text(" Debug Enabled");
+  //imui::SameLine();
+  //Checkbox(16.f, 16.f, &kIMUI.debug_enabled);
+  //Text(" Debug Enabled");
   NewLine();
   Text("Tags");
   HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));

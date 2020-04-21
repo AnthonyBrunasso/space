@@ -636,8 +636,8 @@ void
 GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
 {
   imui::PaneOptions options;
-  bool show = true;
-  imui::Begin("Game UI", tag, options, &player->game_menu_pos, &show);
+  v2f menu_pos(0.f, 435.f);
+  imui::Begin("Game UI", tag, options, &menu_pos);
   imui::Result hud_result;
   v2f p(50.f, 10.f);
   for (int i = 3; i < kModCount; ++i) {

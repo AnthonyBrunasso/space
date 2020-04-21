@@ -93,7 +93,6 @@ ScenarioInitialize()
         v2f(player->camera.viewport.x - 900, player->camera.viewport.y);
     player->tile_menu_pos =
         v2f(player->camera.viewport.x - 600, player->camera.viewport.y);
-    player->game_menu_pos = v2f(0.f, 350.f);
   }
 
   for (int i = 0; i < kUsedPlayer; ++i) {

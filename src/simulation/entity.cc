@@ -309,7 +309,6 @@ struct Player {
   v2f admin_menu_pos;
   bool tile_menu;
   v2f tile_menu_pos;
-  v2f game_menu_pos;
   bool scenario_menu;
   bool mineral_cheat;
   float mineral = 0;

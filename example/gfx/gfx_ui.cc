@@ -24,20 +24,10 @@ TextTest()
   imui::Text(" Sguff...", o);
   imui::NewLine();
   imui::SameLine();
-  imui::Checkbox(16.f, 16.f, &checked);
-  imui::Text(" glory...", o);
-  imui::NewLine();
-  imui::Text("This");
-  imui::Text("Is");
-  imui::Text("To");
-  imui::Text("Allow");
-  imui::Text("Scrolling");
-  imui::Text("And");
-  imui::Text("Scrolling");
-  imui::Text("And");
-  imui::Text("More");
-  imui::Text("Scrolling");
+  imui::Button(35.f, 35.f, v4f(1.f, 0.f, 0.f, 1.f));
+  imui::Text("test..");
   imui::End();
+
 
 #if 0
   {

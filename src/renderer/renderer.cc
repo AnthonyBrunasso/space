@@ -104,7 +104,7 @@ struct DebugRect {
 
 DECLARE_ARRAY(DebugCube, 16);
 DECLARE_ARRAY(DebugPoint, 128);
-DECLARE_ARRAY(DebugRect, 32);
+DECLARE_ARRAY(DebugRect, 64);
 
 
 static Observer kObserver;
@@ -773,7 +773,7 @@ DebugRenderPrimitives()
 
   for (int i = 0; i < kUsedDebugRect; ++i) {
     DebugRect* rect = &kDebugRect[i];
-    rgg::RenderRectangle(rect->rect, rect->color);
+    rgg::RenderLineRectangle(rect->rect, rect->color);
   }
 }
 

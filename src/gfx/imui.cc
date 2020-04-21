@@ -66,7 +66,7 @@ struct Result {
   rgg::DebugPushPoint(pos, 3.5f, v4f(1.f, 0.f, 0.f, 1.f));
 
 #define DEBUG_RECT(rect) \
-  rgg::DebugPushRect(rect, v4f(1.f, 0.f, 0.f, 1.f));
+  rgg::DebugPushRect(rect, v4f(0.f, 0.f, 1.f, 1.f));
 
 struct TextOptions {
   v4f color = kWhite;
@@ -232,6 +232,7 @@ struct IMUI {
   uint32_t button_exhaustion[kMaxTags];
   uint32_t button_circle_exhaustion[kMaxTags];
   bool debug_show_details[kMaxTags];
+  bool debug_enabled = false;
 };
 
 static IMUI kIMUI;
@@ -251,6 +252,12 @@ DECLARE_2D_ARRAY(LastMousePosition, kMaxTags, MAX_PLAYER);
 // This allows for panes to stick around for bounds check, docking and imui
 // debugability.
 DECLARE_HASH_MAP_STR(Pane, 64);
+
+void
+ToggleDebug()
+{
+  kIMUI.debug_enabled = !kIMUI.debug_enabled;
+}
 
 void
 GenerateUIMetadata(uint32_t tag)
@@ -579,6 +586,10 @@ UpdatePane(float width, float height, bool* element_in_pane)
       math::IntersectRect(begin_mode.last_rect, begin_mode.pane->rect);
   begin_mode.pane->element_off_pane =
       !math::IsContainedInRect(begin_mode.last_rect, begin_mode.pane->rect);
+  if (kIMUI.debug_enabled) {
+    DEBUG_POINT(begin_mode.pos);
+    DEBUG_RECT(begin_mode.last_rect);
+  }
   return begin_mode.last_rect;
 }
 
@@ -1160,7 +1171,11 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
     }
   }
   Indent(-2);
-
+  imui::SameLine();
+  Width(180.f);
+  Text("Debug Enabled");
+  Checkbox(16.f, 16.f, &kIMUI.debug_enabled);
+  imui::NewLine();
   Text("Tags");
   HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
   Indent(2);

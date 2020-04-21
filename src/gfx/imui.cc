@@ -596,7 +596,7 @@ UpdatePane(float width, float height, bool* element_in_pane)
       math::IntersectRect(begin_mode.last_rect, begin_mode.pane->rect);
   begin_mode.pane->element_off_pane =
       !math::IsContainedInRect(begin_mode.last_rect, begin_mode.pane->rect);
-  if (FLAGGED(begin_mode.pane->flags, kPaneDebug)) {
+  if (FLAGGED(begin_mode.pane->flags, kPaneDebug) && *element_in_pane) {
     DEBUG_POINT(v2f(begin_mode.last_rect.x, begin_mode.last_rect.y));
     DEBUG_RECT(begin_mode.last_rect);
   }

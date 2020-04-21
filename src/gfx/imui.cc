@@ -887,7 +887,7 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
       pane_options.width > 0.f ? pane_options.width : t.width;
   begin_mode.pane->rect.height =
       pane_options.height > 0.f ? pane_options.height : 0.f;
-  begin_mode.pane->theoretical_height = begin_mode.pane->rect.height;
+  begin_mode.pane->theoretical_height = 0.f;
   begin_mode.pane->rect.x = start->x;
   begin_mode.pane->rect.y = start->y - begin_mode.pane->rect.height;
   begin_mode.pane->options = pane_options;
@@ -955,10 +955,10 @@ End()
 {
   assert(kIMUI.begin_mode.set);
   Pane* pane = kIMUI.begin_mode.pane;
-  pane->header_rect.x = pane->rect.x;
-  pane->header_rect.y =
-      pane->rect.y + pane->rect.height - pane->header_rect.height;
+  pane->header_rect.x = kIMUI.begin_mode.start->x;
+  pane->header_rect.y = kIMUI.begin_mode.start->y - pane->header_rect.height;
   pane->header_rect.width = pane->rect.width;
+  if (FLAGGED(pane->flags, kPaneHidden)) pane->rect = pane->header_rect;
   // Move around panes if a user has click and held in them.
   if (kIMUI.begin_mode.start && IsMouseDown() &&
       IsRectPreviouslyHighlighted(kIMUI.begin_mode.pane->rect) &&
@@ -1163,9 +1163,13 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
       Text(buffer);
       snprintf(buffer, 64, "hidden: %i", FLAGGED(pane->flags, kPaneHidden));
       Text(buffer);
-      snprintf(buffer, 64, "rect (%.2f,%.2f,%.2f,%.2f)",
+      snprintf(buffer, 64, "pane (%.2f,%.2f,%.2f,%.2f)",
                pane->rect.x, pane->rect.y, pane->rect.width,
                pane->rect.height);
+      Text(buffer);
+      snprintf(buffer, 64, "header (%.2f,%.2f,%.2f,%.2f)",
+               pane->header_rect.x, pane->header_rect.y,
+               pane->header_rect.width, pane->header_rect.height);
       Text(buffer);
       snprintf(buffer, 64, "theoretical_height (%.2f)",
                pane->theoretical_height);

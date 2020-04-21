@@ -110,8 +110,8 @@ struct DebugRect {
 };
 
 DECLARE_ARRAY(DebugCube, 16);
-DECLARE_ARRAY(DebugPoint, 128);
-DECLARE_ARRAY(DebugRect, 128);
+DECLARE_ARRAY(DebugPoint, 64);
+DECLARE_ARRAY(DebugRect, 64);
 
 
 static Observer kObserver;
@@ -791,6 +791,8 @@ DebugRenderPrimitives()
     rgg::RenderLineRectangle(rect->rect, rect->color);
   }
 
+  glDisable(GL_DEPTH_TEST);
+  glBlendFunc(GL_ONE, GL_ZERO);
   // Orthographic / UI debugging
   auto dims = window::GetWindowSize();
   rgg::ModifyObserver mod(math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f),
@@ -807,6 +809,8 @@ DebugRenderPrimitives()
     DebugRect* rect = &kDebugRect[i];
     rgg::RenderLineRectangle(rect->rect, rect->color);
   }
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_DEPTH_TEST);
 }
 
 void

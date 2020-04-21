@@ -400,11 +400,12 @@ Render(uint64_t player_index)
   }
 
   RenderSpaceObjects();
-  rgg::DebugRenderPrimitives();
 
   // Ui
   imui::Render(player_index);
   imui::Render(imui::kEveryoneTag);
+
+  rgg::DebugRenderPrimitives();
 }
 
 }  // namespace gfx

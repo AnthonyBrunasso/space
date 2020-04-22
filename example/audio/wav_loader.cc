@@ -6,8 +6,9 @@
 
 // http://soundfile.sapp.org/doc/WaveFormat/
 
-int
-main(int argc, char** argv)
+bool
+LoadWAV(const char* file, uint8_t** bytes, uint32_t* byte_count,
+        uint32_t* sample_rate)
 {
 #pragma pack(push, 1)
   struct WavHeader {
@@ -28,12 +29,11 @@ main(int argc, char** argv)
   struct WavData {
     uint32_t subchunk2_id;
     uint32_t subchunk2_size;
-    uint8_t* data;
-    uint32_t data_size;
   };
 #pragma pack(pop)
 
-  FILE* f = fopen("example/audio/test.wav", "rb");
+  // FILE* f = fopen("example/audio/test.wav", "rb");
+  FILE* f = fopen(file, "rb");
   uint8_t* buffer;
   uint32_t file_length;
 
@@ -69,6 +69,23 @@ main(int argc, char** argv)
 
   printf("subchunk2_id: %u\n", wav_data->subchunk2_id);
   printf("subchunk2_size: %u\n", wav_data->subchunk2_size);
+  uint8_t* data_start =
+      &buffer[sizeof(WavHeader) + sizeof(WavFormat) + sizeof(WavData)];
+  *bytes = (uint8_t*)malloc(wav_data->subchunk2_size);
+  *byte_count = wav_data->subchunk2_size;
+  *sample_rate = format->sample_rate;
+  for (int i = 0; i < wav_data->subchunk2_size; ++i) {
+    (*bytes)[i] = data_start[i];
+  }
+  return true;
+}
+
+#if 0
+int
+main(int argc, char** argv)
+{
+
 
   return 0;
 }
+#endif

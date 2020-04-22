@@ -70,6 +70,9 @@ main()
   printf("Loaded %u bytes sample_rate %u\n", byte_count, sample_rate);
 
   alBufferData(buffer, AL_FORMAT_STEREO16, bytes, byte_count, sample_rate);
+  free(bytes);
+  bytes = nullptr;
+
   error = alGetError();
   if (error != AL_NO_ERROR) {
     printf("openal alBufferData error\n");

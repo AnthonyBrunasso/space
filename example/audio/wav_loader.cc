@@ -43,6 +43,7 @@ LoadWAV(const char* file, uint8_t** bytes, uint32_t* byte_count,
 
   buffer = (uint8_t*)malloc(file_length);
   fread(buffer, file_length, 1, f);
+  fclose(f);
 
   printf("file_length: %u\n", file_length);
 
@@ -74,9 +75,8 @@ LoadWAV(const char* file, uint8_t** bytes, uint32_t* byte_count,
   *bytes = (uint8_t*)malloc(wav_data->subchunk2_size);
   *byte_count = wav_data->subchunk2_size;
   *sample_rate = format->sample_rate;
-  for (int i = 0; i < wav_data->subchunk2_size; ++i) {
-    (*bytes)[i] = data_start[i];
-  }
+  memcpy(*bytes, data_start, wav_data->subchunk2_size);
+  free(buffer);
   return true;
 }
 

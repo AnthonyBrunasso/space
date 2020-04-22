@@ -1,7 +1,5 @@
 #include <cstdio>
 
-#include <windows.h>
-
 #include <OpenAL/al.h>
 #include <OpenAL/alc.h>
 

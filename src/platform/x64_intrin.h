@@ -16,6 +16,13 @@
 #include <immintrin.h>
 #include <lzcntintrin.h>
 #include <popcntintrin.h>
+#if defined(__APPLE__)
+#include <libkern/OSByteOrder.h>
+#define __bswap_32 OSSwapInt32
+#define __bswap_16 OSSwapInt16
+#else
+#include <byteswap.h>
+# endif
 #endif
 
 #ifdef _WIN32
@@ -64,4 +71,14 @@ inline int TARGET("rdrnd") RDRND(unsigned long long *p)
   for (int i = 0; i < RDRND_RETRY_LIMIT; ++i)
     if (_rdrand64_step(p)) return 1;
   return 0;
+}
+
+inline uint32_t bswap_32(uint32_t input)
+{
+  return __bswap_32(input);
+}
+
+inline uint16_t bswap_16(uint16_t input)
+{
+  return __bswap_16(input);
 }

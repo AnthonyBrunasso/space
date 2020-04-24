@@ -6,45 +6,14 @@
 #include <cstdio>
 #include <string.h>
 
+#include "audio/audio.cc"
 #include "audio/sound.cc"
-
-
-void
-ListAudioDevices(const ALCchar* devices)
-{
-  const ALCchar* device = devices, *next = devices + 1;
-  size_t len = 0;
-
-  printf("Device List\n");
-  while (device && *device != '\0' && next && *next != '\0') {
-    printf("%s\n", device);
-    len = strlen(device);
-    device += (len + 1);
-    next += (len + 2);
-  }
-}
 
 int
 main()
 {
-  ALCdevice* device;
-  device = alcOpenDevice(nullptr);
-  if (!device) printf("Could not open device.\n");
-  ALboolean enumeration;
-  enumeration = alcIsExtensionPresent(nullptr, "ALC_ENUMERATION_EXT");
-  if (enumeration == AL_FALSE) printf("ALC_ENUMERATION_EXT not present\n");
-  ListAudioDevices(alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
-  ALCenum error = alGetError();
-  if (error != AL_NO_ERROR) {
-    printf("openal error\n");
-    return 1;
-  }
-  ALCcontext* context;
-  context = alcCreateContext(device, nullptr);
-  if (!alcMakeContextCurrent(context)) {
-    printf("make context failure.\n");
-    return 1;
-  }
+  audio::Initialize();
+
   ALfloat listener_orientation[6] = {0.f, 0.f, 1.f, 0.f, 1.f, 0.f};
   alListener3f(AL_POSITION, 0, 0, 1.f);
   alListener3f(AL_VELOCITY, 0, 0, 0);
@@ -70,7 +39,7 @@ main()
   }
   alBufferData(buffer, sound.format, sound.bytes, sound.size, sound.frequency);
 
-  error = alGetError();
+  ALCenum error = alGetError();
   if (error != AL_NO_ERROR) {
     printf("openal alBufferData error\n");
     return 1;

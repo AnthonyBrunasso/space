@@ -13,11 +13,8 @@ int
 main()
 {
   audio::Initialize();
-
-  ALfloat listener_orientation[6] = {0.f, 0.f, 1.f, 0.f, 1.f, 0.f};
-  alListener3f(AL_POSITION, 0, 0, 1.f);
-  alListener3f(AL_VELOCITY, 0, 0, 0);
-  alListenerfv(AL_ORIENTATION, listener_orientation);
+  audio::SetListener(v3f(0.f, 0.f, 1.f), v3f(0.f, 0.f, 0.f),
+                     v3f(0.f, 0.f, 1.f), v3f(0.f, 1.f, 0.f));
   ALuint source;
   alGenSources((ALuint)1, &source);
   alSourcef(source, AL_PITCH, 1);

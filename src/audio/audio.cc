@@ -3,6 +3,8 @@
 #include <OpenAL/al.h>
 #include <OpenAL/alc.h>
 
+#include "math/vec.h"
+
 namespace audio {
 
 struct Audio {
@@ -56,6 +58,17 @@ Initialize()
   }
 
   return true;
+}
+
+void
+SetListener(const v3f& position, const v3f& velocity, const v3f& facing,
+            const v3f& up)
+{
+  ALfloat listener_orientation[6] = {
+    facing.x, facing.y, facing.z, up.x, up.y, up.z};
+  alListener3f(AL_POSITION, position.x, position.y, position.z);
+  alListener3f(AL_VELOCITY, velocity.x, velocity.y, velocity.z);
+  alListenerfv(AL_ORIENTATION, listener_orientation);
 }
 
 }  // namespace audio

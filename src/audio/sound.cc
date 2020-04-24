@@ -13,7 +13,7 @@ namespace audio {
 
 #define AUDIODEBUG 1
 
-constexpr uint32_t kMaxSoundFileSize = 3e6;
+constexpr uint32_t kMaxSoundFileSize = 12e6;
 
 uint8_t kBuffer[kMaxSoundFileSize];
 
@@ -118,6 +118,7 @@ LoadWAV(const char* filename, Sound* sound)
     } else if (memcmp((char*)(chunk->chunk_id), "data", 4) == 0) {
       sound->size = chunk->chunk_size;
       sound_bytes = &kBuffer[read];
+      break;  // Once we get audio bytes quit.
     } // else - Skip unrecognized chunks.
     read += chunk->chunk_size;
   }

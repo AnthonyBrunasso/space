@@ -5,6 +5,7 @@
 
 #include "gfx/gfx.cc"
 #include "network/network.cc"
+#include "audio/audio.cc"
 #include "simulation/interaction.cc"
 #include "simulation/simulation.cc"
 
@@ -28,6 +29,8 @@ struct State {
   uint64_t choke_frame = 0;
   // Parameters window::Create will be called with.
   window::CreateInfo window_create_info;
+  // Id to music.
+  uint32_t music_id;
 };
 
 static State kGameState;
@@ -151,6 +154,19 @@ main(int argc, char** argv)
   if (!gfx::Initialize(kGameState.window_create_info)) {
     return 1;
   }
+
+  if (!audio::Initialize()) {
+    printf("Unable to initialize audio system.\n");
+    return 1;
+  }
+
+  kGameState.music_id = audio::LoadSound("asset/music.wav");
+  if (!kGameState.music_id) {
+    printf("Unable to load music.");
+  }
+  audio::Source source;
+  source.looping = true;
+  audio::PlaySound(kGameState.music_id, source);
 #endif
 
   // Network handshake uses a clock
@@ -164,6 +180,9 @@ main(int argc, char** argv)
   if (!simulation::Initialize(kNetworkState.game_id)) {
     return 1;
   }
+
+  simulation::InteractionInitialize();
+
   // Init view for local player's camera
   camera::SetView(GetCamera(kNetworkState.player_index),
                   &rgg::GetObserver()->view);
@@ -232,6 +251,7 @@ main(int argc, char** argv)
     if (window::ShouldClose()) break;
     imui::ResetTag(imui::kEveryoneTag);
     rgg::DebugReset();
+    audio::Cleanup();
 
     GatherInput();
     NetworkEgress();

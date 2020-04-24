@@ -114,11 +114,13 @@ LoadSound(const char* filename)
 }
 
 void
-PlaySound(uint32_t id)
+PlaySound(uint32_t id, const Source& init_source)
 {
+  if (!id) return;
   Sound* sound = FindSound(id);
   if (!sound) return;
   Source* source = UseSource();
+  *source = init_source;
   alGenSources((ALuint)1, &source->alreference);
   alSourcef(source->alreference, AL_PITCH, source->pitch);
   alSourcef(source->alreference, AL_GAIN, source->gain);

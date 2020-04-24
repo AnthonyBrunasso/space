@@ -14,6 +14,14 @@ static uint64_t kInputHash = DJB2_CONST;
 static uint64_t kDebugInputHash;
 static uint64_t kDebugSimulationHash;
 static float kCameraSpeed = 4.f;
+static uint32_t kUIClickSound = 0;
+
+void
+InteractionInitialize()
+{
+  kUIClickSound = audio::LoadSound("asset/ui_click.wav");
+  if (!kUIClickSound) printf("Unable to load ui click sound.\n");
+}
 
 void
 CacheSyncHashes(bool update, uint64_t frame)
@@ -182,6 +190,7 @@ EntityView(int idx, Player* player, uint32_t player_index,
   toptions.highlight_color = gfx::kRed;
   imui::Result imresult = imui::Text(ui_buffer, toptions);
   if (imresult.clicked) {
+    audio::PlaySound(kUIClickSound, audio::Source());
     camera::Move(&player->camera, entity->position);
   }
   imui::Indent(2);
@@ -343,10 +352,12 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
   imui::Text(" Invasions Off");
   imui::NewLine();
   if (imui::Text("Spawn Unit Cheat", text_options).clicked) {
+    audio::PlaySound(kUIClickSound, audio::Source());
     v2f pos = math::RandomPointInRect(ShipBounds(player - kPlayer));
     SpawnCrew(ToShip(player->ship_index, pos), player - kPlayer);
   }
   if (imui::Text("Kill Random Unit Cheat", text_options).clicked) {
+    audio::PlaySound(kUIClickSound, audio::Source());
     // Kill first unit in entity list.
     int rand_val = rand() % kUsedEntity;
     for (int i = 0; i < kUsedEntity; ++i) {
@@ -359,15 +370,18 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
     }
   }
   if (imui::Text("Reset Game", text_options).clicked) {
+    audio::PlaySound(kUIClickSound, audio::Source());
     Reset(kNetworkState.game_id);
   }
   if (imui::Text("Scenario", text_options).clicked) {
+    audio::PlaySound(kUIClickSound, audio::Source());
     player->scenario_menu = !player->scenario_menu;
   }
   if (player->scenario_menu) {
     imui::Indent(2);
     for (int i = 0; i < kMaxScenario; ++i) {
       if (imui::Text(kScenarioNames[i], text_options).clicked) {
+        audio::PlaySound(kUIClickSound, audio::Source());
         kScenario = (ScenarioType)i;
         Reset(kNetworkState.game_id);
       }
@@ -375,6 +389,7 @@ AdminPanel(v2f screen, uint32_t tag, Player* player)
     imui::Indent(-2);
   }
   if (imui::Text("Exit", text_options).clicked) {
+    audio::PlaySound(kUIClickSound, audio::Source());
     exit(1);
   }
 
@@ -647,6 +662,7 @@ GameUI(v2f screen, uint32_t tag, int player_index, Player* player)
     imui::Text(ModuleName((ModuleKind)i));
     p.x += 55.f;
     if (hud_result.clicked) {
+      audio::PlaySound(kUIClickSound, audio::Source());
       player->hud_mode = kHudModule;
       player->mod_placement = (ModuleKind)i;
     }

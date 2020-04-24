@@ -6,7 +6,8 @@
 #include <cstdio>
 #include <string.h>
 
-#include "example/audio/wav_loader.cc"
+#include "audio/sound.cc"
+
 
 void
 ListAudioDevices(const ALCchar* devices)
@@ -62,16 +63,12 @@ main()
   ALvoid* data;
   ALboolean loop = AL_FALSE;
 
-  uint8_t* bytes;
-  uint32_t byte_count;
-  uint32_t sample_rate;
-
-  LoadWAV("example/audio/test.wav", &bytes, &byte_count, &sample_rate);
-  printf("Loaded %u bytes sample_rate %u\n", byte_count, sample_rate);
-
-  alBufferData(buffer, AL_FORMAT_STEREO16, bytes, byte_count, sample_rate);
-  free(bytes);
-  bytes = nullptr;
+  audio::Sound sound;
+  if (!audio::LoadWAV("example/audio/test.wav", &sound)) {
+    printf("Failed to load sound\n");
+    return 1;
+  }
+  alBufferData(buffer, sound.format, sound.bytes, sound.size, sound.frequency);
 
   error = alGetError();
   if (error != AL_NO_ERROR) {

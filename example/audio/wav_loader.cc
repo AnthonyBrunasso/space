@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "audio/sound.cc"
+
 // http://soundfile.sapp.org/doc/WaveFormat/
 
 bool
@@ -80,11 +82,12 @@ LoadWAV(const char* file, uint8_t** bytes, uint32_t* byte_count,
   return true;
 }
 
-#if 0
+#if 1
 int
 main(int argc, char** argv)
 {
-
+  audio::Sound sound;
+  audio::LoadWAV("example/audio/test.wav", &sound);
 
   return 0;
 }

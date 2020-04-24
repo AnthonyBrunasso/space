@@ -24,7 +24,11 @@ main()
     return 1;
   }
   audio::PlaySound(aid1);
-  audio::PlaySound(aid2);
+  for (int i = 0; i < 10; ++i) {
+    audio::PlaySound(aid2);
+    platform::sleep_ms(
+        (uint64_t)(audio::FindSound(aid2)->length_ms / 2.f));
+  }
   platform::sleep_ms((uint64_t)audio::FindSound(aid1)->length_ms);
   return 0;
 }

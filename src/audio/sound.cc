@@ -13,6 +13,10 @@ namespace audio {
 
 #define AUDIODEBUG 1
 
+constexpr uint32_t kMaxSoundFileSize = 3e6;
+
+uint8_t kBuffer[kMaxSoundFileSize];
+
 struct Sound {
   float length_ms;
   uint32_t bitrate;
@@ -60,22 +64,21 @@ LoadWAV(const char* filename, Sound* sound)
 #pragma pack(pop)
 
   FILE* f = fopen(filename, "rb");
-  uint8_t* buffer;
   uint32_t file_length;
 
   fseek(f, 0, SEEK_END);
   file_length = ftell(f);
+  assert(file_length < kMaxSoundFileSize);
   rewind(f);
 
-  buffer = (uint8_t*)malloc(file_length);
-  fread(buffer, file_length, 1, f);
+  fread(kBuffer, file_length, 1, f);
   fclose(f);
 
 #if AUDIODEBUG
   printf("Read file %s size %u\n", filename, file_length);
 #endif
 
-  WavHeader* header = (WavHeader*)buffer;
+  WavHeader* header = (WavHeader*)kBuffer;
   uint32_t read = sizeof(WavHeader);
 
 #if 0
@@ -92,14 +95,14 @@ LoadWAV(const char* filename, Sound* sound)
 
   sound->bytes = nullptr;
   while (read < file_length) {
-    WavChunk* chunk = (WavChunk*)(&buffer[read]);
+    WavChunk* chunk = (WavChunk*)(&kBuffer[read]);
 #if 0
     printf("Read chunk %.4s bytes %u\n",
            (char*)(chunk->chunk_id), chunk->chunk_size);
 #endif
     read += sizeof(WavChunk);
     if (memcmp((char*)(chunk->chunk_id), "fmt", 3) == 0) {
-      WavFmt* fmt = (WavFmt*)(&buffer[read]);
+      WavFmt* fmt = (WavFmt*)(&kBuffer[read]);
 #if 0
       printf("audio_format: %u\n", fmt->audio_format);
       printf("num_channels: %u\n", fmt->num_channels);
@@ -115,7 +118,7 @@ LoadWAV(const char* filename, Sound* sound)
     } else if (memcmp((char*)(chunk->chunk_id), "data", 4) == 0) {
       sound->size = chunk->chunk_size;
       sound->bytes = (uint8_t*)malloc(sound->size);
-      memcpy(sound->bytes, &buffer[read], sound->size);
+      memcpy(sound->bytes, &kBuffer[read], sound->size);
       read += sound->size;
     } else { break; }  // Unrecognized chunk - break.
   }
@@ -144,8 +147,6 @@ LoadWAV(const char* filename, Sound* sound)
   printf("size: %u\n", sound->size);
   printf("format: %s\n", FormatToString(sound->format));
 #endif
-
-  free(buffer);
 
   return true;
 }

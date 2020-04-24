@@ -8,6 +8,8 @@
 
 #ifdef _WIN32
 #include <intrin.h>
+#define __bswap_32 _byteswap_ulong
+#define __bswap_16 _byteswap_ushort
 #else
 // The recommended include is heavy: compile time
 // <x86intrin.h>

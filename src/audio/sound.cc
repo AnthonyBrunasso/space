@@ -146,7 +146,7 @@ LoadWAV(const char* filename, Sound* sound)
 
   ALenum error = alGetError();
   if (error != AL_NO_ERROR) {
-    printf("openal alBufferData error %i\n, error");
+    printf("openal alBufferData error %i\n", error);
     return false;
   }
 

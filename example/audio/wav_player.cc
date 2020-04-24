@@ -25,11 +25,8 @@ main()
   alSource3f(source, AL_POSITION, 0, 0, 0);
   alSource3f(source, AL_VELOCITY, 0, 0, 0);
   alSourcei(source, AL_LOOPING, AL_FALSE);
-  ALuint buffer;
-  alGenBuffers((ALuint)1, &buffer);
   ALsizei size, freq;
   ALenum format;
-  ALvoid* data;
   ALboolean loop = AL_FALSE;
 
   audio::Sound sound;
@@ -37,14 +34,13 @@ main()
     printf("Failed to load sound\n");
     return 1;
   }
-  alBufferData(buffer, sound.format, sound.bytes, sound.size, sound.frequency);
 
   ALCenum error = alGetError();
   if (error != AL_NO_ERROR) {
     printf("openal alBufferData error\n");
     return 1;
   }
-  alSourcei(source, AL_BUFFER, buffer);
+  alSourcei(source, AL_BUFFER, sound.alreference);
   alSourcePlay(source);
   ALint source_state;
   alGetSourcei(source, AL_SOURCE_STATE, &source_state);

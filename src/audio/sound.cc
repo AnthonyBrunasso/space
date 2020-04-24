@@ -24,7 +24,8 @@ struct Sound {
   uint32_t channels;
   uint32_t size;
   ALenum format;
-  uint8_t* bytes;
+  ALuint alreference;
+  //uint8_t* bytes;
 };
 
 const char*
@@ -93,7 +94,7 @@ LoadWAV(const char* filename, Sound* sound)
   assert(memcmp((char*)(&header->chunk_id), "RIFF", 4) == 0);
   assert(memcmp((char*)(&header->format), "WAVE", 4) == 0);
 
-  sound->bytes = nullptr;
+  uint8_t* sound_bytes = nullptr;
   while (read < file_length) {
     WavChunk* chunk = (WavChunk*)(&kBuffer[read]);
 #if 0
@@ -116,13 +117,12 @@ LoadWAV(const char* filename, Sound* sound)
       sound->frequency = (float)fmt->sample_rate;
     } else if (memcmp((char*)(chunk->chunk_id), "data", 4) == 0) {
       sound->size = chunk->chunk_size;
-      sound->bytes = (uint8_t*)malloc(sound->size);
-      memcpy(sound->bytes, &kBuffer[read], sound->size);
+      sound_bytes = &kBuffer[read];
     } // else - Skip unrecognized chunks.
     read += chunk->chunk_size;
   }
 
-  assert(sound->bytes);
+  assert(sound_bytes);
 
   sound->length_ms = (float)sound->size / 
       (sound->channels * sound->frequency * (sound->bitrate / 8.f)) * 1000.f;
@@ -137,6 +137,12 @@ LoadWAV(const char* filename, Sound* sound)
     return false;
   }
 
+  ALuint buffer;
+  alGenBuffers((ALuint)1, &buffer);
+  alBufferData(buffer, sound->format, sound_bytes, sound->size,
+               sound->frequency);
+  sound->alreference = buffer;
+
 #if AUDIODEBUG
   printf("Finished reading sound file %s\n", filename);
   printf("length: %.2fms(%.2fs)\n", sound->length_ms, sound->length_ms / 1000.f);
@@ -145,6 +151,7 @@ LoadWAV(const char* filename, Sound* sound)
   printf("channels: %u\n", sound->channels);
   printf("size: %u\n", sound->size);
   printf("format: %s\n", FormatToString(sound->format));
+  printf("alreference: %u\n", sound->alreference);
 #endif
 
   return true;

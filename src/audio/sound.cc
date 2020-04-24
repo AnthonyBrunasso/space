@@ -81,7 +81,7 @@ LoadWAV(const char* filename, Sound* sound)
   WavHeader* header = (WavHeader*)kBuffer;
   uint32_t read = sizeof(WavHeader);
 
-#if 1
+#if 0
   // Should say RIFF
   printf("chunk_id: %.4s\n", (char*)(&header->chunk_id));
   // Think this will be the size of the file for this thing.
@@ -96,14 +96,14 @@ LoadWAV(const char* filename, Sound* sound)
   sound->bytes = nullptr;
   while (read < file_length) {
     WavChunk* chunk = (WavChunk*)(&kBuffer[read]);
-#if 1
+#if 0
     printf("Read chunk %.4s bytes %u\n",
            (char*)(chunk->chunk_id), chunk->chunk_size);
 #endif
     read += sizeof(WavChunk);
     if (memcmp((char*)(chunk->chunk_id), "fmt", 3) == 0) {
       WavFmt* fmt = (WavFmt*)(&kBuffer[read]);
-#if 1
+#if 0
       printf("audio_format: %u\n", fmt->audio_format);
       printf("num_channels: %u\n", fmt->num_channels);
       printf("sample_rate: %u\n", fmt->sample_rate);

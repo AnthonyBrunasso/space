@@ -28,6 +28,7 @@ main()
     audio::PlaySound(aid2);
     platform::sleep_ms(
         (uint64_t)(audio::FindSound(aid2)->length_ms / 2.f));
+    audio::Reset();
   }
   platform::sleep_ms((uint64_t)audio::FindSound(aid1)->length_ms);
   return 0;

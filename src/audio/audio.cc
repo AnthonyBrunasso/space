@@ -16,6 +16,16 @@ struct Audio {
 
 static Audio kAudio;
 
+struct Source {
+  ALuint alreference;
+  float pitch = 1.f;
+  float gain = 1.f;
+  v3f position = {};
+  v3f velocity = {};
+  bool looping = 0.f;
+};
+
+DECLARE_ARRAY(Source, 32);
 DECLARE_HASH_ARRAY(Sound, 16);
 
 void
@@ -65,6 +75,25 @@ Initialize()
 }
 
 void
+Reset()
+{
+  // Cleanup sources.
+  for (int i = 0; i < kUsedSource;) {
+    Source* source = &kSource[i];
+    if (source) {
+      ALint source_state;
+      alGetSourcei(source->alreference, AL_SOURCE_STATE, &source_state);
+      if (source_state == AL_STOPPED) {
+        alDeleteSources(1, &source->alreference);
+        CompressSource(i);
+        continue;
+      }
+    }
+    ++i;
+  }
+}
+
+void
 SetListener(const v3f& position, const v3f& velocity, const v3f& facing,
             const v3f& up)
 {
@@ -87,22 +116,18 @@ LoadSound(const char* filename)
 void
 PlaySound(uint32_t id)
 {
-  // TODO: Save source, probably pass in state here to customize it?
-  ALuint source;
-  alGenSources((ALuint)1, &source);
-  alSourcef(source, AL_PITCH, 1);
-  alSourcef(source, AL_GAIN, 1);
-  alSource3f(source, AL_POSITION, 0, 0, 0);
-  alSource3f(source, AL_VELOCITY, 0, 0, 0);
-  alSourcei(source, AL_LOOPING, AL_FALSE);
+  Source* source = UseSource();
+  alGenSources((ALuint)1, &source->alreference);
+  alSourcef(source->alreference, AL_PITCH, source->pitch);
+  alSourcef(source->alreference, AL_GAIN, source->gain);
+  alSourcefv(source->alreference, AL_POSITION, &source->position.x);
+  alSourcefv(source->alreference, AL_VELOCITY, &source->velocity.x);
+  alSourcei(source->alreference, AL_LOOPING, source->looping);
   ALCenum error = alGetError();
- 
   Sound* sound = FindSound(id);
   if (!sound) return; 
-  alSourcei(source, AL_BUFFER, sound->alreference);
-  alSourcePlay(source);
-  ALint source_state;
-  alGetSourcei(source, AL_SOURCE_STATE, &source_state);
+  alSourcei(source->alreference, AL_BUFFER, sound->alreference);
+  alSourcePlay(source->alreference);
 }
 
 }  // namespace audio

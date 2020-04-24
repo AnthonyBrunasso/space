@@ -1,5 +1,5 @@
 // Singleplayer game template.
-
+#define SINGLE_PLAYER 1
 
 #include "math/math.cc"
 
@@ -37,42 +37,56 @@ static Stats kGameStats;
 static char kUIBuffer[UIBUFFER_SIZE];
 
 void
-DiagnosticsUI()
+DebugUI()
 {
   v2f screen = window::GetWindowSize();
-  static bool enable_debug = false;
-  static v2f read_only_pos(3.f, screen.y);
-  static float right_align = 125.f;
-  imui::PaneOptions options;
-  options.max_width = 310.f;
-  imui::Begin("Diagnostics Debug", imui::kEveryoneTag, options, &read_only_pos,
-              &enable_debug);
-  imui::TextOptions debug_options;
-  debug_options.color = gfx::kWhite;
-  debug_options.highlight_color = gfx::kRed;
-  imui::SameLine();
-  imui::Width(right_align);
-  imui::Text("Frame Time");
-  snprintf(kUIBuffer, sizeof(kUIBuffer), "%04.02fus [%02.02f%%]",
-           StatsMean(&kGameStats), 100.f * StatsUnbiasedRsDev(&kGameStats));
-  imui::Text(kUIBuffer);
-  imui::NewLine();
-  imui::SameLine();
-  imui::Width(right_align);
-  imui::Text("Game Time");
-  snprintf(kUIBuffer, sizeof(kUIBuffer), "%04.02fs",
-           (double)kGameState.game_time_usec / 1e6);
-  imui::Text(kUIBuffer);
-  imui::NewLine();
-  imui::SameLine();
-  imui::Width(right_align);
-  imui::Text("FPS");
-  snprintf(kUIBuffer, sizeof(kUIBuffer), "%04.02ff/s",
-           (double)kGameState.game_updates /
-               ((double)kGameState.game_time_usec / 1e6));
-  imui::Text(kUIBuffer);
-  imui::NewLine();
-  imui::End();
+  {
+    static bool enable_debug = false;
+    static v2f diagnostics_pos(3.f, screen.y);
+    static float right_align = 130.f;
+    imui::PaneOptions options;
+    options.max_width = 315.f;
+    imui::Begin("Diagnostics", imui::kEveryoneTag, options, &diagnostics_pos,
+                &enable_debug);
+    imui::TextOptions debug_options;
+    debug_options.color = gfx::kWhite;
+    debug_options.highlight_color = gfx::kRed;
+    imui::SameLine();
+    imui::Width(right_align);
+    imui::Text("Frame Time");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%04.02fus [%02.02f%%]",
+             StatsMean(&kGameStats), 100.f * StatsUnbiasedRsDev(&kGameStats));
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(right_align);
+    imui::Text("Game Time");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%04.02fs",
+             (double)kGameState.game_time_usec / 1e6);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(right_align);
+    imui::Text("FPS");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%04.02ff/s",
+             (double)kGameState.game_updates /
+                 ((double)kGameState.game_time_usec / 1e6));
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(right_align);
+    imui::Text("Window Size");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%.0fx%.0f", screen.x, screen.y);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::End();
+  }
+
+  {
+    static bool enable_debug = false;
+    static v2f ui_pos(300.f, screen.y);
+    imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
+  }
 }
 
 int
@@ -114,6 +128,7 @@ main(int argc, char** argv)
 
   while (1) {
     imui::ResetTag(imui::kEveryoneTag);
+    rgg::DebugReset();
 
     if (window::ShouldClose()) break;
 
@@ -142,7 +157,7 @@ main(int argc, char** argv)
     imui::MousePosition(cursor, imui::kEveryoneTag);
 
     // Execute game code.
-    DiagnosticsUI(); 
+    DebugUI();
     
     // Render
     rgg::RenderLineCube(Cubef(v3f(10.f, 30.f, -100.f), v3f(10.f, 10.f, 10.f)),
@@ -151,9 +166,9 @@ main(int argc, char** argv)
     rgg::RenderSphere(v3f(-10.f, -25.f, -100.f), v3f(5.f, 5.f, 5.f),
                       v4f(0.f, 1.f, 0.f, 1.f));
 
+    rgg::DebugRenderPrimitives();
 
     imui::Render(imui::kEveryoneTag);
-
     
     const uint64_t elapsed_usec = clock_delta_usec(&kGameState.game_clock);
     kGameState.frame_time_usec = elapsed_usec;

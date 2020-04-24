@@ -223,8 +223,13 @@ struct BeginMode {
   Pane* pane;
 };
 
+#ifdef SINGLE_PLAYER
+constexpr uint32_t kMaxTags = 1;
+constexpr uint32_t kEveryoneTag = 0;
+#else
 constexpr uint32_t kMaxTags = MAX_PLAYER + 1;
 constexpr uint32_t kEveryoneTag = MAX_PLAYER;
+#endif
 
 struct IMUI {
   BeginMode begin_mode;
@@ -247,8 +252,8 @@ DECLARE_2D_ARRAY(MouseDown, kMaxTags, 8);
 DECLARE_2D_ARRAY(MouseUp, kMaxTags, 8);
 DECLARE_2D_ARRAY(MouseWheel, kMaxTags, 8);
 DECLARE_2D_ARRAY(ProgressBar, kMaxTags, 16);
-DECLARE_2D_ARRAY(MousePosition, kMaxTags, MAX_PLAYER);
-DECLARE_2D_ARRAY(LastMousePosition, kMaxTags, MAX_PLAYER);
+DECLARE_2D_ARRAY(MousePosition, kMaxTags, 4);
+DECLARE_2D_ARRAY(LastMousePosition, kMaxTags, 4);
 // Panes exist as a global UI element that persist per imui begin / end calls.
 // This allows for panes to stick around for bounds check, docking and imui
 // debugability.

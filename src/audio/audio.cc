@@ -75,7 +75,7 @@ Initialize()
 }
 
 void
-Reset()
+Cleanup()
 {
   // Cleanup sources.
   for (int i = 0; i < kUsedSource;) {
@@ -116,6 +116,8 @@ LoadSound(const char* filename)
 void
 PlaySound(uint32_t id)
 {
+  Sound* sound = FindSound(id);
+  if (!sound) return;
   Source* source = UseSource();
   alGenSources((ALuint)1, &source->alreference);
   alSourcef(source->alreference, AL_PITCH, source->pitch);
@@ -124,8 +126,6 @@ PlaySound(uint32_t id)
   alSourcefv(source->alreference, AL_VELOCITY, &source->velocity.x);
   alSourcei(source->alreference, AL_LOOPING, source->looping);
   ALCenum error = alGetError();
-  Sound* sound = FindSound(id);
-  if (!sound) return; 
   alSourcei(source->alreference, AL_BUFFER, sound->alreference);
   alSourcePlay(source->alreference);
 }

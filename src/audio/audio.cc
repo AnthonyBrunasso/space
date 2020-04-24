@@ -125,7 +125,6 @@ PlaySound(uint32_t id)
   alSourcefv(source->alreference, AL_POSITION, &source->position.x);
   alSourcefv(source->alreference, AL_VELOCITY, &source->velocity.x);
   alSourcei(source->alreference, AL_LOOPING, source->looping);
-  ALCenum error = alGetError();
   alSourcei(source->alreference, AL_BUFFER, sound->alreference);
   alSourcePlay(source->alreference);
 }

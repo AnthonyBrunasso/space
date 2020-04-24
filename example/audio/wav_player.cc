@@ -1,12 +1,11 @@
 #include <cstdio>
 
-#include <OpenAL/al.h>
-#include <OpenAL/alc.h>
-
 #include <cstdio>
 #include <string.h>
 
 #include "audio/audio.cc"
+
+#include "platform/platform.cc"
 
 int
 main()
@@ -20,5 +19,6 @@ main()
     return 1;
   }
   audio::PlaySound(aid);
+  platform::sleep_ms((uint64_t)audio::FindSound(aid)->length_ms);
   return 0;
 }

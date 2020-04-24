@@ -103,9 +103,6 @@ PlaySound(uint32_t id)
   alSourcePlay(source);
   ALint source_state;
   alGetSourcei(source, AL_SOURCE_STATE, &source_state);
-  while (source_state == AL_PLAYING) {
-    alGetSourcei(source, AL_SOURCE_STATE, &source_state);
-  }
 }
 
 }  // namespace audio

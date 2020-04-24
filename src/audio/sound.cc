@@ -18,14 +18,15 @@ constexpr uint32_t kMaxSoundFileSize = 12e6;
 uint8_t kBuffer[kMaxSoundFileSize];
 
 struct Sound {
-  uint32_t id;
-  float length_ms;
-  uint32_t bitrate;
-  uint32_t frequency;
-  uint32_t channels;
-  uint32_t size;
+  float length_ms = 0.f;
+  uint32_t bitrate = 0;
+  uint32_t frequency = 0;
+  uint32_t channels = 0;
+  uint32_t size = 0;
   ALenum format;
   ALuint alreference;
+
+  bool IsValid() const { return size != 0; }
 };
 
 const char*

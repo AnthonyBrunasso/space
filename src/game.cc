@@ -1,5 +1,5 @@
 // Singleplayer game template.
-#define SINGLE_PLAYER 1
+#define SINGLE_PLAYER
 
 #include "math/math.cc"
 

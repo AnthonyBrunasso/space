@@ -26,7 +26,6 @@ struct Source {
 };
 
 DECLARE_ARRAY(Source, 32);
-DECLARE_HASH_ARRAY(Sound, 16);
 
 void
 ListAudioDevices(const ALCchar* devices)
@@ -104,21 +103,10 @@ SetListener(const v3f& position, const v3f& velocity, const v3f& facing,
   alListenerfv(AL_ORIENTATION, listener_orientation);
 }
 
-uint32_t
-LoadSound(const char* filename)
-{
-  if (kUsedSound >= kMaxSound) return kInvalidId;
-  Sound* sound = UseSound();
-  if (!LoadWAV(filename, sound)) return kInvalidId;
-  return sound->id;
-}
-
 void
-PlaySound(uint32_t id, const Source& init_source)
+PlaySound(const Sound& sound, const Source& init_source)
 {
-  if (!id) return;
-  Sound* sound = FindSound(id);
-  if (!sound) return;
+  if (!sound.IsValid()) return;
   Source* source = UseSource();
   *source = init_source;
   alGenSources((ALuint)1, &source->alreference);
@@ -127,7 +115,7 @@ PlaySound(uint32_t id, const Source& init_source)
   alSourcefv(source->alreference, AL_POSITION, &source->position.x);
   alSourcefv(source->alreference, AL_VELOCITY, &source->velocity.x);
   alSourcei(source->alreference, AL_LOOPING, source->looping);
-  alSourcei(source->alreference, AL_BUFFER, sound->alreference);
+  alSourcei(source->alreference, AL_BUFFER, sound.alreference);
   alSourcePlay(source->alreference);
 }
 

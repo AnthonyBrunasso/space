@@ -14,13 +14,14 @@ static uint64_t kInputHash = DJB2_CONST;
 static uint64_t kDebugInputHash;
 static uint64_t kDebugSimulationHash;
 static float kCameraSpeed = 4.f;
-static uint32_t kUIClickSound = 0;
+static audio::Sound kUIClickSound;
 
 void
 InteractionInitialize()
 {
-  kUIClickSound = audio::LoadSound("asset/ui_click.wav");
-  if (!kUIClickSound) printf("Unable to load ui click sound.\n");
+  if (!audio::LoadWAV("asset/ui_click.wav", &kUIClickSound)) {
+    printf("Unable to load ui click sound.\n");
+  } 
 }
 
 void

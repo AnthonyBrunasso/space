@@ -29,8 +29,8 @@ struct State {
   uint64_t choke_frame = 0;
   // Parameters window::Create will be called with.
   window::CreateInfo window_create_info;
-  // Id to music.
-  uint32_t music_id;
+  // The most amazing space music
+  audio::Sound music;
 };
 
 static State kGameState;
@@ -160,13 +160,12 @@ main(int argc, char** argv)
     return 1;
   }
 
-  kGameState.music_id = audio::LoadSound("asset/music.wav");
-  if (!kGameState.music_id) {
+  if (!audio::LoadWAV("asset/music.wav", &kGameState.music)) {
     printf("Unable to load music.");
   }
   audio::Source source;
   source.looping = true;
-  audio::PlaySound(kGameState.music_id, source);
+  audio::PlaySound(kGameState.music, source);
 #endif
 
   // Network handshake uses a clock

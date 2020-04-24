@@ -25,7 +25,6 @@ struct Sound {
   uint32_t size;
   ALenum format;
   ALuint alreference;
-  //uint8_t* bytes;
 };
 
 const char*

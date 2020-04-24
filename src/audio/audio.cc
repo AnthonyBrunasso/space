@@ -3,7 +3,9 @@
 #include <OpenAL/al.h>
 #include <OpenAL/alc.h>
 
+#include "common/common.cc"
 #include "math/vec.h"
+#include "sound.cc"
 
 namespace audio {
 
@@ -13,6 +15,8 @@ struct Audio {
 };
 
 static Audio kAudio;
+
+DECLARE_HASH_ARRAY(Sound, 16);
 
 void
 ListAudioDevices(const ALCchar* devices)
@@ -69,6 +73,39 @@ SetListener(const v3f& position, const v3f& velocity, const v3f& facing,
   alListener3f(AL_POSITION, position.x, position.y, position.z);
   alListener3f(AL_VELOCITY, velocity.x, velocity.y, velocity.z);
   alListenerfv(AL_ORIENTATION, listener_orientation);
+}
+
+uint32_t
+LoadSound(const char* filename)
+{
+  if (kUsedSound >= kMaxSound) return kInvalidId;
+  Sound* sound = UseSound();
+  if (!LoadWAV(filename, sound)) return kInvalidId;
+  return sound->id;
+}
+
+void
+PlaySound(uint32_t id)
+{
+  // TODO: Save source, probably pass in state here to customize it?
+  ALuint source;
+  alGenSources((ALuint)1, &source);
+  alSourcef(source, AL_PITCH, 1);
+  alSourcef(source, AL_GAIN, 1);
+  alSource3f(source, AL_POSITION, 0, 0, 0);
+  alSource3f(source, AL_VELOCITY, 0, 0, 0);
+  alSourcei(source, AL_LOOPING, AL_FALSE);
+  ALCenum error = alGetError();
+ 
+  Sound* sound = FindSound(id);
+  if (!sound) return; 
+  alSourcei(source, AL_BUFFER, sound->alreference);
+  alSourcePlay(source);
+  ALint source_state;
+  alGetSourcei(source, AL_SOURCE_STATE, &source_state);
+  while (source_state == AL_PLAYING) {
+    alGetSourcei(source, AL_SOURCE_STATE, &source_state);
+  }
 }
 
 }  // namespace audio

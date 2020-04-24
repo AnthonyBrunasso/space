@@ -7,7 +7,6 @@
 #include <string.h>
 
 #include "audio/audio.cc"
-#include "audio/sound.cc"
 
 int
 main()
@@ -15,34 +14,11 @@ main()
   audio::Initialize();
   audio::SetListener(v3f(0.f, 0.f, 1.f), v3f(0.f, 0.f, 0.f),
                      v3f(0.f, 0.f, 1.f), v3f(0.f, 1.f, 0.f));
-  ALuint source;
-  alGenSources((ALuint)1, &source);
-  alSourcef(source, AL_PITCH, 1);
-  alSourcef(source, AL_GAIN, 1);
-  alSource3f(source, AL_POSITION, 0, 0, 0);
-  alSource3f(source, AL_VELOCITY, 0, 0, 0);
-  alSourcei(source, AL_LOOPING, AL_FALSE);
-  ALsizei size, freq;
-  ALenum format;
-  ALboolean loop = AL_FALSE;
-
-  audio::Sound sound;
-  if (!audio::LoadWAV("example/audio/test.wav", &sound)) {
-    printf("Failed to load sound\n");
+  uint32_t aid = audio::LoadSound("example/audio/test.wav");
+  if (!aid) {
+    printf("Unable to load sound...\n");
     return 1;
   }
-
-  ALCenum error = alGetError();
-  if (error != AL_NO_ERROR) {
-    printf("openal alBufferData error\n");
-    return 1;
-  }
-  alSourcei(source, AL_BUFFER, sound.alreference);
-  alSourcePlay(source);
-  ALint source_state;
-  alGetSourcei(source, AL_SOURCE_STATE, &source_state);
-  while (source_state == AL_PLAYING) {
-    alGetSourcei(source, AL_SOURCE_STATE, &source_state);
-  }
+  audio::PlaySound(aid);
   return 0;
 }

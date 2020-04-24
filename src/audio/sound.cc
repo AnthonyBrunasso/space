@@ -18,6 +18,7 @@ constexpr uint32_t kMaxSoundFileSize = 3e6;
 uint8_t kBuffer[kMaxSoundFileSize];
 
 struct Sound {
+  uint32_t id;
   float length_ms;
   uint32_t bitrate;
   uint32_t frequency;
@@ -141,6 +142,12 @@ LoadWAV(const char* filename, Sound* sound)
   alBufferData(buffer, sound->format, sound_bytes, sound->size,
                sound->frequency);
   sound->alreference = buffer;
+
+  ALenum error = alGetError();
+  if (error != AL_NO_ERROR) {
+    printf("openal alBufferData error %i\n, error");
+    return false;
+  }
 
 #if AUDIODEBUG
   printf("Finished reading sound file %s\n", filename);

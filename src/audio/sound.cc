@@ -81,7 +81,7 @@ LoadWAV(const char* filename, Sound* sound)
   WavHeader* header = (WavHeader*)kBuffer;
   uint32_t read = sizeof(WavHeader);
 
-#if 0
+#if 1
   // Should say RIFF
   printf("chunk_id: %.4s\n", (char*)(&header->chunk_id));
   // Think this will be the size of the file for this thing.
@@ -96,14 +96,14 @@ LoadWAV(const char* filename, Sound* sound)
   sound->bytes = nullptr;
   while (read < file_length) {
     WavChunk* chunk = (WavChunk*)(&kBuffer[read]);
-#if 0
+#if 1
     printf("Read chunk %.4s bytes %u\n",
            (char*)(chunk->chunk_id), chunk->chunk_size);
 #endif
     read += sizeof(WavChunk);
     if (memcmp((char*)(chunk->chunk_id), "fmt", 3) == 0) {
       WavFmt* fmt = (WavFmt*)(&kBuffer[read]);
-#if 0
+#if 1
       printf("audio_format: %u\n", fmt->audio_format);
       printf("num_channels: %u\n", fmt->num_channels);
       printf("sample_rate: %u\n", fmt->sample_rate);
@@ -114,13 +114,12 @@ LoadWAV(const char* filename, Sound* sound)
       sound->channels = fmt->num_channels;
       sound->bitrate = fmt->bits_per_sample;
       sound->frequency = (float)fmt->sample_rate;
-      read += sizeof(WavFmt);
     } else if (memcmp((char*)(chunk->chunk_id), "data", 4) == 0) {
       sound->size = chunk->chunk_size;
       sound->bytes = (uint8_t*)malloc(sound->size);
       memcpy(sound->bytes, &kBuffer[read], sound->size);
-      read += sound->size;
-    } else { break; }  // Unrecognized chunk - break.
+    } // else - Skip unrecognized chunks.
+    read += chunk->chunk_size;
   }
 
   assert(sound->bytes);

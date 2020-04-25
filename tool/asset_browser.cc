@@ -30,8 +30,7 @@ FileOBJCallback(const char* filename)
   imui::TextOptions o;
   o.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
   if (imui::Text(filename, o).clicked) {
-    Mesh* mesh = FindMesh(filename, len);
-    if (!mesh) mesh = UseMesh(filename, len);
+    Mesh* mesh = FindOrUseMesh(filename, len);
     if (!mesh->mesh.IsValid()) {
       if (!LoadOBJ(filename, &mesh->mesh)) {
         printf("Invalid mesh %s\n", filename);
@@ -51,8 +50,7 @@ FileWAVCallback(const char* filename)
   imui::TextOptions o;
   o.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
   if (imui::Text(filename, o).clicked) {
-    Sound* sound = FindSound(filename, len);
-    if (!sound) sound = UseSound(filename, len);
+    Sound* sound = FindOrUseSound(filename, len);
     if (!sound->sound.IsValid()) {
       if (!LoadWAV(filename, &sound->sound)) {
         printf("Invalid sound %s\n", filename);

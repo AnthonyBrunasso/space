@@ -98,6 +98,14 @@ GetHash(const char* str, uint32_t len)
     return &k##type[hash_entry->array_index];                       \
   }                                                                 \
                                                                     \
+  type*                                                             \
+  FindOrUse##type(const char* key, uint32_t key_len)                \
+  {                                                                 \
+    HashMapStrEntry* hash_entry = FindHashEntry##type(key, key_len);\
+    if (!hash_entry) return Use##type(key, key_len);                \
+    return &k##type[hash_entry->array_index];                       \
+  }                                                                 \
+                                                                    \
   void                                                              \
   Erase##type(const char* key, uint32_t key_len)                    \
   {                                                                 \

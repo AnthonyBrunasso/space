@@ -14,12 +14,13 @@ MakeDirectory(const char* name)
 void
 WalkDirectory(const char* dir, FileCallback* file_callback)
 {
-  // Maybe I can handle the case that dir does not end with a slash or a
-  // *. This function must be called with both to work
-  // Example: WalkDirectory("dir/*", FileCallback)
+  uint32_t len = strlen(dir);
+  assert(dir[len - 1] == '/');
   WIN32_FIND_DATA ffd;
-  wchar_t wtext[MAX_PATH];
-  mbstowcs(wtext, dir, strlen(dir) + 1);
+  wchar_t wtext[MAX_PATH] = {};
+  mbstowcs(wtext, dir, len);
+  wtext[len] = '*';
+
   HANDLE h_find = FindFirstFile(wtext, &ffd);
 
   if (h_find == INVALID_HANDLE_VALUE) {
@@ -31,7 +32,7 @@ WalkDirectory(const char* dir, FileCallback* file_callback)
     if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
       continue;
     char full_name[MAX_PATH] = {};
-    memcpy(full_name, dir, strlen(dir) - 1);
+    memcpy(full_name, dir, len);
     char filename[MAX_PATH] = {};
     wcstombs(filename,  ffd.cFileName, MAX_PATH);
     strcat(full_name, filename);

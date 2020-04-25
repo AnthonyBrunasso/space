@@ -15,4 +15,9 @@ MakeDirectory(const char* name)
   return true;
 }
 
+void
+WalkDirectory(const char* dir, FileCallback* file_callback)
+{
+  return false;
+}
 }  // namespace filesystem

@@ -1,8 +1,10 @@
+#include "platform/platform.cc"
+
+#if 0
 #include <windows.h>
 #include <tchar.h> 
 #include <stdio.h>
 #include <strsafe.h>
-
 int main(int argc, char** argv)
 {
   WIN32_FIND_DATA ffd;
@@ -58,4 +60,17 @@ int main(int argc, char** argv)
 
   FindClose(hFind);
   return dwError;
+}
+#endif
+
+void
+FileCallback(const char* filename)
+{
+  printf("%s\n", filename);
+}
+
+int main(int argc, char** argv)
+{
+  filesystem::WalkDirectory("asset/*", FileCallback);
+  return 0;
 }

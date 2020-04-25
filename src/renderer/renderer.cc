@@ -325,6 +325,7 @@ Initialize()
   glEnable(GL_BLEND);
   glEnable(GL_LINE_SMOOTH);
   glEnable(GL_SCISSOR_TEST);
+  glEnable(GL_MULTISAMPLE);
 
   // Compile and link shaders.
   if (!SetupGeometryProgram()) return false;

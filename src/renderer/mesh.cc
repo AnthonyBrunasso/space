@@ -93,7 +93,7 @@ LoadOBJ(const char* filename, Mesh* mesh)
   GLuint points_vbo = 0;
   glGenBuffers(1, &points_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, points_vbo);
-  glBufferData(GL_ARRAY_BUFFER, mesh->vert_count * sizeof(GLfloat),
+  glBufferData(GL_ARRAY_BUFFER, kVertElementCount * sizeof(GLfloat),
                &kVerts[0], GL_STATIC_DRAW);
 
   if (!points_vbo) return false;
@@ -101,7 +101,7 @@ LoadOBJ(const char* filename, Mesh* mesh)
   GLuint normals_vbo = 0;
   glGenBuffers(1, &normals_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, normals_vbo);
-  glBufferData(GL_ARRAY_BUFFER, mesh->norm_count * sizeof(GLfloat),
+  glBufferData(GL_ARRAY_BUFFER, kVertElementCount * sizeof(GLfloat),
                &kNorms[0], GL_STATIC_DRAW);
   
   if (!normals_vbo) return false;

@@ -78,6 +78,8 @@ typedef void glDrawBuffers_Func(GLsizei, const GLenum*);
 glDrawBuffers_Func* glDrawBuffers;
 typedef void glUniform1f_Func(GLint, GLfloat);
 glUniform1f_Func* glUniform1f;
+typedef void glGenerateMipmap_Func(GLenum);
+glGenerateMipmap_Func* glGenerateMipmap;
 
 // GL defines.
 #define GL_ARRAY_BUFFER                   0x8892
@@ -480,6 +482,7 @@ SetupGLFunctions() {
   glFramebufferTexture = (glFramebufferTexture_Func*)GetGLFunction("glFramebufferTexture");
   glDrawBuffers = (glDrawBuffers_Func*)GetGLFunction("glDrawBuffers");
   glUniform1f = (glUniform1f_Func*)GetGLFunction("glUniform1f");
+  glGenerateMipmap = (glGenerateMipmap_Func*)GetGLFunction("glGenerateMipmap");
 }
 
 int

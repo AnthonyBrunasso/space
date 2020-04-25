@@ -118,7 +118,7 @@ CameraOverhead(const PlatformEvent& event)
       }
     } break;
     case MOUSE_WHEEL: {
-      c->position += (c->dir * event.wheel_delta * 3.f);
+      c->position += (c->dir * event.wheel_delta * c->speed);
     } break;
     default: break;
   }

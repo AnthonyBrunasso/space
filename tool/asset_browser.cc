@@ -141,7 +141,7 @@ main(int argc, char** argv)
   camera.dir = v3f(0.f, 0.f, -1.f);
   camera.up = v3f(0.f, 1.f, 0.f);
   camera.mode = rgg::kCameraOverhead;
-  camera.speed = 3.f;
+  camera.speed = .1f;
   rgg::CameraInit(camera);
   
   while (!window::ShouldClose()) {

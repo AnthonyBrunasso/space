@@ -72,6 +72,7 @@ main(int argc, char** argv)
       }
     }
 
+    rgg::kObserver.position = rgg::CameraPosition();
     rgg::CameraUpdate();
 
     const v2f cursor = window::GetCursorPosition();

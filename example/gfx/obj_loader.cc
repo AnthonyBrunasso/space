@@ -54,6 +54,7 @@ LoadOBJ(const char* filename)
       v3f* norm = &vn[cvn++];
       fscanf(f, "%f %f %f\n", &norm->x, &norm->y, &norm->z);
     } else if (strcmp(line, "vt") == 0) {
+      continue;  // I don't use these yet.
     } else if (strcmp(line, "f") == 0) {
       int i = 0;
       v3i first, second, third;

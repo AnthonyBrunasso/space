@@ -1,5 +1,6 @@
 #pragma once
 
+#include "mesh.cc"
 #include "shader.h"
 
 #include "asset/asteroid.cc"
@@ -24,6 +25,9 @@ struct RenderTag {
 
 namespace rgg
 {
+
+static Mesh kGearMesh;
+
 struct GeometryProgram {
   GLuint reference = -1;
   GLuint matrix_uniform = -1;
@@ -372,9 +376,6 @@ Initialize()
   kRGG.crew_vao_reference = gl::CreateGeometryVAOWithNormals(
       kCrewVertCount * 3, kCrewVerts, kCrewVertNorms);
 
-  kRGG.gear_vao_reference = gl::CreateGeometryVAOWithNormals(
-      kGearVertCount * 3, kGearVerts, kGearVertNorms);
-
   kRGG.pod_vao_reference = gl::CreateGeometryVAOWithNormals(
       kPodVertCount * 3, kPodVerts, kPodVertNorms);
 
@@ -383,6 +384,10 @@ Initialize()
 
   kRGG.exhaust_vao_reference = gl::CreateGeometryVAOWithNormals(
       kExhaustVertCount * 3, kExhaustVerts, kExhaustVertNorms);
+
+  if (!LoadOBJ("asset/gear.obj", &kGearMesh)) {
+    printf("Unable to load gear mesh.");
+  }
 
   if (!SetupTexture()) {
     printf("Failed to setup Texture.\n");
@@ -640,6 +645,27 @@ Render3dWithRotation(const v3f& pos, const v3f& scale, const Quatf& quat,
 }
 
 void
+RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
+           const Quatf& quat, const v4f& color)
+{
+  glUseProgram(kRGG.geometry_program_3d.reference);
+  glBindVertexArray(mesh.vao);
+  Mat4f model = math::Model(pos, scale, quat);
+  glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
+              color.w);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.projection_uniform, 1, GL_FALSE,
+                     &kObserver.projection.data_[0]);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.view_uniform, 1, GL_FALSE,
+                     &kObserver.view.data_[0]);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.model_uniform, 1, GL_FALSE,
+                     &model.data_[0]);
+  glUniform3f(kRGG.geometry_program_3d.light_position_world_uniform,
+              kObserver.position.x, kObserver.position.y,
+              kObserver.position.z);
+  glDrawArrays(GL_TRIANGLES, 0, mesh.vert_count);
+}
+
+void
 RenderAsteroid(v3f pos, v3f scale, const v4f& color)
 {
   Render3d(pos, scale, color, kRGG.asteroid_vao_reference,
@@ -667,16 +693,9 @@ RenderCone(v3f pos, v3f scale, const v4f& color)
 }
 
 void
-RenderGear(v3f pos, v3f scale, const v4f& color)
-{
-  Render3d(pos, scale, color, kRGG.gear_vao_reference, kGearVertCount);
-}
-
-void
 RenderGear(v3f pos, v3f scale, const Quatf& quat, const v4f& color)
 {
-  Render3dWithRotation(pos, scale, quat, color, kRGG.gear_vao_reference,
-                       kGearVertCount);
+  RenderMesh(kGearMesh, pos, scale, quat, color);
 }
 
 void

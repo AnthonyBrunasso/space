@@ -132,8 +132,6 @@ LoadTGA(const char* file, Texture* texture)
   assert(header->color_map_type == 0);
   // Get the image_spec. This has overall image details.
   TgaImageSpec* image_spec = (TgaImageSpec*)(&buffer[sizeof(TgaHeader)]);
-  // Only support 8-bit pixel depths.
-  assert(image_spec->pixel_depth == 8);
 
 #if 0
   printf("TGA file: %s header\n", file);
@@ -156,6 +154,7 @@ LoadTGA(const char* file, Texture* texture)
   GLenum format = GL_RGBA;
   if (image_spec->pixel_depth == 8) format = GL_RED;
   else if (image_spec->pixel_depth == 24) format = GL_RGB;
+  else if (image_spec->pixel_depth == 32) format = GL_RGBA;
   else {
     printf("Unsupported tga pixel depth\n");
     free(buffer);

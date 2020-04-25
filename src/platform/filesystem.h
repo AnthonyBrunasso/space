@@ -8,7 +8,7 @@ inline const char*
 GetFilenameExtension(const char* filename)
 {
   const char* dot = strrchr(filename, '.');
-  if(!dot || dot == filename) return "";
+  if (!dot || dot == filename) return "";
   return dot + 1;
 }
 

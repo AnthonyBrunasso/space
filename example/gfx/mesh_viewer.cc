@@ -46,7 +46,7 @@ UI()
   imui::PaneOptions options;
   options.max_width = 315.f;
   imui::Begin("Assets", 0, options, &dir_pos, &dir_enable);
-  filesystem::WalkDirectory("asset/*", FileCallback);
+  filesystem::WalkDirectory("asset/", FileCallback);
   imui::End();
 }
 

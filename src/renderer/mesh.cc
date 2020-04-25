@@ -101,7 +101,7 @@ LoadOBJ(const char* filename, Mesh* mesh)
   GLuint normals_vbo = 0;
   glGenBuffers(1, &normals_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, normals_vbo);
-  glBufferData(GL_ARRAY_BUFFER, kVertElementCount * sizeof(GLfloat),
+  glBufferData(GL_ARRAY_BUFFER, kNormElementCount * sizeof(GLfloat),
                &kNorms[0], GL_STATIC_DRAW);
   
   if (!normals_vbo) return false;

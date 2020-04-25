@@ -23,35 +23,43 @@ DECLARE_HASH_MAP_STR(Sound, 32);
 rgg::Mesh* kCurrentMesh = nullptr;
 
 void
-FileCallback(const char* filename)
+FileOBJCallback(const char* filename)
 {
+  if (strcmp(filesystem::GetFilenameExtension(filename), "obj") != 0) return;
+  uint32_t len = strlen(filename);
   imui::TextOptions o;
   o.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
-  const char* ext = filesystem::GetFilenameExtension(filename);
   if (imui::Text(filename, o).clicked) {
-    uint32_t len = strlen(filename);
-    if (strcmp(ext, "obj") == 0) {
-      Mesh* mesh = FindMesh(filename, len);
-      if (!mesh) mesh = UseMesh(filename, len);
-      if (!mesh->mesh.IsValid()) {
-        if (!LoadOBJ(filename, &mesh->mesh)) {
-          printf("Invalid mesh %s\n", filename);
-        }
+    Mesh* mesh = FindMesh(filename, len);
+    if (!mesh) mesh = UseMesh(filename, len);
+    if (!mesh->mesh.IsValid()) {
+      if (!LoadOBJ(filename, &mesh->mesh)) {
+        printf("Invalid mesh %s\n", filename);
       }
-      if (mesh->mesh.IsValid()) {
-        kCurrentMesh = &mesh->mesh;
+    }
+    if (mesh->mesh.IsValid()) {
+      kCurrentMesh = &mesh->mesh;
+    }
+  }
+}
+
+void
+FileWAVCallback(const char* filename)
+{
+  if (strcmp(filesystem::GetFilenameExtension(filename), "wav") != 0) return;
+  uint32_t len = strlen(filename);
+  imui::TextOptions o;
+  o.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
+  if (imui::Text(filename, o).clicked) {
+    Sound* sound = FindSound(filename, len);
+    if (!sound) sound = UseSound(filename, len);
+    if (!sound->sound.IsValid()) {
+      if (!LoadWAV(filename, &sound->sound)) {
+        printf("Invalid sound %s\n", filename);
       }
-    } else if (strcmp(ext, "wav") == 0) {
-      Sound* sound = FindSound(filename, len);
-      if (!sound) sound = UseSound(filename, len);
-      if (!sound->sound.IsValid()) {
-        if (!LoadWAV(filename, &sound->sound)) {
-          printf("Invalid sound %s\n", filename);
-        }
-      }
-      if (sound->sound.IsValid()) {
-        audio::PlaySound(sound->sound, audio::Source());
-      }
+    }
+    if (sound->sound.IsValid()) {
+      audio::PlaySound(sound->sound, audio::Source());
     }
   }
 }
@@ -65,7 +73,14 @@ UI()
   imui::PaneOptions options;
   options.max_width = 315.f;
   imui::Begin("Assets", 0, options, &dir_pos, &dir_enable);
-  filesystem::WalkDirectory("asset/", FileCallback);
+  imui::Text("Meshes");
+  imui::Indent(2);
+  filesystem::WalkDirectory("asset/", FileOBJCallback);
+  imui::Indent(-2);
+  imui::Text("Sounds");
+  imui::Indent(2);
+  filesystem::WalkDirectory("asset/", FileWAVCallback);
+  imui::Indent(-2);
   imui::End();
 }
 

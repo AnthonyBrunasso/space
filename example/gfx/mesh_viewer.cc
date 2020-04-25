@@ -16,18 +16,10 @@ DECLARE_HASH_MAP_STR(Mesh, 32);
 
 rgg::Mesh* kCurrentMesh = nullptr;
 
-// Probably a common function
-const char* GetFilenameExtension(const char* filename)
-{
-  const char* dot = strrchr(filename, '.');
-  if(!dot || dot == filename) return "";
-  return dot + 1;
-}
-
 void
 FileCallback(const char* filename)
 {
-  if (strcmp(GetFilenameExtension(filename), "obj") != 0) return;
+  if (strcmp(filesystem::GetFilenameExtension(filename), "obj") != 0) return;
   imui::TextOptions o;
   o.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
   if (imui::Text(filename, o).clicked) {
@@ -85,9 +77,6 @@ main(int argc, char** argv)
   camera.mode = rgg::kCameraOverhead;
   camera.speed = 3.f;
   rgg::CameraInit(camera);
-
-  //rgg::Mesh mesh;
-  //rgg::LoadOBJ("asset/gear.obj", &mesh);
   
   while (!window::ShouldClose()) {
     PlatformEvent event;

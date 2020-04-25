@@ -16,7 +16,7 @@ MakeDirectory(const char* name)
 }
 
 void
-WalkDirectory(const char* dir, FileCallback* file_callback)
+WalkDirectory(const char* dir, FileCallback* file_callbacj)
 {
   return false;
 }

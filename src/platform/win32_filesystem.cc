@@ -30,9 +30,12 @@ WalkDirectory(const char* dir, FileCallback* file_callback)
   do {
     if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
       continue;
+    char full_name[MAX_PATH] = {};
+    memcpy(full_name, dir, strlen(dir) - 1);
     char filename[MAX_PATH] = {};
     wcstombs(filename,  ffd.cFileName, MAX_PATH);
-    file_callback(filename);
+    strcat(full_name, filename);
+    file_callback(full_name);
   }
   while (FindNextFile(h_find, &ffd) != 0);
 }

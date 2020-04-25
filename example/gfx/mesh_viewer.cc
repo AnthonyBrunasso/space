@@ -74,17 +74,15 @@ main(int argc, char** argv)
 
     rgg::kObserver.position = rgg::CameraPosition();
     rgg::CameraUpdate();
+    rgg::CameraLookAt(v3f(0.f, 0.f, 0.f));
+    o->view = rgg::CameraView();
 
     const v2f cursor = window::GetCursorPosition();
     imui::MousePosition(cursor, 0);
 
-
-    o->view = rgg::CameraView();
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     RenderAxis();
-    rgg::CameraLookAt(v3f(0.f, 0.f, 0.f));
     rgg::RenderMesh(mesh, v3f(0.f, 0.f, 0.f), v3f(1.f, 1.f, 1.f), Quatf(),
                     v4f(1.f, 1.f, 1.f, 1.f));
 

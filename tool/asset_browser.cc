@@ -3,6 +3,7 @@
 #include "common/common.cc"
 #include "gl/gl.cc"
 #include "renderer/renderer.cc"
+#include "renderer/texture.cc"
 #include "renderer/mesh.cc"
 #include "renderer/camera.cc"
 #include "simulation/camera.cc"
@@ -17,10 +18,16 @@ struct Sound {
   audio::Sound sound;
 };
 
+struct Texture {
+  rgg::Texture texture;
+};
+
 DECLARE_HASH_MAP_STR(Mesh, 32);
 DECLARE_HASH_MAP_STR(Sound, 32);
+DECLARE_HASH_MAP_STR(Texture, 32);
 
 rgg::Mesh* kCurrentMesh = nullptr;
+rgg::Texture* kCurrentTexture = nullptr;
 
 void
 FileOBJCallback(const char* filename)
@@ -32,12 +39,13 @@ FileOBJCallback(const char* filename)
   if (imui::Text(filename, o).clicked) {
     Mesh* mesh = FindOrUseMesh(filename, len);
     if (!mesh->mesh.IsValid()) {
-      if (!LoadOBJ(filename, &mesh->mesh)) {
+      if (!rgg::LoadOBJ(filename, &mesh->mesh)) {
         printf("Invalid mesh %s\n", filename);
       }
     }
     if (mesh->mesh.IsValid()) {
       kCurrentMesh = &mesh->mesh;
+      kCurrentTexture = nullptr;
     }
   }
 }
@@ -52,12 +60,33 @@ FileWAVCallback(const char* filename)
   if (imui::Text(filename, o).clicked) {
     Sound* sound = FindOrUseSound(filename, len);
     if (!sound->sound.IsValid()) {
-      if (!LoadWAV(filename, &sound->sound)) {
+      if (!audio::LoadWAV(filename, &sound->sound)) {
         printf("Invalid sound %s\n", filename);
       }
     }
     if (sound->sound.IsValid()) {
       audio::PlaySound(sound->sound, audio::Source());
+    }
+  }
+}
+
+void
+FileTGACallback(const char* filename)
+{
+  if (strcmp(filesystem::GetFilenameExtension(filename), "tga") != 0) return;
+  uint32_t len = strlen(filename);
+  imui::TextOptions o;
+  o.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
+  if (imui::Text(filename, o).clicked) {
+    Texture* texture = FindOrUseTexture(filename, len);
+    if (!texture->texture.IsValid()) {
+      if (!rgg::LoadTGA(filename, &texture->texture)) {
+        printf("Invalid texture %s\n", filename);
+      }
+    }
+    if (texture->texture.IsValid()) {
+      kCurrentTexture = &texture->texture;
+      kCurrentMesh = nullptr;
     }
   }
 }
@@ -78,6 +107,10 @@ UI()
   imui::Text("Sounds");
   imui::Indent(2);
   filesystem::WalkDirectory("asset/", FileWAVCallback);
+  imui::Indent(-2);
+  imui::Text("Textures");
+  imui::Indent(2);
+  filesystem::WalkDirectory("asset/", FileTGACallback);
   imui::Indent(-2);
   imui::End();
 }
@@ -157,6 +190,11 @@ main(int argc, char** argv)
     if (kCurrentMesh && kCurrentMesh->IsValid()) {
       rgg::RenderMesh(*kCurrentMesh, v3f(0.f, 0.f, 0.f), v3f(1.f, 1.f, 1.f), Quatf(),
                       v4f(1.f, 1.f, 1.f, 1.f));
+    } else if (kCurrentTexture && kCurrentTexture->IsValid()) {
+      rgg::RenderTexture(
+          *kCurrentTexture,
+          Rectf(0, 0, kCurrentTexture->width, kCurrentTexture->height),
+          Rectf(0, 0, kCurrentTexture->width / 100.f, kCurrentTexture->height / 100.f));
     }
 
     UI();

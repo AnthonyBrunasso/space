@@ -42,6 +42,22 @@ GLTypeToString(int type)
   return "other";
 }
 
+const char*
+GLEnumToString(int type)
+{
+  switch (type) {
+    case GL_RED:
+      return "GL_RED";
+    case GL_RGB:
+      return "GL_RGB";
+    case GL_RGBA:
+      return "GL_RGBA";
+    default:
+      break;
+  }
+  return "Unknown";
+}
+
 uint32_t
 CreateGeometryVAO(int len, GLfloat* verts)
 {

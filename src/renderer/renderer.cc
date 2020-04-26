@@ -117,7 +117,6 @@ DECLARE_ARRAY(DebugCube, 16);
 DECLARE_ARRAY(DebugPoint, 64);
 DECLARE_ARRAY(DebugRect, 64);
 
-
 static Observer kObserver;
 static RGG kRGG;
 

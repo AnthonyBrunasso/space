@@ -168,7 +168,7 @@ LookAt(const v3f& eye, const v3f& target, const v3f& up)
   v3f r = math::Normalize(math::Cross(up, f));
   v3f u = math::Cross(f, r);
 
-#if 1
+#if 0
   // Keeping this around to remind myself how the below is derived.
   // NOTE - See the transposed columns, this is not a mistake. The view
   // matrix is the inverse of the camera transform. The camera transform
@@ -181,7 +181,11 @@ LookAt(const v3f& eye, const v3f& target, const v3f& up)
       0.f, 0.f, 0.f, 1.f);
   return (orientation * Translation(-eye));
 #else
-  // TODO: Optimization here is to avoid the matrix multiply...
+   return Mat4f(
+      r.x, u.x, f.x, 0.f,
+      r.y, u.y, f.y, 0.f,
+      r.z, u.z, f.z, 0.f,
+      math::Dot(r, -eye), math::Dot(u, -eye), math::Dot(f, -eye), 1.f);
 #endif
 }
 

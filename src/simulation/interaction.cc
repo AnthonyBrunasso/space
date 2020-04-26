@@ -93,7 +93,7 @@ ReadOnlyPanel(v2f screen, uint32_t tag, const Stats& stats,
               uint64_t frame_target_usec, uint64_t frame, uint64_t jerk,
               uint64_t frame_queue)
 {
-  static bool enable_debug = false;
+  static bool enable_debug = true;
   static v2f read_only_pos(3.f, screen.y);
   static float right_align = 155.f;
   imui::PaneOptions options;

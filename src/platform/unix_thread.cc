@@ -55,4 +55,30 @@ thread_exit(Thread* t, uint64_t value)
   pthread_exit(&t->return_value);
 }
 
+
+bool
+mutex_create(Mutex* m)
+{
+  // TODO
+  return false;
+}
+
+void
+mutex_lock(Mutex* m)
+{
+  // TODO
+}
+
+void
+mutex_unlock(Mutex* m)
+{
+  // TODO
+}
+
+void
+mutex_free(Mutex* m)
+{
+  // TODO
+}
+
 }  // namespace platform

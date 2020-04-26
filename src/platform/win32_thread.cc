@@ -17,7 +17,7 @@ thread_create(Thread* t)
 {
   if (t->id) return false;
   t->handle = CreateThread(
-      NULL,             // Default security attributes.
+      nullptr,          // Default security attributes.
       0,                // Default stack size.
       Win32ThreadFunc,  // Threaded function.
       t,                // Argument to thread function.
@@ -46,6 +46,44 @@ thread_exit(Thread* t, uint64_t value)
 {
   t->return_value = value;
   ExitThread((DWORD)t->return_value);
+}
+
+bool
+mutex_create(Mutex* m)
+{
+  m->handle = CreateMutex(
+      nullptr,      // Default security attributes.
+      false,        // Not owned initially.
+      nullptr);     // Unnamed mutex
+
+  if (!m->handle) {
+    printf("mutex_create error: %d\n", GetLastError());
+    return false;
+  }
+
+  return true;
+}
+
+void
+mutex_lock(Mutex* m)
+{
+  if (WaitForSingleObject(m->handle, INFINITE) == WAIT_FAILED) {
+    printf("mutex_lock error: %d\n", GetLastError());
+  }
+}
+
+void
+mutex_unlock(Mutex* m)
+{
+  if (!ReleaseMutex(m->handle)) {
+    printf("mutex_unlock error: %d\n", GetLastError());
+  }
+}
+
+void
+mutex_free(Mutex* m)
+{
+  CloseHandle(m->handle);
 }
 
 }  // namespace platform

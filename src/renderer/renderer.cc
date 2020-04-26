@@ -6,10 +6,6 @@
 #include "asset/asteroid.cc"
 #include "asset/cube.cc"
 #include "asset/cone.cc"
-#include "asset/crew.cc"
-#include "asset/exhaust.cc"
-#include "asset/gear.cc"
-#include "asset/pod.cc"
 #include "asset/sphere.cc"
 #include "common/common.cc"
 #include "gl/gl.cc"
@@ -720,12 +716,6 @@ void
 RenderExhaust(v3f pos, v3f scale, const Quatf& quat, const v4f& color)
 {
   RenderMesh(kExhaustMesh, pos, scale, quat, color);
-}
-
-void
-RenderCrew(v3f pos, v3f scale, const v4f& color)
-{
-  Render3d(pos, scale, color, kRGG.crew_vao_reference, kCrewVertCount);
 }
 
 void

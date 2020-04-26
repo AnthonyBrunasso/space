@@ -3,15 +3,15 @@ namespace platform {
 unsigned
 thread_affinity_count()
 {
-  // TODO
-  return UINT_MAX;
+  SYSTEM_INFO system_info;
+  GetSystemInfo(&system_info);
+  return system_info.dwNumberOfProcessors;
 }
 
 bool
 thread_affinity_usecore(int cpu_index)
 {
-  // TODO
-  return false;
+  return SetThreadAffinityMask(GetCurrentThread(), (1 << cpu_index)) != 0;
 }
 
 bool

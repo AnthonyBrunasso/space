@@ -11,11 +11,11 @@ ThreadStuff(void* arg)
 int
 main()
 {
-  ThreadInfo thread[10];
+  Thread thread[10];
   int arg[10];
   for (int i = 0; i < 10; ++i) {
     //printf("Creating thread %i\n", i);
-    ThreadInfo* info = &thread[i];
+    Thread* info = &thread[i];
     arg[i] = i;
     info->func = ThreadStuff;
     info->arg = &arg[i];

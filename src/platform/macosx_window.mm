@@ -98,7 +98,8 @@ CreateOpenGLContext()
       kCGLPFAAlphaSize, (CGLPixelFormatAttribute)8,
       kCGLPFADepthSize, (CGLPixelFormatAttribute)24,
       kCGLPFAStencilSize, (CGLPixelFormatAttribute)8,
-      kCGLPFASampleBuffers, (CGLPixelFormatAttribute)0,
+      kCGLPFASampleBuffers, (CGLPixelFormatAttribute)1,
+      kCGLPFASamples, (CGLPixelFormatAttribute)4,
       (CGLPixelFormatAttribute) 0,
   };
 

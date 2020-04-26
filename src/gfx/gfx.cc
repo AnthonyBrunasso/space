@@ -15,6 +15,11 @@ struct Gfx {
   RenderTag plus_tag;
 };
 
+static rgg::Mesh kExhaustMesh;
+static rgg::Mesh kGearMesh;
+static rgg::Mesh kCrewMesh;
+static rgg::Mesh kPodMesh;
+
 static Gfx kGfx;
 static v4f kSelectionColor = v4f(0.19f, 0.803f, 0.19f, 0.40f);
 static v4f kSelectionOutlineColor = v4f(0.19f, 0.803f, 0.19f, 1.f);
@@ -65,6 +70,23 @@ Initialize(const window::CreateInfo& window_create_info)
   kGfx.cryo_tag = rgg::CreateRenderable(kCryoVert, cryo, GL_LINE_LOOP);
   kGfx.exhaust_tag = rgg::CreateRenderable(kExhaustVert, exhaust, GL_LINE_LOOP);
   kGfx.plus_tag = rgg::CreateRenderable(kPlusVert, plus, GL_LINE_LOOP);
+
+  if (!LoadOBJ("asset/exhaust.obj", &kExhaustMesh)) {
+    printf("Unable to load gear mesh.");
+  }
+
+  if (!LoadOBJ("asset/gear.obj", &kGearMesh)) {
+    printf("Unable to load gear mesh.");
+  }
+
+  if (!LoadOBJ("asset/perstronaut.obj", &kCrewMesh)) {
+    printf("Unable to load gear mesh.");
+  }
+
+  if (!LoadOBJ("asset/pod.obj", &kPodMesh)) {
+    printf("Unable to load gear mesh.");
+  }
+
   return status;
 }
 
@@ -77,9 +99,9 @@ RenderCrew(uint64_t ship_index)
   FOR_EACH_ENTITY(Unit, unit, {
     if (unit->ship_index != ship_index) continue;
     if (unit->inspace) {
-      rgg::RenderPod(unit->position, v3f(20.f, 20.f, 20.f),
-                     Quatf(-90.f, v3f(1.f, 0.f, 0.f)),
-                     v4f(1.f, 1.f, 1.f, 1.f));
+      rgg::RenderMesh(kPodMesh, unit->position, v3f(20.f, 20.f, 20.f),
+                      Quatf(-90.f, v3f(1.f, 0.f, 0.f)),
+                      v4f(1.f, 1.f, 1.f, 1.f));
 
       continue;
     }
@@ -124,7 +146,8 @@ RenderCrew(uint64_t ship_index)
         // TODO(abrunasso): This should be the graphic when working on
         // something.
         static float r = 0.f;
-        rgg::RenderGear(
+        rgg::RenderMesh(
+            kGearMesh,
             unit->position + v3f(-unit->bounds.x - 6.f, unit->bounds.y + 2.f,
                                  unit->bounds.z + .1f),
             v3f(8.f, 8.f, 8.f), Quatf(r, v3f(0.f, 0.f, 1.f)),
@@ -140,7 +163,7 @@ RenderCrew(uint64_t ship_index)
       crew_bounds = v3f(8.f, 8.f, 8.f);
       color = v4f(color.x * .8f, color.y * .8f, color.z * .8f, color.w);
     }
-    rgg::RenderCrew(unit->position + v3f(0.f, 0.f, 20.f), crew_bounds,
+    rgg::RenderMesh(kCrewMesh, unit->position + v3f(0.f, 0.f, 20.f), crew_bounds,
                     Quatf(-90, v3f(0.f, 0.f, 1.f)), color);
 
     if (unit->spacesuit) {
@@ -251,9 +274,10 @@ RenderShip(uint64_t ship_index)
       world = mod->position + hack;
       v4f color(mcolor.x, mcolor.y, mcolor.z, 1.f);
       float engine_scale = kShip[ship_index].engine_animation * .1f;
-      rgg::RenderExhaust(world + v3f(-40.f, -20.f, 0.f), v3f(22.f, 22.f, 22.f),
-                         Quatf(180, v3f(0.f, 0.f, 1.f)),
-                         v4f(0.4f, 0.4f, 0.4f, 1.f));
+      rgg::RenderMesh(kExhaustMesh, 
+                      world + v3f(-40.f, -20.f, 0.f), v3f(22.f, 22.f, 22.f),
+                      Quatf(180, v3f(0.f, 0.f, 1.f)),
+                      v4f(0.4f, 0.4f, 0.4f, 1.f));
       rgg::RenderTag(kGfx.exhaust_tag, world + v3f(-50.f, 3.f, 0.f),
                      v3f(engine_scale, 1.f, 1.f), kDefaultRotation, color);
       rgg::RenderTag(kGfx.exhaust_tag, world + v3f(-50.f, 3.f, 0.f),

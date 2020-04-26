@@ -22,11 +22,6 @@ struct RenderTag {
 namespace rgg
 {
 
-static Mesh kExhaustMesh;
-static Mesh kGearMesh;
-static Mesh kCrewMesh;
-static Mesh kPodMesh;
-
 struct GeometryProgram {
   GLuint reference = -1;
   GLuint matrix_uniform = -1;
@@ -375,22 +370,6 @@ Initialize()
   kRGG.sphere_vao_reference = gl::CreateGeometryVAOWithNormals(
       kSphereVertCount * 3, kSphereVerts, kSphereVertNorms);
 
-  if (!LoadOBJ("asset/exhaust.obj", &kExhaustMesh)) {
-    printf("Unable to load gear mesh.");
-  }
-
-  if (!LoadOBJ("asset/gear.obj", &kGearMesh)) {
-    printf("Unable to load gear mesh.");
-  }
-
-  if (!LoadOBJ("asset/perstronaut.obj", &kCrewMesh)) {
-    printf("Unable to load gear mesh.");
-  }
-
-  if (!LoadOBJ("asset/pod.obj", &kPodMesh)) {
-    printf("Unable to load gear mesh.");
-  }
-
   if (!SetupTexture()) {
     printf("Failed to setup Texture.\n");
     return false;
@@ -695,33 +674,9 @@ RenderCone(v3f pos, v3f scale, const v4f& color)
 }
 
 void
-RenderGear(v3f pos, v3f scale, const Quatf& quat, const v4f& color)
-{
-  RenderMesh(kGearMesh, pos, scale, quat, color);
-}
-
-void
-RenderPod(v3f pos, v3f scale, const Quatf& quat, const v4f& color)
-{
-  RenderMesh(kPodMesh, pos, scale, quat, color);
-}
-
-void
 RenderSphere(v3f pos, v3f scale, const v4f& color)
 {
   Render3d(pos, scale, color, kRGG.sphere_vao_reference, kSphereVertCount);
-}
-
-void
-RenderExhaust(v3f pos, v3f scale, const Quatf& quat, const v4f& color)
-{
-  RenderMesh(kExhaustMesh, pos, scale, quat, color);
-}
-
-void
-RenderCrew(v3f pos, v3f scale, const Quatf& quat, const v4f& color)
-{
-  RenderMesh(kCrewMesh, pos, scale, quat, color);
 }
 
 void

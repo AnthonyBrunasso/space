@@ -39,6 +39,8 @@ WalkDirectory(const char* dir, FileCallback* file_callback)
     file_callback(full_name);
   }
   while (FindNextFile(h_find, &ffd) != 0);
+
+  FindClose(h_find);
 }
 
 }  // namespace filesystem

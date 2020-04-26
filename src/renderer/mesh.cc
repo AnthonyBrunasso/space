@@ -96,7 +96,10 @@ LoadOBJ(const char* filename, Mesh* mesh)
   glBufferData(GL_ARRAY_BUFFER, kVertElementCount * sizeof(GLfloat),
                &kVerts[0], GL_STATIC_DRAW);
 
-  if (!points_vbo) return false;
+  if (!points_vbo) {
+    fclose(f);
+    return false;
+  }
 
   GLuint normals_vbo = 0;
   glGenBuffers(1, &normals_vbo);
@@ -104,13 +107,19 @@ LoadOBJ(const char* filename, Mesh* mesh)
   glBufferData(GL_ARRAY_BUFFER, kNormElementCount * sizeof(GLfloat),
                &kNorms[0], GL_STATIC_DRAW);
   
-  if (!normals_vbo) return false;
+  if (!normals_vbo) {
+    fclose(f);
+    return false;
+  }
 
   GLuint vao = 0;
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
 
-  if (!vao) return false;
+  if (!vao) {
+    fclose(f);
+    return false;
+  }
 
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, points_vbo);
@@ -126,6 +135,8 @@ LoadOBJ(const char* filename, Mesh* mesh)
 
   printf("Loaded Mesh vert count %i verts vbo %i norms vbo %i vao %i \n",
          mesh->vert_count, mesh->vert_vbo, mesh->norm_vbo, mesh->vao);
+
+  fclose(f);
 
   return true;
 }

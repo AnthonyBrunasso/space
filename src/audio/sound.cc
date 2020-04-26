@@ -15,7 +15,7 @@ namespace audio {
 
 constexpr uint32_t kMaxSoundFileSize = 12e6;
 
-uint8_t kBuffer[kMaxSoundFileSize];
+static uint8_t kBuffer[kMaxSoundFileSize];
 
 struct Sound {
   float length_ms = 0.f;

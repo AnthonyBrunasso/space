@@ -555,7 +555,8 @@ RenderLine(const v3f& start, const v3f& end, const v4f& color)
 }
 
 void
-RenderGrid(v2f grid, Rectf bounds, uint64_t color_count, v4f* color)
+RenderGrid(const v2f& grid, const Rectf& bounds, uint64_t color_count,
+           v4f* color)
 {
   // Prepare Geometry and color
   glUseProgram(kRGG.geometry_program.reference);

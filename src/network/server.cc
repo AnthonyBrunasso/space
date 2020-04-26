@@ -4,7 +4,7 @@
 #include "platform/platform.cc"
 #include "protocol.cc"
 
-static ThreadInfo thread;
+static Thread thread;
 
 struct ServerParam {
   const char* ip;

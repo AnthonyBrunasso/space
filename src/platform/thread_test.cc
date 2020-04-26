@@ -21,7 +21,7 @@ main(int argc, char** argv)
   printf("argv %p\n", argv);
 
   // printf("%lu\n", sizeof(pthread_t));
-  static ThreadInfo t;
+  static Thread t;
   t.func = AppThreadMain;
   t.arg = argv;
   platform::thread_create(&t);

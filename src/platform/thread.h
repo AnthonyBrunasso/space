@@ -2,10 +2,10 @@
 
 #include <cstdint>
 
-struct ThreadInfo;
+struct Thread;
 typedef uint64_t (*ThreadFunc)(void* arg);
 
-struct ThreadInfo {
+struct Thread {
   uint64_t id = 0;
 #ifdef _WIN32
   HANDLE handle;
@@ -17,8 +17,8 @@ struct ThreadInfo {
 
 namespace platform
 {
-bool thread_create(ThreadInfo* t);
+bool thread_create(Thread* t);
 void thread_yield();
-bool thread_join(ThreadInfo* t);
-void thread_exit(ThreadInfo* t, uint64_t value);
+bool thread_join(Thread* t);
+void thread_exit(Thread* t, uint64_t value);
 }  // namespace platform

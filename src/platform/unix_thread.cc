@@ -6,22 +6,22 @@
 #include <climits>
 #include <cstddef>
 
-static_assert(offsetof(ThreadInfo, id) == 0 &&
-                  sizeof(ThreadInfo::id) >= sizeof(pthread_t),
-              "ThreadInfo_t layout must be compatible with pthread_t");
+static_assert(offsetof(Thread, id) == 0 &&
+              sizeof(Thread::id) >= sizeof(pthread_t),
+              "Thread_t layout must be compatible with pthread_t");
 
 namespace platform
 {
 void*
 pthread_shim(void* pthread_arg)
 {
-  ThreadInfo* ti = (ThreadInfo*)pthread_arg;
+  Thread* ti = (Thread*)pthread_arg;
   ti->return_value = ti->func(ti->arg);
   return NULL;
 }
 
 bool
-thread_create(ThreadInfo* t)
+thread_create(Thread* t)
 {
   if (t->id) return false;
 
@@ -39,7 +39,7 @@ thread_yield()
 }
 
 bool
-thread_join(ThreadInfo* t)
+thread_join(Thread* t)
 {
   if (!t->id) return false;
 
@@ -49,7 +49,7 @@ thread_join(ThreadInfo* t)
 }
 
 void
-thread_exit(ThreadInfo* t, uint64_t value)
+thread_exit(Thread* t, uint64_t value)
 {
   t->return_value = value;
   pthread_exit(&t->return_value);

@@ -6,14 +6,14 @@ namespace platform
 DWORD WINAPI
 Win32ThreadFunc(LPVOID lpParam)
 {
-  ThreadInfo* ti = (ThreadInfo*)lpParam;
+  Thread* ti = (Thread*)lpParam;
   uint64_t ret = ti->func(ti->arg);
   ti->return_value = ret;
   return ret;
 }
 
 bool
-thread_create(ThreadInfo* t)
+thread_create(Thread* t)
 {
   if (t->id) return false;
   t->handle = CreateThread(
@@ -32,7 +32,7 @@ thread_yield()
 }
 
 bool
-thread_join(ThreadInfo* t)
+thread_join(Thread* t)
 {
   WaitForSingleObject(t->handle, INFINITE);
   GetExitCodeThread(t->handle, (LPDWORD)&t->return_value);
@@ -41,7 +41,7 @@ thread_join(ThreadInfo* t)
 }
 
 void
-thread_exit(ThreadInfo* t, uint64_t value)
+thread_exit(Thread* t, uint64_t value)
 {
 }
 

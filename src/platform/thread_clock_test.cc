@@ -40,7 +40,7 @@ thread_main(void* t)
 int
 main(int argc, char** argv)
 {
-  static ThreadInfo t;
+  static Thread t;
   t.func = thread_main;
   t.arg = argv;
   platform::thread_create(&t);

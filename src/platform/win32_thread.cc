@@ -1,7 +1,5 @@
 #include "thread.h"
 
-#include "common/common.cc"
-
 namespace platform
 {
 

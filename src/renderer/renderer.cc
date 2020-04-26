@@ -26,7 +26,10 @@ struct RenderTag {
 namespace rgg
 {
 
+static Mesh kExhaustMesh;
 static Mesh kGearMesh;
+static Mesh kCrewMesh;
+static Mesh kPodMesh;
 
 struct GeometryProgram {
   GLuint reference = -1;
@@ -372,20 +375,23 @@ Initialize()
 
   kRGG.cone_vao_reference = gl::CreateGeometryVAOWithNormals(
       kConeVertCount * 3, kConeVerts, kConeVertNorms);
-
-  kRGG.crew_vao_reference = gl::CreateGeometryVAOWithNormals(
-      kCrewVertCount * 3, kCrewVerts, kCrewVertNorms);
-
-  kRGG.pod_vao_reference = gl::CreateGeometryVAOWithNormals(
-      kPodVertCount * 3, kPodVerts, kPodVertNorms);
-
+  
   kRGG.sphere_vao_reference = gl::CreateGeometryVAOWithNormals(
       kSphereVertCount * 3, kSphereVerts, kSphereVertNorms);
 
-  kRGG.exhaust_vao_reference = gl::CreateGeometryVAOWithNormals(
-      kExhaustVertCount * 3, kExhaustVerts, kExhaustVertNorms);
+  if (!LoadOBJ("asset/exhaust.obj", &kExhaustMesh)) {
+    printf("Unable to load gear mesh.");
+  }
 
   if (!LoadOBJ("asset/gear.obj", &kGearMesh)) {
+    printf("Unable to load gear mesh.");
+  }
+
+  if (!LoadOBJ("asset/perstronaut.obj", &kCrewMesh)) {
+    printf("Unable to load gear mesh.");
+  }
+
+  if (!LoadOBJ("asset/pod.obj", &kPodMesh)) {
     printf("Unable to load gear mesh.");
   }
 
@@ -701,8 +707,7 @@ RenderGear(v3f pos, v3f scale, const Quatf& quat, const v4f& color)
 void
 RenderPod(v3f pos, v3f scale, const Quatf& quat, const v4f& color)
 {
-  Render3dWithRotation(pos, scale, quat, color, kRGG.pod_vao_reference,
-                       kPodVertCount);
+  RenderMesh(kPodMesh, pos, scale, quat, color);
 }
 
 void
@@ -714,8 +719,7 @@ RenderSphere(v3f pos, v3f scale, const v4f& color)
 void
 RenderExhaust(v3f pos, v3f scale, const Quatf& quat, const v4f& color)
 {
-  Render3dWithRotation(pos, scale, quat, color, kRGG.exhaust_vao_reference,
-                       kExhaustVertCount);
+  RenderMesh(kExhaustMesh, pos, scale, quat, color);
 }
 
 void
@@ -727,8 +731,7 @@ RenderCrew(v3f pos, v3f scale, const v4f& color)
 void
 RenderCrew(v3f pos, v3f scale, const Quatf& quat, const v4f& color)
 {
-  Render3dWithRotation(pos, scale, quat, color, kRGG.crew_vao_reference,
-                       kCrewVertCount);
+  RenderMesh(kCrewMesh, pos, scale, quat, color);
 }
 
 void

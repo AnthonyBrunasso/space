@@ -6,9 +6,12 @@ struct ThreadInfo;
 typedef uint64_t (*ThreadFunc)(void* arg);
 
 struct ThreadInfo {
-  uint64_t id;
+  uint64_t id = 0;
+#ifdef _WIN32
+  HANDLE handle;
+#endif
   ThreadFunc func;
-  void* arg;
+  void* arg = nullptr;
   uint64_t return_value;
 } ti;
 

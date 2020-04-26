@@ -1,22 +1,9 @@
 #include "thread.h"
 
-// TODO: This only works for a single thread. The API is hard
-// to make consistent with pthread for the following reasons -
-//
-// CreateThread returns a Handle to a thread. This is a win32
-// specific object. The thread API assumes an id that the
-// user can pick.
-//
-// The functor returns a DWORD and not a void*.
+#include "common/common.cc"
 
 namespace platform
 {
-struct Thread {
-  HANDLE handle;
-  DWORD thread_id;
-};
-
-static Thread kThread;
 
 DWORD WINAPI
 Win32ThreadFunc(LPVOID lpParam)
@@ -31,13 +18,14 @@ bool
 thread_create(ThreadInfo* t)
 {
   if (t->id) return false;
-
-  kThread.handle = CreateThread(NULL, 0 /* Default stack size */,
-                                Win32ThreadFunc, t, 0, &kThread.thread_id);
-
-  t->id = kThread.thread_id;
-
-  return true;
+  t->handle = CreateThread(
+      NULL,             // Default security attributes.
+      0,                // Default stack size.
+      Win32ThreadFunc,  // Threaded function.
+      t,                // Argument to thread function.
+      0,                // Creation flags.
+      (DWORD*)&t->id);  // Thread identifier.
+  return t->handle != nullptr;
 }
 
 void
@@ -48,8 +36,9 @@ thread_yield()
 bool
 thread_join(ThreadInfo* t)
 {
-  WaitForSingleObject(kThread.handle, INFINITE);
-  GetExitCodeThread(kThread.handle, (LPDWORD)&t->return_value);
+  WaitForSingleObject(t->handle, INFINITE);
+  GetExitCodeThread(t->handle, (LPDWORD)&t->return_value);
+  CloseHandle(t->handle);
   return 0;
 }
 

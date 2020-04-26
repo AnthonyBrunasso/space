@@ -29,6 +29,7 @@ thread_create(Thread* t)
 void
 thread_yield()
 {
+  SwitchToThread();
 }
 
 bool
@@ -43,6 +44,8 @@ thread_join(Thread* t)
 void
 thread_exit(Thread* t, uint64_t value)
 {
+  t->return_value = value;
+  ExitThread((DWORD)t->return_value);
 }
 
 }  // namespace platform

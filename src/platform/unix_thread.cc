@@ -59,26 +59,36 @@ thread_exit(Thread* t, uint64_t value)
 bool
 mutex_create(Mutex* m)
 {
-  // TODO
-  return false;
+  int res = pthread_mutex_init(&m->lock, nullptr);
+  if (res) {
+    printf("mutex_create error: %d\n", res);
+    return false;
+  }
+  return true;
 }
 
 void
 mutex_lock(Mutex* m)
 {
-  // TODO
+  int res = pthread_mutex_lock(&m->lock);
+  if (res) {
+    printf("mutex_lock error: %d\n", res);
+  }
 }
 
 void
 mutex_unlock(Mutex* m)
 {
-  // TODO
+  int res = pthread_mutex_unlock(&m->lock);
+  if (res) {
+    printf("mutex_unlock error: %d\n", res);
+  }
 }
 
 void
 mutex_free(Mutex* m)
 {
-  // TODO
+  pthread_mutex_destroy(&m->lock);
 }
 
 }  // namespace platform

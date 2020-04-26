@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdlib>
+
 #include "vec.h"
 
 struct Rectf {

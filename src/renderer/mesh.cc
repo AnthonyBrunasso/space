@@ -20,6 +20,9 @@ struct Material {
   v3f tf;
   float ni;
   v3f ks;
+  // Vert index first and end.
+  uint32_t first = -1;
+  uint32_t count;
 };
 
 struct Mesh {
@@ -42,7 +45,6 @@ static uint32_t kNormElementCount;
 bool
 LoadMTL(const char* filename, Material* material, uint32_t* material_count)
 {
-  *material = {};
   FILE* f = fopen(filename, "rb");
   if (!f) {
     printf("%s not found!\n", filename);
@@ -106,6 +108,7 @@ LoadMTL(const char* filename, Material* material, uint32_t* material_count)
 bool
 LoadOBJ(const char* filename, Mesh* mesh)
 {
+  *mesh = {};
   static v3f v[kMaxVertCount];
   static uint32_t cv = 0;
   static v3f vn[kMaxVertCount];
@@ -134,6 +137,7 @@ LoadOBJ(const char* filename, Mesh* mesh)
   }
   printf("Loading mesh: %s\n", filename);
   char line[1024];
+  Material* mtl = nullptr;
   while (1) {
     int res = fscanf(f, "%s", line);
     if (res == EOF) break;
@@ -144,7 +148,6 @@ LoadOBJ(const char* filename, Mesh* mesh)
       continue;  // I don't use these yet.
     } else if (strcmp(line, "mtllib") == 0) {
       if (mesh->material_count < kMaxMaterial) {
-        printf("1\n");
         char mtlname[64] = {};
         fscanf(f, "%s\n", mtlname);
         if (filesystem::HasExtension(mtlname, "mtl")) {
@@ -161,7 +164,18 @@ LoadOBJ(const char* filename, Mesh* mesh)
       fscanf(f, "%f %f %f\n", &norm->x, &norm->y, &norm->z);
     } else if (strcmp(line, "vt") == 0) {
       continue;  // I don't use these yet.
+    } else if (strcmp(line, "usemtl") == 0) {
+      char mtlname[64] = {};
+      fscanf(f, "%s\n", mtlname);
+      for (int i = 0; i < mesh->material_count; ++i) {
+        if (strcmp(mesh->material[i].name, mtlname) == 0) {
+          mtl = &mesh->material[i];
+        }
+      }
     } else if (strcmp(line, "f") == 0) {
+      if (mtl && mtl->first == uint32_t(-1)) {
+        mtl->first = kVertElementCount / 3;
+      }
       int i = 0;
       v3i first, second, third;
       fscanf(f, " %i/%i/%i", &first.x, &first.y, &first.z);
@@ -176,6 +190,7 @@ LoadOBJ(const char* filename, Mesh* mesh)
         second = third;
         c = fgetc(f);
       }
+      if (mtl) mtl->count = (kVertElementCount / 3) - mtl->first;
     }
   } 
 

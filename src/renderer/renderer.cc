@@ -645,7 +645,14 @@ RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
   glUniform3f(kRGG.geometry_program_3d.light_position_world_uniform,
               kObserver.position.x, kObserver.position.y,
               kObserver.position.z);
-  glDrawArrays(GL_TRIANGLES, 0, mesh.vert_count);
+  if (!mesh.material_count) {
+    glDrawArrays(GL_TRIANGLES, 0, mesh.vert_count);
+  } else {
+    for (int i = 0; i < mesh.material_count; ++i) {
+      const Material* mat = &mesh.material[i];
+      glDrawArrays(GL_TRIANGLES, mat->first, mat->count);
+    }
+  }
 }
 
 void

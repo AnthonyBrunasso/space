@@ -12,6 +12,15 @@ Win32ThreadFunc(LPVOID lpParam)
   return ret;
 }
 
+
+uint64_t
+thread_id()
+{
+  // TODO: Replace with intrinsic __readgsqword
+  // https://docs.microsoft.com/en-us/cpp/intrinsics/readgsbyte-readgsdword-readgsqword-readgsword?view=vs-2019
+  return (uint64_t)GetCurrentThreadId();
+}
+
 bool
 thread_create(Thread* t)
 {

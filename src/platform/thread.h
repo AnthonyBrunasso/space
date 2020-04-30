@@ -26,6 +26,7 @@ struct Mutex {
 namespace platform
 {
 
+uint64_t thread_id();
 bool thread_create(Thread* t);
 void thread_yield();
 bool thread_join(Thread* t);

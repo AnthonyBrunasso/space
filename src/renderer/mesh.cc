@@ -10,12 +10,26 @@
 
 namespace rgg {
 
+constexpr uint32_t kMaxMaterial = 4;
+
+struct Material {
+  char name[32];
+  int illum;
+  v3f kd;
+  v3f ka;
+  v3f tf;
+  float ni;
+  v3f ks;
+};
+
 struct Mesh {
   uint32_t vert_count = 0;
   uint32_t norm_count = 0;
   GLuint vert_vbo = 0;
   GLuint norm_vbo = 0;
   GLuint vao = 0;
+  Material material[kMaxMaterial];
+  uint32_t material_count = 0;
   bool IsValid() const { return vert_count > 0; }
 };
 
@@ -24,6 +38,70 @@ static float kVerts[kMaxVertCount * 8];
 static uint32_t kVertElementCount;
 static float kNorms[kMaxVertCount * 8];
 static uint32_t kNormElementCount;
+
+bool
+LoadMTL(const char* filename, Material* material, uint32_t* material_count)
+{
+  *material = {};
+  FILE* f = fopen(filename, "rb");
+  if (!f) {
+    printf("%s not found!\n", filename);
+    return false;
+  }
+  printf("Loading material: %s\n", filename);
+  char line[1024];
+  Material* cmat = nullptr;
+  while (1) {
+    int res = fscanf(f, "%s", line);
+    if (res == EOF) break;
+    if (strcmp(line, "newmtl") == 0) {
+      if (*material_count >= kMaxMaterial) {
+        printf("Material slots exhausted...\n");
+        break;
+      }
+      cmat = &material[(*material_count)++];
+      fscanf(f, "%s\n", &cmat->name);
+    } else if (strcmp(line, "illum") == 0) {
+      if (!cmat) continue;
+      fscanf(f, "%i\n", &cmat->illum);
+    } else if (strcmp(line, "Kd") == 0) {
+      if (!cmat) continue;
+      v3f* kd = &cmat->kd;
+      fscanf(f, "%f %f %f\n", &kd->x, &kd->y, &kd->z);
+    } else if (strcmp(line, "Ka") == 0) {
+      if (!cmat) continue;
+      v3f* ka = &cmat->ka;
+      fscanf(f, "%f %f %f\n", &ka->x, &ka->y, &ka->z);
+    } else if (strcmp(line, "Tf") == 0) {
+      if (!cmat) continue;
+      v3f* tf = &cmat->tf;
+      fscanf(f, "%f %f %f\n", &tf->x, &tf->y, &tf->z);
+    } else if (strcmp(line, "Ni") == 0) {
+      if (!cmat) continue;
+      fscanf(f, "%f\n", &cmat->ni);
+    } else if (strcmp(line, "Ks") == 0) {
+      if (!cmat) continue;
+      v3f* ks = &cmat->ks;
+      fscanf(f, "%f %f %f\n", &ks->x, &ks->y, &ks->z);
+    }
+  }
+
+  for (int i = 0; i < *material_count; ++i) {
+    cmat = &material[i];
+    printf("Loaded Material %s\n", cmat->name);
+    printf("  illum %i\n", cmat->illum);
+    printf("  kd %.3f %.3f %.3f\n",
+           cmat->kd.x, cmat->kd.y, cmat->kd.z);
+    printf("  ka %.3f %.3f %.3f\n",
+           cmat->ka.x, cmat->ka.y, cmat->ka.z);
+    printf("  tf %.3f %.3f %.3f\n",
+           cmat->tf.x, cmat->tf.y, cmat->tf.z);
+    printf("  ni %.3f\n", cmat->ni);
+    printf("  ks %.3f %.3f %.3f\n",
+           cmat->ks.x, cmat->ks.y, cmat->ks.z);
+  }
+  return true;
+}
 
 bool
 LoadOBJ(const char* filename, Mesh* mesh)
@@ -54,7 +132,7 @@ LoadOBJ(const char* filename, Mesh* mesh)
     printf("%s not found!\n", filename);
     return false;
   }
-  printf("Loading %s\n", filename);
+  printf("Loading mesh: %s\n", filename);
   char line[1024];
   while (1) {
     int res = fscanf(f, "%s", line);
@@ -64,6 +142,20 @@ LoadOBJ(const char* filename, Mesh* mesh)
       fscanf(f, "%f %f %f\n", &vert->x, &vert->y, &vert->z);
     } else if (strcmp(line, "vt") == 0) {
       continue;  // I don't use these yet.
+    } else if (strcmp(line, "mtllib") == 0) {
+      if (mesh->material_count < kMaxMaterial) {
+        printf("1\n");
+        char mtlname[64] = {};
+        fscanf(f, "%s\n", mtlname);
+        if (filesystem::HasExtension(mtlname, "mtl")) {
+          char fullname[128] = {};
+          strcpy(fullname, filename);
+          filesystem::ReplaceFilename(mtlname, fullname);
+          if (!LoadMTL(fullname, mesh->material, &mesh->material_count)) {
+            printf("Unable to load material %s\n", mtlname);
+          }
+        }
+      }
     } else if (strcmp(line, "vn") == 0) {
       v3f* norm = &vn[cvn++];
       fscanf(f, "%f %f %f\n", &norm->x, &norm->y, &norm->z);

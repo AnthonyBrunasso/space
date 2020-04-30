@@ -73,7 +73,6 @@ LinkShaders(GLuint* id, int n, ...)
 void
 PrintProgramInfoString(GLuint program_reference)
 {
-  assert(0);
   printf("Program reference: %u\n", program_reference);
   int params = -1;
   glGetProgramiv(program_reference, GL_LINK_STATUS, &params);
@@ -96,12 +95,12 @@ PrintProgramInfoString(GLuint program_reference)
         char long_name[64];
         std::snprintf(long_name, 64, "%s[%i]", name, j);
         int location = glGetAttribLocation(program_reference, long_name);
-        printf("%d) type: %s name: %s location: %d ", i, GLTypeToString(type),
+        printf("%d) type: %s name: %s location: %d\n", i, GLTypeToString(type),
                long_name, location);
       }
     } else {
       int location = glGetAttribLocation(program_reference, name);
-      printf("%d) type: %s name: %s location: %d ", i, GLTypeToString(type),
+      printf("%d) type: %s name: %s location: %d\n", i, GLTypeToString(type),
              name, location);
     }
   }
@@ -120,12 +119,12 @@ PrintProgramInfoString(GLuint program_reference)
         char long_name[64];
         std::snprintf(long_name, 64, "%s[%i]", name, j);
         int location = glGetUniformLocation(program_reference, long_name);
-        printf("%d) type: %s name: %s location: %d ", i, GLTypeToString(type),
+        printf("%d) type: %s name: %s location: %d\n", i, GLTypeToString(type),
                long_name, location);
       }
     } else {
       int location = glGetUniformLocation(program_reference, name);
-      printf("%d) type: %s name: %s location: %d ", i, GLTypeToString(type),
+      printf("%d) type: %s name: %s location: %d\n", i, GLTypeToString(type),
              name, location);
     }
   }

@@ -33,10 +33,9 @@ inline constexpr const char* kVertexShader3d = R"(
   uniform mat4 model;
   uniform vec4 color;
   uniform vec3 light_position_world;
-
-  uniform vec3 surface_specular = vec3(1.0, 1.0, 1.0);
-  uniform vec3 surface_diffuse = vec3(0.7, 0.7, 0.8);
-  uniform vec3 surface_ambient = vec3(1.0, 1.0, 1.0);
+  uniform vec3 surface_specular;
+  uniform vec3 surface_diffuse;
+  uniform vec3 surface_ambient;
 
   out vec3 eye_position;
   out vec3 eye_normal;
@@ -56,17 +55,16 @@ inline constexpr const char* kFragmentShader3d = R"(
   uniform mat4 view;
   uniform vec4 color;
   uniform vec3 light_position_world;
-
-  // Default light properties.
-  vec3 light_specular = vec3(1.0, 1.0, 1.0);
-  vec3 light_diffuse = vec3(0.7, 0.7, 0.7);
-  vec3 light_ambient = vec3(0.2, 0.2, 0.2);
-
   // Surface reflectance.
   uniform vec3 surface_specular;
   uniform vec3 surface_diffuse;
   uniform vec3 surface_ambient;
 
+  // Default light properties.
+  vec3 light_specular = vec3(1.0, 1.0, 1.0);
+  vec3 light_diffuse = vec3(0.7, 0.7, 0.7);
+  vec3 light_ambient = vec3(0.2, 0.2, 0.2);
+  
   float specular_exponent = 5.0; 
   out vec4 frag_color;
 
@@ -85,7 +83,7 @@ inline constexpr const char* kFragmentShader3d = R"(
     vec3 eye_half_way = normalize(eye_surface_to_viewer + eye_direction_to_light);
     float ds = max(dot(eye_half_way, eye_normal), 0.0);
     float specular_factor = pow(ds, specular_exponent);
-    vec3 intensity_specular = light_specular * surface_diffuse * specular_factor;
+    vec3 intensity_specular = light_specular * surface_specular * specular_factor;
 
     // TODO(abrunasso): How do I combine color and light?
     frag_color = color * vec4(intensity_ambient + intensity_diffuse + intensity_specular, 1.0);

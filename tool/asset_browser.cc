@@ -197,8 +197,7 @@ main(int argc, char** argv)
         r += imui::MouseDelta(0).x;
       }
       rgg::RenderMesh(*kCurrentMesh, v3f(0.f, 0.f, 0.f), v3f(1.f, 1.f, 1.f),
-                      Quatf(r, v3f(0.f, 1.f, 0.f)),
-                      v4f(.5f, .5f, .5f, 1.f));
+                      Quatf(r, v3f(0.f, 1.f, 0.f)));
     } else if (kCurrentTexture && kCurrentTexture->IsValid()) {
       rgg::RenderTexture(
           *kCurrentTexture,

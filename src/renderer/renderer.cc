@@ -639,9 +639,10 @@ Render3dWithRotation(const v3f& pos, const v3f& scale, const Quatf& quat,
   glDrawArrays(GL_TRIANGLES, 0, verts);
 }
 
+// Leaving color as default will only use lighting properties.
 void
 RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
-           const Quatf& quat, const v4f& color)
+           const Quatf& quat, const v4f& color = v4f(1.f, 1.f, 1.f, 1.f))
 {
   if (!mesh.IsValid()) return;
   glUseProgram(kRGG.geometry_program_3d.reference);
@@ -659,6 +660,13 @@ RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
               kObserver.position.x, kObserver.position.y,
               kObserver.position.z);
   if (!mesh.material_count) {
+    // Set some reasonable lighting defaults.
+    glUniform3f(kRGG.geometry_program_3d.suface_specular_uniform,
+                1.f, 1.f, 1.f);
+    glUniform3f(kRGG.geometry_program_3d.surface_diffuse_uniform,
+                .7f, .7f, .8f);
+    glUniform3f(kRGG.geometry_program_3d.surface_ambient_uniform,
+                1.f, 1.f, 1.f);
     glDrawArrays(GL_TRIANGLES, 0, mesh.vert_count);
   } else {
     for (int i = 0; i < mesh.material_count; ++i) {

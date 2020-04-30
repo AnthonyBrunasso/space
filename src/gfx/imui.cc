@@ -318,12 +318,17 @@ ResetTag(uint32_t tag)
 }
 
 v2f
-MouseDelta()
+MouseDelta(uint32_t tag)
 {
-  uint32_t tag = kIMUI.begin_mode.tag;
   if (kUsedMousePosition[tag] < 1 || kUsedLastMousePosition[tag] < 1)
     return {};
   return kMousePosition[tag][0].pos - kLastMousePosition[tag][0].pos;
+}
+
+v2f
+MouseDelta()
+{
+  return MouseDelta(kIMUI.begin_mode.tag);
 }
 
 void
@@ -521,10 +526,15 @@ IsCircleClicked(v2f center, float radius)
 }
 
 bool
+IsMouseDown(uint32_t tag)
+{
+  return kIMUI.mouse_down[tag];
+}
+
+bool
 IsMouseDown()
 {
-  uint32_t tag = kIMUI.begin_mode.tag;
-  return kIMUI.mouse_down[tag];
+  return IsMouseDown(kIMUI.begin_mode.tag);
 }
 
 void

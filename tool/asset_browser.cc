@@ -144,6 +144,8 @@ main(int argc, char** argv)
   camera.speed = .1f;
   rgg::CameraInit(camera);
   
+  bool mouse_down = false;
+
   while (!window::ShouldClose()) {
     PlatformEvent event;
     while (window::PollEvent(&event)) {
@@ -165,11 +167,13 @@ main(int argc, char** argv)
           }
         } break;
         case MOUSE_DOWN: {
+          mouse_down = true;
           if (event.button == BUTTON_LEFT) {
             imui::MouseDown(event.position, event.button, 0);
           }
         } break;
         case MOUSE_UP: {
+          mouse_down = false;
           imui::MouseUp(event.position, event.button, 0);
         } break;
         default: break;
@@ -188,8 +192,13 @@ main(int argc, char** argv)
 
     RenderAxis();
     if (kCurrentMesh && kCurrentMesh->IsValid()) {
-      rgg::RenderMesh(*kCurrentMesh, v3f(0.f, 0.f, 0.f), v3f(1.f, 1.f, 1.f), Quatf(),
-                      v4f(1.f, 1.f, 1.f, 1.f));
+      static float r = 0.f;
+      if (mouse_down) {
+        r += imui::MouseDelta(0).x;
+      }
+      rgg::RenderMesh(*kCurrentMesh, v3f(0.f, 0.f, 0.f), v3f(1.f, 1.f, 1.f),
+                      Quatf(r, v3f(0.f, 1.f, 0.f)),
+                      v4f(.5f, .5f, .5f, 1.f));
     } else if (kCurrentTexture && kCurrentTexture->IsValid()) {
       rgg::RenderTexture(
           *kCurrentTexture,

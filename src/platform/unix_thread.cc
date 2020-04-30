@@ -20,6 +20,15 @@ pthread_shim(void* pthread_arg)
   return NULL;
 }
 
+uint64_t
+thread_id()
+{
+  pthread_t ptid = pthread_self();
+  uint64_t tid;
+  memcpy(&tid, &ptid, MIN(sizeof(tid), sizeof(ptid)));
+  return tid;
+}
+
 bool
 thread_create(Thread* t)
 {

@@ -630,6 +630,7 @@ void
 RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
            const Quatf& quat, const v4f& color)
 {
+  if (!mesh.IsValid()) return;
   glUseProgram(kRGG.geometry_program_3d.reference);
   glBindVertexArray(mesh.vao);
   Mat4f model = math::Model(pos, scale, quat);

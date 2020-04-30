@@ -34,6 +34,10 @@ inline constexpr const char* kVertexShader3d = R"(
   uniform vec4 color;
   uniform vec3 light_position_world;
 
+  uniform vec3 surface_specular = vec3(1.0, 1.0, 1.0);
+  uniform vec3 surface_diffuse = vec3(0.7, 0.7, 0.8);
+  uniform vec3 surface_ambient = vec3(1.0, 1.0, 1.0);
+
   out vec3 eye_position;
   out vec3 eye_normal;
 
@@ -59,9 +63,9 @@ inline constexpr const char* kFragmentShader3d = R"(
   vec3 light_ambient = vec3(0.2, 0.2, 0.2);
 
   // Surface reflectance.
-  vec3 surface_specular = vec3(1.0, 1.0, 1.0);
-  vec3 surface_diffuse = vec3(0.7, 0.7, 0.8);
-  vec3 surface_ambient = vec3(1.0, 1.0, 1.0);
+  uniform vec3 surface_specular;
+  uniform vec3 surface_diffuse;
+  uniform vec3 surface_ambient;
 
   float specular_exponent = 5.0; 
   out vec4 frag_color;

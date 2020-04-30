@@ -35,6 +35,9 @@ struct GeometryProgram3d {
   GLuint model_uniform = -1;
   GLuint color_uniform = -1;
   GLuint light_position_world_uniform = -1;
+  GLuint suface_specular_uniform = -1;
+  GLuint surface_diffuse_uniform = -1;
+  GLuint surface_ambient_uniform = -1;
 };
 
 
@@ -183,6 +186,16 @@ SetupGeometryProgram3d()
   kRGG.geometry_program_3d.light_position_world_uniform =
       glGetUniformLocation(kRGG.geometry_program_3d.reference, "light_position_world");
   assert(kRGG.geometry_program_3d.light_position_world_uniform != uint32_t(-1));
+  kRGG.geometry_program_3d.suface_specular_uniform =
+      glGetUniformLocation(kRGG.geometry_program_3d.reference, "surface_specular");
+  assert(kRGG.geometry_program_3d.suface_specular_uniform != uint32_t(-1));
+  kRGG.geometry_program_3d.surface_diffuse_uniform =
+      glGetUniformLocation(kRGG.geometry_program_3d.reference, "surface_diffuse");
+  assert(kRGG.geometry_program_3d.surface_diffuse_uniform != uint32_t(-1));
+  kRGG.geometry_program_3d.surface_ambient_uniform =
+      glGetUniformLocation(kRGG.geometry_program_3d.reference, "surface_ambient");
+  assert(kRGG.geometry_program_3d.surface_ambient_uniform != uint32_t(-1));
+
   kRGG.geometry_program_3d.color_uniform =
       glGetUniformLocation(kRGG.geometry_program_3d.reference, "color");
   assert(kRGG.geometry_program_3d.color_uniform != uint32_t(-1));
@@ -650,6 +663,13 @@ RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
   } else {
     for (int i = 0; i < mesh.material_count; ++i) {
       const Material* mat = &mesh.material[i];
+      // Set surface lighting properties.
+      glUniform3f(kRGG.geometry_program_3d.suface_specular_uniform,
+                  mat->ks.x, mat->ks.y, mat->ks.z);
+      glUniform3f(kRGG.geometry_program_3d.surface_diffuse_uniform,
+                  mat->kd.x, mat->kd.y, mat->kd.z);
+      glUniform3f(kRGG.geometry_program_3d.surface_ambient_uniform,
+                  mat->ka.x, mat->ka.y, mat->ka.z);
       glDrawArrays(GL_TRIANGLES, mat->first, mat->count);
     }
   }

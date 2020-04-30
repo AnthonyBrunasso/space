@@ -12,15 +12,15 @@ GetFilenameExtension(const char* filename)
   return dot + 1;
 }
 
-bool
+inline bool
 HasExtension(const char* filename, const char* extension)
 {
   const char* ext = GetFilenameExtension(filename);
   return strcmp(extension, ext) == 0;
 }
 
-// Example: ReplaceFilename("foo/bar/file.txt", "rename.txt")
-// Modifies oldfname_with_dir to contain "foo/bar/rename.txt".
+// Example: ReplaceFilename("new_filename.txt", "foo/bar/file.txt")
+// Modifies the second param to contain "foo/bar/new_filename.txt".
 inline void
 ReplaceFilename(const char* newfname, char* oldfname_with_dir)
 {

@@ -33,6 +33,7 @@ PushWork(const char* str)
   // https://docs.microsoft.com/en-us/windows/win32/api/winnt/nf-winnt-memorybarrier
   // volatile references use acquire / release semantics.
   kWorkCount++;
+  ReleaseSemaphore(kSemaphore, 1, 0);
 }
 
 uint64_t
@@ -64,16 +65,29 @@ main(int argc, char** argv)
     platform::thread_create(thread);
   }
 
-  PushWork("Test 1");
-  PushWork("Test 2");
-  PushWork("Test 3");
-  PushWork("Test 4");
-  PushWork("Test 5");
-  PushWork("Test 6");
-  PushWork("Test 7");
-  PushWork("Test 8");
-  PushWork("Test 9");
-  PushWork("Test 10");
+  PushWork("Test A1");
+  PushWork("Test A2");
+  PushWork("Test A3");
+  PushWork("Test A4");
+  PushWork("Test A5");
+  PushWork("Test A6");
+  PushWork("Test A7");
+  PushWork("Test A8");
+  PushWork("Test A9");
+  PushWork("Test A10");
+
+  platform::sleep_sec(1);
+
+  PushWork("Test B1");
+  PushWork("Test B2");
+  PushWork("Test B3");
+  PushWork("Test B4");
+  PushWork("Test B5");
+  PushWork("Test B6");
+  PushWork("Test B7");
+  PushWork("Test B8");
+  PushWork("Test B9");
+  PushWork("Test B10");
 
   platform::sleep_sec(1);
 

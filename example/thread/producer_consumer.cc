@@ -15,10 +15,14 @@ struct Work {
 #define MAX_WORK 64
 
 static Thread kWorkers[MAX_WORKERS];
+static HANDLE kSemaphore;
 
 static Work kWork[MAX_WORK];
+static Work kWorkDone[MAX_WORK];
+
 static uint32_t volatile kWorkCount;
-static uint32_t volatile kWorkDone;
+static uint32_t volatile kWorkTaken;
+static uint32_t volatile kWorkComplete;
 
 void
 PushWork(const char* str)
@@ -36,9 +40,14 @@ WorkerFunc(void* arg)
 {
   uint32_t id = platform::thread_id();
   uint32_t sleep = 0;
-  while (kWorkDone < kWorkCount) {
-    Work* work = &kWork[_InterlockedIncrement((LONG volatile*)&kWorkDone) - 1];
-    printf("Thread %u doing work %s\n", id, work->str);
+  while (1) {
+    if (kWorkTaken < kWorkCount) {
+      Work* work = &kWork[_InterlockedIncrement((LONG volatile*)&kWorkTaken) - 1];
+      printf("Thread %u doing work %s\n", id, work->str);
+      _InterlockedIncrement((LONG volatile*)&kWorkComplete);
+    } else {
+      WaitForSingleObjectEx(kSemaphore, INFINITE, FALSE);
+    }
   }
   return 0;
 }
@@ -46,6 +55,9 @@ WorkerFunc(void* arg)
 int
 main(int argc, char** argv)
 {
+  kSemaphore =
+      CreateSemaphoreEx(0, 0, MAX_WORKERS, 0, 0, SEMAPHORE_ALL_ACCESS);
+
   for (int i = 0; i < MAX_WORKERS; ++i) {
     Thread* thread = &kWorkers[i];
     thread->func = WorkerFunc;
@@ -60,8 +72,10 @@ main(int argc, char** argv)
   PushWork("Test 6");
   PushWork("Test 7");
   PushWork("Test 8");
+  PushWork("Test 9");
+  PushWork("Test 10");
 
-  platform::sleep_sec(5);
+  platform::sleep_sec(1);
 
   return 0;
 }

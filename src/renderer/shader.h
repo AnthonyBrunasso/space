@@ -61,7 +61,7 @@ inline constexpr const char* kFragmentShader3d = R"(
   uniform vec3 surface_ambient;
 
   // Default light properties.
-  vec3 light_specular = vec3(1.0, 1.0, 1.0);
+  vec3 light_specular = vec3(0.7, 0.7, 0.7);
   vec3 light_diffuse = vec3(0.7, 0.7, 0.7);
   vec3 light_ambient = vec3(0.2, 0.2, 0.2);
   

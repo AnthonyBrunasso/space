@@ -6,10 +6,21 @@
 
 struct Rectf {
   Rectf() = default;
+  Rectf(const v2f& min, const v2f& dims)
+      : x(min.x), y(min.y), width(dims.x), height(dims.y)
+  {
+  }
+
+  Rectf(const v2f& min, float width, float height)
+      : x(min.x), y(min.y), width(width), height(height)
+  {
+  }
+
   Rectf(float x, float y, float width, float height)
       : x(x), y(y), width(width), height(height)
   {
   }
+
   float x;
   float y;
   float width;

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../common/common.cc"
+#include "common/common.cc"
+#include "renderer.cc"
 
 namespace rgg
 {
@@ -15,6 +16,7 @@ struct Camera {
   v3f position;
   v3f dir;
   v3f up = v3f(0.f, 1.f, 0.f);
+  v2f viewport;
   CameraMode mode;
   float speed = 10.f;
   v3f lerp_to;
@@ -69,6 +71,14 @@ CameraPosition()
   return c->position;
 }
 
+v3f
+CameraDirection()
+{
+  Camera* c = CameraGetCurrent();
+  if (!c) return v3f(0.f, 0.f, 0.f);
+  return c->dir;
+}
+
 void
 CameraSwitch(uint32_t camera_tag, uint32_t camera_index)
 {
@@ -100,20 +110,22 @@ CameraOverhead(const PlatformEvent& event)
 {
   Camera* c = CameraGetCurrent();
   if (!c) return;
+  v3f forward = math::Normalize(c->dir.xy());
+  v3f right = math::Normalize(math::Cross(forward, c->up));
   switch (event.type) {
     case KEY_DOWN: {
       switch (event.key) {
         case 'w': {
-          c->position.y += c->speed;
+          c->position += forward * c->speed;
         } break;
         case 'a': {
-          c->position.x -= c->speed;
+          c->position += -right * c->speed;
         } break;
         case 's': {
-          c->position.y -= c->speed;
+          c->position += -forward * c->speed;
         } break;
         case 'd': {
-          c->position.x += c->speed;
+          c->position += right * c->speed;
         } break;
       }
     } break;
@@ -173,19 +185,42 @@ CameraUpdateEvent(const PlatformEvent& event)
 }
 
 Mat4f
+CameraLookAt()
+{
+  Camera* c = CameraGetCurrent();
+  if (!c) return math::Identity();
+  return math::LookAt(c->position, c->position + c->dir * 1.f, c->up);
+}
+
+Mat4f
 CameraView()
 {
   Camera* c = CameraGetCurrent();
   if (!c) return math::Identity();
   switch (c->mode) {
     case kCameraOverhead: {
-      return math::LookAt(c->position, c->position + c->dir * 1.f, c->up);
+      return CameraLookAt();
     } break;
     case kCameraFirstPerson: {
     } break;
     default: return math::Identity();
   };
   return math::Identity();
+}
+
+v3f
+CameraRayFromMouse(const v2f& screen)
+{
+  Camera* c = CameraGetCurrent();
+  if (!c) return {};
+  v4f ray_clip(
+      math::ScaleRange(screen.x, 0.f, c->viewport.x, -1.f, 1.f),
+      math::ScaleRange(screen.y, 0.f, c->viewport.y, -1.f, 1.f),
+      -1.f, 1.f);
+  v4f ray_eye = math::Inverse(kObserver.projection) * ray_clip;
+  ray_eye = v4f(ray_eye.x, ray_eye.y, -1.f, 0.f);
+  Mat4f camera_inv = math::Inverse(CameraLookAt());
+  return math::Normalize((camera_inv * ray_eye).xyz());
 }
 
 }

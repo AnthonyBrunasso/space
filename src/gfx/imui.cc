@@ -26,6 +26,7 @@ constexpr float kTextScale = 0.8f;
 constexpr float kScrollBarWidth = 15.f;
 constexpr float kCheckboxOffset = 2.f;
 
+static const v4f kRed = v4f(1.f, 0.f, 0.f, 1.f);
 static const v4f kWhite(1.f, 1.f, 1.f, 1.f);
 static const v4f kPaneColor(0.0f, 0.0f, 0.0f, 0.4f);
 static const v4f kPaneHeaderColor(0.08f, 0.08f, 0.08f, 1.f);

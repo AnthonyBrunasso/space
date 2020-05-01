@@ -182,7 +182,7 @@ main(int argc, char** argv)
 
     rgg::kObserver.position = rgg::CameraPosition();
     rgg::CameraUpdate();
-    rgg::CameraLookAt(v3f(0.f, 0.f, 0.f));
+    //rgg::CameraLookAt(v3f(0.f, 0.f, 0.f));
     o->view = rgg::CameraView();
 
     const v2f cursor = window::GetCursorPosition();

@@ -92,6 +92,12 @@ enum DebugType {
   kDebugUI,
 };
 
+struct DebugSphere {
+  v3f position;
+  float radius;
+  v4f color;
+};
+
 struct DebugCube {
   Cubef cube;
   v4f color;
@@ -110,7 +116,8 @@ struct DebugRect {
   DebugType type;
 };
 
-DECLARE_ARRAY(DebugCube, 16);
+DECLARE_ARRAY(DebugSphere, 8);
+DECLARE_ARRAY(DebugCube, 32);
 DECLARE_ARRAY(DebugPoint, 64);
 DECLARE_ARRAY(DebugRect, 64);
 
@@ -121,9 +128,9 @@ static RGG kRGG;
 #include "ui.cc"
 
 Mat4f
-DefaultPerspective(const v2f& dims)
+DefaultPerspective(const v2f& dims, float fov = 64.f)
 {
-  return math::Perspective(67.f, dims.x / dims.y, .1f, 2000.f);
+  return math::Perspective(fov, dims.x / dims.y, .1f, 2000.f);
 }
 
 class ModifyObserver
@@ -198,7 +205,7 @@ SetupGeometryProgram3d()
 
   kRGG.geometry_program_3d.color_uniform =
       glGetUniformLocation(kRGG.geometry_program_3d.reference, "color");
-  assert(kRGG.geometry_program_3d.color_uniform != uint32_t(-1));
+  //assert(kRGG.geometry_program_3d.color_uniform != uint32_t(-1));
   return true;
 }
 
@@ -313,6 +320,7 @@ SetupCircleProgram()
 void
 DebugReset()
 {
+  kUsedDebugSphere = 0;
   kUsedDebugCube = 0;
   kUsedDebugPoint = 0;
   kUsedDebugRect = 0;
@@ -661,8 +669,10 @@ RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
   glUseProgram(kRGG.geometry_program_3d.reference);
   glBindVertexArray(mesh.vao);
   Mat4f model = math::Model(pos, scale, quat);
-  glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
-              color.w);
+  if (kRGG.geometry_program_3d.color_uniform != uint32_t(-1)) {
+    glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y,
+                color.z, color.w);
+  }
   glUniformMatrix4fv(kRGG.geometry_program_3d.projection_uniform, 1, GL_FALSE,
                      &kObserver.projection.data_[0]);
   glUniformMatrix4fv(kRGG.geometry_program_3d.view_uniform, 1, GL_FALSE,
@@ -786,6 +796,12 @@ void
 DebugRenderPrimitives()
 {
   // Perspetive / world debugging.
+  for (int i = 0; i < kUsedDebugSphere; ++i) {
+    float r = kDebugSphere[i].radius;
+    rgg::RenderSphere(kDebugSphere[i].position, v3f(r, r, r),
+                      kDebugSphere[i].color);
+  }
+
   for (int i = 0; i < kUsedDebugCube; ++i) {
     rgg::RenderLineCube(kDebugCube[i].cube, kDebugCube[i].color);
   }
@@ -823,6 +839,15 @@ DebugRenderPrimitives()
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_DEPTH_TEST);
 }
+
+void
+DebugPushSphere(const v3f& position, float radius, const v4f& color)
+{
+  DebugSphere* dsphere = UseDebugSphere();
+  dsphere->position = position;
+  dsphere->radius = radius;
+  dsphere->color = color;
+} 
 
 void
 DebugPushCube(const Cubef& cube, const v4f& color)

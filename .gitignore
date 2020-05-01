@@ -20,3 +20,4 @@ EVENTS.bin
 a.out
 *.pdb
 *.obj
+*.mtl

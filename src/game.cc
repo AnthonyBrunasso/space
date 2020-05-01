@@ -164,7 +164,7 @@ main(int argc, char** argv)
                         v4f(1.f, 0.f, 0.f, 1.f));
 
     rgg::RenderSphere(v3f(-10.f, -25.f, -100.f), v3f(5.f, 5.f, 5.f),
-                      v4f(0.f, 1.f, 0.f, 1.f));
+                      v4f(0.1f, 1.f, 0.1f, 1.f));
 
     rgg::DebugRenderPrimitives();
 

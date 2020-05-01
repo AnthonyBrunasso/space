@@ -596,6 +596,17 @@ RenderGrid(const v2f& grid, const Rectf& bounds, uint64_t color_count,
     i = (i != color_count) * i;
   }
 }
+void
+SetDefaultSurfaceMaterial()
+{
+  // Set some reasonable lighting defaults.
+  glUniform3f(kRGG.geometry_program_3d.suface_specular_uniform,
+              1.f, 1.f, 1.f);
+  glUniform3f(kRGG.geometry_program_3d.surface_diffuse_uniform,
+              .7f, .7f, .8f);
+  glUniform3f(kRGG.geometry_program_3d.surface_ambient_uniform,
+              1.f, 1.f, 1.f);
+}
 
 void
 Render3d(const v3f& pos, const v3f& scale, const v4f& color, GLuint vao,
@@ -615,6 +626,7 @@ Render3d(const v3f& pos, const v3f& scale, const v4f& color, GLuint vao,
   glUniform3f(kRGG.geometry_program_3d.light_position_world_uniform,
               kObserver.position.x, kObserver.position.y,
               kObserver.position.z);
+  SetDefaultSurfaceMaterial();
   glDrawArrays(GL_TRIANGLES, 0, verts);
 }
 
@@ -636,6 +648,7 @@ Render3dWithRotation(const v3f& pos, const v3f& scale, const Quatf& quat,
   glUniform3f(kRGG.geometry_program_3d.light_position_world_uniform,
               kObserver.position.x, kObserver.position.y,
               kObserver.position.z);
+  SetDefaultSurfaceMaterial();
   glDrawArrays(GL_TRIANGLES, 0, verts);
 }
 
@@ -660,13 +673,7 @@ RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
               kObserver.position.x, kObserver.position.y,
               kObserver.position.z);
   if (!mesh.material_count) {
-    // Set some reasonable lighting defaults.
-    glUniform3f(kRGG.geometry_program_3d.suface_specular_uniform,
-                1.f, 1.f, 1.f);
-    glUniform3f(kRGG.geometry_program_3d.surface_diffuse_uniform,
-                .7f, .7f, .8f);
-    glUniform3f(kRGG.geometry_program_3d.surface_ambient_uniform,
-                1.f, 1.f, 1.f);
+    SetDefaultSurfaceMaterial();
     glDrawArrays(GL_TRIANGLES, 0, mesh.vert_count);
   } else {
     for (int i = 0; i < mesh.material_count; ++i) {

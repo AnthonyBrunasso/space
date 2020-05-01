@@ -26,6 +26,8 @@ PushWork(const char* str)
   Work* work = &kWork[kWorkCount];
   strcpy(work->str, str);
   _ReadWriteBarrier();
+  // https://docs.microsoft.com/en-us/windows/win32/api/winnt/nf-winnt-memorybarrier
+  // volatile references use acquire / release semantics.
   kWorkCount++;
 }
 

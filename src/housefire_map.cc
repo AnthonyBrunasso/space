@@ -72,30 +72,29 @@ MapLoad(const char* fname)
     kMapY = kDefaultMapY;
     return;
   }
-
-  char line[1024];
+  char line[32];
   char map_name[64] = {};
   char header[4] = {};
   fscanf(f, "%s %s %u %u\n", &header, &map_name, &kMapX, &kMapY);
   assert(strcmp(header, "map") == 0);
+  v2i ctp;
+  Tile* t = nullptr;
   while (1) {
     int res = fscanf(f, "%s", line);
     if (res == EOF) break;
     if (strcmp(line, "tile") == 0) {
-      v2i t;
-      fscanf(f, "%u %u\n", &t.x, &t.y);
-      if (fscanf(f, "%s", line) == EOF) break;
-      Tile* tile = &kMap[t.x][t.y];
-      if (strcmp(line, "t") == 0) {
-        fscanf(f, "%u\n", &tile->turns_to_fire_max);
-        tile->turns_to_fire = tile->turns_to_fire_max;
-        tile->position_map = t;
-        tile->position_world = TilePosToWorld(tile->position_map);
-        tile->dims = v3f(kTileWidth, kTileHeight, kTileDepth);
-        kMapWidth = MAXF(kMapWidth, tile->position_world.x);
-        kMapHeight = MAXF(kMapHeight, tile->position_world.y);
-      }
-    } else { continue; }
+      fscanf(f, "%u %u\n", &ctp.x, &ctp.y);
+      t = &kMap[ctp.x][ctp.y];
+    } else if (strcmp(line, "ttf") == 0) {
+      assert(t);
+      fscanf(f, "%u\n", &t->turns_to_fire_max);
+      t->turns_to_fire = t->turns_to_fire_max;
+      t->position_map = ctp;
+      t->position_world = TilePosToWorld(t->position_map);
+      t->dims = v3f(kTileWidth, kTileHeight, kTileDepth);
+      kMapWidth = MAXF(kMapWidth, t->position_world.x);
+      kMapHeight = MAXF(kMapHeight, t->position_world.y);
+    } else { continue; }  // Unrecognized line
   }
 }
 
@@ -109,7 +108,7 @@ MapExport(const char* fname)
     for (int j = 0; j < kMapY; ++j) {
       Tile* tile = &kMap[i][j];
       fprintf(f, "tile %i %i\n", tile->position_map.x, tile->position_map.y);
-      fprintf(f, "t %i\n", tile->turns_to_fire_max);
+      fprintf(f, "ttf %i\n", tile->turns_to_fire_max);
     }
   }
   fclose(f);

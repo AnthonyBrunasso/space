@@ -61,6 +61,29 @@ static v3f kCameraPosition(-75.f, -75.f, 92.f);
 static const v4f kWoodenBrown(0.521f, 0.368f, 0.258f, 1.0f);
 static const v4f kWoodenBrownFire(1.0f, 0.368f, 0.258f, 1.0f);
 
+static char* kCurrentMap = "asset/test.map";
+
+void
+InitializeCamera()
+{
+  v2f viewport = window::GetWindowSize();
+  rgg::Camera camera;
+  camera.position = kCameraPosition;
+  camera.dir = kCameraDirection;
+  camera.up = v3f(0.f, 0.f, 1.f);
+  camera.mode = rgg::kCameraOverhead;
+  camera.viewport = viewport;
+  rgg::CameraInit(camera);
+}
+
+void
+InitializePlayer()
+{
+  kPlayer.position_map = v2i(0, 0);
+  kPlayer.position_world = v3f(0.f, 0.f, 0.f);
+  kPlayer.dims = v3f(10.f, 10.f, 10.f);
+}
+
 void
 DebugUI()
 {
@@ -163,6 +186,9 @@ DebugUI()
     imui::TextOptions to;
     to.highlight_color = imui::kRed;
     if (imui::Text("Reset Game", to).clicked) {
+      MapLoad(kCurrentMap);
+      InitializePlayer();
+      InitializeCamera();
     }
     if (imui::Text("Export Map", to).clicked) {
       MapExport("asset/test.map");
@@ -182,7 +208,6 @@ bool
 GraphicsInitialize(const window::CreateInfo& window_create_info)
 {
   int window_result = window::Create("Space", window_create_info);
-  printf("Window create result: %i\n", window_result);
   if (!rgg::Initialize()) return false;
   if (!rgg::LoadOBJ("asset/fire.obj", &kFireMesh)) {
     printf("Unable to load fire.obj\n");
@@ -401,23 +426,13 @@ main(int argc, char** argv)
     return 1;
   }
 
-  MapLoad("asset/test.map");
+  MapLoad(kCurrentMap);
 
-  v2f viewport = window::GetWindowSize();
+  InitializePlayer();
+  InitializeCamera();
 
-  kPlayer.position_map = v2i(0, 0);
-  kPlayer.position_world = v3f(0.f, 0.f, 0.f);
-  kPlayer.dims = v3f(10.f, 10.f, 10.f);
-
-  rgg::Camera camera;
-  camera.position = kCameraPosition;
-  camera.dir = kCameraDirection;
-  camera.up = v3f(0.f, 0.f, 1.f);
-  camera.mode = rgg::kCameraOverhead;
-  camera.viewport = viewport;
-  rgg::CameraInit(camera);
-
-  rgg::GetObserver()->projection = rgg::DefaultPerspective(viewport, 55.f);
+  rgg::GetObserver()->projection =
+      rgg::DefaultPerspective(window::GetWindowSize(), 55.f);
   rgg::GetObserver()->view = rgg::CameraView();
 
   // main thread affinity set to core 0

@@ -30,12 +30,15 @@ struct BfsIterator {
 };
 
 INLINE bool
-IsValidPos(BfsIterator* itr)
+IsInMap(const v2i& pos, const v2i& map_size)
 {
-  bool in_map = itr->current.x < itr->map_size.x && 
-                itr->current.y < itr->map_size.y &&
-                itr->current.x >= 0 && itr->current.y >= 0;
-  if (!in_map) return false;
+  return pos.x < map_size.x && pos.y < map_size.y && pos.x >= 0 && pos.y >= 0;
+}
+
+INLINE bool
+IsValidPos(const BfsIterator* itr)
+{
+  if (!IsInMap(itr->current, itr->map_size)) return false;
   if (itr->max_depth != UINT32_MAX && itr->depth > itr->max_depth) {
     return false;
   }
@@ -84,6 +87,32 @@ BfsNext(BfsIterator* itr)
     v2i from = queue[itr->queue_index];
     if (BfsStep(from, itr)) {
       if (itr->blocked_callback(itr->current)) continue;
+      if (FLAGGED(itr->flags, kAvoidBlockedDiagnol)) {
+        bool right_tile_blocked = IsInMap(from + v2i(1, 0), itr->map_size) &&
+                                  itr->blocked_callback(from + v2i(1, 0));
+        bool left_tile_blocked = IsInMap(from + v2i(-1, 0), itr->map_size) &&
+                                 itr->blocked_callback(from + v2i(-1, 0));
+        bool bottom_tile_blocked = IsInMap(from + v2i(0, -1), itr->map_size) &&
+                                   itr->blocked_callback(from + v2i(0, -1));
+        bool top_tile_blocked = IsInMap(from + v2i(0, 1), itr->map_size) &&
+                                        itr->blocked_callback(from + v2i(0, 1));
+        if (itr->current.x == from.x + 1 && itr->current.y == from.y + 1 &&
+            (right_tile_blocked || top_tile_blocked)) {
+          continue;
+        }
+        if (itr->current.x == from.x + 1 && itr->current.y == from.y - 1 &&
+            (right_tile_blocked || bottom_tile_blocked)) {
+          continue;
+        }
+        if (itr->current.x == from.x - 1 && itr->current.y == from.y + 1 &&
+            (left_tile_blocked || top_tile_blocked)) {
+          continue;
+        }
+        if (itr->current.x == from.x - 1 && itr->current.y == from.y - 1 &&
+            (left_tile_blocked || bottom_tile_blocked)) {
+          continue;
+        }
+      }
       Search::PathMapNode* node = &path_map[itr->current.x][itr->current.y];
       node->from = from;
       node->depth = path_map[from.x][from.y].depth + 1;

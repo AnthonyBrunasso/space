@@ -3,6 +3,7 @@
 
 
 #include "audio/audio.cc"
+#include "common/macro.h"
 #include "gfx/imui.cc"
 #include "math/math.cc"
 #include "network/network.cc"
@@ -79,14 +80,14 @@ struct Tile {
 };
 
 static Tile kMap[kMapX][kMapY] = 
-  {{5, 5, 5, 5, 5, 5, 5, 5},
+  {{5, 5, 0, 5, 5, 5, 5, 5},
+   {5, 5, 0, 5, 0, 5, 5, 5},
+   {5, 5, 0, 0, 0, 5, 5, 5},
+   {5, 5, 0, 0, 0, 5, 5, 5},
+   {5, 5, 0, 0, 5, 5, 5, 5},
    {5, 5, 5, 5, 5, 5, 5, 5},
-   {5, 5, 0, 5, 5, 5, 5, 5},
-   {5, 5, 5, 5, 5, 5, 5, 5},
-   {5, 5, 5, 5, 5, 5, 5, 5},
-   {5, 5, 5, 5, 5, 5, 5, 5},
-   {5, 5, 5, 5, 5, 5, 5, 5},
-   {5, 5, 5, 5, 5, 5, 5, 5}};
+   {5, 5, 0, 0, 5, 5, 5, 5},
+   {5, 5, 0, 0, 5, 5, 5, 5}};
 
 void
 DebugUI()
@@ -270,6 +271,7 @@ SetupBfsIterator(const v2i& from, uint32_t max_depth = UINT32_MAX)
   itr.current = from;
   itr.map_size = v2i(kMapX, kMapY);
   itr.max_depth = max_depth;
+  SBIT(itr.flags, search::kAvoidBlockedDiagnol);
   return itr;
 }
 

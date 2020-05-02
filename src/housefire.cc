@@ -401,7 +401,7 @@ main(int argc, char** argv)
     return 1;
   }
 
-  MapInitialize();
+  MapLoad("asset/test.map");
 
   v2f viewport = window::GetWindowSize();
 

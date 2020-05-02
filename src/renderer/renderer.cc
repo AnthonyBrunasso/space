@@ -869,7 +869,7 @@ DebugPushPoint(const v3f& position, float radius, const v4f& color,
 }
 
 void
-DebugPushRect(const Rectf& rect, const v4f& color, DebugType type)
+DebugPushRect(const Rectf& rect, const v4f& color, DebugType type = kDebugWorld)
 {
   DebugRect* drect = UseDebugRect();
   drect->rect = rect;

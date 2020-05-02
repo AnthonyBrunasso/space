@@ -538,6 +538,15 @@ IsMouseDown()
   return IsMouseDown(kIMUI.begin_mode.tag);
 }
 
+uint32_t
+WidthOf(char c)
+{
+  auto& font = rgg::kUI.font;
+  rgg::FontMetadataRow* row = &rgg::kFontMetadataRow[' '];
+  if (!row || !row->id) return 0;
+  return row->xadvance;
+}
+
 void
 Indent(int spaces)
 {

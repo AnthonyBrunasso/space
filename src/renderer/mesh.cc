@@ -10,7 +10,7 @@
 
 namespace rgg {
 
-constexpr uint32_t kMaxMaterial = 4;
+constexpr uint32_t kMaxMaterial = 16;
 
 struct Material {
   char name[32];

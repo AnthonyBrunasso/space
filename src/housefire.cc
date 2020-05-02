@@ -12,6 +12,8 @@
 #include "renderer/mesh.cc"
 #include "search/search.cc"
 
+#include "housefire_map.cc"
+
 struct State {
   // Game and render updates per second
   uint64_t framerate = 60;
@@ -58,34 +60,6 @@ static v3f kCameraPosition(-75.f, -75.f, 92.f);
 
 static const v4f kWoodenBrown(0.521f, 0.368f, 0.258f, 1.0f);
 static const v4f kWoodenBrownFire(1.0f, 0.368f, 0.258f, 1.0f);
-
-constexpr uint32_t kMapX = 4;
-constexpr uint32_t kMapY = 4;
-
-static float kMapWidth = 0.f;
-static float kMapHeight = 0.f;
-
-constexpr float kTileWidth = 25.f;
-constexpr float kTileHeight = 25.f;
-constexpr float kTileDepth = 4.f;
-constexpr int kMaxTileNeighbor = 8;
-
-struct Tile {
-  Tile() = default;
-  Tile(uint32_t turns_to_fire)
-      : turns_to_fire(turns_to_fire), turns_to_fire_max(turns_to_fire) {}
-  v2i position_map;
-  v3f position_world;
-  v3f dims;
-  uint32_t turns_to_fire;
-  uint32_t turns_to_fire_max;
-};
-
-static Tile kMap[kMapX][kMapY] = 
-  {{5, 5, 5, 5},
-   {5, 5, 2, 6},
-   {5, 5, 1, 7},
-   {5, 5, 1, 8}};
 
 void
 DebugUI()
@@ -153,7 +127,7 @@ DebugUI()
     imui::PaneOptions options;
     options.width = options.max_width = 300.f;
     options.max_height = 800.f;
-    imui::Begin("Tile Viewer", imui::kEveryoneTag, options, &tileviewer_pos,
+    imui::Begin("Map Editor", imui::kEveryoneTag, options, &tileviewer_pos,
                 &enable_tileviewer);
     for (int i = 0; i < kMapX; ++i) {
       for (int j = 0; j < kMapY; ++j) {
@@ -161,11 +135,17 @@ DebugUI()
         v2i tp = tile->position_map;
         imui::TextOptions toptions;
         toptions.highlight_color = imui::kRed;
-        snprintf(kUIBuffer, sizeof(kUIBuffer), "Tile %i %i", tp.x, tp.y);
+        snprintf(kUIBuffer, sizeof(kUIBuffer), "Tile [%i,%i]", tp.x, tp.y);
         imui::Result ires = imui::Text(kUIBuffer, toptions);
         if (ires.highlighted) {
-          rgg::DebugPushCube(Cubef(tile->position_world, tile->dims), imui::kRed);
+          rgg::DebugPushCube(
+              Cubef(tile->position_world, tile->dims + v3f(2.f, 2.f, 2.f)),
+                    imui::kRed);
         }
+        snprintf(kUIBuffer, sizeof(kUIBuffer), "  turns %i / %i",
+                 tile->turns_to_fire_max - tile->turns_to_fire,
+                 tile->turns_to_fire_max);
+        imui::Text(kUIBuffer);
       }
     }
     imui::End();
@@ -184,6 +164,9 @@ DebugUI()
     to.highlight_color = imui::kRed;
     if (imui::Text("Reset Game", to).clicked) {
     }
+    if (imui::Text("Export Map", to).clicked) {
+      MapExport("asset/test.map");
+    }
     imui::End();
   }
 
@@ -192,28 +175,6 @@ DebugUI()
     static bool enable_debug = false;
     static v2f ui_pos(300.f, screen.y);
     imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
-  }
-}
-
-v3f
-TilePosToWorld(const v2i& position_map)
-{
-  return {position_map.x * kTileWidth + 1.f * position_map.x,
-          position_map.y * kTileHeight + 1.f * position_map.y, -kTileDepth};
-}
-
-void
-TilemapInitialize()
-{
-  for (int i = 0; i < kMapX; ++i) {
-    for (int j = 0; j < kMapY; ++j) {
-      Tile* tile = &kMap[i][j];
-      tile->position_map = v2i(i, j);
-      tile->position_world = TilePosToWorld(tile->position_map);
-      tile->dims = v3f(kTileWidth, kTileHeight, kTileDepth);
-      kMapWidth = MAXF(kMapWidth, tile->position_world.x);
-      kMapHeight = MAXF(kMapHeight, tile->position_world.y);
-    }
   }
 }
 
@@ -274,6 +235,11 @@ DebugRenderOnTile(const v2i& pos, const v4f& color)
 {
   Tile* t = &kMap[pos.x][pos.y];
   rgg::DebugPushCube(Cubef(t->position_world, t->dims), color);
+  // The OpenGL gods need to teach me how to make thick lines.
+  rgg::DebugPushCube(Cubef(t->position_world, t->dims + v3f(.05f, .05f, .05f)), color);
+  rgg::DebugPushCube(Cubef(t->position_world, t->dims + v3f(.1f, .1f, .1f)), color);
+  rgg::DebugPushCube(Cubef(t->position_world, t->dims + v3f(.15f, .15f, .15f)), color);
+  rgg::DebugPushCube(Cubef(t->position_world, t->dims + v3f(.2f, .2f, .2f)), color);
 }
 
 Tile*
@@ -304,9 +270,10 @@ TileHover(const v2f& cursor, v2i* possible_move, uint32_t possible_move_count)
           if (path && path->size > 0) {
             for (int i = 0; i < path->size; ++i) {
               Tile* t = &kMap[path->queue[i].x][path->queue[i].y];
-              rgg::DebugPushCube(Cubef(t->position_world + v3f(0.f, 0.f, 5.f),
-                                       t->dims / 2.f),
-                                 v4f(0.5f, 0.5f, 0.5f, 1.f));
+              rgg::DebugPushCube(
+                  Cubef(t->position_world.x, t->position_world.y, 0.f,
+                        t->dims.x, t->dims.y, .1f),
+                        v4f(0.5f, 0.5f, 0.5f, 1.f));
             }
           }
           color = v4f(0.3f, .3f, .3f, 0.f);
@@ -314,7 +281,7 @@ TileHover(const v2f& cursor, v2i* possible_move, uint32_t possible_move_count)
         
         rgg::DebugPushCube(
             Cubef(tile->position_world.x, tile->position_world.y, 0.f,
-                  tile->dims.x, tile->dims.y, 1.f), color);
+                  tile->dims.x, tile->dims.y, .1f), color);
         return tile;
       }
     }
@@ -431,7 +398,7 @@ main(int argc, char** argv)
     return 1;
   }
 
-  TilemapInitialize();
+  MapInitialize();
 
   v2f viewport = window::GetWindowSize();
 

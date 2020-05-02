@@ -63,9 +63,13 @@ static const v4f kWoodenBrownFire(1.0f, 0.368f, 0.258f, 1.0f);
 
 static char* kCurrentMap = "asset/test.map";
 
+// If set will reset the game at the given loop
+static uint64_t kResetGameAt = UINT64_MAX;
+
 void
 InitializeCamera()
 {
+  rgg::CameraResetAll();
   v2f viewport = window::GetWindowSize();
   rgg::Camera camera;
   camera.position = kCameraPosition;
@@ -82,6 +86,18 @@ InitializePlayer()
   kPlayer.position_map = v2i(0, 0);
   kPlayer.position_world = v3f(0.f, 0.f, 0.f);
   kPlayer.dims = v3f(10.f, 10.f, 10.f);
+}
+
+void
+ResetGame()
+{
+  MapLoad(kCurrentMap);
+  InitializePlayer();
+  InitializeCamera();
+  kResetGameAt = UINT64_MAX;
+  rgg::GetObserver()->projection =
+      rgg::DefaultPerspective(window::GetWindowSize(), 55.f);
+  rgg::GetObserver()->view = rgg::CameraView();
 }
 
 void
@@ -186,9 +202,7 @@ DebugUI()
     imui::TextOptions to;
     to.highlight_color = imui::kRed;
     if (imui::Text("Reset Game", to).clicked) {
-      MapLoad(kCurrentMap);
-      InitializePlayer();
-      InitializeCamera();
+      kResetGameAt = kGameState.game_updates;
     }
     if (imui::Text("Export Map", to).clicked) {
       MapExport("asset/test.map");
@@ -320,6 +334,13 @@ ProcessWorldTurn()
   for (int i = 0; i < kMapX; ++i) {
     for (int j = 0; j < kMapY; ++j) {
       if (kMap[i][j].turns_to_fire) kMap[i][j].turns_to_fire--;
+      if (!kMap[i][j].turns_to_fire) {
+        if (kPlayer.position_map == v2i(i, j)) {
+          // Player died - reset the game in N game updates so player
+          // can see they are standing in fire.
+          kResetGameAt = kGameState.game_updates + 30;
+        }
+      }
     }
   }
 }
@@ -499,7 +520,14 @@ main(int argc, char** argv)
       }
     }
 
-    GameUpdate();
+    // If game not meant to reset...
+    if (kResetGameAt == UINT64_MAX) {
+      GameUpdate();
+    }
+
+    if (kGameState.game_updates >= kResetGameAt) {
+      ResetGame();
+    }
     
     Render();
         

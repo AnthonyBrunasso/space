@@ -36,6 +36,14 @@ constexpr uint32_t kLocalCameraTag = 2;
 
 DECLARE_2D_ARRAY(Camera, kMaxTags, kMaxCameras);
 
+void
+CameraResetAll()
+{
+  for (int i = 0; i < kMaxTags; ++i) {
+    kUsedCamera[i] = 0;
+  }
+}
+
 Camera*
 CameraGetCurrent()
 {
@@ -90,7 +98,6 @@ CameraMove(const v3f& delta)
 void
 CameraSwitch(uint32_t camera_tag, uint32_t camera_index)
 {
-  printf("%i %i\n", camera_tag, camera_index);
   assert(camera_tag < kMaxTags);
   // Call CameraInit on new cameras.
   assert(camera_index < kUsedCamera[camera_tag]);

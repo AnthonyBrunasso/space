@@ -65,6 +65,7 @@ static char* kCurrentMap = "asset/test.map";
 
 // If set will reset the game at the given loop
 static uint64_t kResetGameAt = UINT64_MAX;
+static bool kEditorMode = false;
 
 void
 InitializeCamera()
@@ -98,6 +99,69 @@ ResetGame()
   rgg::GetObserver()->projection =
       rgg::DefaultPerspective(window::GetWindowSize(), 55.f);
   rgg::GetObserver()->view = rgg::CameraView();
+}
+
+void
+EditorUI()
+{
+  v2f screen = window::GetWindowSize();
+  {
+    static bool enable_tileviewer = false;
+    static v2f tileviewer_pos = v2f(screen.x - 300.f, screen.y);
+    imui::PaneOptions options;
+    options.width = options.max_width = 300.f;
+    options.max_height = 800.f;
+    imui::Begin("Map Editor", imui::kEveryoneTag, options, &tileviewer_pos,
+                &enable_tileviewer);
+    for (int i = 0; i < kMapX; ++i) {
+      for (int j = 0; j < kMapY; ++j) {
+        Tile* tile = &kMap[i][j];
+        v2i tp = tile->position_map;
+        imui::TextOptions toptions;
+        toptions.highlight_color = imui::kRed;
+        snprintf(kUIBuffer, sizeof(kUIBuffer), "Tile [%i,%i]", tp.x, tp.y);
+        imui::Result ires = imui::Text(kUIBuffer, toptions);
+        if (ires.highlighted) {
+          rgg::DebugPushCube(
+              Cubef(tile->position_world, tile->dims + v3f(2.f, 2.f, 2.f)),
+                    imui::kRed);
+        }
+        snprintf(kUIBuffer, sizeof(kUIBuffer), "  turns %i / %i",
+                 tile->turns_to_fire_max - tile->turns_to_fire,
+                 tile->turns_to_fire_max);
+        imui::Text(kUIBuffer);
+      }
+    }
+    imui::End();
+  }
+
+  {
+    static bool enable_admin = true;
+    static v2f admin_pos = v2f(0.f, screen.y - 500.f);
+    imui::PaneOptions options;
+    options.width = options.max_width = 300.f;
+    options.max_height = 800.f;
+    imui::Begin("Admin", imui::kEveryoneTag, options, &admin_pos,
+                &enable_admin);
+    imui::Space(imui::kVertical, 3);
+    imui::TextOptions to;
+    to.highlight_color = imui::kRed;
+    if (imui::Text("Reset Game", to).clicked) {
+      kResetGameAt = kGameState.game_updates;
+    }
+    if (imui::Text("Export Map", to).clicked) {
+      MapExport("asset/test.map");
+    }
+    imui::End();
+  }
+
+
+  {
+    static bool enable_debug = false;
+    static v2f ui_pos(300.f, screen.y);
+    imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
+  }
+
 }
 
 void
@@ -160,62 +224,6 @@ DebugUI()
     imui::End();
   }
 
-  {
-    static bool enable_tileviewer = false;
-    static v2f tileviewer_pos = v2f(screen.x - 300.f, screen.y);
-    imui::PaneOptions options;
-    options.width = options.max_width = 300.f;
-    options.max_height = 800.f;
-    imui::Begin("Map Editor", imui::kEveryoneTag, options, &tileviewer_pos,
-                &enable_tileviewer);
-    for (int i = 0; i < kMapX; ++i) {
-      for (int j = 0; j < kMapY; ++j) {
-        Tile* tile = &kMap[i][j];
-        v2i tp = tile->position_map;
-        imui::TextOptions toptions;
-        toptions.highlight_color = imui::kRed;
-        snprintf(kUIBuffer, sizeof(kUIBuffer), "Tile [%i,%i]", tp.x, tp.y);
-        imui::Result ires = imui::Text(kUIBuffer, toptions);
-        if (ires.highlighted) {
-          rgg::DebugPushCube(
-              Cubef(tile->position_world, tile->dims + v3f(2.f, 2.f, 2.f)),
-                    imui::kRed);
-        }
-        snprintf(kUIBuffer, sizeof(kUIBuffer), "  turns %i / %i",
-                 tile->turns_to_fire_max - tile->turns_to_fire,
-                 tile->turns_to_fire_max);
-        imui::Text(kUIBuffer);
-      }
-    }
-    imui::End();
-  }
-
-  {
-    static bool enable_admin = true;
-    static v2f admin_pos = v2f(0.f, screen.y - 500.f);
-    imui::PaneOptions options;
-    options.width = options.max_width = 300.f;
-    options.max_height = 800.f;
-    imui::Begin("Admin", imui::kEveryoneTag, options, &admin_pos,
-                &enable_admin);
-    imui::Space(imui::kVertical, 3);
-    imui::TextOptions to;
-    to.highlight_color = imui::kRed;
-    if (imui::Text("Reset Game", to).clicked) {
-      kResetGameAt = kGameState.game_updates;
-    }
-    if (imui::Text("Export Map", to).clicked) {
-      MapExport("asset/test.map");
-    }
-    imui::End();
-  }
-
-
-  {
-    static bool enable_debug = false;
-    static v2f ui_pos(300.f, screen.y);
-    imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
-  }
 }
 
 bool
@@ -393,6 +401,12 @@ GameUpdate()
 }
 
 void
+EditUpdate()
+{
+  EditorUI();
+}
+
+void
 Render()
 {
   static int dumb = 0;
@@ -428,7 +442,6 @@ Render()
   rgg::RenderCube(Cubef(kPlayer.position_world + v3f(0.f, 0.f, kTileDepth / 2.f),
                         kPlayer.dims), v4f(.3f, .3f, 1.f, .8f));
 
-  DebugUI();
 
   rgg::DebugRenderPrimitives();
 
@@ -438,6 +451,10 @@ Render()
 int
 main(int argc, char** argv)
 {
+#if __APPLE__
+  kGameState.window_create_info.window_width = 1280;
+  kGameState.window_create_info.window_height = 720;
+#endif
   if (!GraphicsInitialize(kGameState.window_create_info)) {
     return 1;
   }
@@ -495,6 +512,10 @@ main(int argc, char** argv)
             case 27 /* ESC */: {
               exit(1);
             } break;
+            case '`': {
+              kEditorMode = !kEditorMode;
+              printf("Edit mode %s\n", kEditorMode == true ? "ON" : "OFF");
+            } break;
           }
         } break;
         case MOUSE_DOWN: {
@@ -519,10 +540,14 @@ main(int argc, char** argv)
         rgg::GetObserver()->position = rgg::CameraPosition();
       }
     }
+    
+    DebugUI();
 
     // If game not meant to reset...
-    if (kResetGameAt == UINT64_MAX) {
+    if (!kEditorMode && kResetGameAt == UINT64_MAX) {
       GameUpdate();
+    } else {
+      EditUpdate();
     }
 
     if (kGameState.game_updates >= kResetGameAt) {

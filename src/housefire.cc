@@ -246,42 +246,6 @@ TileIsBlocked(const v2i& from)
 }
 
 
-Tile*
-TileHover(const v2f& cursor, v2i* possible_move, uint32_t possible_move_count)
-{
-  v3f cray = rgg::CameraRayFromMouse(cursor);
-  float d = 0;
-  v3f n(0.f, 0.f, 1.f);
-  float t = -(math::Dot(rgg::CameraPosition(), n) + d) / math::Dot(cray, n);
-  v3f res = rgg::CameraPosition() + cray * t;
-  //rgg::DebugPushSphere(res, 2.f, v4f(0.f, 1.f, 0.f, 0.8f));
-  for (int i = 0; i < kMapX; ++i) {
-    for (int j = 0; j < kMapY; ++j) {
-      Tile* tile = &kMap[i][j];
-      if (math::PointInRect(
-            // TODO: Investigate this - implies render vs intersection mismatch.
-            // One likely calculating from middle and other bottom left.
-            res.xy() + v2f(kTileWidth / 2.f, kTileHeight / 2.f),
-            Rectf(tile->position_world.xy(), tile->dims.xy()))) {
-        static float depth = 1.f;
-        v4f color = v4f(0.f, .99f, .33f, 1.f);
-        if (TileIsBlocked(tile->position_map)) {
-          color = v4f(0.99f, 0.f, .33f, 1.f);
-        } else if (!CanMoveTo(
-            tile->position_map, possible_move, possible_move_count)) {
-          color = v4f(0.3f, .3f, .3f, 1.f);
-        }
-        
-        rgg::DebugPushCube(
-            Cubef(tile->position_world.x, tile->position_world.y, 0.f,
-                  tile->dims.x, tile->dims.y, 1.f), color);
-        return tile;
-      }
-    }
-  }
-  return nullptr;
-}
-
 v2i
 TileNeighbor(const v2i& from, uint32_t i)
 {
@@ -312,6 +276,52 @@ DebugRenderOnTile(const v2i& pos, const v4f& color)
   rgg::DebugPushCube(Cubef(t->position_world, t->dims), color);
 }
 
+Tile*
+TileHover(const v2f& cursor, v2i* possible_move, uint32_t possible_move_count)
+{
+  v3f cray = rgg::CameraRayFromMouse(cursor);
+  float d = 0;
+  v3f n(0.f, 0.f, 1.f);
+  float t = -(math::Dot(rgg::CameraPosition(), n) + d) / math::Dot(cray, n);
+  v3f res = rgg::CameraPosition() + cray * t;
+  //rgg::DebugPushSphere(res, 2.f, v4f(0.f, 1.f, 0.f, 0.8f));
+  for (int i = 0; i < kMapX; ++i) {
+    for (int j = 0; j < kMapY; ++j) {
+      Tile* tile = &kMap[i][j];
+      if (math::PointInRect(
+            // TODO: Investigate this - implies render vs intersection mismatch.
+            // One likely calculating from middle and other bottom left.
+            res.xy() + v2f(kTileWidth / 2.f, kTileHeight / 2.f),
+            Rectf(tile->position_world.xy(), tile->dims.xy()))) {
+        static float depth = 1.f;
+        v4f color = v4f(0.f, .99f, .33f, 1.f);
+        if (TileIsBlocked(tile->position_map)) {
+          color = v4f(0.99f, 0.f, .33f, 1.f);
+        } else if (!CanMoveTo(
+            tile->position_map, possible_move, possible_move_count)) {
+          search::BfsIterator bfs_itr = SetupBfsIterator(kPlayer.position_map);
+          search::Path* path = search::BfsPathTo(&bfs_itr, tile->position_map);
+          if (path && path->size > 0) {
+            for (int i = 0; i < path->size; ++i) {
+              Tile* t = &kMap[path->queue[i].x][path->queue[i].y];
+              rgg::DebugPushCube(Cubef(t->position_world + v3f(0.f, 0.f, 5.f),
+                                       t->dims / 2.f),
+                                 v4f(0.5f, 0.5f, 0.5f, 1.f));
+            }
+          }
+          color = v4f(0.3f, .3f, .3f, 0.f);
+        }
+        
+        rgg::DebugPushCube(
+            Cubef(tile->position_world.x, tile->position_world.y, 0.f,
+                  tile->dims.x, tile->dims.y, 1.f), color);
+        return tile;
+      }
+    }
+  }
+  return nullptr;
+}
+
 void
 ProcessWorldTurn()
 {
@@ -332,7 +342,7 @@ GameUpdate()
         SetupBfsIterator(kPlayer.position_map, 1);
   if (search::BfsStart(&bfs_itr)) {
     while (search::BfsNext(&bfs_itr)) {
-      DebugRenderOnTile(bfs_itr.current, v4f(.8f, .1529411f, .53333f, 1.f));
+      DebugRenderOnTile(bfs_itr.current, v4f(0.f, 1.f, 1.f, 1.f));
       assert(possible_move_count < 16);
       possible_move[possible_move_count++] = bfs_itr.current;
     }

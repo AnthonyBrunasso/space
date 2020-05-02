@@ -360,16 +360,19 @@ Render()
             Cubef(t->position_world, t->dims),
             math::Lerp(kWoodenBrown, kWoodenBrownFire, lerpt));
       } else {
-        static float xd = 0.f;
-        static float yd = 0.f;
-        static float zd = 0.f;
-        if (dumb % 5 == 0) {
-          //xd = math::ScaleRange((float)rand() / RAND_MAX, -1.f, 1.f);
-          //yd = math::ScaleRange((float)rand() / RAND_MAX, -1.f, 1.f);
-          zd = math::ScaleRange((float)rand() / RAND_MAX, -1.f, 1.f);
+        static float zd[kMapMaxX][kMapMaxY] = {};  // LOL
+        static const uint32_t kDumbMod = 10;
+        uint32_t mdumb = dumb % kDumbMod;
+        if (mdumb == 0) {
+          zd[i][j] = math::ScaleRange((float)rand() / RAND_MAX, 0.f, 1.f, -1.f, 1.f);
+          //printf("%.2f\n", zd);
         }
+        v3f scale = v3f(7.f, 7.f, 7.f);
+        v3f dumb_scale = v3f(7.f, 7.f, 7.f + zd[i][j]);
+        float lerp_dumb = (float)mdumb / kDumbMod;
+        v3f lerped_scale = math::Lerp(scale, dumb_scale, lerp_dumb);
         rgg::RenderMesh(kFireMesh, t->position_world + v3f(0.f, 0.f, 3.f),
-                        v3f(7.f + xd, 7.f + yd, 7.f + zd),
+                        lerped_scale,
                         Quatf(280.f, v3f(1.f, 0.f, 0.f)));
         rgg::RenderCube(Cubef(t->position_world, t->dims), kWoodenBrownFire);
       }

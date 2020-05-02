@@ -8,6 +8,7 @@
 #include "network/network.cc"
 #include "renderer/renderer.cc"
 #include "renderer/camera.cc"
+#include "renderer/mesh.cc"
 #include "search/search.cc"
 
 struct State {
@@ -35,11 +36,13 @@ struct State {
 
 // Player is actual dude on screen.
 struct Player {
-  v3f position;
+  v2i position_map;
+  v3f position_world;
   v3f dims;
 };
 
 static Player kPlayer;
+static rgg::Mesh kFireMesh;
 
 static bool kLeftClickDown = false;
 
@@ -53,6 +56,7 @@ static v3f kCameraDirection(.612375f, .612375f, -.5f);
 static v3f kCameraPosition(-54.f, -54.f, 92.f);
 
 static const v4f kWoodenBrown(0.521f, 0.368f, 0.258f, 1.0f);
+static const v4f kWoodenBrownFire(1.0f, 0.368f, 0.258f, 1.0f);
 
 constexpr uint32_t kMapX = 8;
 constexpr uint32_t kMapY = 8;
@@ -67,15 +71,17 @@ constexpr int kMaxTileNeighbor = 8;
 
 struct Tile {
   Tile() = default;
-  Tile(uint32_t turns) : turns(turns) {}
+  Tile(uint32_t turns_to_fire) : turns_to_fire(turns_to_fire) {}
   v2i position_map;
   v3f position_world;
   v3f dims;
-  uint32_t turns;
+  uint32_t turns_to_fire;
 };
 
 static Tile kMap[kMapX][kMapY] = 
   {{5, 5, 5, 5, 5, 5, 5, 5},
+   {5, 5, 5, 5, 5, 5, 5, 5},
+   {5, 5, 0, 5, 5, 5, 5, 5},
    {5, 5, 5, 5, 5, 5, 5, 5},
    {5, 5, 5, 5, 5, 5, 5, 5},
    {5, 5, 5, 5, 5, 5, 5, 5},
@@ -176,7 +182,8 @@ DebugUI()
 v3f
 TilePosToWorld(const v2i& position_map)
 {
-  return {position_map.x * kTileWidth, position_map.y * kTileHeight, -kTileDepth};
+  return {position_map.x * kTileWidth + 1.f * position_map.x,
+          position_map.y * kTileHeight + 1.f * position_map.y, -kTileDepth};
 }
 
 void
@@ -187,8 +194,6 @@ TilemapInitialize()
       Tile* tile = &kMap[i][j];
       tile->position_map = v2i(i, j);
       tile->position_world = TilePosToWorld(tile->position_map);
-      tile->position_world.x += 1.f * i;
-      tile->position_world.y += 1.f * j;
       tile->dims = v3f(kTileWidth, kTileHeight, kTileDepth);
       kMapWidth = MAXF(kMapWidth, tile->position_world.x);
       kMapHeight = MAXF(kMapHeight, tile->position_world.y);
@@ -201,7 +206,12 @@ GraphicsInitialize(const window::CreateInfo& window_create_info)
 {
   int window_result = window::Create("Space", window_create_info);
   printf("Window create result: %i\n", window_result);
-  return rgg::Initialize();
+  if (!rgg::Initialize()) return false;
+  if (!rgg::LoadOBJ("asset/fire.obj", &kFireMesh)) {
+    printf("Unable to load fire.obj\n");
+    return false;
+  } 
+  return true;
 }
 
 Tile*
@@ -236,7 +246,7 @@ TileHover(const v2f& cursor)
 bool
 TileIsBlocked(const v2i& from)
 {
-  return false;
+  return kMap[from.x][from.y].turns_to_fire == 0;
 }
 
 v2i
@@ -253,7 +263,7 @@ TileNeighbor(const v2i& from, uint32_t i)
 search::BfsIterator
 SetupBfsIterator(const v2i& from, uint32_t max_depth = UINT32_MAX)
 {
-  search::BfsIterator itr;
+  search::BfsIterator itr = {};
   itr.blocked_callback = TileIsBlocked;
   itr.neighbor_callback = TileNeighbor;
   itr.max_neighbor = kMaxTileNeighbor;
@@ -261,6 +271,13 @@ SetupBfsIterator(const v2i& from, uint32_t max_depth = UINT32_MAX)
   itr.map_size = v2i(kMapX, kMapY);
   itr.max_depth = max_depth;
   return itr;
+}
+
+void
+DebugRenderOnTile(const v2i& pos, const v4f& color)
+{
+  Tile* t = &kMap[pos.x][pos.y];
+  rgg::DebugPushCube(Cubef(t->position_world, t->dims), color);
 }
 
 void
@@ -273,12 +290,21 @@ GameUpdate()
         SetupBfsIterator(hovered_tile->position_map, 1);
     if (search::BfsStart(&bfs_itr)) {
       while (search::BfsNext(&bfs_itr)) {
-        Tile* t = &kMap[bfs_itr.current.x][bfs_itr.current.y];
-        rgg::DebugPushCube(
-            Cubef(t->position_world, t->dims), imui::kRed);
+       Tile* t = &kMap[bfs_itr.current.x][bfs_itr.current.y];
+       //rgg::DebugPushCube(
+           //Cubef(t->position_world, t->dims), imui::kRed);
       }
     }
-
+#if 1
+    bfs_itr = SetupBfsIterator(kPlayer.position_map);
+    search::Path* path =
+      search::BfsPathTo(&bfs_itr, hovered_tile->position_map);
+    if (path && path->size > 0) {
+      for (int i = 0; i < path->size; ++i) {
+        DebugRenderOnTile(path->queue[i], v4f(0.f, 0.f, 1.f, 1.f));
+      }
+    }
+#endif
     v2i tp = hovered_tile->position_map;
     if (kLeftClickDown) {
       printf("Go to tile %i,%i\n", tp.x, tp.y);
@@ -292,15 +318,31 @@ GameUpdate()
 void
 Render()
 {
-  // Execute game logic.
+  static int dumb = 0;
+  ++dumb;
   for (int i = 0; i < kMapX; ++i) {
     for (int j = 0; j < kMapY; ++j) {
       Tile* t = &kMap[i][j];
-      rgg::RenderCube(Cubef(t->position_world, t->dims), kWoodenBrown);
+      if (t->turns_to_fire) {
+        rgg::RenderCube(Cubef(t->position_world, t->dims), kWoodenBrown);
+      } else {
+        static float xd = 0.f;
+        static float yd = 0.f;
+        static float zd = 0.f;
+        if (dumb % 5 == 0) {
+          //xd = math::ScaleRange((float)rand() / RAND_MAX, -1.f, 1.f);
+          //yd = math::ScaleRange((float)rand() / RAND_MAX, -1.f, 1.f);
+          zd = math::ScaleRange((float)rand() / RAND_MAX, -1.f, 1.f);
+        }
+        rgg::RenderMesh(kFireMesh, t->position_world + v3f(0.f, 0.f, 3.f),
+                        v3f(7.f + xd, 7.f + yd, 7.f + zd),
+                        Quatf(280.f, v3f(1.f, 0.f, 0.f)));
+        rgg::RenderCube(Cubef(t->position_world, t->dims), kWoodenBrownFire);
+      }
     }
   }
 
-  rgg::RenderCube(Cubef(kPlayer.position + v3f(0.f, 0.f, kTileDepth / 2.f),
+  rgg::RenderCube(Cubef(kPlayer.position_world + v3f(0.f, 0.f, kTileDepth / 2.f),
                         kPlayer.dims), v4f(.3f, .3f, 1.f, .8f));
 
   DebugUI();
@@ -326,7 +368,8 @@ main(int argc, char** argv)
 
   v2f viewport = window::GetWindowSize();
 
-  kPlayer.position = v3f(0.f, 0.f, 0.f);
+  kPlayer.position_map = v2i(0, 0);
+  kPlayer.position_world = v3f(0.f, 0.f, 0.f);
   kPlayer.dims = v3f(10.f, 10.f, 10.f);
 
   rgg::Camera camera;
@@ -399,7 +442,8 @@ main(int argc, char** argv)
         rgg::GetObserver()->view = rgg::CameraView();
         // This is really the lightl position...
         v3f xyforward = math::Normalize(rgg::CameraDirection().xy());
-        rgg::GetObserver()->position = rgg::CameraPosition() + xyforward * 500.f;
+        //rgg::GetObserver()->position = rgg::CameraPosition() + xyforward * 500.f;
+        rgg::GetObserver()->position = rgg::CameraPosition();
       }
     }
 

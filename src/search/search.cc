@@ -15,8 +15,8 @@ struct Path {
 struct Search {
   struct PathMapNode {
     v2i from;
-    bool checked = false;
     uint32_t depth = 0;
+    bool checked = false;
   };
   // Visited Nodes
   PathMapNode path_map[kMapMaxWidth][kMapMaxHeight];
@@ -26,6 +26,7 @@ struct Search {
 };
 
 static Search kSearch;
+static Path kPath;
 
 #include "bfs.cc"
 

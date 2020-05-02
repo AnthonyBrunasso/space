@@ -20,7 +20,7 @@ struct BfsIterator {
   v2i map_size;
   // Depth of starting node is 0. Each expansion of bfs adds 1 to the depth
   // of the node it recursed from.
-  uint32_t depth;
+  uint32_t depth = 0;
   uint32_t max_depth = UINT32_MAX;
   uint32_t flags;
 
@@ -56,7 +56,6 @@ BfsStart(BfsIterator* itr)
   itr->neighbor_index = 0;
   itr->queue_index = 0;
   kSearch.queue[kSearch.queue_size++] = itr->current;
-  kSearch.path_map[itr->current.x][itr->current.y].checked = true;
   return true;
 }
 
@@ -72,7 +71,7 @@ BfsStep(const v2i& from, BfsIterator* itr)
   itr->current = neighbor;
   itr->depth = path_map[from.x][from.y].depth + 1;
 
-  return IsValidPos(itr);
+  return IsValidPos(itr) && !path_map[neighbor.x][neighbor.y].checked;
 }
 
 INLINE bool
@@ -84,12 +83,50 @@ BfsNext(BfsIterator* itr)
   while (itr->queue_index < qsz) {
     v2i from = queue[itr->queue_index];
     if (BfsStep(from, itr)) {
-      path_map[itr->current.x][itr->current.y].from = from;
-      path_map[itr->current.x][itr->current.y].depth =
-          path_map[from.x][from.y].depth + 1;
+      if (itr->blocked_callback(itr->current)) continue;
+      Search::PathMapNode* node = &path_map[itr->current.x][itr->current.y];
+      node->from = from;
+      node->depth = path_map[from.x][from.y].depth + 1;
+      node->checked = true;
       queue[qsz++] = itr->current;
       break;
     }
   }
   return itr->queue_index < qsz;
+}
+
+INLINE Path*
+BfsPathTo(BfsIterator* itr, const v2i& end)
+{
+  v2i start = itr->current;
+  if (itr->current == end) return nullptr;
+
+  auto& path_map = kSearch.path_map;
+  BfsStart(itr);
+  int i = 0;
+  while (BfsNext(itr)) {
+    // A depth value greater than 0 means the end node was expanded.
+    if (path_map[end.x][end.y].depth) {
+      break;
+    }
+  }
+
+  if (!path_map[end.x][end.y].depth) return nullptr;
+
+  kPath = {};
+  auto& path = kPath.queue;
+  auto& psz = kPath.size;
+  path[psz++] = end;
+  while (path[psz - 1] != start) {
+    auto& prev = path[psz - 1];
+    path[psz++] = kSearch.path_map[prev.x][prev.y].from;
+  }
+  // Reverse it
+  for (int i = 0, last = psz - 1; i < last; ++i, --last) {
+    auto t = path[last];
+    path[last] = path[i];
+    path[i] = t;
+  }
+
+  return &kPath;
 }

@@ -117,7 +117,7 @@ struct DebugRect {
 };
 
 DECLARE_ARRAY(DebugSphere, 8);
-DECLARE_ARRAY(DebugCube, 32);
+DECLARE_ARRAY(DebugCube, 128);
 DECLARE_ARRAY(DebugPoint, 64);
 DECLARE_ARRAY(DebugRect, 64);
 

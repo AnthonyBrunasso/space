@@ -281,6 +281,12 @@ struct Vec3 {
     return !(*this == rhs);
   }
 
+  Vec2<T>&
+  xy()
+  {
+    return *(Vec2<T>*)(&x);
+  }
+
   Vec2<T>
   xy() const
   {

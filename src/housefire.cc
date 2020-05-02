@@ -54,13 +54,13 @@ static Stats kGameStats;
 static char kUIBuffer[UIBUFFER_SIZE];
 
 static v3f kCameraDirection(.612375f, .612375f, -.5f);
-static v3f kCameraPosition(-54.f, -54.f, 92.f);
+static v3f kCameraPosition(-75.f, -75.f, 92.f);
 
 static const v4f kWoodenBrown(0.521f, 0.368f, 0.258f, 1.0f);
 static const v4f kWoodenBrownFire(1.0f, 0.368f, 0.258f, 1.0f);
 
-constexpr uint32_t kMapX = 8;
-constexpr uint32_t kMapY = 8;
+constexpr uint32_t kMapX = 4;
+constexpr uint32_t kMapY = 4;
 
 static float kMapWidth = 0.f;
 static float kMapHeight = 0.f;
@@ -72,22 +72,20 @@ constexpr int kMaxTileNeighbor = 8;
 
 struct Tile {
   Tile() = default;
-  Tile(uint32_t turns_to_fire) : turns_to_fire(turns_to_fire) {}
+  Tile(uint32_t turns_to_fire)
+      : turns_to_fire(turns_to_fire), turns_to_fire_max(turns_to_fire) {}
   v2i position_map;
   v3f position_world;
   v3f dims;
   uint32_t turns_to_fire;
+  uint32_t turns_to_fire_max;
 };
 
 static Tile kMap[kMapX][kMapY] = 
-  {{5, 5, 0, 5, 5, 5, 5, 5},
-   {5, 5, 0, 5, 0, 5, 5, 5},
-   {5, 5, 0, 0, 0, 5, 5, 5},
-   {5, 5, 0, 0, 0, 5, 5, 5},
-   {5, 5, 0, 0, 5, 5, 5, 5},
-   {5, 5, 5, 5, 5, 5, 5, 5},
-   {5, 5, 0, 0, 5, 5, 5, 5},
-   {5, 5, 0, 0, 5, 5, 5, 5}};
+  {{5, 5, 5, 5},
+   {5, 5, 2, 6},
+   {5, 5, 1, 7},
+   {5, 5, 1, 8}};
 
 void
 DebugUI()
@@ -174,6 +172,23 @@ DebugUI()
   }
 
   {
+    static bool enable_admin = true;
+    static v2f admin_pos = v2f(0.f, screen.y - 500.f);
+    imui::PaneOptions options;
+    options.width = options.max_width = 300.f;
+    options.max_height = 800.f;
+    imui::Begin("Admin", imui::kEveryoneTag, options, &admin_pos,
+                &enable_admin);
+    imui::Space(imui::kVertical, 3);
+    imui::TextOptions to;
+    to.highlight_color = imui::kRed;
+    if (imui::Text("Reset Game", to).clicked) {
+    }
+    imui::End();
+  }
+
+
+  {
     static bool enable_debug = false;
     static v2f ui_pos(300.f, screen.y);
     imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
@@ -215,8 +230,24 @@ GraphicsInitialize(const window::CreateInfo& window_create_info)
   return true;
 }
 
+bool
+CanMoveTo(const v2i& target, v2i* possible_move, uint32_t possible_move_count)
+{
+  for (int i = 0; i < possible_move_count; ++i) {
+    if (possible_move[i] == target) return true;
+  }
+  return false;
+}
+
+bool
+TileIsBlocked(const v2i& from)
+{
+  return kMap[from.x][from.y].turns_to_fire == 0;
+}
+
+
 Tile*
-TileHover(const v2f& cursor)
+TileHover(const v2f& cursor, v2i* possible_move, uint32_t possible_move_count)
 {
   v3f cray = rgg::CameraRayFromMouse(cursor);
   float d = 0;
@@ -233,21 +264,22 @@ TileHover(const v2f& cursor)
             res.xy() + v2f(kTileWidth / 2.f, kTileHeight / 2.f),
             Rectf(tile->position_world.xy(), tile->dims.xy()))) {
         static float depth = 1.f;
+        v4f color = v4f(0.f, .99f, .33f, 1.f);
+        if (TileIsBlocked(tile->position_map)) {
+          color = v4f(0.99f, 0.f, .33f, 1.f);
+        } else if (!CanMoveTo(
+            tile->position_map, possible_move, possible_move_count)) {
+          color = v4f(0.3f, .3f, .3f, 1.f);
+        }
+        
         rgg::DebugPushCube(
             Cubef(tile->position_world.x, tile->position_world.y, 0.f,
-                  tile->dims.x, tile->dims.y, 1.f),
-            v4f(0.f, .99f, .33f, 1.f));
+                  tile->dims.x, tile->dims.y, 1.f), color);
         return tile;
       }
     }
   }
   return nullptr;
-}
-
-bool
-TileIsBlocked(const v2i& from)
-{
-  return kMap[from.x][from.y].turns_to_fire == 0;
 }
 
 v2i
@@ -258,8 +290,6 @@ TileNeighbor(const v2i& from, uint32_t i)
       v2i(1, 1),  v2i(-1, 1), v2i(1, -1), v2i(-1, -1)};
   return from + kNeighbor[i % kMaxTileNeighbor];
 }
-
-
 
 search::BfsIterator
 SetupBfsIterator(const v2i& from, uint32_t max_depth = UINT32_MAX)
@@ -283,21 +313,33 @@ DebugRenderOnTile(const v2i& pos, const v4f& color)
 }
 
 void
+ProcessWorldTurn()
+{
+  for (int i = 0; i < kMapX; ++i) {
+    for (int j = 0; j < kMapY; ++j) {
+      if (kMap[i][j].turns_to_fire) kMap[i][j].turns_to_fire--;
+    }
+  }
+}
+
+void
 GameUpdate()
 {
+  v2i possible_move[16];
+  uint32_t possible_move_count = 0;
   v2f cursor = window::GetCursorPosition();
-  Tile* hovered_tile = TileHover(cursor);
-  if (hovered_tile) {
-    search::BfsIterator bfs_itr =
-        SetupBfsIterator(hovered_tile->position_map, 1);
-    if (search::BfsStart(&bfs_itr)) {
-      while (search::BfsNext(&bfs_itr)) {
-       Tile* t = &kMap[bfs_itr.current.x][bfs_itr.current.y];
-       //rgg::DebugPushCube(
-           //Cubef(t->position_world, t->dims), imui::kRed);
-      }
+  search::BfsIterator bfs_itr =
+        SetupBfsIterator(kPlayer.position_map, 1);
+  if (search::BfsStart(&bfs_itr)) {
+    while (search::BfsNext(&bfs_itr)) {
+      DebugRenderOnTile(bfs_itr.current, v4f(.8f, .1529411f, .53333f, 1.f));
+      assert(possible_move_count < 16);
+      possible_move[possible_move_count++] = bfs_itr.current;
     }
-#if 1
+  }
+  Tile* hovered_tile = TileHover(cursor, possible_move, possible_move_count);
+  if (hovered_tile) {
+#if 0
     bfs_itr = SetupBfsIterator(kPlayer.position_map);
     search::Path* path =
       search::BfsPathTo(&bfs_itr, hovered_tile->position_map);
@@ -308,8 +350,18 @@ GameUpdate()
     }
 #endif
     v2i tp = hovered_tile->position_map;
-    if (kLeftClickDown) {
-      printf("Go to tile %i,%i\n", tp.x, tp.y);
+    if (kLeftClickDown && !TileIsBlocked(tp)) {
+      bool can_move = CanMoveTo(tp, possible_move, possible_move_count);
+      if (!can_move) {
+        printf("Unable to move to %i,%i\n", tp.x, tp.y);
+      } else {
+        v2f delta =
+          hovered_tile->position_world.xy() - kPlayer.position_world.xy();
+        rgg::CameraMove(delta);
+        kPlayer.position_world.xy() = hovered_tile->position_world.xy();
+        kPlayer.position_map = tp;
+        ProcessWorldTurn();
+      }
     }
   }
 
@@ -326,7 +378,10 @@ Render()
     for (int j = 0; j < kMapY; ++j) {
       Tile* t = &kMap[i][j];
       if (t->turns_to_fire) {
-        rgg::RenderCube(Cubef(t->position_world, t->dims), kWoodenBrown);
+        float lerpt = 1.f - (float)t->turns_to_fire / (float)t->turns_to_fire_max;
+        rgg::RenderCube(
+            Cubef(t->position_world, t->dims),
+            math::Lerp(kWoodenBrown, kWoodenBrownFire, lerpt));
       } else {
         static float xd = 0.f;
         static float yd = 0.f;

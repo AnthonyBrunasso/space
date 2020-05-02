@@ -80,6 +80,14 @@ CameraDirection()
 }
 
 void
+CameraMove(const v3f& delta)
+{
+  Camera* c = CameraGetCurrent();
+  if (!c) return;
+  c->position += delta;
+}
+
+void
 CameraSwitch(uint32_t camera_tag, uint32_t camera_index)
 {
   printf("%i %i\n", camera_tag, camera_index);

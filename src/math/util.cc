@@ -19,7 +19,12 @@ ScaleRange(float v, float smax, float tmax)
 v3f
 Lerp(const v3f& a, const v3f& b, float t)
 {
-  printf("%.3f\n", t);
+  return a * (1.f - t) + b * t;
+}
+
+v4f
+Lerp(const v4f& a, const v4f& b, float t)
+{
   return a * (1.f - t) + b * t;
 }
 

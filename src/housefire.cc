@@ -279,11 +279,12 @@ EditorUI()
 
   {
     if (kEditTileMenu && kEditTile) {
+      static bool test = true;
       static v2f edit_tile_pos = v2f(screen.x / 2.f, screen.y / 2.f);
       static uint32_t starting_ttf = 5;
       imui::PaneOptions options;
       imui::Begin("Edit Tile", imui::kEveryoneTag, options, &edit_tile_pos,
-                  &kEditTileMenu);
+                  &test);
       rgg::DebugPushCube(Cubef(kEditTile->position_world,
                                kEditTile->dims + v3f(2.f, 2.f, 2.f)),
                          imui::kRed);
@@ -335,6 +336,7 @@ EditorUI()
       imui::NewLine();
       imui::SameLine();
       bool is_destination = FLAGGED(kEditTile->flags, kTileDestination);
+      // TODO: This causes a bug in imui where the pane appears to be too big.
       imui::Checkbox(17.f, 17.f, &is_destination);
       imui::Space(imui::kHorizontal, 2.f);
       imui::Text("Destination");

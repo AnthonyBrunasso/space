@@ -78,7 +78,7 @@ ttf 9
 tile 3 8
 ttf 9
 tile 3 9
-ttf 30
+ttf 50
 tile 4 0
 ttf 7
 tile 4 1
@@ -90,15 +90,15 @@ ttf 30
 tile 4 4
 ttf 30
 tile 4 5
-ttf 30
+ttf 5
 tile 4 6
-ttf 30
+ttf 7
 tile 4 7
-ttf 8
+ttf 7
 tile 4 8
-ttf 8
+ttf 7
 tile 4 9
-ttf 30
+ttf 50
 tile 5 0
 ttf 3
 tile 5 1
@@ -116,9 +116,9 @@ ttf 7
 tile 5 7
 ttf 7
 tile 5 8
-ttf 8
+ttf 7
 tile 5 9
-ttf 30
+ttf 50
 tile 6 0
 ttf 2
 tile 6 1
@@ -138,7 +138,7 @@ ttf 15
 tile 6 8
 ttf 14
 tile 6 9
-ttf 30
+ttf 50
 tile 7 0
 ttf 1
 tile 7 1
@@ -152,14 +152,14 @@ ttf 30
 tile 7 5
 ttf 30
 tile 7 6
-ttf 30
+ttf 50
 flag destination
 tile 7 7
-ttf 30
+ttf 50
 tile 7 8
-ttf 30
+ttf 50
 tile 7 9
-ttf 30
+ttf 50
 tile 8 0
 ttf 2
 tile 8 1

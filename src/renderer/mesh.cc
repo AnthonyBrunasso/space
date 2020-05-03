@@ -185,6 +185,7 @@ LoadOBJ(const char* filename, Mesh* mesh)
           mtl = &mesh->material[i];
           mtl->vert_pair[mtl->vert_pair_count] = MaterialVertPair();
           mtl->vert_pair_count = mtl->vert_pair_count + 1;
+          assert(mtl->vert_pair_count < kMaxVertPair);
           break;
         }
       }

@@ -206,8 +206,8 @@ EditorUI()
         ++kMapY;
       }
 
-      CLAMP(kMapX, 0, kMapMaxX);
-      CLAMP(kMapY, 0, kMapMaxY);
+      kMapX = CLAMP(kMapX, 0, kMapMaxX);
+      kMapY = CLAMP(kMapY, 0, kMapMaxY);
 
       imui::NewLine();
       imui::SameLine();
@@ -598,7 +598,6 @@ main(int argc, char** argv)
             } break;
             case '`': {
               kEditorMode = !kEditorMode;
-              printf("Edit mode %s\n", kEditorMode == true ? "ON" : "OFF");
             } break;
           }
         } break;

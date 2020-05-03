@@ -61,7 +61,7 @@ static v3f kCameraPosition(-75.f, -75.f, 92.f);
 static const v4f kWoodenBrown(0.521f, 0.368f, 0.258f, 1.0f);
 static const v4f kWoodenBrownFire(1.0f, 0.368f, 0.258f, 1.0f);
 
-static const char* kCurrentMap = "asset/test.map";
+static char kCurrentMap[64];
 
 // If set will reset the game at the given loop
 static uint64_t kResetGameAt = UINT64_MAX;
@@ -99,6 +99,19 @@ ResetGame()
   rgg::GetObserver()->projection =
       rgg::DefaultPerspective(window::GetWindowSize(), 55.f);
   rgg::GetObserver()->view = rgg::CameraView();
+}
+
+void
+LevelFileWalk(const char* filename)
+{
+  if (strncmp(filename, "asset/level", 11) == 0) {
+    imui::TextOptions topt;
+    topt.highlight_color = imui::kRed;
+    if (imui::Text(filename, topt).clicked) {
+      strcpy(kCurrentMap, filename);
+      MapLoad(kCurrentMap);
+    }
+  }
 }
 
 void
@@ -152,10 +165,20 @@ EditorUI()
       kResetGameAt = kGameState.game_updates;
     }
     if (imui::Text("Export Map", to).clicked) {
-      MapExport("asset/test.map");
+      MapExport(kCurrentMap);
     }
     if (imui::Text("New Map", to).clicked) {
       new_map_menu = !new_map_menu;
+      MapGenerateUniqueName();
+    }
+    static bool load_map_toggle = false;
+    if (imui::Text("Load Map", to).clicked) {
+      load_map_toggle = !load_map_toggle;
+    }
+    if (load_map_toggle) {
+      imui::Indent(2);
+      filesystem::WalkDirectory("asset/", LevelFileWalk);
+      imui::Indent(-2);
     }
     imui::End();
   }
@@ -168,8 +191,14 @@ EditorUI()
       imui::PaneOptions options;
       imui::Begin("New Map", imui::kEveryoneTag, options, &new_map_menu_pos,
                   &show_new_map_menu);
-      static const float kWidth = 85.f;
+      static const float kWidth = 100.f;
       imui::Space(imui::kVertical, 3.f);
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Map Name");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%s", kUniqueMapName);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
       imui::SameLine();
       imui::Width(kWidth);
       imui::Text("Map Size");
@@ -231,6 +260,7 @@ EditorUI()
 
       if (imui::Text("Done", text_options).clicked) {
         new_map_menu = false;
+        strcpy(kCurrentMap, kUniqueMapName);
       }
 
       MapInitialize(starting_ttf);
@@ -548,6 +578,7 @@ main(int argc, char** argv)
     return 1;
   }
 
+  strcpy(kCurrentMap, "asset/level_0.map");
   MapLoad(kCurrentMap);
 
   InitializePlayer();

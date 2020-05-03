@@ -1,6 +1,5 @@
 #pragma once
 
-
 constexpr uint32_t kMapMaxX = 32;
 constexpr uint32_t kMapMaxY = 32;
 
@@ -30,23 +29,45 @@ constexpr uint32_t kDefaultMapX = 5;
 constexpr uint32_t kDefaultMapY = 5;
 
 static Tile kDefaultMap[kDefaultMapX][kDefaultMapY] =
-  {{5, 5, 5, 5, 5},
-   {5, 5, 5, 5, 5},
-   {5, 5, 5, 5, 5},
-   {5, 5, 5, 5, 5},
-   {5, 5, 5, 5, 5}};
+  {{5, 5, 5, 5, 3},
+   {5, 5, 2, 6, 4},
+   {5, 5, 1, 7, 5},
+   {5, 5, 1, 8, 6},
+   {5, 5, 1, 9, 5}};
 
-static Tile kMap[kMapMaxX][kMapMaxY] = 
-  {{5, 5, 5, 5},
-   {5, 5, 2, 6},
-   {5, 5, 1, 7},
-   {5, 5, 1, 8}};
+static Tile kMap[kMapMaxX][kMapMaxY];
+
+static char kUniqueMapName[64];
+static uint32_t kMapNum = 0;
 
 v3f
 TilePosToWorld(const v2i& position_map)
 {
   return {position_map.x * kTileWidth + 1.f * position_map.x,
           position_map.y * kTileHeight + 1.f * position_map.y, -kTileDepth};
+}
+
+void
+MapUniqueNameFinder(const char* filename)
+{
+  if (strncmp(filename, "asset/level", 11) == 0) {
+    uint32_t lvl_num;
+    sscanf(filename, "asset/level_%u.map", &lvl_num);
+    if (lvl_num >= kMapNum) {
+      ++kMapNum;
+    }
+  }
+  strcpy(kUniqueMapName, "asset/level_");
+  char num[8];
+  sprintf(num, "%d", kMapNum);
+  strcat(kUniqueMapName, num);
+  strcat(kUniqueMapName, ".map");
+}
+
+void
+MapGenerateUniqueName()
+{
+  filesystem::WalkDirectory("asset/", MapUniqueNameFinder);
 }
 
 void

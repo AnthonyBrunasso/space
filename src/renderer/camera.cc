@@ -8,6 +8,7 @@ namespace rgg
 
 enum CameraMode {
   kCameraOverhead,
+  kCameraBrowser,
   kCameraFirstPerson,
   kCameraMaxMode,
 };
@@ -152,6 +153,35 @@ CameraOverhead(const PlatformEvent& event)
 }
 
 void
+CameraBrowser(const PlatformEvent& event)
+{
+  Camera* c = CameraGetCurrent();
+  if (!c) return;
+  switch (event.type) {
+    case KEY_DOWN: {
+      switch (event.key) {
+        case 'w': {
+          c->position.y += c->speed;
+        } break;
+        case 'a': {
+          c->position.x -= c->speed;
+        } break;
+        case 's': {
+          c->position.y -= c->speed;
+        } break;
+        case 'd': {
+          c->position.x += c->speed;
+        } break;
+      }
+    } break;
+    case MOUSE_WHEEL: {
+      c->position += (c->dir * event.wheel_delta * c->speed);
+    } break;
+    default: break;
+  }
+}
+
+void
 CameraFirstPerson(const PlatformEvent& event)
 {
   Camera* c = CameraGetCurrent();
@@ -187,6 +217,9 @@ CameraUpdateEvent(const PlatformEvent& event, uint32_t tag)
     case kCameraOverhead: {
       CameraOverhead(event);
     } break;
+    case kCameraBrowser: {
+      CameraBrowser(event);
+    } break;
     case kCameraFirstPerson: {
       CameraFirstPerson(event);
     } break;
@@ -213,6 +246,7 @@ CameraView()
   Camera* c = CameraGetCurrent();
   if (!c) return math::Identity();
   switch (c->mode) {
+    case kCameraBrowser:
     case kCameraOverhead: {
       return CameraLookAt();
     } break;

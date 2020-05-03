@@ -182,5 +182,3 @@ MapSetNextLevel(char* current_map)
   strcat(current_map, num);
   strcat(current_map, ".map");
 }
-
-

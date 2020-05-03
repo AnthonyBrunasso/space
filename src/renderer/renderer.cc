@@ -688,14 +688,17 @@ RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
   } else {
     for (int i = 0; i < mesh.material_count; ++i) {
       const Material* mat = &mesh.material[i];
-      // Set surface lighting properties.
       glUniform3f(kRGG.geometry_program_3d.suface_specular_uniform,
                   mat->ks.x, mat->ks.y, mat->ks.z);
       glUniform3f(kRGG.geometry_program_3d.surface_diffuse_uniform,
                   mat->kd.x, mat->kd.y, mat->kd.z);
       glUniform3f(kRGG.geometry_program_3d.surface_ambient_uniform,
                   mat->ka.x, mat->ka.y, mat->ka.z);
-      glDrawArrays(GL_TRIANGLES, mat->first, mat->count);
+      for (int j = 0; j < mat->vert_pair_count; ++j) {
+        // Set surface lighting properties.
+        const MaterialVertPair* vp = &mat->vert_pair[j];
+        glDrawArrays(GL_TRIANGLES, vp->first, vp->count);
+      }
     }
   }
 }

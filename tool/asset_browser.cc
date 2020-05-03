@@ -2,12 +2,12 @@
 #include "audio/audio.cc"
 #include "common/common.cc"
 #include "gl/gl.cc"
+#include "gfx/imui.cc"
 #include "renderer/renderer.cc"
 #include "renderer/texture.cc"
 #include "renderer/mesh.cc"
 #include "renderer/camera.cc"
 #include "simulation/camera.cc"
-#include "gfx/gfx.cc"
 #include "math/math.cc"
 
 struct Mesh {
@@ -129,7 +129,8 @@ main(int argc, char** argv)
   window::CreateInfo create_info;
   create_info.window_width = 1920;
   create_info.window_height = 1080;
-  gfx::Initialize(create_info);
+  int window_result = window::Create("Space", create_info);
+  if (!rgg::Initialize()) return 1;
   audio::Initialize();
 
   v2f size = window::GetWindowSize();

@@ -61,7 +61,7 @@ static v3f kCameraPosition(-75.f, -75.f, 92.f);
 static const v4f kWoodenBrown(0.521f, 0.368f, 0.258f, 1.0f);
 static const v4f kWoodenBrownFire(1.0f, 0.368f, 0.258f, 1.0f);
 
-static char* kCurrentMap = "asset/test.map";
+static const char* kCurrentMap = "asset/test.map";
 
 // If set will reset the game at the given loop
 static uint64_t kResetGameAt = UINT64_MAX;
@@ -135,6 +135,8 @@ EditorUI()
     imui::End();
   }
 
+  static bool new_map_menu = false;
+
   {
     static bool enable_admin = true;
     static v2f admin_pos = v2f(0.f, screen.y - 500.f);
@@ -152,7 +154,89 @@ EditorUI()
     if (imui::Text("Export Map", to).clicked) {
       MapExport("asset/test.map");
     }
+    if (imui::Text("New Map", to).clicked) {
+      new_map_menu = !new_map_menu;
+    }
     imui::End();
+  }
+
+  {
+    if (new_map_menu) {
+      bool show_new_map_menu = true;
+      static v2f new_map_menu_pos = v2f(screen.x / 2.f, screen.y / 2.f);
+      static uint32_t starting_ttf = 5;
+      imui::PaneOptions options;
+      imui::Begin("New Map", imui::kEveryoneTag, options, &new_map_menu_pos,
+                  &show_new_map_menu);
+      static const float kWidth = 85.f;
+      imui::Space(imui::kVertical, 3.f);
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Map Size");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%ux%u", kMapX, kMapY);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Init TTF");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%u", starting_ttf);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Width");
+      if (imui::Button(15.f, 15.f, v4f(0.f, 0.f, 1.f, 1.f)).clicked) {
+        --kMapX;
+      }
+      imui::Space(imui::kHorizontal, 5.f);
+      if (imui::Button(15.f, 15.f, v4f(0.f, 0.f, 1.f, 1.f)).clicked) {
+        ++kMapX;
+      }
+
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Height");
+      if (imui::Button(15.f, 15.f, v4f(0.f, 0.f, 1.f, 1.f)).clicked) {
+        --kMapY;
+      }
+
+      imui::Space(imui::kHorizontal, 5.f);
+      if (imui::Button(15.f, 15.f, v4f(0.f, 0.f, 1.f, 1.f)).clicked) {
+        ++kMapY;
+      }
+
+      CLAMP(kMapX, 0, kMapMaxX);
+      CLAMP(kMapY, 0, kMapMaxY);
+
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("TTF");
+      if (imui::Button(15.f, 15.f, v4f(0.f, 0.f, 1.f, 1.f)).clicked) {
+        --starting_ttf;
+      }
+
+      imui::Space(imui::kHorizontal, 5.f);
+      if (imui::Button(15.f, 15.f, v4f(0.f, 0.f, 1.f, 1.f)).clicked) {
+        ++starting_ttf;
+      }
+
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+
+      imui::TextOptions text_options;
+      text_options.highlight_color = imui::kRed;
+
+      if (imui::Text("Done", text_options).clicked) {
+        new_map_menu = false;
+      }
+
+      MapInitialize(starting_ttf);
+
+      imui::End();
+    }
   }
 
 

@@ -50,6 +50,23 @@ TilePosToWorld(const v2i& position_map)
 }
 
 void
+MapInitialize(uint32_t starting_ttf)
+{
+  for (int i = 0; i < kMapX; ++i) {
+    for (int j = 0; j < kMapY; ++j) {
+      Tile* tile = &kMap[i][j];
+      tile->turns_to_fire_max = starting_ttf;
+      tile->turns_to_fire = starting_ttf;
+      tile->position_map = v2i(i, j);
+      tile->position_world = TilePosToWorld(tile->position_map);
+      tile->dims = v3f(kTileWidth, kTileHeight, kTileDepth);
+      kMapWidth = MAXF(kMapWidth, tile->position_world.x);
+      kMapHeight = MAXF(kMapHeight, tile->position_world.y);
+    }
+  }
+}
+
+void
 MapLoad(const char* fname)
 {
   memset(&kMap, 0, sizeof(Tile) * kMapMaxX * kMapMaxY);

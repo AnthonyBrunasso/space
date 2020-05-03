@@ -37,7 +37,7 @@ static Tile kDefaultMap[kDefaultMapX][kDefaultMapY] =
 
 static Tile kMap[kMapMaxX][kMapMaxY];
 
-static char kUniqueMapName[64];
+static char kEditMapName[64];
 static uint32_t kMapNum = 0;
 
 v3f
@@ -57,11 +57,11 @@ MapUniqueNameFinder(const char* filename)
       ++kMapNum;
     }
   }
-  strcpy(kUniqueMapName, "asset/level_");
+  strcpy(kEditMapName, "asset/level_");
   char num[8];
   sprintf(num, "%d", kMapNum);
-  strcat(kUniqueMapName, num);
-  strcat(kUniqueMapName, ".map");
+  strcat(kEditMapName, num);
+  strcat(kEditMapName, ".map");
 }
 
 void
@@ -139,6 +139,7 @@ MapLoad(const char* fname)
 void
 MapExport(const char* fname)
 {
+  printf("Exporting %s\n", fname);
   FILE* f = fopen(fname, "w+");
   if (!f) return;
   fprintf(f, "map %s %i %i\n", fname, kMapX, kMapY);

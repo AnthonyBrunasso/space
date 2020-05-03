@@ -66,6 +66,7 @@ static char kCurrentMap[64];
 // If set will reset the game at the given loop
 static uint64_t kResetGameAt = UINT64_MAX;
 static bool kEditorMode = false;
+static bool kEditMapMenu = false;
 
 void
 InitializeCamera()
@@ -110,6 +111,8 @@ LevelFileWalk(const char* filename)
     if (imui::Text(filename, topt).clicked) {
       strcpy(kCurrentMap, filename);
       MapLoad(kCurrentMap);
+      strcpy(kEditMapName, filename);
+      kEditMapMenu = true;
     }
   }
 }
@@ -148,7 +151,6 @@ EditorUI()
     imui::End();
   }
 
-  static bool new_map_menu = false;
 
   {
     static bool enable_admin = true;
@@ -168,7 +170,7 @@ EditorUI()
       MapExport(kCurrentMap);
     }
     if (imui::Text("New Map", to).clicked) {
-      new_map_menu = !new_map_menu;
+      kEditMapMenu = true;
       MapGenerateUniqueName();
     }
     static bool load_map_toggle = false;
@@ -184,19 +186,19 @@ EditorUI()
   }
 
   {
-    if (new_map_menu) {
-      bool show_new_map_menu = true;
-      static v2f new_map_menu_pos = v2f(screen.x / 2.f, screen.y / 2.f);
+    if (kEditMapMenu) {
+      bool show_kEditMapMenu = true;
+      static v2f kEditMapMenu_pos = v2f(screen.x / 2.f, screen.y / 2.f);
       static uint32_t starting_ttf = 5;
       imui::PaneOptions options;
-      imui::Begin("New Map", imui::kEveryoneTag, options, &new_map_menu_pos,
-                  &show_new_map_menu);
+      imui::Begin("Edit Map", imui::kEveryoneTag, options, &kEditMapMenu_pos,
+                  &show_kEditMapMenu);
       static const float kWidth = 100.f;
       imui::Space(imui::kVertical, 3.f);
       imui::SameLine();
       imui::Width(kWidth);
       imui::Text("Map Name");
-      snprintf(kUIBuffer, sizeof(kUIBuffer), "%s", kUniqueMapName);
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%s", kEditMapName);
       imui::Text(kUIBuffer);
       imui::NewLine();
       imui::SameLine();
@@ -259,8 +261,8 @@ EditorUI()
       text_options.highlight_color = imui::kRed;
 
       if (imui::Text("Done", text_options).clicked) {
-        new_map_menu = false;
-        strcpy(kCurrentMap, kUniqueMapName);
+        kEditMapMenu = false;
+        strcpy(kCurrentMap, kEditMapName);
       }
 
       MapInitialize(starting_ttf);
@@ -269,13 +271,13 @@ EditorUI()
     }
   }
 
-
+#if UIDEBUG
   {
     static bool enable_debug = false;
     static v2f ui_pos(300.f, screen.y);
     imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
   }
-
+#endif
 }
 
 void
@@ -627,6 +629,7 @@ main(int argc, char** argv)
             case 27 /* ESC */: {
               exit(1);
             } break;
+            case -64:  // TODO: Unexpected windows code for tick.
             case '`': {
               kEditorMode = !kEditorMode;
             } break;

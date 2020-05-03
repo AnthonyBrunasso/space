@@ -1,0 +1,202 @@
+map asset/level_2.map 10 10
+tile 0 0
+ttf 7
+tile 0 1
+ttf 3
+tile 0 2
+ttf 2
+tile 0 3
+ttf 1
+tile 0 4
+ttf 2
+tile 0 5
+ttf 3
+tile 0 6
+ttf 30
+tile 0 7
+ttf 30
+tile 0 8
+ttf 30
+tile 0 9
+ttf 30
+tile 1 0
+ttf 7
+tile 1 1
+ttf 3
+tile 1 2
+ttf 2
+tile 1 3
+ttf 2
+tile 1 4
+ttf 2
+tile 1 5
+ttf 3
+tile 1 6
+ttf 30
+tile 1 7
+ttf 30
+tile 1 8
+ttf 30
+tile 1 9
+ttf 30
+tile 2 0
+ttf 7
+tile 2 1
+ttf 3
+tile 2 2
+ttf 3
+tile 2 3
+ttf 3
+tile 2 4
+ttf 3
+tile 2 5
+ttf 3
+tile 2 6
+ttf 30
+tile 2 7
+ttf 10
+tile 2 8
+ttf 30
+tile 2 9
+ttf 30
+tile 3 0
+ttf 7
+tile 3 1
+ttf 7
+tile 3 2
+ttf 7
+tile 3 3
+ttf 5
+tile 3 4
+ttf 30
+tile 3 5
+ttf 30
+tile 3 6
+ttf 30
+tile 3 7
+ttf 9
+tile 3 8
+ttf 9
+tile 3 9
+ttf 30
+tile 4 0
+ttf 7
+tile 4 1
+ttf 7
+tile 4 2
+ttf 4
+tile 4 3
+ttf 30
+tile 4 4
+ttf 30
+tile 4 5
+ttf 30
+tile 4 6
+ttf 30
+tile 4 7
+ttf 8
+tile 4 8
+ttf 8
+tile 4 9
+ttf 30
+tile 5 0
+ttf 3
+tile 5 1
+ttf 3
+tile 5 2
+ttf 3
+tile 5 3
+ttf 4
+tile 5 4
+ttf 4
+tile 5 5
+ttf 5
+tile 5 6
+ttf 7
+tile 5 7
+ttf 7
+tile 5 8
+ttf 8
+tile 5 9
+ttf 30
+tile 6 0
+ttf 2
+tile 6 1
+ttf 2
+tile 6 2
+ttf 3
+tile 6 3
+ttf 30
+tile 6 4
+ttf 30
+tile 6 5
+ttf 30
+tile 6 6
+ttf 18
+tile 6 7
+ttf 15
+tile 6 8
+ttf 14
+tile 6 9
+ttf 30
+tile 7 0
+ttf 1
+tile 7 1
+ttf 2
+tile 7 2
+ttf 3
+tile 7 3
+ttf 30
+tile 7 4
+ttf 30
+tile 7 5
+ttf 30
+tile 7 6
+ttf 30
+flag destination
+tile 7 7
+ttf 30
+tile 7 8
+ttf 30
+tile 7 9
+ttf 30
+tile 8 0
+ttf 2
+tile 8 1
+ttf 2
+tile 8 2
+ttf 3
+tile 8 3
+ttf 30
+tile 8 4
+ttf 30
+tile 8 5
+ttf 30
+tile 8 6
+ttf 30
+tile 8 7
+ttf 30
+tile 8 8
+ttf 16
+tile 8 9
+ttf 16
+tile 9 0
+ttf 3
+tile 9 1
+ttf 3
+tile 9 2
+ttf 3
+tile 9 3
+ttf 30
+tile 9 4
+ttf 30
+tile 9 5
+ttf 30
+tile 9 6
+ttf 30
+tile 9 7
+ttf 30
+tile 9 8
+ttf 16
+tile 9 9
+ttf 15

@@ -14,6 +14,10 @@ constexpr float kTileHeight = 25.f;
 constexpr float kTileDepth = 4.f;
 constexpr int kMaxTileNeighbor = 8;
 
+enum TileFlags {
+  kTileDestination,
+};
+
 struct Tile {
   Tile() = default;
   Tile(uint32_t turns_to_fire)
@@ -23,6 +27,7 @@ struct Tile {
   v3f dims;
   uint32_t turns_to_fire;
   uint32_t turns_to_fire_max;
+  uint32_t flags;
 };
 
 constexpr uint32_t kDefaultMapX = 5;
@@ -132,7 +137,15 @@ MapLoad(const char* fname)
       t->dims = v3f(kTileWidth, kTileHeight, kTileDepth);
       kMapWidth = MAXF(kMapWidth, t->position_world.x);
       kMapHeight = MAXF(kMapHeight, t->position_world.y);
-    } else { continue; }  // Unrecognized line
+    } else if (strcmp(line, "flag") == 0) {
+      assert(t);
+      char flag_name[32] = {};
+      fscanf(f, "%s\n", flag_name);
+      if (strcmp(flag_name, "destination") == 0) {
+        SBIT(t->flags, kTileDestination);
+      }
+    }
+    else { continue; }  // Unrecognized line
   }
   fclose(f);
 }
@@ -149,7 +162,25 @@ MapExport(const char* fname)
       Tile* tile = &kMap[i][j];
       fprintf(f, "tile %i %i\n", tile->position_map.x, tile->position_map.y);
       fprintf(f, "ttf %i\n", tile->turns_to_fire_max);
+      if (FLAGGED(tile->flags, kTileDestination)) {
+        fprintf(f, "flag destination\n");
+      }
     }
   }
   fclose(f);
 }
+
+void
+MapSetNextLevel(char* current_map)
+{
+  uint32_t lvl_num;
+  sscanf(current_map, "asset/level_%u.map", &lvl_num);
+  lvl_num++;
+  char num[8];
+  sprintf(num, "%d", lvl_num);
+  strcpy(current_map, "asset/level_");
+  strcat(current_map, num);
+  strcat(current_map, ".map");
+}
+
+

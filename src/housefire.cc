@@ -220,10 +220,12 @@ EditorUI()
       imui::Text("Width");
       if (imui::Button(15.f, 15.f, v4f(0.f, 0.f, 1.f, 1.f)).clicked) {
         --kMapX;
+        MapInitialize(starting_ttf);
       }
       imui::Space(imui::kHorizontal, 5.f);
       if (imui::Button(15.f, 15.f, v4f(0.f, 0.f, 1.f, 1.f)).clicked) {
         ++kMapX;
+        MapInitialize(starting_ttf);
       }
 
       imui::NewLine();
@@ -232,11 +234,13 @@ EditorUI()
       imui::Text("Height");
       if (imui::Button(15.f, 15.f, v4f(0.f, 0.f, 1.f, 1.f)).clicked) {
         --kMapY;
+        MapInitialize(starting_ttf);
       }
 
       imui::Space(imui::kHorizontal, 5.f);
       if (imui::Button(15.f, 15.f, v4f(0.f, 0.f, 1.f, 1.f)).clicked) {
         ++kMapY;
+        MapInitialize(starting_ttf);
       }
 
       kMapX = CLAMP(kMapX, 0, kMapMaxX);
@@ -248,11 +252,13 @@ EditorUI()
       imui::Text("TTF");
       if (imui::Button(15.f, 15.f, v4f(0.f, 0.f, 1.f, 1.f)).clicked) {
         --starting_ttf;
+        MapInitialize(starting_ttf);
       }
 
       imui::Space(imui::kHorizontal, 5.f);
       if (imui::Button(15.f, 15.f, v4f(0.f, 0.f, 1.f, 1.f)).clicked) {
         ++starting_ttf;
+        MapInitialize(starting_ttf);
       }
 
       imui::NewLine();
@@ -267,8 +273,6 @@ EditorUI()
         strcpy(kCurrentMap, kEditMapName);
       }
 
-      MapInitialize(starting_ttf);
-
       imui::End();
     }
   }
@@ -280,6 +284,9 @@ EditorUI()
       imui::PaneOptions options;
       imui::Begin("Edit Tile", imui::kEveryoneTag, options, &edit_tile_pos,
                   &kEditTileMenu);
+      rgg::DebugPushCube(Cubef(kEditTile->position_world,
+                               kEditTile->dims + v3f(2.f, 2.f, 2.f)),
+                         imui::kRed);
       snprintf(kUIBuffer, sizeof(kUIBuffer), "Tile %u %u",
                kEditTile->position_map.x, kEditTile->position_map.y);
       imui::Text(kUIBuffer);
@@ -299,23 +306,47 @@ EditorUI()
         kEditTile->turns_to_fire = kEditTile->turns_to_fire_max;
       }
       imui::NewLine();
+      imui::SameLine();
+      imui::Width(80.f);
+      imui::Text("Preset");
+      imui::TextOptions to;
+      to.color = imui::kWhite;
+      to.highlight_color = imui::kRed;
+      if (imui::Text("1 ", to).clicked) {
+        kEditTile->turns_to_fire_max = 1;
+        kEditTile->turns_to_fire = kEditTile->turns_to_fire_max;
+      }
+      if (imui::Text("5 ", to).clicked) {
+        kEditTile->turns_to_fire_max = 5;
+        kEditTile->turns_to_fire = kEditTile->turns_to_fire_max;
+      }
+      if (imui::Text("10 ", to).clicked) {
+        kEditTile->turns_to_fire_max = 10;
+        kEditTile->turns_to_fire = kEditTile->turns_to_fire_max;
+      }
+      if (imui::Text("15 ", to).clicked) {
+        kEditTile->turns_to_fire_max = 15;
+        kEditTile->turns_to_fire = kEditTile->turns_to_fire_max;
+      }
+      if (imui::Text("20 ", to).clicked) {
+        kEditTile->turns_to_fire_max = 20;
+        kEditTile->turns_to_fire = kEditTile->turns_to_fire_max;
+      }
+      imui::NewLine();
+      imui::SameLine();
+      bool is_destination = FLAGGED(kEditTile->flags, kTileDestination);
+      imui::Checkbox(17.f, 17.f, &is_destination);
+      imui::Space(imui::kHorizontal, 2.f);
+      imui::Text("Destination");
+      if (is_destination) {
+        SBIT(kEditTile->flags, kTileDestination);
+      } else {
+        CBIT(kEditTile->flags, kTileDestination);
+      }
       imui::End();
     }
   }
 
-#if UIDEBUG
-  {
-    static bool enable_debug = false;
-    static v2f ui_pos(300.f, screen.y);
-    imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
-  }
-#endif
-}
-
-void
-DebugUI()
-{
-  v2f screen = window::GetWindowSize();
   {
     static bool enable_debug = true;
     static v2f diagnostics_pos(3.f, screen.y);
@@ -372,6 +403,13 @@ DebugUI()
     imui::End();
   }
 
+#if UIDEBUG
+  {
+    static bool enable_debug = false;
+    static v2f ui_pos(300.f, screen.y);
+    imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
+  }
+#endif
 }
 
 bool
@@ -467,11 +505,16 @@ ProcessWorldTurn()
   for (int i = 0; i < kMapX; ++i) {
     for (int j = 0; j < kMapY; ++j) {
       if (kMap[i][j].turns_to_fire) kMap[i][j].turns_to_fire--;
+      if (FLAGGED(kMap[i][j].flags, kTileDestination) &&
+          kPlayer.position_map == v2i(i, j)) {
+        MapSetNextLevel(kCurrentMap);
+        kResetGameAt = kGameState.game_updates + 100;
+      }
       if (!kMap[i][j].turns_to_fire) {
         if (kPlayer.position_map == v2i(i, j)) {
           // Player died - reset the game in N game updates so player
           // can see they are standing in fire.
-          kResetGameAt = kGameState.game_updates + 30;
+          kResetGameAt = kGameState.game_updates + 100;
         }
       }
     }
@@ -553,6 +596,19 @@ EditUpdate()
   }
 }
 
+bool
+AdjacentTileBlocked(Tile* t)
+{
+  if (!t) return false;
+  for (int i = 0; i < kMaxTileNeighbor; ++i) {
+    v2i pn = TileNeighbor(t->position_map, i);
+    if (!search::IsInMap(pn, v2i(kMapX, kMapY))) continue;
+    Tile* nt = &kMap[pn.x][pn.y];
+    if (!nt->turns_to_fire) return true;
+  }
+  return false;
+}
+
 void
 Render()
 {
@@ -562,10 +618,18 @@ Render()
     for (int j = 0; j < kMapY; ++j) {
       Tile* t = &kMap[i][j];
       if (t->turns_to_fire) {
-        float lerpt = 1.f - (float)t->turns_to_fire / (float)t->turns_to_fire_max;
-        rgg::RenderCube(
-            Cubef(t->position_world, t->dims),
-            math::Lerp(kWoodenBrown, kWoodenBrownFire, lerpt));
+        float lerpt = 0.f;
+        if (AdjacentTileBlocked(t) || t->turns_to_fire == 1) {
+          lerpt = 1.f - (float)t->turns_to_fire / (float)t->turns_to_fire_max;
+        }
+        if (FLAGGED(t->flags, kTileDestination)) {
+          rgg::RenderCube(Cubef(t->position_world, t->dims),
+                          v4f(.33f, .77f, .11f, 1.f));
+        } else {
+          rgg::RenderCube(
+              Cubef(t->position_world, t->dims),
+              math::Lerp(kWoodenBrown, kWoodenBrownFire, lerpt));
+        }
       } else {
         static float zd[kMapMaxX][kMapMaxY] = {};  // LOL
         static const uint32_t kDumbMod = 10;
@@ -688,13 +752,11 @@ main(int argc, char** argv)
         rgg::GetObserver()->position = rgg::CameraPosition();
       }
     }
-    
-    DebugUI();
 
     // If game not meant to reset...
     if (!kEditorMode && kResetGameAt == UINT64_MAX) {
       GameUpdate();
-    } else {
+    } else if (kEditorMode) {
       EditUpdate();
     }
 

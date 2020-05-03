@@ -67,6 +67,8 @@ static char kCurrentMap[64];
 static uint64_t kResetGameAt = UINT64_MAX;
 static bool kEditorMode = false;
 static bool kEditMapMenu = false;
+static bool kEditTileMenu = false;
+static Tile* kEditTile = nullptr;
 
 void
 InitializeCamera()
@@ -271,6 +273,36 @@ EditorUI()
     }
   }
 
+  {
+    if (kEditTileMenu && kEditTile) {
+      static v2f edit_tile_pos = v2f(screen.x / 2.f, screen.y / 2.f);
+      static uint32_t starting_ttf = 5;
+      imui::PaneOptions options;
+      imui::Begin("Edit Tile", imui::kEveryoneTag, options, &edit_tile_pos,
+                  &kEditTileMenu);
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "Tile %u %u",
+               kEditTile->position_map.x, kEditTile->position_map.y);
+      imui::Text(kUIBuffer);
+      //constexpr float width = 80.f;
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "TTF %u ",
+               kEditTile->turns_to_fire_max);
+      imui::SameLine();
+      imui::Width(80.f);
+      imui::Text(kUIBuffer);
+      if (imui::Button(15.f, 15.f, v4f(0.f, 0.f, 1.f, 1.f)).clicked) {
+        --kEditTile->turns_to_fire_max;
+        kEditTile->turns_to_fire = kEditTile->turns_to_fire_max;
+      }
+      imui::Space(imui::kHorizontal, 5.f);
+      if (imui::Button(15.f, 15.f, v4f(0.f, 0.f, 1.f, 1.f)).clicked) {
+        ++kEditTile->turns_to_fire_max;
+        kEditTile->turns_to_fire = kEditTile->turns_to_fire_max;
+      }
+      imui::NewLine();
+      imui::End();
+    }
+  }
+
 #if UIDEBUG
   {
     static bool enable_debug = false;
@@ -406,7 +438,7 @@ DebugRenderOnTile(const v2i& pos, const v4f& color)
 }
 
 Tile*
-TileHover(const v2f& cursor, v2i* possible_move, uint32_t possible_move_count)
+TileHover(const v2f& cursor)
 {
   v3f cray = rgg::CameraRayFromMouse(cursor);
   float d = 0;
@@ -422,29 +454,6 @@ TileHover(const v2f& cursor, v2i* possible_move, uint32_t possible_move_count)
             // One likely calculating from middle and other bottom left.
             res.xy() + v2f(kTileWidth / 2.f, kTileHeight / 2.f),
             Rectf(tile->position_world.xy(), tile->dims.xy()))) {
-        static float depth = 1.f;
-        v4f color = v4f(0.f, .99f, .33f, 1.f);
-        if (TileIsBlocked(tile->position_map)) {
-          color = v4f(0.99f, 0.f, .33f, 1.f);
-        } else if (!CanMoveTo(
-            tile->position_map, possible_move, possible_move_count)) {
-          search::BfsIterator bfs_itr = SetupBfsIterator(kPlayer.position_map);
-          search::Path* path = search::BfsPathTo(&bfs_itr, tile->position_map);
-          if (path && path->size > 0) {
-            for (int i = 0; i < path->size; ++i) {
-              Tile* t = &kMap[path->queue[i].x][path->queue[i].y];
-              rgg::DebugPushCube(
-                  Cubef(t->position_world.x, t->position_world.y, 0.f,
-                        t->dims.x, t->dims.y, .1f),
-                        v4f(0.5f, 0.5f, 0.5f, 1.f));
-            }
-          }
-          color = v4f(0.3f, .3f, .3f, 0.f);
-        }
-        
-        rgg::DebugPushCube(
-            Cubef(tile->position_world.x, tile->position_world.y, 0.f,
-                  tile->dims.x, tile->dims.y, .1f), color);
         return tile;
       }
     }
@@ -484,42 +493,64 @@ GameUpdate()
       possible_move[possible_move_count++] = bfs_itr.current;
     }
   }
-  Tile* hovered_tile = TileHover(cursor, possible_move, possible_move_count);
-  if (hovered_tile) {
-#if 0
-    bfs_itr = SetupBfsIterator(kPlayer.position_map);
-    search::Path* path =
-      search::BfsPathTo(&bfs_itr, hovered_tile->position_map);
-    if (path && path->size > 0) {
-      for (int i = 0; i < path->size; ++i) {
-        DebugRenderOnTile(path->queue[i], v4f(0.f, 0.f, 1.f, 1.f));
+  Tile* tile = TileHover(cursor);
+  if (tile) {
+    static float depth = 1.f;
+    v4f color = v4f(0.f, .99f, .33f, 1.f);
+    if (TileIsBlocked(tile->position_map)) {
+      color = v4f(0.99f, 0.f, .33f, 1.f);
+    } else if (!CanMoveTo(
+        tile->position_map, possible_move, possible_move_count)) {
+      search::BfsIterator bfs_itr = SetupBfsIterator(kPlayer.position_map);
+      search::Path* path = search::BfsPathTo(&bfs_itr, tile->position_map);
+      if (path && path->size > 0) {
+        for (int i = 0; i < path->size; ++i) {
+          Tile* t = &kMap[path->queue[i].x][path->queue[i].y];
+          rgg::DebugPushCube(
+              Cubef(t->position_world.x, t->position_world.y, 0.f,
+                    t->dims.x, t->dims.y, .1f),
+                    v4f(0.5f, 0.5f, 0.5f, 1.f));
+        }
       }
+      color = v4f(0.3f, .3f, .3f, 0.f);
     }
-#endif
-    v2i tp = hovered_tile->position_map;
+    
+    rgg::DebugPushCube(
+        Cubef(tile->position_world.x, tile->position_world.y, 0.f,
+              tile->dims.x, tile->dims.y, .1f), color);
+
+    v2i tp = tile->position_map;
     if (kLeftClickDown && !TileIsBlocked(tp)) {
       bool can_move = CanMoveTo(tp, possible_move, possible_move_count);
       if (!can_move) {
         printf("Unable to move to %i,%i\n", tp.x, tp.y);
       } else {
         v2f delta =
-          hovered_tile->position_world.xy() - kPlayer.position_world.xy();
+          tile->position_world.xy() - kPlayer.position_world.xy();
         rgg::CameraMove(delta);
-        kPlayer.position_world.xy() = hovered_tile->position_world.xy();
+        kPlayer.position_world.xy() = tile->position_world.xy();
         kPlayer.position_map = tp;
         ProcessWorldTurn();
       }
     }
   }
-
-  // Only allow the left click to work in game update for a single call.
-  kLeftClickDown = false;
 }
 
 void
 EditUpdate()
 {
+  v2f cursor = window::GetCursorPosition();
   EditorUI();
+  Tile* tile = TileHover(cursor);
+  if (tile && !imui::MouseInUI(imui::kEveryoneTag)) {
+    rgg::DebugPushCube(
+        Cubef(tile->position_world.x, tile->position_world.y, 0.f,
+              tile->dims.x, tile->dims.y, .1f), v4f(0.f, 1.f, 0.f, 1.f));
+    if (kLeftClickDown) {
+      kEditTile = tile;
+      kEditTileMenu = true;
+    }
+  }
 }
 
 void
@@ -629,7 +660,7 @@ main(int argc, char** argv)
             case 27 /* ESC */: {
               exit(1);
             } break;
-            case -64:  // TODO: Unexpected windows code for tick.
+            case -64:  // TODO: Unexpected windows code for '`'.
             case '`': {
               kEditorMode = !kEditorMode;
             } break;
@@ -666,6 +697,10 @@ main(int argc, char** argv)
     } else {
       EditUpdate();
     }
+
+    // Left clicks should only be processed for the single frame.
+    kLeftClickDown = false;
+
 
     if (kGameState.game_updates >= kResetGameAt) {
       ResetGame();

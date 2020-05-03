@@ -134,6 +134,7 @@ MapLoad(const char* fname)
       kMapHeight = MAXF(kMapHeight, t->position_world.y);
     } else { continue; }  // Unrecognized line
   }
+  fclose(f);
 }
 
 void

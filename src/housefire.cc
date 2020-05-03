@@ -745,13 +745,11 @@ main(int argc, char** argv)
       
       if (!is_mouse_in_ui) {
         rgg::CameraUpdateEvent(event);
-        rgg::GetObserver()->view = rgg::CameraView();
-        // This is really the lightl position...
         v3f xyforward = math::Normalize(rgg::CameraDirection().xy());
-        //rgg::GetObserver()->position = rgg::CameraPosition() + xyforward * 500.f;
-        rgg::GetObserver()->position = rgg::CameraPosition();
       }
     }
+    rgg::GetObserver()->view = rgg::CameraView();
+    rgg::GetObserver()->position = rgg::CameraPosition();
 
     // If game not meant to reset...
     if (!kEditorMode && kResetGameAt == UINT64_MAX) {

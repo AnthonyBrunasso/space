@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <ctime>
 
+// TODO: This should be broken up into unix/win32_clock.
+
 #ifdef _WIN32
 #include <windows.h>
 #include <profileapi.h>
@@ -84,9 +86,6 @@ __estimate_tsc_per_usec()
 void
 __init_tsc_per_usec()
 {
-#ifdef _WIN32
-  return;
-#endif
   if (median_tsc_per_usec) return;
 
   int kernel_tsc_khz = 0;

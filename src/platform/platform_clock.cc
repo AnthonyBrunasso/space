@@ -3,6 +3,11 @@
 #include <cstdio>
 #include <ctime>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <profileapi.h>
+#endif
+
 #ifdef __APPLE__
 #include <sys/sysctl.h>
 #endif
@@ -13,6 +18,9 @@ EXTERN(uint64_t median_tsc_per_usec);
 EXTERN(uint64_t median_usec_per_tsc);
 
 typedef struct {
+#ifdef _WIN32
+  uint64_t frequency;
+#endif
   // The ideal advacement cadence of tsc_clock
   uint64_t tsc_step;
   // Count the time rhythmic progression was lost
@@ -76,6 +84,9 @@ __estimate_tsc_per_usec()
 void
 __init_tsc_per_usec()
 {
+#ifdef _WIN32
+  return;
+#endif
   if (median_tsc_per_usec) return;
 
   int kernel_tsc_khz = 0;
@@ -116,16 +127,29 @@ __init_tsc_per_usec()
 }
 
 static uint64_t
-__tscdelta_to_usec(uint64_t delta_tsc)
+__tscdelta_to_usec(const TscClock_t *clock, uint64_t delta_tsc)
 {
+#ifdef _WIN32
+  return (delta_tsc * 1e6) / clock->frequency;
+#else
   return (delta_tsc * median_usec_per_tsc) >> 33ull;
+#endif
 }
 
 void
 clock_init(uint64_t frame_goal_usec, TscClock_t *out_clock)
 {
+#ifdef _WIN32
+  LARGE_INTEGER now, freq;
+  QueryPerformanceFrequency(&freq);
+  QueryPerformanceCounter(&now);
+  out_clock->frequency = freq.QuadPart;
+  out_clock->tsc_step = (frame_goal_usec * out_clock->frequency) / 1e6;
+  out_clock->jerk = 0;
+  out_clock->tsc_clock = now.QuadPart;
+  out_clock->frame_to_frame_tsc = now.QuadPart;
+#else
   __init_tsc_per_usec();
-
   // Calculate the step
   out_clock->tsc_step = frame_goal_usec * median_tsc_per_usec;
   // Init to current time
@@ -133,25 +157,40 @@ clock_init(uint64_t frame_goal_usec, TscClock_t *out_clock)
   out_clock->jerk = 0;
   out_clock->tsc_clock = now;
   out_clock->frame_to_frame_tsc = now;
+#endif
 }
 
 uint64_t
 clock_delta_usec(const TscClock_t *clock)
 {
-  return __tscdelta_to_usec(rdtsc() - clock->frame_to_frame_tsc);
+#ifdef _WIN32
+  LARGE_INTEGER now;
+  QueryPerformanceCounter(&now);
+  uint64_t elapsed_micro = now.QuadPart - clock->frame_to_frame_tsc;
+  elapsed_micro *= 1e6;
+  return elapsed_micro / clock->frequency;
+#else
+  return __tscdelta_to_usec(clock, rdtsc() - clock->frame_to_frame_tsc);
+#endif
 }
 
 bool
 clock_sync(TscClock_t *clock, uint64_t *optional_sleep_usec)
 {
+#ifdef _WIN32
+  LARGE_INTEGER now;
+  QueryPerformanceCounter(&now);
+  uint64_t tsc_now = now.QuadPart;
+#else
   uint64_t tsc_now = rdtsc();
+#endif
   uint64_t tsc_previous = clock->tsc_clock;
   uint64_t tsc_next = tsc_previous + clock->tsc_step;
 
   if (tsc_next - tsc_now < clock->tsc_step) {
     // no-op, busy wait
     // optional sleep time
-    *optional_sleep_usec = __tscdelta_to_usec(tsc_next - tsc_now);
+    *optional_sleep_usec = __tscdelta_to_usec(clock, tsc_next - tsc_now);
     return false;
   } else if (tsc_now - tsc_next <= clock->tsc_step) {
     // frame slightly over goal time

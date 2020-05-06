@@ -19,10 +19,6 @@ struct State {
   uint64_t framerate = 60;
   // Calculated available microseconds per game_update
   uint64_t frame_target_usec;
-  // Game clock state
-  platform::Clock game_clock;
-  // Time it took to run a frame.
-  uint64_t frame_time_usec = 0;
   // Estimate of gime passed since game start.
   uint64_t game_time_usec = 0;
   // Estimated frames per second.
@@ -419,7 +415,7 @@ GraphicsInitialize(const window::CreateInfo& window_create_info)
 {
   int window_result = window::Create("Space", window_create_info);
   if (!rgg::Initialize()) return false;
-  if (!rgg::LoadOBJ("asset/flametotry.obj", &kFireMesh)) {
+  if (!rgg::LoadOBJ("asset/fire.obj", &kFireMesh)) {
     printf("Unable to load fire.obj\n");
     return false;
   } 
@@ -664,6 +660,8 @@ Render()
 int
 main(int argc, char** argv)
 {
+  platform::Clock game_clock;
+
 #if __APPLE__
   kGameState.window_create_info.window_width = 1280;
   kGameState.window_create_info.window_height = 720;
@@ -705,10 +703,9 @@ main(int argc, char** argv)
   window::SwapBuffers();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  kGameState.game_clock = platform::ClockCreate(kGameState.frame_target_usec);
-  printf("median_tsc_per_usec %lu\n", median_tsc_per_usec);
-
   while (1) {
+    platform::ClockStart(&game_clock);
+
     imui::ResetTag(imui::kEveryoneTag);
     rgg::DebugReset();
 
@@ -769,23 +766,20 @@ main(int argc, char** argv)
     }
     
     Render();
-        
-    const uint64_t elapsed_usec =
-        platform::ClockDeltaUsec(kGameState.game_clock);
-    kGameState.frame_time_usec = elapsed_usec;
+    
+    window::SwapBuffers();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+    const uint64_t elapsed_usec = platform::ClockEnd(&game_clock) / 1e4;
+
     StatsAdd(elapsed_usec, &kGameStats);
     kGameState.game_time_usec += elapsed_usec;
 
-    window::SwapBuffers();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    uint64_t sleep_usec = 0;
-    uint64_t sleep_count = kGameState.sleep_on_loop;
-    while (!platform::ClockSync(&kGameState.game_clock, &sleep_usec)) {
-      while (sleep_count) {
-        --sleep_count;
-        platform::sleep_usec(sleep_usec);
-        kGameState.game_time_usec += sleep_usec;
-      }
+    if (kGameState.frame_target_usec > elapsed_usec) {
+      uint64_t sleep_usec = kGameState.frame_target_usec - elapsed_usec;
+      platform::sleep_usec(sleep_usec);
+      kGameState.game_time_usec += sleep_usec;
     }
 
     kGameState.game_updates++;

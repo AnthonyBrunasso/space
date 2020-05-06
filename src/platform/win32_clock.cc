@@ -20,7 +20,6 @@ ClockCreate(uint64_t frame_goal_usec)
   clock.frequency = freq.QuadPart;
   clock.tsc_step = (frame_goal_usec * clock.frequency) / 1e6;
   clock.jerk = 0;
-  clock.tsc_clock = now.QuadPart;
   clock.frame_to_frame_tsc = now.QuadPart;
   return clock;
 }

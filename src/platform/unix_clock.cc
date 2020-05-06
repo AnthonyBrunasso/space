@@ -1,5 +1,7 @@
 #pragma once
 
+#include <time.h>
+
 namespace platform
 {
 

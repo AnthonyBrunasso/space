@@ -1,9 +1,5 @@
 #pragma once
 
-#ifndef _WIN32
-#include <time.h>
-#endif
-
 namespace platform {
 
 // Exact implementation dependent on platform.

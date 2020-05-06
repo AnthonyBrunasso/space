@@ -142,6 +142,7 @@ clock_init(uint64_t frame_goal_usec, TscClock_t *out_clock)
   LARGE_INTEGER now, freq;
   QueryPerformanceFrequency(&freq);
   QueryPerformanceCounter(&now);
+  printf("Frequency: %llu\n", freq.QuadPart);
   out_clock->frequency = freq.QuadPart;
   out_clock->tsc_step = (frame_goal_usec * out_clock->frequency) / 1e6;
   out_clock->jerk = 0;

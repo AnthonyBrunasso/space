@@ -20,7 +20,7 @@ struct State {
   // Calculated available microseconds per game_update
   uint64_t frame_target_usec;
   // Game clock state
-  TscClock_t game_clock;
+  platform::Clock game_clock;
   // Time it took to run a frame.
   uint64_t frame_time_usec = 0;
   // Estimate of gime passed since game start.
@@ -419,7 +419,7 @@ GraphicsInitialize(const window::CreateInfo& window_create_info)
 {
   int window_result = window::Create("Space", window_create_info);
   if (!rgg::Initialize()) return false;
-  if (!rgg::LoadOBJ("asset/fire.obj", &kFireMesh)) {
+  if (!rgg::LoadOBJ("asset/flametotry.obj", &kFireMesh)) {
     printf("Unable to load fire.obj\n");
     return false;
   } 
@@ -705,7 +705,7 @@ main(int argc, char** argv)
   window::SwapBuffers();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  clock_init(kGameState.frame_target_usec, &kGameState.game_clock);
+  kGameState.game_clock = platform::ClockCreate(kGameState.frame_target_usec);
   printf("median_tsc_per_usec %lu\n", median_tsc_per_usec);
 
   while (1) {
@@ -770,7 +770,8 @@ main(int argc, char** argv)
     
     Render();
         
-    const uint64_t elapsed_usec = clock_delta_usec(&kGameState.game_clock);
+    const uint64_t elapsed_usec =
+        platform::ClockDeltaUsec(kGameState.game_clock);
     kGameState.frame_time_usec = elapsed_usec;
     StatsAdd(elapsed_usec, &kGameStats);
     kGameState.game_time_usec += elapsed_usec;
@@ -779,7 +780,7 @@ main(int argc, char** argv)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     uint64_t sleep_usec = 0;
     uint64_t sleep_count = kGameState.sleep_on_loop;
-    while (!clock_sync(&kGameState.game_clock, &sleep_usec)) {
+    while (!platform::ClockSync(&kGameState.game_clock, &sleep_usec)) {
       while (sleep_count) {
         --sleep_count;
         platform::sleep_usec(sleep_usec);

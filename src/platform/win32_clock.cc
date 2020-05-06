@@ -6,47 +6,42 @@
 namespace platform
 {
 
-Clock
-ClockCreate(uint64_t frame_goal_usec)
+static volatile uint64_t kClockFrequency = 0;
+
+void
+ClockStart(Clock* clock)
 {
-  LARGE_INTEGER now, freq;
-  if (!QueryPerformanceFrequency(&freq)) {
-    printf("Issue querying performance frequency\n");
+  if (!kClockFrequency) {
+    LARGE_INTEGER freq;
+    if (!QueryPerformanceFrequency(&freq)) {
+      printf("Issue querying performance frequency\n");
+      kClockFrequency = freq.QuadPart;
+    }
   }
+
+  LARGE_INTEGER now;
   if (!QueryPerformanceCounter(&now)) {
     printf("Issue querying performance counter\n");
   }
-  Clock clock;
-  clock.frequency = freq.QuadPart;
-  clock.tsc_step = (frame_goal_usec * clock.frequency) / 1e6;
-  clock.jerk = 0;
-  clock.frame_to_frame_tsc = now.QuadPart;
-  return clock;
-}
-
-
-uint64_t
-ClockDeltaUsec(const Clock& clock)
-{
-  LARGE_INTEGER now;
-  QueryPerformanceCounter(&now);
-  uint64_t elapsed_micro = now.QuadPart - clock.frame_to_frame_tsc;
-  elapsed_micro *= 1e6;
-  return elapsed_micro / clock.frequency;
+  clock->start = now.QuadPart;
 }
 
 uint64_t
-TscDeltaToUsec(const Clock& clock, uint64_t delta_tsc)
-{
-  return (delta_tsc * 1e6) / clock.frequency;
-}
-
-bool
-ClockSync(Clock* clock, uint64_t* optional_sleep_usec)
+ClockEnd(Clock* clock)
 {
   LARGE_INTEGER now;
-  QueryPerformanceCounter(&now);
-  return ClockSync(now.QuadPart, clock, optional_sleep_usec);
+  if (!QueryPerformanceCounter(&now)) {
+    printf("Issue querying performance counter\n");
+  }
+  clock->end = now.QuadPart;
+  return ClockDeltaNsec(clock);
+}
+
+uint64_t
+ClockDeltaNsec(const Clock& clock)
+{
+  uint64_t elapsed_nano = (clock.end - clock.start) * 1e9;
+  return elapsed_nano / kClockFrequency;
 }
 
 }

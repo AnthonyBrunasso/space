@@ -4,23 +4,23 @@
 namespace platform
 {
 int
-sleep_sec(uint64_t sec)
+SleepSec(uint64_t sec)
 {
   Sleep(sec * 1000);
   return 1;
 }
 
 int
-sleep_ms(uint64_t duration)
+SleepMs(uint64_t duration)
 {
   Sleep(duration);
   return 1;
 }
 
 int
-sleep_usec(uint64_t usec)
+SleepUsec(uint64_t usec)
 {
-  sleep_ms(usec / 1000);
+  SleepMs(usec / 1000);
   return 1;
 }
 }  // namespace platform

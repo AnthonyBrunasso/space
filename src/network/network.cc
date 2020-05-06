@@ -133,7 +133,7 @@ NetworkSetup()
         break;
       uint64_t sleep_usec = 0;
       clock_sync(&handshake_clock, &sleep_usec);
-      platform::sleep_usec(sleep_usec);
+      platform::SleepUsec(sleep_usec);
     }
   }
 

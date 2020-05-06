@@ -778,7 +778,7 @@ main(int argc, char** argv)
 
     if (kGameState.frame_target_usec > elapsed_usec) {
       uint64_t sleep_usec = kGameState.frame_target_usec - elapsed_usec;
-      platform::sleep_usec(sleep_usec);
+      platform::SleepUsec(sleep_usec);
       kGameState.game_time_usec += sleep_usec;
     }
 

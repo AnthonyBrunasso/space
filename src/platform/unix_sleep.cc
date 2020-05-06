@@ -5,7 +5,7 @@
 namespace platform
 {
 int
-sleep_sec(uint64_t sec)
+SleepSec(uint64_t sec)
 {
   struct timespec duration;
   duration.tv_sec = sec;
@@ -14,7 +14,7 @@ sleep_sec(uint64_t sec)
 }
 
 int
-sleep_ms(uint64_t msec)
+SleepMs(uint64_t msec)
 {
   struct timespec duration;
   duration.tv_sec = msec / 1000;
@@ -25,7 +25,7 @@ sleep_ms(uint64_t msec)
 // Return -1 if interrupted
 // Return 0 on completed sleep
 int
-sleep_usec(uint64_t usec)
+SleepUsec(uint64_t usec)
 {
   assert(usec < 2 * (1000 * 1000));
 

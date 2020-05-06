@@ -47,8 +47,8 @@ ClockEnd(Clock* clock)
 uint64_t
 ClockDeltaUsec(const Clock& clock)
 {
-  uint64_t elapsed_nano = (clock.end_tick - clock.start_tick) * 1e6;
-  return elapsed_nano / kClockFrequency;
+  uint64_t elapsed = (clock.end_tick - clock.start_tick) * 1e6;
+  return elapsed / kClockFrequency;
 }
 
 }

@@ -607,7 +607,7 @@ CreateNetworkServer(const char* ip, const char* port)
   thread.arg = &thread_param;
   thread_param.ip = ip;
   thread_param.port = port;
-  return platform::thread_create(&thread);
+  return platform::ThreadCreate(&thread);
 }
 
 uint64_t
@@ -615,6 +615,6 @@ WaitForNetworkServer()
 {
   if (!thread.id) return 0;
 
-  platform::thread_join(&thread);
+  platform::ThreadJoin(&thread);
   return thread.return_value;
 }

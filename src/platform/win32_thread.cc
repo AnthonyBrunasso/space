@@ -14,7 +14,7 @@ Win32ThreadFunc(LPVOID lpParam)
 
 
 uint64_t
-thread_id()
+ThreadId()
 {
   // TODO: Replace with intrinsic __readgsqword
   // https://docs.microsoft.com/en-us/cpp/intrinsics/readgsbyte-readgsdword-readgsqword-readgsword?view=vs-2019
@@ -22,7 +22,7 @@ thread_id()
 }
 
 bool
-thread_create(Thread* t)
+ThreadCreate(Thread* t)
 {
   if (t->id) return false;
   t->handle = CreateThread(
@@ -36,13 +36,13 @@ thread_create(Thread* t)
 }
 
 void
-thread_yield()
+ThreadYield()
 {
   SwitchToThread();
 }
 
 bool
-thread_join(Thread* t)
+ThreadJoin(Thread* t)
 {
   WaitForSingleObject(t->handle, INFINITE);
   GetExitCodeThread(t->handle, (LPDWORD)&t->return_value);
@@ -51,14 +51,14 @@ thread_join(Thread* t)
 }
 
 void
-thread_exit(Thread* t, uint64_t value)
+ThreadExit(Thread* t, uint64_t value)
 {
   t->return_value = value;
   ExitThread((DWORD)t->return_value);
 }
 
 bool
-mutex_create(Mutex* m)
+MutexCreate(Mutex* m)
 {
   m->handle = CreateMutex(
       nullptr,      // Default security attributes.
@@ -74,7 +74,7 @@ mutex_create(Mutex* m)
 }
 
 void
-mutex_lock(Mutex* m)
+MutexLock(Mutex* m)
 {
   if (WaitForSingleObject(m->handle, INFINITE) == WAIT_FAILED) {
     printf("mutex_lock error: %d\n", GetLastError());
@@ -82,7 +82,7 @@ mutex_lock(Mutex* m)
 }
 
 void
-mutex_unlock(Mutex* m)
+MutexUnlock(Mutex* m)
 {
   if (!ReleaseMutex(m->handle)) {
     printf("mutex_unlock error: %d\n", GetLastError());
@@ -90,7 +90,7 @@ mutex_unlock(Mutex* m)
 }
 
 void
-mutex_free(Mutex* m)
+MutexFree(Mutex* m)
 {
   CloseHandle(m->handle);
 }

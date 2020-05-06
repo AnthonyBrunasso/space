@@ -26,26 +26,26 @@ struct Mutex {
 namespace platform
 {
 
-uint64_t thread_id();
-bool thread_create(Thread* t);
-void thread_yield();
-bool thread_join(Thread* t);
-void thread_exit(Thread* t, uint64_t value);
+uint64_t ThreadId();
+bool ThreadCreate(Thread* t);
+void ThreadYield();
+bool ThreadJoin(Thread* t);
+void ThreadExit(Thread* t, uint64_t value);
 
-bool mutex_create(Mutex* m);
-void mutex_lock(Mutex* m);
-void mutex_unlock(Mutex* m);
-void mutex_free(Mutex* m);
+bool MutexCreate(Mutex* m);
+void MutexLock(Mutex* m);
+void MutexUnlock(Mutex* m);
+void MutexFree(Mutex* m);
 
 }  // namespace platform
 
 struct LockGuard {
   LockGuard(Mutex* m) : mutex(m) {
-    platform::mutex_lock(mutex);
+    platform::MutexLock(mutex);
   }
 
   ~LockGuard() {
-    platform::mutex_unlock(mutex);
+    platform::MutexUnlock(mutex);
   }
 
  private:

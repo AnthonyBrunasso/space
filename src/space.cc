@@ -376,7 +376,7 @@ main(int argc, char** argv)
     while (!clock_sync(&kGameState.game_clock, &sleep_usec)) {
       while (sleep_count) {
         --sleep_count;
-        platform::sleep_usec(sleep_usec);
+        platform::SleepUsec(sleep_usec);
       };
     }
   }

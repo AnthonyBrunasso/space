@@ -10,48 +10,48 @@ ttf 2
 tile 1 0
 ttf 10
 tile 1 1
-ttf 10
-tile 1 2
-ttf 4
-tile 1 3
 ttf 5
+tile 1 2
+ttf 6
+tile 1 3
+ttf 8
 tile 2 0
 ttf 2
 tile 2 1
 ttf 2
 tile 2 2
-ttf 3
+ttf 2
 tile 2 3
-ttf 10
+ttf 9
 tile 3 0
 ttf 10
 tile 3 1
-ttf 10
+ttf 9
 tile 3 2
-ttf 10
+ttf 8
 tile 3 3
-ttf 10
+ttf 7
 tile 4 0
-ttf 5
+ttf 11
 tile 4 1
 ttf 6
 tile 4 2
-ttf 8
+ttf 6
 tile 4 3
-ttf 10
+ttf 5
 tile 5 0
-ttf 10
+ttf 12
 tile 5 1
-ttf 10
+ttf 8
 tile 5 2
-ttf 10
+ttf 7
 tile 5 3
 ttf 6
 tile 6 0
-ttf 15
+ttf 20
 flag destination
 tile 6 1
-ttf 10
+ttf 8
 tile 6 2
 ttf 5
 tile 6 3

@@ -6,29 +6,21 @@
 
 namespace platform {
 
-struct Clock {
-#ifdef _WIN32
-  // Start tick - Result of QueryPerformanceCounter
-  uint64_t start_tick = 0;
-  // End tick - Result of QueryPerformanceCounter
-  uint64_t end_tick = 0;
-#else
-  // Start tick - Result of clock_gettime(CLOCK_MONOTONIC)
-  struct timespec start;
-  // End tick - Result of clock_gettime(CLOCK_MONOTONIC)
-  struct timespec end;
-#endif
-};
+// Exact implementation dependent on platform.
+// See definitions in win32_clock / unix_clock.
+struct Clock;
 
+// Sets the start time for the clock.
 void
 ClockStart(Clock* clock);
 
-// Returns the number of nanoseconds that have surpassed since ClockStart.
+// Sets the end time for the clock and returns the elapsed microseconds.
 uint64_t
 ClockEnd(Clock* clock);
 
+// Returns the clocks elapsed microseconds.
 uint64_t
-ClockDeltaNsec(const Clock& clock);
+ClockDeltaUsec(const Clock& clock);
 
 }
 

@@ -771,7 +771,7 @@ main(int argc, char** argv)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-    const uint64_t elapsed_usec = platform::ClockEnd(&game_clock) / 1e4;
+    const uint64_t elapsed_usec = platform::ClockEnd(&game_clock);
 
     StatsAdd(elapsed_usec, &kGameStats);
     kGameState.game_time_usec += elapsed_usec;

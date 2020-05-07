@@ -20,4 +20,6 @@ EVENTS.bin
 a.out
 *.pdb
 *.obj
+*.zip
+*.rar
 *.mtl

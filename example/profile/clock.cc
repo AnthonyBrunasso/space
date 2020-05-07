@@ -1,7 +1,9 @@
 #include <cstdint>
 #include <cstdio>
 
+#ifndef _WIN32
 #include <sys/time.h>
+#endif
 
 #include "platform/rdtsc.h"
 #include "platform/clock.cc"
@@ -12,6 +14,14 @@ int
 main()
 {
   platform::Clock timer;
+#ifdef _WIN32
+  platform::ClockStart(&timer);
+  for (int i = 0; i < N; ++i) {
+    LARGE_INTEGER now;
+    QueryPerformanceCounter(&now);
+  }
+  printf("QueryPerformanceCounter(): %fus\n", (double)platform::ClockEnd(&timer) / N);
+#else
   platform::ClockStart(&timer);
   for (int i = 0; i < N; ++i) {
     struct timespec t;
@@ -46,7 +56,7 @@ main()
     gettimeofday(&t, NULL);
   }
   printf("gettimeofday(): %fus\n", (double)platform::ClockEnd(&timer) / N);
-
+#endif
   platform::ClockStart(&timer);
   for (int i = 0; i < N; ++i) {
     rdtsc();

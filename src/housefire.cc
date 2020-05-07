@@ -770,18 +770,18 @@ main(int argc, char** argv)
     window::SwapBuffers();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
     const uint64_t elapsed_usec = platform::ClockEnd(&game_clock);
 
     StatsAdd(elapsed_usec, &kGameStats);
-    kGameState.game_time_usec += elapsed_usec;
 
     if (kGameState.frame_target_usec > elapsed_usec) {
-      uint64_t sleep_usec = kGameState.frame_target_usec - elapsed_usec;
-      platform::SleepUsec(sleep_usec);
-      kGameState.game_time_usec += sleep_usec;
+      uint64_t wait_usec = kGameState.frame_target_usec - elapsed_usec;
+      platform::Clock wait_clock;
+      platform::ClockStart(&wait_clock);
+      while (platform::ClockEnd(&wait_clock) < wait_usec) {}
     }
 
+    kGameState.game_time_usec += platform::ClockEnd(&game_clock);
     kGameState.game_updates++;
   }
 

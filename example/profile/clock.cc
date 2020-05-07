@@ -21,6 +21,19 @@ main()
     QueryPerformanceCounter(&now);
   }
   printf("QueryPerformanceCounter(): %fus\n", (double)platform::ClockEnd(&timer) / N);
+
+  platform::ClockStart(&timer);
+  for (int i = 0; i < N; ++i) {
+    SYSTEMTIME now;
+    GetSystemTime(&now);
+  }
+  printf("GetSystemTime(): %fus\n", (double)platform::ClockEnd(&timer) / N);
+  platform::ClockStart(&timer);
+  for (int i = 0; i < N; ++i) {
+    SYSTEMTIME now;
+    GetLocalTime(&now);
+  }
+  printf("GetLocalTime(): %fus\n", (double)platform::ClockEnd(&timer) / N);
 #else
   platform::ClockStart(&timer);
   for (int i = 0; i < N; ++i) {

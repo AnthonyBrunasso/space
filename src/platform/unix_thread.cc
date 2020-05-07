@@ -21,7 +21,7 @@ pthread_shim(void* pthread_arg)
 }
 
 uint64_t
-thread_id()
+ThreadId()
 {
   pthread_t ptid = pthread_self();
   uint64_t tid;
@@ -30,7 +30,7 @@ thread_id()
 }
 
 bool
-thread_create(Thread* t)
+ThreadCreate(Thread* t)
 {
   if (t->id) return false;
 
@@ -42,13 +42,13 @@ thread_create(Thread* t)
 }
 
 void
-thread_yield()
+ThreadYield()
 {
   sched_yield();
 }
 
 bool
-thread_join(Thread* t)
+ThreadJoin(Thread* t)
 {
   if (!t->id) return false;
 
@@ -58,7 +58,7 @@ thread_join(Thread* t)
 }
 
 void
-thread_exit(Thread* t, uint64_t value)
+ThreadExit(Thread* t, uint64_t value)
 {
   t->return_value = value;
   pthread_exit(&t->return_value);
@@ -66,7 +66,7 @@ thread_exit(Thread* t, uint64_t value)
 
 
 bool
-mutex_create(Mutex* m)
+MutexCreate(Mutex* m)
 {
   int res = pthread_mutex_init(&m->lock, nullptr);
   if (res) {
@@ -77,7 +77,7 @@ mutex_create(Mutex* m)
 }
 
 void
-mutex_lock(Mutex* m)
+MutexLock(Mutex* m)
 {
   int res = pthread_mutex_lock(&m->lock);
   if (res) {
@@ -86,7 +86,7 @@ mutex_lock(Mutex* m)
 }
 
 void
-mutex_unlock(Mutex* m)
+MutexUnlock(Mutex* m)
 {
   int res = pthread_mutex_unlock(&m->lock);
   if (res) {
@@ -95,7 +95,7 @@ mutex_unlock(Mutex* m)
 }
 
 void
-mutex_free(Mutex* m)
+MutexFree(Mutex* m)
 {
   pthread_mutex_destroy(&m->lock);
 }

@@ -35,7 +35,7 @@ ClockEnd(Clock* clock)
   if(clock_gettime(CLOCK_MONOTONIC, &clock->end) == -1) {
     printf("Error ClockStart\n");
   }
-  return ClockDeltaNsec(*clock);
+  return ClockDeltaUsec(*clock);
 }
 
 }

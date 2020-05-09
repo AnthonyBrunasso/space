@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdio>
 #include <windows.h>
 #include <profileapi.h>
 
@@ -24,6 +25,7 @@ ClockStart(Clock* clock)
       printf("Issue querying performance frequency\n");
     }
     kClockFrequency = freq.QuadPart;
+    printf("QueryPerformanceFrequency(): %llu\n", kClockFrequency);
   }
 
   LARGE_INTEGER now;

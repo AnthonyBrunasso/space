@@ -212,7 +212,7 @@ main(int argc, char** argv)
     imui::ResetAll();
 
     window::SwapBuffers();
-    platform::sleep_usec(10*1000);
+    platform::SleepUsec(10*1000);
   }
 
   return 0;

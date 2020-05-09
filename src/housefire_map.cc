@@ -17,6 +17,7 @@ constexpr int kMaxTileNeighbor = 8;
 enum TileFlags {
   kTileDestination,
   kTileRemove,
+  kTileExtinguisher,
 };
 
 struct Tile {
@@ -148,6 +149,9 @@ MapLoad(const char* fname)
       if (strcmp(flag_name, "remove") == 0) {
         SBIT(t->flags, kTileRemove);
       }
+      if (strcmp(flag_name, "extinguisher") == 0) {
+        SBIT(t->flags, kTileExtinguisher);
+      }
     }
     else { continue; }  // Unrecognized line
   }
@@ -171,6 +175,9 @@ MapExport(const char* fname)
       }
       if (FLAGGED(tile->flags, kTileRemove)) {
         fprintf(f, "flag remove\n");
+      }
+      if (FLAGGED(tile->flags, kTileExtinguisher)) {
+        fprintf(f, "flag extinguisher\n");
       }
     }
   }

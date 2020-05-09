@@ -330,30 +330,22 @@ EditorUI()
         kEditTile->turns_to_fire_max = 20;
         kEditTile->turns_to_fire = kEditTile->turns_to_fire_max;
       }
-      imui::NewLine();
-      imui::SameLine();
-      bool is_destination = FLAGGED(kEditTile->flags, kTileDestination);
-      // TODO: This causes a bug in imui where the pane appears to be too big.
-      imui::Checkbox(17.f, 17.f, &is_destination);
-      imui::Space(imui::kHorizontal, 2.f);
-      imui::Text("Destination");
-      if (is_destination) {
-        SBIT(kEditTile->flags, kTileDestination);
-      } else {
-        CBIT(kEditTile->flags, kTileDestination);
+#define FLAG_OPTION(name, str)                        \
+      imui::NewLine();                                \
+      imui::SameLine();                               \
+      bool name = FLAGGED(kEditTile->flags, k##name); \
+      imui::Checkbox(17.f, 17.f, &name);              \
+      imui::Text(str);                                \
+      if (name) {                                     \
+        SBIT(kEditTile->flags, k##name);              \
+      } else {                                        \
+        CBIT(kEditTile->flags, k##name);              \
       }
-      imui::NewLine();
-      imui::SameLine();
-      bool is_removed = FLAGGED(kEditTile->flags, kTileRemove);
-      // TODO: This causes a bug in imui where the pane appears to be too big.
-      imui::Checkbox(17.f, 17.f, &is_removed);
-      imui::Space(imui::kHorizontal, 2.f);
-      imui::Text("Remove");
-      if (is_removed) {
-        SBIT(kEditTile->flags, kTileRemove);
-      } else {
-        CBIT(kEditTile->flags, kTileRemove);
-      }
+
+      FLAG_OPTION(TileDestination, "Destination");
+      FLAG_OPTION(TileRemove, "Remove");
+      FLAG_OPTION(TileExtinguisher, "Extinguisher");
+
       imui::End();
     }
   }
@@ -539,8 +531,14 @@ ProcessWorldTurn()
   }
 }
 
+Tile*
+GetPlayerTile()
+{
+  return &kMap[kPlayer.position_map.x][kPlayer.position_map.y];
+}
+
 void
-GameUpdate()
+PlayerMove()
 {
   v2i possible_move[16];
   uint32_t possible_move_count = 0;
@@ -598,6 +596,43 @@ GameUpdate()
 }
 
 void
+GameUpdate()
+{
+  if (FLAGGED(GetPlayerTile()->flags, kTileExtinguisher)) {
+    v2f cursor = window::GetCursorPosition();
+    Tile* tile = TileHover(cursor);
+    if (tile) {
+      // If there is a straight line between player position and tile.
+      v2i pt = kPlayer.position_map;
+      v2i tt = tile->position_map;
+      if (pt.x == tt.x || pt.y == tt.y) {
+        v2i cardinal_direction = tt - pt;
+        if (cardinal_direction.x > 0) cardinal_direction.x = 1;
+        if (cardinal_direction.y > 0) cardinal_direction.y = 1;
+        if (cardinal_direction.x < 0) cardinal_direction.x = -1;
+        if (cardinal_direction.y < 0) cardinal_direction.y = -1;
+        if (cardinal_direction == v2i(0, 0)) return;
+        v2i start = kPlayer.position_map + cardinal_direction;
+        while (search::IsInMap(start, v2i(kMapX, kMapY))) {
+          v3f world = TilePosToWorld(start);
+          rgg::DebugPushCube(
+              Cubef(world + v3f(0.f, 0.f, 2.f), kTileWidth, kTileHeight, .1f),
+                    v4f(0.1f, 0.1f, 0.99f, 0.8f), true);
+          if (kLeftClickDown) {
+            Tile* t = &kMap[start.x][start.y];
+            t->turns_to_fire = t->turns_to_fire_max;
+            CBIT(GetPlayerTile()->flags, kTileExtinguisher);
+          }
+          start += cardinal_direction; 
+        }
+      }
+    }
+  } else {
+    PlayerMove();
+  }
+}
+
+void
 EditUpdate()
 {
   v2f cursor = window::GetCursorPosition();
@@ -638,10 +673,17 @@ Render()
       if (FLAGGED(t->flags, kTileRemove)) continue;
       if (t->turns_to_fire) {
         float lerpt = 0.f;
-        if (AdjacentTileBlocked(t) || t->turns_to_fire == 1) {
+        if (AdjacentTileBlocked(t)) {
           lerpt = 1.f - (float)t->turns_to_fire / (float)t->turns_to_fire_max;
         }
-        if (FLAGGED(t->flags, kTileDestination)) {
+        if (t->turns_to_fire == 1) {
+          lerpt = 0.8f;
+        }
+        if (FLAGGED(t->flags, kTileExtinguisher)) {
+          rgg::RenderCube(Cubef(t->position_world, t->dims),
+                          v4f(.11f, .33f, .77f, 1.f));
+        }
+        else if (FLAGGED(t->flags, kTileDestination)) {
           rgg::RenderCube(Cubef(t->position_world, t->dims),
                           v4f(.33f, .77f, .11f, 1.f));
         } else {

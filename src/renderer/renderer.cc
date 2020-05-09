@@ -101,6 +101,7 @@ struct DebugSphere {
 struct DebugCube {
   Cubef cube;
   v4f color;
+  bool fill = false;
 };
 
 struct DebugPoint {
@@ -806,7 +807,11 @@ DebugRenderPrimitives()
   }
 
   for (int i = 0; i < kUsedDebugCube; ++i) {
-    rgg::RenderLineCube(kDebugCube[i].cube, kDebugCube[i].color);
+    if (kDebugCube[i].fill) {
+      rgg::RenderCube(kDebugCube[i].cube, kDebugCube[i].color);
+    } else {
+      rgg::RenderLineCube(kDebugCube[i].cube, kDebugCube[i].color);
+    }
   }
 
   for (int i = 0; i < kUsedDebugPoint; ++i) {
@@ -853,11 +858,12 @@ DebugPushSphere(const v3f& position, float radius, const v4f& color)
 } 
 
 void
-DebugPushCube(const Cubef& cube, const v4f& color)
+DebugPushCube(const Cubef& cube, const v4f& color, bool fill = false)
 {
   DebugCube* dcube = UseDebugCube();
   dcube->cube = cube;
   dcube->color = color;
+  dcube->fill = fill;
 }
 
 void

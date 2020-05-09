@@ -42,6 +42,7 @@ struct Player {
 
 static Player kPlayer;
 static rgg::Mesh kFireMesh;
+static rgg::Mesh kBoyMesh;
 
 static bool kLeftClickDown = false;
 
@@ -419,6 +420,10 @@ GraphicsInitialize(const window::CreateInfo& window_create_info)
     printf("Unable to load fire.obj\n");
     return false;
   } 
+  if (!rgg::LoadOBJ("asset/boyy.obj", &kBoyMesh)) {
+    printf("Unable to load boy.obj\n");
+    return false;
+  }
   return true;
 }
 
@@ -648,9 +653,8 @@ Render()
     }
   }
 
-  rgg::RenderCube(Cubef(kPlayer.position_world + v3f(0.f, 0.f, kTileDepth / 2.f),
-                        kPlayer.dims), v4f(.3f, .3f, 1.f, .8f));
-
+  rgg::RenderMesh(kBoyMesh, kPlayer.position_world - v3f(0.f, 0.f, 3.f),
+                  v3f(7.f, 7.f, 7.f), Quatf(270.f, v3f(1.f, 0.f, 0.f)));
 
   rgg::DebugRenderPrimitives();
 

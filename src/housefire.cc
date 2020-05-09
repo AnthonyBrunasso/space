@@ -342,6 +342,18 @@ EditorUI()
       } else {
         CBIT(kEditTile->flags, kTileDestination);
       }
+      imui::NewLine();
+      imui::SameLine();
+      bool is_removed = FLAGGED(kEditTile->flags, kTileRemove);
+      // TODO: This causes a bug in imui where the pane appears to be too big.
+      imui::Checkbox(17.f, 17.f, &is_removed);
+      imui::Space(imui::kHorizontal, 2.f);
+      imui::Text("Remove");
+      if (is_removed) {
+        SBIT(kEditTile->flags, kTileRemove);
+      } else {
+        CBIT(kEditTile->flags, kTileRemove);
+      }
       imui::End();
     }
   }
@@ -439,7 +451,8 @@ CanMoveTo(const v2i& target, v2i* possible_move, uint32_t possible_move_count)
 bool
 TileIsBlocked(const v2i& from)
 {
-  return kMap[from.x][from.y].turns_to_fire == 0;
+  Tile* t = &kMap[from.x][from.y];
+  return t->turns_to_fire == 0 || FLAGGED(t->flags, kTileRemove); 
 }
 
 
@@ -507,14 +520,16 @@ ProcessWorldTurn()
 {
   for (int i = 0; i < kMapX; ++i) {
     for (int j = 0; j < kMapY; ++j) {
-      if (kMap[i][j].turns_to_fire) kMap[i][j].turns_to_fire--;
-      if (FLAGGED(kMap[i][j].flags, kTileDestination) &&
+      Tile* t = &kMap[i][j];
+      if (FLAGGED(t->flags, kTileRemove)) continue;
+      if (t->turns_to_fire) t->turns_to_fire--;
+      if (FLAGGED(t->flags, kTileDestination) &&
           kPlayer.position_map == v2i(i, j)) {
         MapSetNextLevel(kCurrentMap);
         kResetGameAt = kGameState.game_updates + 100;
       }
-      if (!kMap[i][j].turns_to_fire) {
-        if (kPlayer.position_map == v2i(i, j)) {
+      if (!t->turns_to_fire) {
+        if (kPlayer.position_map == t->position_map) {
           // Player died - reset the game in N game updates so player
           // can see they are standing in fire.
           kResetGameAt = kGameState.game_updates + 100;
@@ -620,6 +635,7 @@ Render()
   for (int i = 0; i < kMapX; ++i) {
     for (int j = 0; j < kMapY; ++j) {
       Tile* t = &kMap[i][j];
+      if (FLAGGED(t->flags, kTileRemove)) continue;
       if (t->turns_to_fire) {
         float lerpt = 0.f;
         if (AdjacentTileBlocked(t) || t->turns_to_fire == 1) {

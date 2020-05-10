@@ -667,17 +667,27 @@ Render()
 {
   static int dumb = 0;
   ++dumb;
+  static float vib[kMapMaxX][kMapMaxY] = {};  // LOL
+  static const uint32_t kDumbMod = 10;
+  uint32_t mdumb = dumb % kDumbMod;
   for (int i = 0; i < kMapX; ++i) {
     for (int j = 0; j < kMapY; ++j) {
       Tile* t = &kMap[i][j];
       if (FLAGGED(t->flags, kTileRemove)) continue;
+      if (mdumb == 0) {
+        vib[i][j] = math::ScaleRange((float)rand() / RAND_MAX, 0.f, 1.f, -1.f, 1.f);
+      }
       if (t->turns_to_fire) {
-        float lerpt = 0.f;
-        if (AdjacentTileBlocked(t)) {
-          lerpt = 1.f - (float)t->turns_to_fire / (float)t->turns_to_fire_max;
-        }
-        if (t->turns_to_fire == 1) {
-          lerpt = 0.8f;
+        if (t->turns_to_fire < 4) {
+          v3f stgt =
+            v3f(t->dims.x, t->dims.y, .1f) / ((float)t->turns_to_fire + .5f);
+          v3f lstgt = stgt + v3f(vib[i][j], vib[i][j], 0.f);
+          float lerp_amount =
+              t->turns_to_fire == 1 ? (float)mdumb / kDumbMod : 0.f;
+          rgg::RenderLineCube(
+              Cubef(t->position_world + v3f(0.f, 0.f, kTileDepth / 2.f),
+                    math::Lerp(stgt, lstgt, lerp_amount)),
+              v4f(1.f, .0f, .0f, .8f));
         }
         if (FLAGGED(t->flags, kTileExtinguisher)) {
           rgg::RenderCube(Cubef(t->position_world, t->dims),
@@ -688,21 +698,13 @@ Render()
                           v4f(.33f, .77f, .11f, 1.f));
         } else {
           rgg::RenderCube(
-              Cubef(t->position_world, t->dims),
-              math::Lerp(kWoodenBrown, kWoodenBrownFire, lerpt));
+              Cubef(t->position_world, t->dims), kWoodenBrown);
         }
       } else {
-        static float zd[kMapMaxX][kMapMaxY] = {};  // LOL
-        static const uint32_t kDumbMod = 10;
-        uint32_t mdumb = dumb % kDumbMod;
-        if (mdumb == 0) {
-          zd[i][j] = math::ScaleRange((float)rand() / RAND_MAX, 0.f, 1.f, -1.f, 1.f);
-          //printf("%.2f\n", zd);
-        }
         v3f scale = v3f(7.f, 7.f, 7.f);
-        v3f dumb_scale = v3f(7.f, 7.f, 7.f + zd[i][j]);
-        float lerp_dumb = (float)mdumb / kDumbMod;
-        v3f lerped_scale = math::Lerp(scale, dumb_scale, lerp_dumb);
+        v3f dumb_scale = v3f(7.f, 7.f, 7.f + vib[i][j]);
+        v3f lerped_scale =
+            math::Lerp(scale, dumb_scale, (float)mdumb / kDumbMod);
         rgg::RenderMesh(kFireMesh, t->position_world + v3f(0.f, 0.f, 3.f),
                         lerped_scale,
                         Quatf(280.f, v3f(1.f, 0.f, 0.f)));

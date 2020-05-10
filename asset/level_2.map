@@ -20,13 +20,13 @@ ttf 10
 tile 1 4
 ttf 10
 tile 2 0
-ttf 10
+ttf 4
 tile 2 1
 ttf 10
 flag remove
 flag extinguisher
 tile 2 2
-ttf 8
+ttf 6
 tile 2 3
 ttf 10
 flag remove
@@ -36,22 +36,22 @@ ttf 2
 tile 3 0
 ttf 3
 tile 3 1
-ttf 8
+ttf 7
 tile 3 2
-ttf 8
+ttf 6
 flag extinguisher
 tile 3 3
-ttf 8
+ttf 6
 tile 3 4
 ttf 1
 tile 4 0
-ttf 10
+ttf 11
 tile 4 1
 ttf 10
 flag remove
 flag extinguisher
 tile 4 2
-ttf 8
+ttf 6
 tile 4 3
 ttf 10
 flag remove
@@ -59,7 +59,7 @@ flag extinguisher
 tile 4 4
 ttf 2
 tile 5 0
-ttf 10
+ttf 11
 tile 5 1
 ttf 2
 tile 5 2
@@ -69,7 +69,7 @@ ttf 2
 tile 5 4
 ttf 10
 tile 6 0
-ttf 10
+ttf 11
 flag extinguisher
 tile 6 1
 ttf 10

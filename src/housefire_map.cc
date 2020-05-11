@@ -18,6 +18,7 @@ enum TileFlags {
   kTileDestination,
   kTileRemove,
   kTileExtinguisher,
+  kTileCup,
 };
 
 struct Tile {
@@ -152,6 +153,9 @@ MapLoad(const char* fname)
       if (strcmp(flag_name, "extinguisher") == 0) {
         SBIT(t->flags, kTileExtinguisher);
       }
+      if (strcmp(flag_name, "cup") == 0) {
+        SBIT(t->flags, kTileCup);
+      }
     }
     else { continue; }  // Unrecognized line
   }
@@ -178,6 +182,9 @@ MapExport(const char* fname)
       }
       if (FLAGGED(tile->flags, kTileExtinguisher)) {
         fprintf(f, "flag extinguisher\n");
+      }
+      if (FLAGGED(tile->flags, kTileCup)) {
+        fprintf(f, "flag cup\n");
       }
     }
   }

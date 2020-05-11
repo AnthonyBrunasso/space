@@ -43,6 +43,8 @@ struct Player {
 static Player kPlayer;
 static rgg::Mesh kFireMesh;
 static rgg::Mesh kBoyMesh;
+static rgg::Mesh kCupMesh;
+static rgg::Mesh kExtinguisherMesh;
 
 static bool kLeftClickDown = false;
 
@@ -53,7 +55,7 @@ static Stats kGameStats;
 static char kUIBuffer[UIBUFFER_SIZE];
 
 static v3f kCameraDirection(.612375f, .612375f, -.5f);
-static v3f kCameraPosition(-75.f, -75.f, 92.f);
+static v3f kCameraPosition(-117.f, -117.f, 127.f);
 
 static const v4f kWoodenBrown(0.521f, 0.368f, 0.258f, 1.0f);
 static const v4f kWoodenBrownFire(1.0f, 0.368f, 0.258f, 1.0f);
@@ -342,9 +344,10 @@ EditorUI()
         CBIT(kEditTile->flags, k##name);              \
       }
 
-      FLAG_OPTION(TileDestination, "Destination");
-      FLAG_OPTION(TileRemove, "Remove");
-      FLAG_OPTION(TileExtinguisher, "Extinguisher");
+      FLAG_OPTION(TileDestination, " Destination");
+      FLAG_OPTION(TileRemove, " Remove");
+      FLAG_OPTION(TileExtinguisher, " Extinguisher");
+      FLAG_OPTION(TileCup, " Cup");
 
       imui::End();
     }
@@ -426,6 +429,14 @@ GraphicsInitialize(const window::CreateInfo& window_create_info)
   } 
   if (!rgg::LoadOBJ("asset/boyy.obj", &kBoyMesh)) {
     printf("Unable to load boy.obj\n");
+    return false;
+  }
+  if (!rgg::LoadOBJ("asset/cup.obj", &kCupMesh)) {
+    printf("Unable to load cup.obj\n");
+    return false;
+  }
+  if (!rgg::LoadOBJ("asset/fireex.obj", &kExtinguisherMesh)) {
+    printf("Unable to load cup.obj\n");
     return false;
   }
   return true;
@@ -540,15 +551,17 @@ GetPlayerTile()
 void
 PlayerMove()
 {
-  v2i possible_move[16];
+  static const int kMaxMoves = 32;
+  v2i possible_move[kMaxMoves];
   uint32_t possible_move_count = 0;
   v2f cursor = window::GetCursorPosition();
+  uint32_t depth = FLAGGED(GetPlayerTile()->flags, kTileCup) ? 2 : 1;
   search::BfsIterator bfs_itr =
-        SetupBfsIterator(kPlayer.position_map, 1);
+        SetupBfsIterator(kPlayer.position_map, depth);
   if (search::BfsStart(&bfs_itr)) {
     while (search::BfsNext(&bfs_itr)) {
       DebugRenderOnTile(bfs_itr.current, v4f(0.f, 1.f, 1.f, 1.f));
-      assert(possible_move_count < 16);
+      assert(possible_move_count < kMaxMoves);
       possible_move[possible_move_count++] = bfs_itr.current;
     }
   }
@@ -580,6 +593,9 @@ PlayerMove()
 
     v2i tp = tile->position_map;
     if (kLeftClickDown && !TileIsBlocked(tp)) {
+      if (FLAGGED(GetPlayerTile()->flags, kTileCup)) {
+        CBIT(GetPlayerTile()->flags, kTileCup);
+      }
       bool can_move = CanMoveTo(tp, possible_move, possible_move_count);
       if (!can_move) {
         printf("Unable to move to %i,%i\n", tp.x, tp.y);
@@ -692,10 +708,19 @@ Render()
         if (FLAGGED(t->flags, kTileExtinguisher)) {
           rgg::RenderCube(Cubef(t->position_world, t->dims),
                           v4f(.11f, .33f, .77f, 1.f));
+          rgg::RenderMesh(kExtinguisherMesh, t->position_world,
+                          v3f(4.5f, 4.5f, 4.5f),
+                          Quatf(270.f, v3f(1.f, 0.f, 0.f)));
         }
         else if (FLAGGED(t->flags, kTileDestination)) {
           rgg::RenderCube(Cubef(t->position_world, t->dims),
                           v4f(.33f, .77f, .11f, 1.f));
+        } else if (FLAGGED(t->flags, kTileCup)){
+          rgg::RenderCube(Cubef(t->position_world, t->dims),
+                          v4f(.7f, .4f, .5f, 1.f));
+          rgg::RenderMesh(kCupMesh, t->position_world + v3f(0.f, 0.f, 3.f),
+                          v3f(7.f, 7.f, 7.f), Quatf(270.f, v3f(1.f, 0.f, 0.f)));
+
         } else {
           rgg::RenderCube(
               Cubef(t->position_world, t->dims), kWoodenBrown);
@@ -707,7 +732,7 @@ Render()
             math::Lerp(scale, dumb_scale, (float)mdumb / kDumbMod);
         rgg::RenderMesh(kFireMesh, t->position_world + v3f(0.f, 0.f, 3.f),
                         lerped_scale,
-                        Quatf(280.f, v3f(1.f, 0.f, 0.f)));
+                        Quatf(270.f, v3f(1.f, 0.f, 0.f)));
         rgg::RenderCube(Cubef(t->position_world, t->dims), kWoodenBrownFire);
       }
     }

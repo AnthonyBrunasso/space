@@ -629,10 +629,15 @@ PlayerMove()
         kPlayer.destination_position_map = tile->position_map;
         v2f dir = tile->position_world.xy() - kPlayer.position_world.xy();
         float rot_deg = ((atan2(dir.y, dir.x) * 180.f) / PI);
-        if (rot_deg == -90.f) kPlayer.rotation_y = 0.f;
-        if (rot_deg == 0.f) kPlayer.rotation_y = 270.f;
-        if (rot_deg == 90.f) kPlayer.rotation_y = 180.f;
-        if (rot_deg == 180.f) kPlayer.rotation_y = 90.f;
+        // LOL
+        if (rot_deg == -135.f) kPlayer.rotation_y = 45.f;
+        else if (rot_deg == -90.f) kPlayer.rotation_y = 0.f;
+        else if (rot_deg == -45.f) kPlayer.rotation_y = -45.f;
+        else if (rot_deg == 0.f) kPlayer.rotation_y = 270.f;
+        else if (rot_deg == 45.f) kPlayer.rotation_y = 225.f;
+        else if (rot_deg == 90.f) kPlayer.rotation_y = 180.f;
+        else if (rot_deg == 135.f) kPlayer.rotation_y = 135.f;
+        else if (rot_deg == 180.f) kPlayer.rotation_y = 90.f;
       }
     }
   }

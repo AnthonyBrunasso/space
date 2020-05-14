@@ -244,6 +244,45 @@ Ortho2(float right, float left, float top, float bottom, float far_clip,
 }
 
 Mat4f
+RotationX(float angle_degrees)
+{
+  if (angle_degrees == 0.f) return math::Identity();
+  float angle_radians = (angle_degrees)*PI / 180.0f;
+  float c = cos(angle_radians);
+  float s = sin(angle_radians);
+  return Mat4f(1.0f, 0.f, 0.f, 0.f, 
+               0.0f, c  , -s , 0.f,
+               0.0f, s  ,  c , 0.f,
+               0.0f, 0.f, 0.f, 1.f);
+}
+
+Mat4f
+RotationY(float angle_degrees)
+{
+  if (angle_degrees == 0.f) return math::Identity();
+  float angle_radians = (angle_degrees)*PI / 180.0f;
+  float c = cos(angle_radians);
+  float s = sin(angle_radians);
+  return Mat4f(c   , 0.0f, s   , 0.f, 
+               0.0f, 1.0f, 0.0f, 0.f,
+               -s  , 0.0f, c   , 0.f,
+               0.0f, 0.f , 0.f , 1.f);
+}
+
+Mat4f
+RotationZ(float angle_degrees)
+{
+  if (angle_degrees == 0.f) return math::Identity();
+  float angle_radians = (angle_degrees)*PI / 180.0f;
+  float c = cos(angle_radians);
+  float s = sin(angle_radians);
+  return Mat4f(c  , -s , 0.f, 0.f,
+               s  , c  , 0.f, 0.f,
+               0.f, 0.f, 1.f, 0.f,
+               0.f, 0.f, 0.f, 1.f);
+}
+
+Mat4f
 Model(const v3f& position, const v3f& scale, const Quatf& quat) {
   Mat4f model;
   model.data_[0] = scale.x * (1.f - 2.f * quat.y * quat.y - 2.f * quat.z * quat.z);

@@ -38,6 +38,10 @@ struct Player {
   v2i position_map;
   v3f position_world;
   v3f dims;
+  v2i destination_position_map;
+  float lerp_to_destination = 0.f;
+  bool moving = false;
+  float rotation_y = 180.f;
 };
 
 static Player kPlayer;
@@ -549,6 +553,27 @@ GetPlayerTile()
 }
 
 void
+ExecutePlayerMove()
+{
+  v3f destination_world = TilePosToWorld(kPlayer.destination_position_map);
+  kPlayer.lerp_to_destination += 0.025f;
+  v3f old_position = kPlayer.position_world;
+  kPlayer.position_world =
+    math::Lerp(kPlayer.position_world, destination_world,
+               kPlayer.lerp_to_destination);
+  kPlayer.position_world.z = 0.f;  // Hack to keep player on top of ground.
+  rgg::CameraMove(kPlayer.position_world.xy() - old_position.xy());
+  if (kPlayer.lerp_to_destination >= 1.0f) {
+    kPlayer.moving = false;
+    kPlayer.lerp_to_destination = 0.f;
+    kPlayer.position_world = destination_world;
+    kPlayer.position_world.z = 0.f;  // Hack to keep player on top of ground.
+    kPlayer.position_map = kPlayer.destination_position_map;
+    ProcessWorldTurn();
+  }
+}
+
+void
 PlayerMove()
 {
   static const int kMaxMoves = 32;
@@ -600,12 +625,14 @@ PlayerMove()
       if (!can_move) {
         printf("Unable to move to %i,%i\n", tp.x, tp.y);
       } else {
-        v2f delta =
-          tile->position_world.xy() - kPlayer.position_world.xy();
-        rgg::CameraMove(delta);
-        kPlayer.position_world.xy() = tile->position_world.xy();
-        kPlayer.position_map = tp;
-        ProcessWorldTurn();
+        kPlayer.moving = true;
+        kPlayer.destination_position_map = tile->position_map;
+        v2f dir = tile->position_world.xy() - kPlayer.position_world.xy();
+        float rot_deg = ((atan2(dir.y, dir.x) * 180.f) / PI);
+        if (rot_deg == -90.f) kPlayer.rotation_y = 0.f;
+        if (rot_deg == 0.f) kPlayer.rotation_y = 270.f;
+        if (rot_deg == 90.f) kPlayer.rotation_y = 180.f;
+        if (rot_deg == 180.f) kPlayer.rotation_y = 90.f;
       }
     }
   }
@@ -614,6 +641,11 @@ PlayerMove()
 void
 GameUpdate()
 {
+  if (kPlayer.moving) {
+    ExecutePlayerMove();
+    return;
+  }
+
   if (FLAGGED(GetPlayerTile()->flags, kTileExtinguisher)) {
     v2f cursor = window::GetCursorPosition();
     Tile* tile = TileHover(cursor);
@@ -739,7 +771,7 @@ Render()
   }
 
   rgg::RenderMesh(kBoyMesh, kPlayer.position_world - v3f(0.f, 0.f, 3.f),
-                  v3f(7.f, 7.f, 7.f), Quatf(270.f, v3f(1.f, 0.f, 0.f)));
+                  v3f(7.f, 7.f, 7.f), 270.f, kPlayer.rotation_y, 0.f);
 
   rgg::DebugRenderPrimitives();
 

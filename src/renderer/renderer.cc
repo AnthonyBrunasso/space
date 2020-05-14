@@ -661,15 +661,10 @@ Render3dWithRotation(const v3f& pos, const v3f& scale, const Quatf& quat,
   glDrawArrays(GL_TRIANGLES, 0, verts);
 }
 
-// Leaving color as default will only use lighting properties.
 void
-RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
-           const Quatf& quat, const v4f& color = v4f(1.f, 1.f, 1.f, 1.f))
+RenderMesh(const Mesh& mesh, const Mat4f& model, 
+           const v4f& color = v4f(1.f, 1.f, 1.f, 1.f))
 {
-  if (!mesh.IsValid()) return;
-  glUseProgram(kRGG.geometry_program_3d.reference);
-  glBindVertexArray(mesh.vao);
-  Mat4f model = math::Model(pos, scale, quat);
   if (kRGG.geometry_program_3d.color_uniform != uint32_t(-1)) {
     glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y,
                 color.z, color.w);
@@ -702,6 +697,31 @@ RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
       }
     }
   }
+}
+
+// Leaving color as default will only use lighting properties.
+void
+RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
+           const Quatf& quat, const v4f& color = v4f(1.f, 1.f, 1.f, 1.f))
+{
+  if (!mesh.IsValid()) return;
+  glUseProgram(kRGG.geometry_program_3d.reference);
+  glBindVertexArray(mesh.vao);
+  Mat4f model = math::Model(pos, scale, quat);
+  RenderMesh(mesh, model, color);
+}
+
+void
+RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
+           float x_rotation, float y_rotation, float z_rotation,
+           const v4f& color = v4f(1.f, 1.f, 1.f, 1.f))
+{
+  if (!mesh.IsValid()) return;
+  glUseProgram(kRGG.geometry_program_3d.reference);
+  glBindVertexArray(mesh.vao);
+  Mat4f model = math::Model(pos, scale) * math::RotationX(x_rotation) *
+                math::RotationY(y_rotation) * math::RotationZ(z_rotation);
+  RenderMesh(mesh, model, color);
 }
 
 void

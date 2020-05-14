@@ -22,7 +22,7 @@ struct Source {
   float gain = 1.f;
   v3f position = {};
   v3f velocity = {};
-  bool looping = 0.f;
+  bool looping = false;
 };
 
 DECLARE_ARRAY(Source, 32);

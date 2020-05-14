@@ -3,6 +3,7 @@
 
 
 #include "audio/audio.cc"
+#include "audio/sound.cc"
 #include "common/macro.h"
 #include "gfx/imui.cc"
 #include "math/math.cc"
@@ -49,6 +50,10 @@ static rgg::Mesh kFireMesh;
 static rgg::Mesh kBoyMesh;
 static rgg::Mesh kCupMesh;
 static rgg::Mesh kExtinguisherMesh;
+
+static audio::Sound kMusic;
+static audio::Sound kFireSound;
+static audio::Sound kExtinguisherSound;
 
 static bool kLeftClickDown = false;
 
@@ -443,6 +448,41 @@ GraphicsInitialize(const window::CreateInfo& window_create_info)
     printf("Unable to load cup.obj\n");
     return false;
   }
+  
+  return true;
+}
+
+bool
+AudioInitialize()
+{
+  if (!audio::Initialize()) {
+    printf("Unable to initialize audio system.\n");
+    return false;
+  }
+
+  if (!audio::LoadWAV("asset/housefire_music.wav", &kMusic)) {
+    printf("Unabled to load housefire_music.wav\n");
+    return false;
+  }
+
+  if (!audio::LoadWAV("asset/fire_sound.wav", &kFireSound)) {
+    printf("Unabled to load fire_sound.wav\n");
+    return false;
+  }
+
+  if (!audio::LoadWAV("asset/extinguisher_sound.wav", &kExtinguisherSound)) {
+    printf("Unabled to load extinguisher_sound.wav\n");
+    return false;
+  }
+
+  audio::Source music_source;
+  music_source.looping = true;
+  audio::PlaySound(kMusic, music_source);
+
+  audio::Source fire_sound_source;
+  fire_sound_source.looping = true;
+  audio::PlaySound(kFireSound, fire_sound_source);
+
   return true;
 }
 
@@ -675,6 +715,9 @@ GameUpdate()
             Tile* t = &kMap[start.x][start.y];
             t->turns_to_fire = t->turns_to_fire_max;
             CBIT(GetPlayerTile()->flags, kTileExtinguisher);
+            audio::Source ex_source;
+            ex_source.gain = 0.25f;
+            audio::PlaySound(kExtinguisherSound, ex_source);
           }
           start += cardinal_direction; 
         }
@@ -796,9 +839,8 @@ main(int argc, char** argv)
     return 1;
   }
 
-  if (!audio::Initialize()) {
-    printf("Unable to initialize audio system.\n");
-    return 1;
+  if (!AudioInitialize()) {
+    printf("Unable to initialize audio. :(...\n");
   }
 
   strcpy(kCurrentMap, "asset/level_0.map");
@@ -890,7 +932,8 @@ main(int argc, char** argv)
     if (kGameState.game_updates >= kResetGameAt) {
       ResetGame();
     }
-    
+   
+    audio::Cleanup(); 
     Render();
     
     window::SwapBuffers();

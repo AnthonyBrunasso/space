@@ -887,6 +887,7 @@ SetWindowDims()
     }
     else continue;
   }
+  fclose(f);
 }
 
 int

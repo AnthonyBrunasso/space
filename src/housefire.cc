@@ -53,6 +53,7 @@ static rgg::Mesh kExtinguisherMesh;
 
 static audio::Sound kMusic;
 static audio::Sound kFireSound;
+static audio::Sound kWinSound;
 static audio::Sound kExtinguisherSound;
 
 static bool kLeftClickDown = false;
@@ -182,6 +183,7 @@ EditorUI()
     if (imui::Text("New Map", to).clicked) {
       kEditMapMenu = true;
       MapGenerateUniqueName();
+      strcpy(kCurrentMap, kEditMapName);
     }
     static bool load_map_toggle = false;
     if (imui::Text("Load Map", to).clicked) {
@@ -470,6 +472,11 @@ AudioInitialize()
     return false;
   }
 
+  if (!audio::LoadWAV("asset/win.wav", &kWinSound)) {
+    printf("Unabled to load win.wav\n");
+    return false;
+  }
+
   if (!audio::LoadWAV("asset/extinguisher_sound.wav", &kExtinguisherSound)) {
     printf("Unabled to load extinguisher_sound.wav\n");
     return false;
@@ -572,6 +579,7 @@ ProcessWorldTurn()
       if (t->turns_to_fire) t->turns_to_fire--;
       if (FLAGGED(t->flags, kTileDestination) &&
           kPlayer.position_map == v2i(i, j)) {
+        audio::PlaySound(kWinSound, audio::Source());
         MapSetNextLevel(kCurrentMap);
         kResetGameAt = kGameState.game_updates + 100;
       }
@@ -774,7 +782,7 @@ Render()
         vib[i][j] = math::ScaleRange((float)rand() / RAND_MAX, 0.f, 1.f, -1.f, 1.f);
       }
       if (t->turns_to_fire) {
-        if (t->turns_to_fire < 4) {
+        if (t->turns_to_fire < 5) {
           v3f stgt =
             v3f(t->dims.x, t->dims.y, .1f) / ((float)t->turns_to_fire + .5f);
           v3f lstgt = stgt + v3f(vib[i][j], vib[i][j], 0.f);

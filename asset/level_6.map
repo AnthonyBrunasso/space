@@ -1,0 +1,64 @@
+map asset/level_6.map 7 4
+tile 0 0
+ttf 5
+tile 0 1
+ttf 5
+tile 0 2
+ttf 5
+tile 0 3
+ttf 5
+tile 1 0
+ttf 5
+tile 1 1
+ttf 5
+tile 1 2
+ttf 5
+tile 1 3
+ttf 5
+tile 2 0
+ttf 5
+tile 2 1
+ttf 5
+flag cup
+tile 2 2
+ttf 5
+flag extinguisher
+tile 2 3
+ttf 5
+tile 3 0
+ttf 5
+tile 3 1
+ttf 5
+flag remove
+tile 3 2
+ttf 5
+flag remove
+tile 3 3
+ttf 5
+tile 4 0
+ttf 7
+flag cup
+tile 4 1
+ttf 7
+tile 4 2
+ttf 5
+flag cup
+tile 4 3
+ttf 5
+tile 5 0
+ttf 7
+tile 5 1
+ttf 5
+tile 5 2
+ttf 6
+tile 5 3
+ttf 5
+tile 6 0
+ttf 7
+tile 6 1
+ttf 5
+tile 6 2
+ttf 6
+tile 6 3
+ttf 15
+flag destination

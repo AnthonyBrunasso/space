@@ -881,7 +881,8 @@ SetWindowDims()
     } else if (strcmp(line, "fullscreen") == 0) {
       char value[64] = {};
       fscanf(f, "%s\n", value);
-      if (strcmp(value, "true") == 0) {
+      if (strcmp(value, "true") == 0 || strcmp(value, "True") == 0 ||
+          strcmp(value, "TRUE") == 0 || strcmp(value, "1") == 0) {
         kGameState.window_create_info.fullscreen = true;
       } else kGameState.window_create_info.fullscreen = false;
     }

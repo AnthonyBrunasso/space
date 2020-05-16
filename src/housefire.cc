@@ -54,6 +54,7 @@ static rgg::Mesh kExtinguisherMesh;
 static audio::Sound kMusic;
 static audio::Sound kFireSound;
 static audio::Sound kWinSound;
+static audio::Sound kLossSound;
 static audio::Sound kExtinguisherSound;
 
 static bool kLeftClickDown = false;
@@ -126,6 +127,26 @@ LevelFileWalk(const char* filename)
       kEditMapMenu = true;
     }
   }
+}
+
+void
+GameUI()
+{
+  v2f screen = window::GetWindowSize();
+  static bool enable = true;
+  static v2f pos(0.f, screen.y);
+  imui::PaneOptions options;
+  imui::Begin("Game", imui::kEveryoneTag, options, &pos, &enable);
+  imui::Space(imui::kVertical, 3);
+  imui::TextOptions toptions;
+  toptions.highlight_color = imui::kRed;
+  if (imui::Text("Reset Level", toptions).clicked) {
+    kResetGameAt = kGameState.game_updates;
+  }
+  if (imui::Text("Exit Game", toptions).clicked) {
+    exit(1);
+  }
+  imui::End();
 }
 
 void
@@ -464,22 +485,22 @@ AudioInitialize()
 
   if (!audio::LoadWAV("asset/housefire_music.wav", &kMusic)) {
     printf("Unabled to load housefire_music.wav\n");
-    return false;
   }
 
   if (!audio::LoadWAV("asset/fire_sound.wav", &kFireSound)) {
     printf("Unabled to load fire_sound.wav\n");
-    return false;
   }
 
   if (!audio::LoadWAV("asset/win.wav", &kWinSound)) {
     printf("Unabled to load win.wav\n");
-    return false;
+  }
+
+  if (!audio::LoadWAV("asset/loss.wav", &kLossSound)) {
+    printf("Unabled to load loss.wav\n");
   }
 
   if (!audio::LoadWAV("asset/extinguisher_sound.wav", &kExtinguisherSound)) {
     printf("Unabled to load extinguisher_sound.wav\n");
-    return false;
   }
 
   audio::Source music_source;
@@ -585,6 +606,7 @@ ProcessWorldTurn()
       }
       if (!t->turns_to_fire) {
         if (kPlayer.position_map == t->position_map) {
+          audio::PlaySound(kLossSound, audio::Source());
           // Player died - reset the game in N game updates so player
           // can see they are standing in fire.
           kResetGameAt = kGameState.game_updates + 100;
@@ -670,9 +692,7 @@ PlayerMove()
         CBIT(GetPlayerTile()->flags, kTileCup);
       }
       bool can_move = CanMoveTo(tp, possible_move, possible_move_count);
-      if (!can_move) {
-        printf("Unable to move to %i,%i\n", tp.x, tp.y);
-      } else {
+      if (can_move) {
         kPlayer.moving = true;
         kPlayer.destination_position_map = tile->position_map;
         v2f dir = tile->position_world.xy() - kPlayer.position_world.xy();
@@ -694,6 +714,8 @@ PlayerMove()
 void
 GameUpdate()
 {
+  GameUI();
+
   if (kPlayer.moving) {
     ExecutePlayerMove();
     return;
@@ -834,6 +856,39 @@ Render()
   imui::Render(imui::kEveryoneTag);
 }
 
+void
+SetWindowDims()
+{
+  FILE* f = fopen("game_settings.ini", "rb");
+  if (!f) return;
+  char line[1024];
+  while (1) {
+    int res = fscanf(f, "%s", line);
+    if (res == EOF) break;
+    if (strcmp(line, "//") == 0) continue;
+    if (strcmp(line, "window_width") == 0) {
+      uint32_t width = 0;
+      fscanf(f, "%u\n", &width);
+      if (width) {
+        kGameState.window_create_info.window_width = width;
+      }
+    } else if (strcmp(line, "window_height") == 0) {
+      uint32_t height = 0;
+      fscanf(f, "%u\n", &height);
+      if (height) {
+        kGameState.window_create_info.window_height = height;
+      }
+    } else if (strcmp(line, "fullscreen") == 0) {
+      char value[64] = {};
+      fscanf(f, "%s\n", value);
+      if (strcmp(value, "true") == 0) {
+        kGameState.window_create_info.fullscreen = true;
+      } else kGameState.window_create_info.fullscreen = false;
+    }
+    else continue;
+  }
+}
+
 int
 main(int argc, char** argv)
 {
@@ -842,6 +897,8 @@ main(int argc, char** argv)
 #if __APPLE__
   kGameState.window_create_info.window_width = 1280;
   kGameState.window_create_info.window_height = 720;
+#else
+  SetWindowDims();
 #endif
   if (!GraphicsInitialize(kGameState.window_create_info)) {
     return 1;
@@ -861,18 +918,10 @@ main(int argc, char** argv)
       rgg::DefaultPerspective(window::GetWindowSize(), 55.f);
   rgg::GetObserver()->view = rgg::CameraView();
 
-  // main thread affinity set to core 0
-  if (platform::thread_affinity_count() > 1) {
-    platform::thread_affinity_usecore(0);
-    printf("Game thread may run on %d cores\n",
-           platform::thread_affinity_count());
-  }
-
   // Reset State
   StatsInit(&kGameStats);
   kGameState.game_updates = 0;
   kGameState.frame_target_usec = 1000.f * 1000.f / kGameState.framerate;
-  printf("Client target usec %lu\n", kGameState.frame_target_usec);
 
   // If vsync is enabled, force the clock_init to align with clock_sync
   // TODO: We should also enforce framerate is equal to refresh rate

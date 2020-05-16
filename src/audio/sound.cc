@@ -11,7 +11,7 @@
 
 namespace audio {
 
-#define AUDIODEBUG 1
+#define AUDIODEBUG 0
 
 constexpr uint32_t kMaxSoundFileSize = 25e6;
 
@@ -105,7 +105,7 @@ LoadWAV(const char* filename, Sound* sound)
     read += sizeof(WavChunk);
     if (memcmp((char*)(chunk->chunk_id), "fmt", 3) == 0) {
       WavFmt* fmt = (WavFmt*)(&kBuffer[read]);
-#if 1
+#if AUDIODEBUG
       printf("audio_format: %u\n", fmt->audio_format);
       printf("num_channels: %u\n", fmt->num_channels);
       printf("sample_rate: %u\n", fmt->sample_rate);

@@ -48,7 +48,7 @@ ttf 5
 tile 5 0
 ttf 7
 tile 5 1
-ttf 5
+ttf 4
 tile 5 2
 ttf 6
 tile 5 3
@@ -56,7 +56,7 @@ ttf 5
 tile 6 0
 ttf 7
 tile 6 1
-ttf 5
+ttf 4
 tile 6 2
 ttf 6
 tile 6 3

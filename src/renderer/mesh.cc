@@ -62,7 +62,6 @@ LoadMTL(const char* filename, Material* material, uint32_t* material_count)
     printf("%s not found!\n", filename);
     return false;
   }
-  printf("Loading material: %s\n", filename);
   char line[1024];
   Material* cmat = nullptr;
   while (1) {
@@ -148,7 +147,6 @@ LoadOBJ(const char* filename, Mesh* mesh)
     printf("%s not found!\n", filename);
     return false;
   }
-  printf("Loading mesh: %s\n", filename);
   char line[1024];
   Material* mtl = nullptr;
   while (1) {
@@ -261,10 +259,10 @@ LoadOBJ(const char* filename, Mesh* mesh)
   mesh->norm_vbo = normals_vbo;
   mesh->vao = vao;
 
+#if DEBUGOBJ
   printf("Loaded Mesh vert count %i verts vbo %i norms vbo %i vao %i \n",
          mesh->vert_count, mesh->vert_vbo, mesh->norm_vbo, mesh->vao);
 
-#if DEBUGOBJ
   for (int i = 0; i < mesh->material_count; ++i) {
     const Material* mat = &mesh->material[i];
     printf("  material %s\n", mat->name);

@@ -897,11 +897,16 @@ main(int argc, char** argv)
   platform::Clock game_clock;
 
 #if __APPLE__
-  kGameState.window_create_info.window_width = 1280;
-  kGameState.window_create_info.window_height = 720;
-#else
-  SetWindowDims();
+  NSFileManager* filemgr;
+  NSString* currentpath;
+  filemgr = [[NSFileManager alloc] init];
+  currentpath = [filemgr currentDirectoryPath];
+  NSString* dir = [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent];
+
+  printf("dir: %s\n", [dir UTF8String]);
+  filesystem::ChangeDirectory([dir UTF8String]);
 #endif
+  SetWindowDims();
   if (!GraphicsInitialize(kGameState.window_create_info)) {
     return 1;
   }

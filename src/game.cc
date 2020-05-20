@@ -3,19 +3,15 @@
 
 #include "math/math.cc"
 
-#include "gfx/gfx.cc"
-#include "network/network.cc"
 #include "audio/audio.cc"
+#include "renderer/renderer.cc"
+#include "renderer/imui.cc"
 
 struct State {
   // Game and render updates per second
   uint64_t framerate = 60;
   // Calculated available microseconds per game_update
   uint64_t frame_target_usec;
-  // Game clock state
-  TscClock_t game_clock;
-  // Time it took to run a frame.
-  uint64_t frame_time_usec = 0;
   // Estimate of gime passed since game start.
   uint64_t game_time_usec = 0;
   // Estimated frames per second.
@@ -49,8 +45,8 @@ DebugUI()
     imui::Begin("Diagnostics", imui::kEveryoneTag, options, &diagnostics_pos,
                 &enable_debug);
     imui::TextOptions debug_options;
-    debug_options.color = gfx::kWhite;
-    debug_options.highlight_color = gfx::kRed;
+    debug_options.color = imui::kWhite;
+    debug_options.highlight_color = imui::kRed;
     imui::SameLine();
     imui::Width(right_align);
     imui::Text("Frame Time");
@@ -92,7 +88,13 @@ DebugUI()
 int
 main(int argc, char** argv)
 {
-  if (!gfx::Initialize(kGameState.window_create_info)) {
+  platform::Clock game_clock;
+
+  if (!window::Create("Game", kGameState.window_create_info)) {
+    return 1;
+  }
+
+  if (!rgg::Initialize()) {
     return 1;
   }
 
@@ -100,7 +102,6 @@ main(int argc, char** argv)
     printf("Unable to initialize audio system.\n");
     return 1;
   }
-
 
   rgg::GetObserver()->projection =
       rgg::DefaultPerspective(window::GetWindowSize());
@@ -123,10 +124,9 @@ main(int argc, char** argv)
   window::SwapBuffers();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  clock_init(kGameState.frame_target_usec, &kGameState.game_clock);
-  printf("median_tsc_per_usec %lu\n", median_tsc_per_usec);
-
   while (1) {
+    platform::ClockStart(&game_clock);
+
     imui::ResetTag(imui::kEveryoneTag);
     rgg::DebugReset();
 
@@ -153,6 +153,7 @@ main(int argc, char** argv)
         }
       }
     }
+
     const v2f cursor = window::GetCursorPosition();
     imui::MousePosition(cursor, imui::kEveryoneTag);
 
@@ -170,24 +171,20 @@ main(int argc, char** argv)
 
     imui::Render(imui::kEveryoneTag);
     
-    const uint64_t elapsed_usec = clock_delta_usec(&kGameState.game_clock);
-    kGameState.frame_time_usec = elapsed_usec;
-    StatsAdd(elapsed_usec, &kGameStats);
-    kGameState.game_time_usec += elapsed_usec;
-
     window::SwapBuffers();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    uint64_t sleep_usec = 0;
-    uint64_t sleep_count = kGameState.sleep_on_loop;
-    while (!clock_sync(&kGameState.game_clock, &sleep_usec)) {
-      while (sleep_count) {
-        --sleep_count;
-        platform::sleep_usec(sleep_usec);
-        kGameState.game_time_usec += sleep_usec;
-      }
+    const uint64_t elapsed_usec = platform::ClockEnd(&game_clock);
+    StatsAdd(elapsed_usec, &kGameStats);
+
+    if (kGameState.frame_target_usec > elapsed_usec) {
+      uint64_t wait_usec = kGameState.frame_target_usec - elapsed_usec;
+      platform::Clock wait_clock;
+      platform::ClockStart(&wait_clock);
+      while (platform::ClockEnd(&wait_clock) < wait_usec) {}
     }
 
+    kGameState.game_time_usec += platform::ClockEnd(&game_clock);
     kGameState.game_updates++;
   }
 

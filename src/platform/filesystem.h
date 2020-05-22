@@ -37,4 +37,5 @@ ReplaceFilename(const char* newfname, char* oldfname_with_dir)
 
 bool MakeDirectory(const char* name);
 void WalkDirectory(const char* dir, FileCallback* file_callback);
+void ChangeDirectory(const char* dir);
 }

@@ -7,6 +7,7 @@
 
 namespace filesystem
 {
+
 bool
 MakeDirectory(const char* name)
 {
@@ -36,4 +37,11 @@ WalkDirectory(const char* dir, FileCallback* file_callback)
   }
   closedir(dirp);
 }
+
+void
+ChangeDirectory(const char* dir)
+{
+  chdir(dir);
+}
+
 }  // namespace filesystem

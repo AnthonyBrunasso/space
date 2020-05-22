@@ -3,6 +3,7 @@
 #include <cstdlib>
 
 #include "vec.h"
+#include "util.cc"
 
 struct Rectf {
   Rectf() = default;

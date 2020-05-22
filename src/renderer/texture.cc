@@ -17,6 +17,11 @@ struct TextureState {
   GLuint frame_buffer = -1;
 };
 
+struct TextureInfo {
+  GLuint min_filter = GL_LINEAR_MIPMAP_LINEAR;
+  GLuint mag_filter = GL_LINEAR;
+};
+
 struct UV {
   float u;
   float v;
@@ -66,15 +71,15 @@ SetupTexture()
 }
 
 Texture CreateTexture2D(GLenum format, uint64_t width, uint64_t height,
-                        const void* data) {
+                        TextureInfo texture_info, const void* data) {
   Texture texture = {};
   glGenTextures(1, &texture.reference);
   glBindTexture(GL_TEXTURE_2D, texture.reference);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texture_info.mag_filter);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texture_info.min_filter);
 
   glTexImage2D(
     GL_TEXTURE_2D,
@@ -95,7 +100,7 @@ Texture CreateTexture2D(GLenum format, uint64_t width, uint64_t height,
 }
 
 bool
-LoadTGA(const char* file, Texture* texture)
+LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
 {
 #pragma pack(push, 1)
   struct TgaImageSpec {
@@ -173,7 +178,8 @@ LoadTGA(const char* file, Texture* texture)
   }
 
   *texture = CreateTexture2D(format, image_spec->image_width,
-                             image_spec->image_height, image_bytes);
+                             image_spec->image_height, texture_info,
+                             image_bytes);
 
   printf("Loaded texture %s\n", file);
   printf("size: %.0fx%.0f\n", texture->width, texture->height);

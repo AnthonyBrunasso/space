@@ -25,7 +25,8 @@ bool
 SetupUI()
 {
   Font& font = kUI.font;
-  font.texture = CreateTexture2D(GL_RED, kFontWidth, kFontHeight, kFontData);
+  font.texture = CreateTexture2D(GL_RED, kFontWidth, kFontHeight,
+                                 TextureInfo(), kFontData);
   GLuint vert_shader, frag_shader;
   if (!gl::CompileShader(GL_VERTEX_SHADER, &kFontVertexShader,
                          &vert_shader)) {

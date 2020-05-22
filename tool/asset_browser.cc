@@ -2,12 +2,11 @@
 #include "audio/audio.cc"
 #include "common/common.cc"
 #include "gl/gl.cc"
-#include "gfx/imui.cc"
 #include "renderer/renderer.cc"
 #include "renderer/texture.cc"
 #include "renderer/mesh.cc"
 #include "renderer/camera.cc"
-#include "simulation/camera.cc"
+#include "renderer/imui.cc"
 #include "math/math.cc"
 
 struct Mesh {
@@ -204,6 +203,10 @@ main(int argc, char** argv)
           *kCurrentTexture,
           Rectf(0, 0, kCurrentTexture->width, kCurrentTexture->height),
           Rectf(0, 0, kCurrentTexture->width / 100.f, kCurrentTexture->height / 100.f));
+      //rgg::RenderTexture(
+      //    *kCurrentTexture,
+      //    Rectf(0, 0, 50, 37),
+      //    Rectf(0, 0, 50 / 100.f, 37 / 100.f));
     }
 
     UI();

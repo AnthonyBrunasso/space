@@ -118,6 +118,8 @@ glGenerateMipmap_Func* glGenerateMipmap;
 #define GL_DYNAMIC_DRAW                   0x88E8
 #define GL_FRAMEBUFFER                    0x8D40
 #define GL_COLOR_ATTACHMENT0              0x8CE0
+#define GL_BGR                            0x80E0
+#define GL_BGRA                           0x80E1
 
 namespace window {
 

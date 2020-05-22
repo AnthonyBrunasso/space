@@ -148,10 +148,8 @@ LoadTGA(const char* file, Texture* texture)
 #endif
 
   // Image bytes sz
-  uint32_t image_bytes_size =
-      image_spec->image_width * image_spec->image_height;
   uint8_t* image_bytes = &buffer[sizeof(TgaHeader) + sizeof(TgaImageSpec)];
-  GLenum format = GL_RGBA;
+  GLenum format = GL_BGRA;
   if (image_spec->pixel_depth == 8) format = GL_RED;
   else if (image_spec->pixel_depth == 24) format = GL_RGB;
   else if (image_spec->pixel_depth == 32) format = GL_RGBA;
@@ -161,6 +159,19 @@ LoadTGA(const char* file, Texture* texture)
     fclose(fptr);
     return false;
   }
+
+  if (format == GL_RGB || format == GL_RGBA) {
+    int stride = image_spec->pixel_depth / 8;
+    uint32_t image_bytes_size =
+        image_spec->image_width * image_spec->image_height * stride;
+    for (int i = 0; i < image_bytes_size; i += stride) {
+      // Swap bytes for red and blue
+      uint8_t t = image_bytes[i];
+      image_bytes[i] = image_bytes[i + 2];
+      image_bytes[i + 2] = t;
+    }
+  }
+
   *texture = CreateTexture2D(format, image_spec->image_width,
                              image_spec->image_height, image_bytes);
 
@@ -212,12 +223,12 @@ RenderTexture(const Texture& texture, const Rectf& src,
   float width = src.width / texture.width;
   float height = src.height / texture.height;
 
-  uv[0] = {start_x, start_y}; // BL
-  uv[1] = {start_x, start_y + height}; // TL
-  uv[2] = {start_x + width, start_y + height}; // TR
-  uv[3] = {start_x + width, start_y}; // BR
-  uv[4] = {start_x, start_y}; // BL
-  uv[5] = {start_x + width, start_y + height}; // TR
+  uv[0] = {start_x, start_y + height}; // BL
+  uv[1] = {start_x, start_y}; // TL
+  uv[2] = {start_x + width, start_y}; // TR 
+  uv[3] = {start_x + width, start_y + height}; // BR
+  uv[4] = {start_x, start_y + height}; // BL
+  uv[5] = {start_x + width, start_y}; // TR 
 #if 0
   printf("uv[0]=(%.3f, %3.f)\n", uv[0].u, uv[0].v);
   printf("uv[1]=(%.3f, %3.f)\n", uv[1].u, uv[1].v);

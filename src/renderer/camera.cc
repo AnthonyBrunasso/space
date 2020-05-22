@@ -19,7 +19,7 @@ struct Camera {
   v3f up = v3f(0.f, 1.f, 0.f);
   v2f viewport;
   CameraMode mode;
-  float speed = 10.f;
+  v3f speed;
   v3f lerp_to;
   float lerpv = 1.f;
 };
@@ -132,21 +132,21 @@ CameraOverhead(const PlatformEvent& event)
     case KEY_DOWN: {
       switch (event.key) {
         case 'w': {
-          c->position += forward * c->speed;
+          c->position += forward * c->speed.y;
         } break;
         case 'a': {
-          c->position += -right * c->speed;
+          c->position += -right * c->speed.x;
         } break;
         case 's': {
-          c->position += -forward * c->speed;
+          c->position += -forward * c->speed.y;
         } break;
         case 'd': {
-          c->position += right * c->speed;
+          c->position += right * c->speed.x;
         } break;
       }
     } break;
     case MOUSE_WHEEL: {
-      c->position += (c->dir * event.wheel_delta * c->speed);
+      c->position += (c->dir * event.wheel_delta * c->speed.z);
     } break;
     default: break;
   }
@@ -161,21 +161,21 @@ CameraBrowser(const PlatformEvent& event)
     case KEY_DOWN: {
       switch (event.key) {
         case 'w': {
-          c->position.y += c->speed;
+          c->position.y += c->speed.y;
         } break;
         case 'a': {
-          c->position.x -= c->speed;
+          c->position.x -= c->speed.x;
         } break;
         case 's': {
-          c->position.y -= c->speed;
+          c->position.y -= c->speed.y;
         } break;
         case 'd': {
-          c->position.x += c->speed;
+          c->position.x += c->speed.x;
         } break;
       }
     } break;
     case MOUSE_WHEEL: {
-      c->position += (c->dir * event.wheel_delta * c->speed);
+      c->position += (c->dir * event.wheel_delta * c->speed.z);
     } break;
     default: break;
   }

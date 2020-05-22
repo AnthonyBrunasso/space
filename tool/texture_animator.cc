@@ -81,14 +81,14 @@ main(int argc, char** argv)
 
   v2f size = window::GetWindowSize();
   auto* o = rgg::GetObserver();
-  o->projection = math::Perspective(67.f, size.x / size.y, .1f, 1000.f);
+  o->projection = math::Ortho(size.x, 0.f, size.y, 0.f, -100.f, 100.f);
 
   rgg::Camera camera;
-  camera.position = v3f(0.f, 1.f, 5.f);
+  camera.position = v3f(0.f, 1.f, 1.f);
   camera.dir = v3f(0.f, 0.f, -1.f);
   camera.up = v3f(0.f, 1.f, 0.f);
   camera.mode = rgg::kCameraBrowser;
-  camera.speed = .1f;
+  camera.speed = v3f(5.f, 5.f, 0.1f);
   rgg::CameraInit(camera);
   
   bool mouse_down = false;
@@ -143,15 +143,15 @@ main(int argc, char** argv)
       rgg::RenderTexture(
           *kCurrentTexture,
           Rectf(0, 0, kCurrentTexture->width, kCurrentTexture->height),
-          Rectf(-kCurrentTexture->width / 100.f, 0,
-                kCurrentTexture->width / 100.f, kCurrentTexture->height / 100.f));
+          Rectf(-kCurrentTexture->width, 0,
+                kCurrentTexture->width, kCurrentTexture->height));
       uint32_t w = 50;
       uint32_t h = 37;
       static int i = 0;
       rgg::RenderTexture(
           *kCurrentTexture,
           Rectf(w * i, 0, 50, 37),
-          Rectf(0, 0, 50 / 50.f, 37 / 50.f));
+          Rectf(0, 0, 50, 37));
       if (kFrame % 25 == 0) ++i;
       if (i > 3) i = 0;
     }

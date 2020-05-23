@@ -9,21 +9,21 @@
 
 struct State {
   // Game and render updates per second
-  uint64_t framerate = 60;
+  u64 framerate = 60;
   // Calculated available microseconds per game_update
-  uint64_t frame_target_usec;
+  u64 frame_target_usec;
   // Estimate of gime passed since game start.
-  uint64_t game_time_usec = 0;
+  u64 game_time_usec = 0;
   // Estimated frames per second.
-  float frames_per_second = 0;
+  r32 frames_per_second = 0;
   // (optional) yield unused cpu time to the system
-  bool sleep_on_loop = true;
+  b8 sleep_on_loop = true;
   // Number of times the game has been updated.
-  uint64_t game_updates = 0;
+  u64 game_updates = 0;
   // Parameters window::Create will be called with.
   window::CreateInfo window_create_info;
   // Id to music.
-  uint32_t music_id;
+  u32 music_id;
 };
 
 static State kGameState;
@@ -37,9 +37,9 @@ DebugUI()
 {
   v2f screen = window::GetWindowSize();
   {
-    static bool enable_debug = false;
+    static b8 enable_debug = false;
     static v2f diagnostics_pos(3.f, screen.y);
-    static float right_align = 130.f;
+    static r32 right_align = 130.f;
     imui::PaneOptions options;
     options.max_width = 315.f;
     imui::Begin("Diagnostics", imui::kEveryoneTag, options, &diagnostics_pos,
@@ -58,15 +58,15 @@ DebugUI()
     imui::Width(right_align);
     imui::Text("Game Time");
     snprintf(kUIBuffer, sizeof(kUIBuffer), "%04.02fs",
-             (double)kGameState.game_time_usec / 1e6);
+             (r64)kGameState.game_time_usec / 1e6);
     imui::Text(kUIBuffer);
     imui::NewLine();
     imui::SameLine();
     imui::Width(right_align);
     imui::Text("FPS");
     snprintf(kUIBuffer, sizeof(kUIBuffer), "%04.02ff/s",
-             (double)kGameState.game_updates /
-                 ((double)kGameState.game_time_usec / 1e6));
+             (r64)kGameState.game_updates /
+                 ((r64)kGameState.game_time_usec / 1e6));
     imui::Text(kUIBuffer);
     imui::NewLine();
     imui::SameLine();
@@ -79,14 +79,14 @@ DebugUI()
   }
 
   {
-    static bool enable_debug = false;
+    static b8 enable_debug = false;
     static v2f ui_pos(300.f, screen.y);
     imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
   }
 }
 
-int
-main(int argc, char** argv)
+s32
+main(s32 argc, char** argv)
 {
   platform::Clock game_clock;
 
@@ -174,11 +174,11 @@ main(int argc, char** argv)
     window::SwapBuffers();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    const uint64_t elapsed_usec = platform::ClockEnd(&game_clock);
+    const u64 elapsed_usec = platform::ClockEnd(&game_clock);
     StatsAdd(elapsed_usec, &kGameStats);
 
     if (kGameState.frame_target_usec > elapsed_usec) {
-      uint64_t wait_usec = kGameState.frame_target_usec - elapsed_usec;
+      u64 wait_usec = kGameState.frame_target_usec - elapsed_usec;
       platform::Clock wait_clock;
       platform::ClockStart(&wait_clock);
       while (platform::ClockEnd(&wait_clock) < wait_usec) {}

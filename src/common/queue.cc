@@ -13,11 +13,11 @@
 #define DECLARE_QUEUE(type, max_count)                                  \
                                                                         \
   static_assert(POWEROF2(max_count), "max_count must be a power of 2"); \
-  constexpr uint64_t kMax##type = max_count;                            \
+  constexpr u64 kMax##type = max_count;                                 \
                                                                         \
   static type k##type[max_count];                                       \
-  static uint64_t kRead##type;                                          \
-  static uint64_t kWrite##type;                                         \
+  static u64 kRead##type;                                               \
+  static u64 kWrite##type;                                              \
                                                                         \
   type Pop##type()                                                      \
   {                                                                     \
@@ -34,7 +34,7 @@
     kWrite##type += 1;                                                  \
   }                                                                     \
                                                                         \
-  uint64_t Count##type()                                                \
+  u64 Count##type()                                                     \
   {                                                                     \
     return kWrite##type - kRead##type;                                  \
   }

@@ -11,12 +11,12 @@
 //    Compress<type>(int idx) - Compresses the array starting at idx by moving
 //    all elements that occur after idx down one element in the array.
 #define DECLARE_ARRAY(type, max_count)             \
-  constexpr uint64_t kMax##type = max_count;       \
+  constexpr u64 kMax##type = max_count;            \
                                                    \
   static type k##type[max_count];                  \
   static type kZero##type;                         \
                                                    \
-  static uint64_t kUsed##type;                     \
+  static u64 kUsed##type;                          \
                                                    \
   type* Use##type()                                \
   {                                                \
@@ -40,7 +40,7 @@
 
 #define DECLARE_ID_ARRAY(type, max_count)                                 \
   DECLARE_ARRAY(type, max_count)                                          \
-  static uint32_t kAutoIncrementId##type = 1;                             \
+  static u32 kAutoIncrementId##type = 1;                                  \
                                                                           \
   type* UseId##type()                                                     \
   {                                                                       \
@@ -51,23 +51,23 @@
     return t;                                                             \
   }                                                                       \
                                                                           \
-  type* Find##type(uint32_t id)                                           \
+  type* Find##type(u32 id)                                                \
   {                                                                       \
-    for (int i = 0; i < kUsed##type; ++i) {                               \
+    for (s32 i = 0; i < kUsed##type; ++i) {                               \
       if (k##type[i].id == id) return &k##type[i];                        \
     }                                                                     \
     return nullptr;                                                       \
   }
 
 #define DECLARE_2D_ARRAY(type, n, max_count)            \
-  constexpr uint64_t kMax##type = max_count;            \
-  constexpr uint64_t kDim##type = n;                    \
+  constexpr u64 kMax##type = max_count;                 \
+  constexpr u64 kDim##type = n;                         \
   static type k##type[n][max_count];                    \
   static type kZero##type;                              \
                                                         \
-  static uint64_t kUsed##type[n];                       \
+  static u64 kUsed##type[n];                            \
                                                         \
-  type* Use##type(uint64_t dim)                         \
+  type* Use##type(u64 dim)                              \
   {                                                     \
     assert(dim < kDim##type);                           \
     assert(kUsed##type[dim] < kMax##type);              \
@@ -78,7 +78,7 @@
     return t;                                           \
   }                                                     \
                                                         \
-  void Compress##type(uint64_t dim, int idx)            \
+  void Compress##type(u64 dim, int idx)                 \
   {                                                     \
     if (idx >= kMax##type) return;                      \
     if (idx < 0) return;                                \

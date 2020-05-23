@@ -10,7 +10,7 @@ struct LogMessage {
 
 DECLARE_QUEUE(LogMessage, 32);
 static char kLogBuffer[MAX_LOGLINE];
-static int kUsedLogBuffer;
+static s32 kUsedLogBuffer;
 
 void
 Log(const char* logline, unsigned len)
@@ -26,7 +26,7 @@ Log(const char* logline, unsigned len)
 }
 
 const char*
-ReadLog(int index)
+ReadLog(s32 index)
 {
   if (kWriteLogMessage - kReadLogMessage <= index) return 0;
 

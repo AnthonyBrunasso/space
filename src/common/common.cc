@@ -1,5 +1,7 @@
 #pragma once
 
+#include "platform/type.cc"
+
 #include "macro.h"
 
 #include "array.cc"

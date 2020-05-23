@@ -2,9 +2,9 @@
 #include <cstdint>
 
 void
-djb2_hash_more(const uint8_t* bytes, unsigned len, uint64_t *hash)
+djb2_hash_more(const u8* bytes, unsigned len, u64* hash)
 {
-  for (int i = 0; i < len; ++i) {
+  for (s32 i = 0; i < len; ++i) {
     *hash = (*hash << 5) + *hash + bytes[i];
   }
 }

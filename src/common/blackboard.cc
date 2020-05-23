@@ -4,14 +4,14 @@
 #include <cstdint>
 #include <cstring>
 
-static constexpr int kMaxBlackboardItems = 16;
-static constexpr int kMaxBlackboardValueSize = 64;
+static constexpr s32 kMaxBlackboardItems = 16;
+static constexpr s32 kMaxBlackboardValueSize = 64;
 
-static uint8_t kEmptyValue[kMaxBlackboardValueSize];
+static u8 kEmptyValue[kMaxBlackboardValueSize];
 
 struct Blackboard {
   bool
-  Set(uint64_t idx, const uint8_t* bytes, uint64_t size)
+  Set(u64 idx, const u8* bytes, u64 size)
   {
     assert(idx < kMaxBlackboardItems);
     assert(size < kMaxBlackboardValueSize);
@@ -20,7 +20,7 @@ struct Blackboard {
   }
 
   bool
-  Get(uint64_t idx, const uint8_t** bytes) const
+  Get(u64 idx, const u8** bytes) const
   {
     assert(idx < kMaxBlackboardItems);
     if (!Exists(idx)) return false;
@@ -29,25 +29,25 @@ struct Blackboard {
   }
 
   bool
-  Exists(uint64_t idx) const
+  Exists(u64 idx) const
   {
     assert(idx < kMaxBlackboardItems);
     return memcmp(&value[idx], &kEmptyValue, kMaxBlackboardValueSize) != 0;
   }
 
   void
-  Remove(uint64_t idx)
+  Remove(u64 idx)
   {
     assert(idx < kMaxBlackboardItems);
     memcpy(&value[idx], &kEmptyValue, kMaxBlackboardValueSize);
   }
 
-  uint8_t value[kMaxBlackboardItems][kMaxBlackboardValueSize];
+  u8 value[kMaxBlackboardItems][kMaxBlackboardValueSize];
 };
 
 #define BB_SET(bb, idx, val) \
-  bb.Set(idx, reinterpret_cast<const uint8_t*>(&val), sizeof(val))
+  bb.Set(idx, reinterpret_cast<const u8*>(&val), sizeof(val))
 #define BB_GET(bb, idx, ptr) \
-  bb.Get(idx, reinterpret_cast<const uint8_t**>(&ptr))
+  bb.Get(idx, reinterpret_cast<const u8**>(&ptr))
 #define BB_EXI(bb, idx) bb.Exists(idx)
 #define BB_REM(bb, idx) bb.Remove(idx)

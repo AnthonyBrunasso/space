@@ -48,10 +48,6 @@ struct Mesh {
 };
 
 constexpr s32 kMaxVertCount = 65538;
-static r32 kVerts[kMaxVertCount * 8];
-static u32 kVertElementCount;
-static r32 kNorms[kMaxVertCount * 8];
-static u32 kNormElementCount;
 
 bool
 LoadMTL(const char* filename, Material* material, u32* material_count)
@@ -126,16 +122,23 @@ LoadOBJ(const char* filename, Mesh* mesh)
   static v3f vn[kMaxVertCount];
   static u32 cvn = 0;
 
+#define FREE_MEM()                             \
+  memory::PopType<r32>(2 * kMaxVertCount * 8); \
+
+  r32* verts = memory::PushType<r32>(kMaxVertCount * 8);
+  u32 verts_count = 0;
+
+  r32* norms = memory::PushType<r32>(kMaxVertCount * 8);
+  u32 norms_count = 0;
+
   cv = 0;
   cvn = 0;
-  kVertElementCount = 0;
-  kNormElementCount = 0;
 
 #define ADD_VERTS(vec) \
-  memcpy(&kVerts[kVertElementCount], &v[vec.x - 1].x, 3 * sizeof(r32));  \
-  memcpy(&kNorms[kNormElementCount], &vn[vec.z - 1].x, 3 * sizeof(r32)); \
-  kVertElementCount += 3;                                                  \
-  kNormElementCount += 3;
+  memcpy(&verts[verts_count], &v[vec.x - 1].x, 3 * sizeof(r32));  \
+  memcpy(&norms[norms_count], &vn[vec.z - 1].x, 3 * sizeof(r32)); \
+  verts_count += 3;                                                  \
+  norms_count += 3;
 
 #define ADD_VERT_AND_NORM(a, b, c) \
   ADD_VERTS(a);                    \
@@ -144,6 +147,7 @@ LoadOBJ(const char* filename, Mesh* mesh)
 
   FILE* f = fopen(filename, "rb");
   if (!f) {
+    FREE_MEM();
     printf("%s not found!\n", filename);
     return false;
   }
@@ -190,7 +194,7 @@ LoadOBJ(const char* filename, Mesh* mesh)
     } else if (strcmp(line, "f") == 0) {
       u32 vert_pair_idx = mtl ? mtl->vert_pair_count - 1 : 0;
       if (mtl && mtl->vert_pair[vert_pair_idx].first == u64(-1)) {
-        mtl->vert_pair[vert_pair_idx].first = kVertElementCount / 3;
+        mtl->vert_pair[vert_pair_idx].first = verts_count / 3;
       }
       s32 i = 0;
       v3i first, second, third;
@@ -208,21 +212,22 @@ LoadOBJ(const char* filename, Mesh* mesh)
       }
       if (mtl) {
         mtl->vert_pair[vert_pair_idx].count =
-            (kVertElementCount / 3) - mtl->vert_pair[vert_pair_idx].first;
+            (verts_count / 3) - mtl->vert_pair[vert_pair_idx].first;
       }
     }
   } 
 
-  mesh->vert_count = kVertElementCount / 3;
-  mesh->norm_count = kNormElementCount / 3;
+  mesh->vert_count = verts_count / 3;
+  mesh->norm_count = norms_count / 3;
   
   GLuint points_vbo = 0;
   glGenBuffers(1, &points_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, points_vbo);
-  glBufferData(GL_ARRAY_BUFFER, kVertElementCount * sizeof(GLfloat),
-               &kVerts[0], GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, verts_count * sizeof(GLfloat),
+               &verts[0], GL_STATIC_DRAW);
 
   if (!points_vbo) {
+    FREE_MEM();
     fclose(f);
     return false;
   }
@@ -230,10 +235,11 @@ LoadOBJ(const char* filename, Mesh* mesh)
   GLuint normals_vbo = 0;
   glGenBuffers(1, &normals_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, normals_vbo);
-  glBufferData(GL_ARRAY_BUFFER, kNormElementCount * sizeof(GLfloat),
-               &kNorms[0], GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, norms_count * sizeof(GLfloat),
+               &norms[0], GL_STATIC_DRAW);
   
   if (!normals_vbo) {
+    FREE_MEM();
     fclose(f);
     return false;
   }
@@ -243,6 +249,7 @@ LoadOBJ(const char* filename, Mesh* mesh)
   glBindVertexArray(vao);
 
   if (!vao) {
+    FREE_MEM();
     fclose(f);
     return false;
   }
@@ -275,6 +282,7 @@ LoadOBJ(const char* filename, Mesh* mesh)
 
   fclose(f);
 
+  FREE_MEM();
   return true;
 }
 

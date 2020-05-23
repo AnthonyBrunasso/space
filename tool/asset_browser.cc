@@ -8,6 +8,7 @@
 #include "renderer/camera.cc"
 #include "renderer/imui.cc"
 #include "math/math.cc"
+#include "memory/memory.cc"
 
 struct Mesh {
   rgg::Mesh mesh;
@@ -32,7 +33,7 @@ void
 FileOBJCallback(const char* filename)
 {
   if (strcmp(filesystem::GetFilenameExtension(filename), "obj") != 0) return;
-  uint32_t len = strlen(filename);
+  u32 len = strlen(filename);
   imui::TextOptions o;
   o.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
   if (imui::Text(filename, o).clicked) {
@@ -53,7 +54,7 @@ void
 FileWAVCallback(const char* filename)
 {
   if (strcmp(filesystem::GetFilenameExtension(filename), "wav") != 0) return;
-  uint32_t len = strlen(filename);
+  u32 len = strlen(filename);
   imui::TextOptions o;
   o.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
   if (imui::Text(filename, o).clicked) {
@@ -73,13 +74,13 @@ void
 FileTGACallback(const char* filename)
 {
   if (strcmp(filesystem::GetFilenameExtension(filename), "tga") != 0) return;
-  uint32_t len = strlen(filename);
+  u32 len = strlen(filename);
   imui::TextOptions o;
   o.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
   if (imui::Text(filename, o).clicked) {
     Texture* texture = FindOrUseTexture(filename, len);
     if (!texture->texture.IsValid()) {
-      if (!rgg::LoadTGA(filename, &texture->texture)) {
+      if (!rgg::LoadTGA(filename, rgg::TextureInfo(), &texture->texture)) {
         printf("Invalid texture %s\n", filename);
       }
     }
@@ -94,7 +95,7 @@ void
 UI()
 {
   v2f screen = window::GetWindowSize();
-  static bool dir_enable = true;
+  static b8 dir_enable = true;
   static v2f dir_pos(300.f, screen.y - 300.f);
   imui::PaneOptions options;
   options.max_width = 315.f;
@@ -125,6 +126,8 @@ RenderAxis()
 int
 main(int argc, char** argv)
 {
+  if (!memory::Initialize(MiB(64))) return 1;
+
   window::CreateInfo create_info;
   create_info.window_width = 1920;
   create_info.window_height = 1080;
@@ -141,10 +144,10 @@ main(int argc, char** argv)
   camera.dir = v3f(0.f, 0.f, -1.f);
   camera.up = v3f(0.f, 1.f, 0.f);
   camera.mode = rgg::kCameraBrowser;
-  camera.speed = .1f;
+  camera.speed = v3f(1.f, 1.f, .1f);
   rgg::CameraInit(camera);
   
-  bool mouse_down = false;
+  b8 mouse_down = false;
 
   while (!window::ShouldClose()) {
     PlatformEvent event;
@@ -192,7 +195,7 @@ main(int argc, char** argv)
 
     RenderAxis();
     if (kCurrentMesh && kCurrentMesh->IsValid()) {
-      static float r = 0.f;
+      static r32 r = 0.f;
       if (mouse_down) {
         r += imui::MouseDelta(0).x;
       }

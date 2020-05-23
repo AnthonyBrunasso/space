@@ -9,13 +9,11 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "memory/memory.cc"
+
 namespace audio {
 
 #define AUDIODEBUG 0
-
-constexpr u32 kMaxSoundFileSize = 25e6;
-
-static u8 kBuffer[kMaxSoundFileSize];
 
 struct Sound {
   r32 length_ms = 0.f;
@@ -70,17 +68,18 @@ LoadWAV(const char* filename, Sound* sound)
 
   fseek(f, 0, SEEK_END);
   file_length = ftell(f);
-  assert(file_length < kMaxSoundFileSize);
   rewind(f);
 
-  fread(kBuffer, file_length, 1, f);
+  u8* bytes = memory::PushBytes(file_length);
+
+  fread(bytes, file_length, 1, f);
   fclose(f);
 
 #if AUDIODEBUG
   printf("Read file %s size %u\n", filename, file_length);
 #endif
 
-  WavHeader* header = (WavHeader*)kBuffer;
+  WavHeader* header = (WavHeader*)bytes;
   u32 read = sizeof(WavHeader);
 
 #if 0
@@ -97,14 +96,14 @@ LoadWAV(const char* filename, Sound* sound)
 
   u8* sound_bytes = nullptr;
   while (read < file_length) {
-    WavChunk* chunk = (WavChunk*)(&kBuffer[read]);
+    WavChunk* chunk = (WavChunk*)(&bytes[read]);
 #if 0
     printf("Read chunk %.4s bytes %u\n",
            (char*)(chunk->chunk_id), chunk->chunk_size);
 #endif
     read += sizeof(WavChunk);
     if (memcmp((char*)(chunk->chunk_id), "fmt", 3) == 0) {
-      WavFmt* fmt = (WavFmt*)(&kBuffer[read]);
+      WavFmt* fmt = (WavFmt*)(&bytes[read]);
 #if AUDIODEBUG
       printf("audio_format: %u\n", fmt->audio_format);
       printf("num_channels: %u\n", fmt->num_channels);
@@ -118,7 +117,7 @@ LoadWAV(const char* filename, Sound* sound)
       sound->frequency = (r32)fmt->sample_rate;
     } else if (memcmp((char*)(chunk->chunk_id), "data", 4) == 0) {
       sound->size = chunk->chunk_size;
-      sound_bytes = &kBuffer[read];
+      sound_bytes = &bytes[read];
       break;  // Once we get audio bytes quit.
     } // else - Skip unrecognized chunks.
     read += chunk->chunk_size;
@@ -136,6 +135,7 @@ LoadWAV(const char* filename, Sound* sound)
     sound->format =
         sound->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
   } else /* Unsupported bitrate */ {
+    memory::PopBytes(file_length);
     return false;
   }
 
@@ -147,6 +147,7 @@ LoadWAV(const char* filename, Sound* sound)
 
   ALenum error = alGetError();
   if (error != AL_NO_ERROR) {
+    memory::PopBytes(file_length);
     printf("openal alBufferData error %i\n", error);
     return false;
   }
@@ -162,6 +163,7 @@ LoadWAV(const char* filename, Sound* sound)
   printf("alreference: %u\n", sound->alreference);
 #endif
 
+  memory::PopBytes(file_length);
   return true;
 }
 

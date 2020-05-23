@@ -127,7 +127,7 @@ LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
   fseek(fptr, 0, SEEK_END);
   file_length = ftell(fptr);
   rewind(fptr);
-  buffer = (u8*)malloc(file_length);
+  buffer = memory::PushBytes(file_length);
   fread(buffer, file_length, 1, fptr);
 
   // First load the header.
@@ -160,7 +160,7 @@ LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
   else if (image_spec->pixel_depth == 32) format = GL_RGBA;
   else {
     printf("Unsupported tga pixel depth\n");
-    free(buffer);
+    memory::PopBytes(file_length);
     fclose(fptr);
     return false;
   }
@@ -187,7 +187,7 @@ LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
   printf("glreference: %i\n", texture->reference);
 
   // Free buffer used to read in file.
-  free(buffer);
+  memory::PopBytes(file_length);
   fclose(fptr);
   return true;
 }

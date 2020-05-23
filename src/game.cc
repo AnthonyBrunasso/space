@@ -90,6 +90,9 @@ main(s32 argc, char** argv)
 {
   platform::Clock game_clock;
 
+  if (!memory::Initialize(MiB(64))) {
+  }
+
   if (!window::Create("Game", kGameState.window_create_info)) {
     return 1;
   }

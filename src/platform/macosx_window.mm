@@ -128,9 +128,9 @@ Create(const char* name, s32 width, s32 height, b8 fullscreen)
 {
   kWindow.gl_context = CreateOpenGLContext();
 
-  unsigned s32 style_mask = NSTitledWindowMask   |
-                            NSClosableWindowMask |
-                            NSWindowStyleMaskResizable;
+  u32 style_mask = NSTitledWindowMask   |
+                   NSClosableWindowMask |
+                   NSWindowStyleMaskResizable;
   kWindow.nsview = [[OpenGLView alloc]
                   initWithFrame:NSMakeRect(0,0, width, height)];
 

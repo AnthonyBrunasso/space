@@ -11,6 +11,7 @@
 #endif
 
 #include "common/macro.h"
+#include "type.cc"
 
 #include "x64_intrin.h"
 

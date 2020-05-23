@@ -5,11 +5,12 @@
 namespace animation
 {
 
-static constexpr uint32_t kMaxLabelSize = 8;
+static constexpr uint32_t kMaxLabelSize = 16;
+static constexpr uint32_t kMaxCoordSize = 16;
 
 struct Label {
   char name[64];
-  v2i coord[16];
+  v2i coord[kMaxCoordSize];
   uint32_t coord_size = 0;
   // Number of frames to wait before traversing to next image.
   uint32_t frame_count = 0;
@@ -59,6 +60,7 @@ LoadAnimation(const char* filename, Sprite* sprite)
       strcpy(clabel->name, label_name);
     } else if (strcmp(line, "c") == 0) {
       assert(clabel);
+      assert(clabel->coord_size + 1 < kMaxLabelSize);
       uint32_t i = clabel->coord_size;
       fscanf(f, "%u %u\n", &clabel->coord[i].x, &clabel->coord[i].y);
       ++clabel->coord_size;

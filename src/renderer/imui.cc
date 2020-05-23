@@ -19,12 +19,12 @@ enum FlowType {
   kSameLine,
 };
 
-constexpr int kMaxTextSize = 128;
-constexpr int kClickForFrames = 100;
+constexpr s32 kMaxTextSize = 128;
+constexpr s32 kClickForFrames = 100;
 
-constexpr float kTextScale = 0.8f;
-constexpr float kScrollBarWidth = 15.f;
-constexpr float kCheckboxOffset = 2.f;
+constexpr r32 kTextScale = 0.8f;
+constexpr r32 kScrollBarWidth = 15.f;
+constexpr r32 kCheckboxOffset = 2.f;
 
 static const v4f kRed = v4f(1.f, 0.f, 0.f, 1.f);
 static const v4f kWhite(1.f, 1.f, 1.f, 1.f);
@@ -40,11 +40,11 @@ static const v4f kCheckboxHighlightedColor(0.32f, 0.36f, 0.954f, .3f);
 
 struct Result {
   Result() = default;
-  Result(const Rectf& rect, bool highlighted, bool clicked) :
+  Result(const Rectf& rect, b8 highlighted, b8 clicked) :
       rect(rect), highlighted(highlighted), clicked(clicked) {}
   Rectf rect;
-  bool highlighted = false;
-  bool clicked = false;
+  b8 highlighted = false;
+  b8 clicked = false;
 };
 
 #define IMUI_RESULT(rect) \
@@ -73,22 +73,22 @@ struct TextOptions {
   v4f color = kWhite;
   v4f highlight_color = v4f();
   // If true the text will render regardless of clipping options.
-  bool ignore_scissor_test = false;
+  b8 ignore_scissor_test = false;
 };
 
 struct ButtonCircleOptions {
-  bool ignore_scissor_test = false;
+  b8 ignore_scissor_test = false;
 };
 
 struct PaneOptions {
   // Starting with and height of pane.
-  float width = 0.f;
-  float height = 0.f;
+  r32 width = 0.f;
+  r32 height = 0.f;
   // If set the pane will not expand these dimensions.
-  float max_width = 0.f;
-  float max_height = 0.f;
+  r32 max_width = 0.f;
+  r32 max_height = 0.f;
   v4f color = kPaneColor;
-  bool enable_console_mode = false;
+  b8 enable_console_mode = false;
   Rectf header_rect;
 };
 
@@ -111,24 +111,24 @@ enum PaneFlag {
 };
 
 struct Pane {
-  uint32_t tag;
-  uint32_t flags;
+  u32 tag;
+  u32 flags;
   Rectf rect;
   PaneOptions options;
   // Now far up or down the user has scrolled.
   // 0 indicates no scroll.
   // A value greater than 0 means the user has scrolled down. All text ui
   // elements should be positioned accordingly.
-  float vertical_scroll = 0.f;
+  r32 vertical_scroll = 0.f;
   // Current max scroll can be calculated as theoretical_height - rect.height.
   // This value is the max scroll allowed from the previous call to Begin.
-  float previous_max_scroll = 0.f;
-  bool element_off_pane = false;
+  r32 previous_max_scroll = 0.f;
+  b8 element_off_pane = false;
   Rectf header_rect;
   // The height the pane would be if constraints like max_height screen
   // clipping where done. This is used for scrolling.
-  float theoretical_height = 0.f;
-  float theoretical_y;
+  r32 theoretical_height = 0.f;
+  r32 theoretical_y;
   Rectf scroll_rect;
   char title[kMaxHashKeyLength];
   // Docked panes as linked lists with forward and backward pane pointers.
@@ -153,7 +153,7 @@ struct Button {
 
 struct ButtonCircle {
   v2f position;
-  float radius;
+  r32 radius;
   v4f color;
   ButtonCircleOptions options;
   Pane* pane;
@@ -168,8 +168,8 @@ struct Line {
 
 struct ProgressBar {
   Rectf rect;
-  float current_progress;
-  float max_progress;
+  r32 current_progress;
+  r32 max_progress;
   v4f fill_color;
   v4f outline_color;
   Pane* pane;
@@ -177,8 +177,8 @@ struct ProgressBar {
 
 struct Checkbox {
   Rectf rect;
-  bool checked;
-  bool is_highlighted;
+  b8 checked;
+  b8 is_highlighted;
   Pane* pane;
 };
 
@@ -195,7 +195,7 @@ struct MouseUp {
 };
 
 struct MouseWheel {
-  float delta;
+  r32 delta;
 };
 
 struct MousePosition {
@@ -208,38 +208,38 @@ struct LastMousePosition {
 
 struct BeginMode {
   v2f pos;
-  bool set = false;
-  uint32_t tag = 0;
+  b8 set = false;
+  u32 tag = 0;
   // UI Element go one new line unless explcitly swapped.
   FlowType flow_type = kNewLine;
-  bool flow_switch = false;
+  b8 flow_switch = false;
   Rectf last_rect;
-  float x_reset;
-  bool mouse_down;
+  r32 x_reset;
+  b8 mouse_down;
   // A bit of a hack?
-  bool ignore_vertical_scroll = false;
-  float overwrite_width;
-  bool* show = nullptr;
+  b8 ignore_vertical_scroll = false;
+  r32 overwrite_width;
+  b8* show = nullptr;
   v2f* start = nullptr;
   Pane* pane;
 };
 
 #ifdef SINGLE_PLAYER
-constexpr uint32_t kMaxTags = 1;
-constexpr uint32_t kEveryoneTag = 0;
+constexpr u32 kMaxTags = 1;
+constexpr u32 kEveryoneTag = 0;
 #else
-constexpr uint32_t kMaxTags = MAX_PLAYER + 1;
-constexpr uint32_t kEveryoneTag = MAX_PLAYER;
+constexpr u32 kMaxTags = MAX_PLAYER + 1;
+constexpr u32 kEveryoneTag = MAX_PLAYER;
 #endif
 
 struct IMUI {
   BeginMode begin_mode;
-  bool mouse_down[kMaxTags];
-  uint32_t text_exhaustion[kMaxTags];
-  uint32_t button_exhaustion[kMaxTags];
-  uint32_t button_circle_exhaustion[kMaxTags];
-  bool debug_show_details[kMaxTags];
-  bool debug_enabled = false;
+  b8 mouse_down[kMaxTags];
+  u32 text_exhaustion[kMaxTags];
+  u32 button_exhaustion[kMaxTags];
+  u32 button_circle_exhaustion[kMaxTags];
+  b8 debug_show_details[kMaxTags];
+  b8 debug_enabled = false;
 };
 
 static IMUI kIMUI;
@@ -267,7 +267,7 @@ ToggleDebug()
 }
 
 void
-GenerateUIMetadata(uint32_t tag)
+GenerateUIMetadata(u32 tag)
 {
   memcpy(kLastMousePosition[tag], kMousePosition[tag],
          sizeof(kMousePosition[tag]));
@@ -297,7 +297,7 @@ ResetAll()
 }
 
 void
-ResetTag(uint32_t tag)
+ResetTag(u32 tag)
 {
   assert(tag < kMaxTags);
   GenerateUIMetadata(tag);
@@ -319,7 +319,7 @@ ResetTag(uint32_t tag)
 }
 
 v2f
-MouseDelta(uint32_t tag)
+MouseDelta(u32 tag)
 {
   if (kUsedMousePosition[tag] < 1 || kUsedLastMousePosition[tag] < 1)
     return {};
@@ -333,7 +333,7 @@ MouseDelta()
 }
 
 void
-SetScissorWithPane(const Pane& pane, const v2f& viewport, bool ignore_scissor)
+SetScissorWithPane(const Pane& pane, const v2f& viewport, b8 ignore_scissor)
 {
   if (ignore_scissor) {
     glScissor(0, 0, viewport.x, viewport.y);
@@ -347,10 +347,10 @@ SetScissorWithPane(const Pane& pane, const v2f& viewport, bool ignore_scissor)
   }
 }
 
-bool
+b8
 IsRectHighlighted(Rectf rect)
 {
-  uint32_t tag = kIMUI.begin_mode.tag;
+  u32 tag = kIMUI.begin_mode.tag;
   for (int i = 0; i < kUsedMousePosition[tag]; ++i) {
     MousePosition* mp = &kMousePosition[tag][i];
     if (math::PointInRect(mp->pos, rect)) return true;
@@ -359,7 +359,7 @@ IsRectHighlighted(Rectf rect)
 }
 
 void
-Render(uint32_t tag)
+Render(u32 tag)
 {
   glDisable(GL_DEPTH_TEST);
   auto dims = window::GetWindowSize();
@@ -462,12 +462,12 @@ Render(uint32_t tag)
   glEnable(GL_DEPTH_TEST);
 }
 
-float
+r32
 GetMouseWheel()
 {
-  uint32_t tag = kIMUI.begin_mode.tag;
+  u32 tag = kIMUI.begin_mode.tag;
   if (!kUsedMouseWheel[tag]) return 0.f;
-  float d = 0.f;
+  r32 d = 0.f;
   for (int i = 0; i < kUsedMouseWheel[tag]; ++i) {
     d += kMouseWheel[tag][i].delta;
   }
@@ -477,15 +477,15 @@ GetMouseWheel()
 v2f
 GetMousePosition()
 {
-  uint32_t tag = kIMUI.begin_mode.tag;
+  u32 tag = kIMUI.begin_mode.tag;
   if (!kUsedMousePosition[tag]) return {};
   return kMousePosition[tag][0].pos;
 }
 
-bool
+b8
 IsRectPreviouslyHighlighted(Rectf rect)
 {
-  uint32_t tag = kIMUI.begin_mode.tag;
+  u32 tag = kIMUI.begin_mode.tag;
   for (int i = 0; i < kUsedLastMousePosition[tag]; ++i) {
     LastMousePosition* mp = &kLastMousePosition[tag][i];
     if (math::PointInRect(mp->pos, rect)) return true;
@@ -493,10 +493,10 @@ IsRectPreviouslyHighlighted(Rectf rect)
   return false;
 }
 
-bool
+b8
 IsRectClicked(Rectf rect)
 {
-  uint32_t tag = kIMUI.begin_mode.tag;
+  u32 tag = kIMUI.begin_mode.tag;
   for (int i = 0; i < kUsedMouseDown[tag]; ++i) {
     MouseDown* click = &kMouseDown[tag][i];
     if (math::PointInRect(click->pos, rect)) return true;
@@ -504,10 +504,10 @@ IsRectClicked(Rectf rect)
   return false;
 }
 
-bool
-IsCircleHighlighted(v2f center, float radius)
+b8
+IsCircleHighlighted(v2f center, r32 radius)
 {
-  uint32_t tag = kIMUI.begin_mode.tag;
+  u32 tag = kIMUI.begin_mode.tag;
   for (int i = 0; i < kUsedMousePosition[tag]; ++i) {
     MousePosition* mp = &kMousePosition[tag][i];
     if (math::PointInCircle(mp->pos, center, radius)) return true;
@@ -515,10 +515,10 @@ IsCircleHighlighted(v2f center, float radius)
   return false;
 }
 
-bool
-IsCircleClicked(v2f center, float radius)
+b8
+IsCircleClicked(v2f center, r32 radius)
 {
-  uint32_t tag = kIMUI.begin_mode.tag;
+  u32 tag = kIMUI.begin_mode.tag;
   for (int i = 0; i < kUsedMouseDown[tag]; ++i) {
     MouseDown* click = &kMouseDown[tag][i];
     if (math::PointInCircle(click->pos, center, radius)) return true;
@@ -526,19 +526,19 @@ IsCircleClicked(v2f center, float radius)
   return false;
 }
 
-bool
-IsMouseDown(uint32_t tag)
+b8
+IsMouseDown(u32 tag)
 {
   return kIMUI.mouse_down[tag];
 }
 
-bool
+b8
 IsMouseDown()
 {
   return IsMouseDown(kIMUI.begin_mode.tag);
 }
 
-uint32_t
+u32
 WidthOf(char c)
 {
   auto& font = rgg::kUI.font;
@@ -563,7 +563,7 @@ Indent(int spaces)
 // Set begin_mode.pos to point to the bottom left of where the current element
 // should draw.
 Rectf
-UpdatePane(float width, float height, bool* element_in_pane)
+UpdatePane(r32 width, r32 height, b8* element_in_pane)
 {
   assert(element_in_pane);
   IF_HIDDEN(return Rectf());
@@ -575,7 +575,7 @@ UpdatePane(float width, float height, bool* element_in_pane)
   if (begin_mode.flow_switch || begin_mode.flow_type == kNewLine) {
     begin_mode.pos.y = begin_mode.pane->theoretical_y - height;
   }
-  float height_growth = height;
+  r32 height_growth = height;
   if (!begin_mode.flow_switch && begin_mode.flow_type == kSameLine) {
     begin_mode.pos.x += begin_mode.last_rect.width;
     // If the new element is larger than the last align them
@@ -600,7 +600,7 @@ UpdatePane(float width, float height, bool* element_in_pane)
   }
   begin_mode.pane->theoretical_y =
         MINF(begin_mode.pos.y, begin_mode.pane->theoretical_y);
-  float new_width = (begin_mode.pos.x + width) - begin_mode.pane->rect.x;
+  r32 new_width = (begin_mode.pos.x + width) - begin_mode.pane->rect.x;
   if (!begin_mode.flow_switch && begin_mode.flow_type == kSameLine) {
     new_width += begin_mode.last_rect.width;
   }
@@ -633,7 +633,7 @@ Text(const char* msg, TextOptions options)
 {
   assert(kIMUI.begin_mode.set);
   auto& begin_mode = kIMUI.begin_mode;
-  uint32_t tag = kIMUI.begin_mode.tag;
+  u32 tag = kIMUI.begin_mode.tag;
   Result data;
   IF_HIDDEN(return data);
   if (strlen(msg) > kMaxTextSize) {
@@ -642,7 +642,7 @@ Text(const char* msg, TextOptions options)
   }
   Rectf text_rect = 
       rgg::GetTextRect(msg, strlen(msg), begin_mode.pos, kTextScale);
-  bool in_pane = false;
+  b8 in_pane = false;
   Rectf rect = UpdatePane(text_rect.width, text_rect.height, &in_pane);
   if (!in_pane) return data;
   struct Text* text = UseText(tag);
@@ -670,7 +670,7 @@ Text(const char* msg)
 }
 
 Result
-Bitfield32(uint32_t bitfield)
+Bitfield32(u32 bitfield)
 {
   char bstr[33];
   for (int i = 31; i > -1; --i) {
@@ -709,9 +709,9 @@ void
 HorizontalLine(const v4f& color)
 {
   assert(kIMUI.begin_mode.set);
-  uint32_t tag = kIMUI.begin_mode.tag;
+  u32 tag = kIMUI.begin_mode.tag;
   IF_HIDDEN(return);
-  bool in_pane = false;
+  b8 in_pane = false;
   Rectf rect = UpdatePane(kIMUI.begin_mode.pane->rect.width, 1.f, &in_pane);
   // TODO(abrunass): Not working for horizontal lines - not sure why.
   //if (!in_pane) return;
@@ -732,7 +732,7 @@ Space(SpaceType type, int count)
 {
   assert(kIMUI.begin_mode.set);
   IF_HIDDEN(return);
-  bool in_pane = false;
+  b8 in_pane = false;
   if (type == kHorizontal) {
     UpdatePane(count, 0.f, &in_pane);
     if (!in_pane) return;
@@ -743,14 +743,14 @@ Space(SpaceType type, int count)
 }
 
 Result
-Button(float width, float height, const v4f& color)
+Button(r32 width, r32 height, const v4f& color)
 {
   // Call Begin() before imui elements.
   assert(kIMUI.begin_mode.set);
-  uint32_t tag = kIMUI.begin_mode.tag;
+  u32 tag = kIMUI.begin_mode.tag;
   Result result;
   IF_HIDDEN(return result);
-  bool in_pane = false;
+  b8 in_pane = false;
   Rectf rect = UpdatePane(width, height, &in_pane);
   if (!in_pane) return result;
   struct Button* button = UseButton(tag);
@@ -765,15 +765,15 @@ Button(float width, float height, const v4f& color)
 }
 
 Result
-ButtonCircle(float radius, const v4f& color,
+ButtonCircle(r32 radius, const v4f& color,
              const ButtonCircleOptions& options)
 {
   // Call Begin() before imui elements.
   assert(kIMUI.begin_mode.set);
   Result result;
   IF_HIDDEN(return result);
-  uint32_t tag = kIMUI.begin_mode.tag;
-  bool in_pane = false;
+  u32 tag = kIMUI.begin_mode.tag;
+  b8 in_pane = false;
   Rectf rect = UpdatePane(2.f * radius, 2.f * radius, &in_pane);
   if (!in_pane) return result;
   struct ButtonCircle* button = UseButtonCircle(tag);
@@ -791,20 +791,20 @@ ButtonCircle(float radius, const v4f& color,
 }
 
 Result
-ButtonCircle(float radius, const v4f& color)
+ButtonCircle(r32 radius, const v4f& color)
 {
   ButtonCircleOptions options;
   return ButtonCircle(radius, color, options);
 }
 
 Result
-Checkbox(float width, float height, bool* checked)
+Checkbox(r32 width, r32 height, b8* checked)
 {
   assert(kIMUI.begin_mode.set);
   Result result;
   IF_HIDDEN(return result);
-  uint32_t tag = kIMUI.begin_mode.tag;
-  bool in_pane = false;
+  u32 tag = kIMUI.begin_mode.tag;
+  b8 in_pane = false;
   Rectf rect = UpdatePane(width, height, &in_pane);
   if (!in_pane) return result;
   struct Checkbox* checkbox = UseCheckbox(tag);
@@ -821,16 +821,16 @@ Checkbox(float width, float height, bool* checked)
 }
 
 Result
-ProgressBar(float width, float height, float current_progress,
-            float max_progress, const v4f& fill_color,
+ProgressBar(r32 width, r32 height, r32 current_progress,
+            r32 max_progress, const v4f& fill_color,
             const v4f& outline_color)
 {
   // Call Begin() before imui elements.
   assert(kIMUI.begin_mode.set);
-  uint32_t tag = kIMUI.begin_mode.tag;
+  u32 tag = kIMUI.begin_mode.tag;
   Result result;
   IF_HIDDEN(return result);
-  bool in_pane = false;
+  b8 in_pane = false;
   Rectf rect = UpdatePane(width, height, &in_pane);
   if (!in_pane) return result;
   struct ProgressBar* pb = UseProgressBar(tag);
@@ -859,7 +859,7 @@ SameLine()
 
 // Overwrite width to a certain value for the next imui call.
 void
-Width(float width)
+Width(r32 width)
 {
   assert(kIMUI.begin_mode.set);
   IF_HIDDEN(return);
@@ -877,8 +877,8 @@ NewLine()
 }
 
 void
-Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
-      v2f* start, bool* show = nullptr)
+Begin(const char* title, u32 tag, const PaneOptions& pane_options,
+      v2f* start, b8* show = nullptr)
 {
   assert(tag < kMaxTags);
   assert(title);
@@ -887,7 +887,7 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
   if (pane_options.max_height)
     assert(pane_options.height <= pane_options.max_height);
   TITLE_WITH_TAG(title, tag);
-  uint32_t title_with_tag_len = strlen(title_with_tag);
+  u32 title_with_tag_len = strlen(title_with_tag);
   assert(title_with_tag_len < kMaxHashKeyLength);
   auto& begin_mode = kIMUI.begin_mode;
   // End must be called before Begin.
@@ -898,7 +898,7 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
   begin_mode.x_reset = start->x;
   begin_mode.start = start;
   begin_mode.pane = FindOrUsePane(title_with_tag, title_with_tag_len);
-  uint32_t title_len = strlen(begin_mode.pane->title);
+  u32 title_len = strlen(begin_mode.pane->title);
   strcpy(begin_mode.pane->title, title);
   // Header. TODO(abrunasso): imui now relies on hashing header title for pane
   // persistence - but it is worth adding a pane option to hide it here.
@@ -940,22 +940,22 @@ Begin(const char* title, uint32_t tag, const PaneOptions& pane_options,
 }
 
 void
-Begin(const char* title, uint32_t tag, v2f* start, bool* show = nullptr)
+Begin(const char* title, u32 tag, v2f* start, b8* show = nullptr)
 {
   PaneOptions pane_options;
   pane_options.color = v4f(0.f, 0.f, 0.f, 0.f);
   Begin(title, tag, pane_options, start, show);
 }
 
-bool
-CanScroll(const Pane& pane, float delta)
+b8
+CanScroll(const Pane& pane, r32 delta)
 {
   if (delta > 0.f && pane.element_off_pane) return true;
   if (delta < 0.f && pane.vertical_scroll > 0.f) return true;
   return false;
 }
 
-float
+r32
 GetMaxScroll(const Pane& pane)
 {
   // HACK: - .1f to allow scrolling up once the bar has reached the bottom.
@@ -989,10 +989,10 @@ End()
       !FLAGGED(pane->flags, kPaneIsScrolling)) {
     *kIMUI.begin_mode.start += MouseDelta();
   }
-  float d = GetMouseWheel();
-  bool pane_highlighted = IsRectHighlighted(pane->rect);
-  float original_scroll = pane->vertical_scroll;
-  bool original_scroll_at_max =
+  r32 d = GetMouseWheel();
+  b8 pane_highlighted = IsRectHighlighted(pane->rect);
+  r32 original_scroll = pane->vertical_scroll;
+  b8 original_scroll_at_max =
       pane->vertical_scroll >= pane->previous_max_scroll;
   if (CanScroll(*pane, d) && pane_highlighted && d != 0.f) {
     pane->vertical_scroll += d;
@@ -1004,21 +1004,21 @@ End()
     Rectf scroll_bar(
         pane->rect.x + pane->rect.width - kScrollBarWidth, pane->rect.y,
         kScrollBarWidth, pane->rect.height - pane->header_rect.height);
-    float hdiff = pane->theoretical_height - pane->rect.height;
-    float p_off = pane->rect.height / pane->theoretical_height;
-    float scroll_rect_height =
+    r32 hdiff = pane->theoretical_height - pane->rect.height;
+    r32 p_off = pane->rect.height / pane->theoretical_height;
+    r32 scroll_rect_height =
         (pane->rect.height - pane->header_rect.height) * p_off;
     Rectf scroll_cursor(scroll_bar);
     scroll_cursor.height = scroll_rect_height;
     scroll_cursor.y += (scroll_bar.height - scroll_rect_height);
-    float p_diff = pane->vertical_scroll /
+    r32 p_diff = pane->vertical_scroll /
         (pane->theoretical_height - pane->rect.height);
-    float p_bar_diff_to_bot = fabs(scroll_cursor.y) - fabs(pane->rect.y);
+    r32 p_bar_diff_to_bot = fabs(scroll_cursor.y) - fabs(pane->rect.y);
     scroll_cursor.y -= (p_bar_diff_to_bot * p_diff);
     pane->scroll_rect = scroll_cursor;
     if (FLAGGED(pane->flags, kPaneIsScrolling)) {
-      float bar_to_bot = pane->scroll_rect.y - pane->rect.y;
-      float vscroll_to_bot =
+      r32 bar_to_bot = pane->scroll_rect.y - pane->rect.y;
+      r32 vscroll_to_bot =
           pane->theoretical_height - pane->rect.height - pane->vertical_scroll;
       if (vscroll_to_bot > FLT_EPSILON) {
         pane->vertical_scroll -= math::ScaleRange(
@@ -1041,7 +1041,7 @@ DockWith(const char* title)
   if (!title) return;
   assert(kIMUI.begin_mode.set);
   auto& begin_mode = kIMUI.begin_mode;
-  uint32_t tag = kIMUI.begin_mode.tag;
+  u32 tag = kIMUI.begin_mode.tag;
   TITLE_WITH_TAG(title, tag);
   Pane* pane = FindPane(title_with_tag, strlen(title_with_tag));
   if (!pane) return;
@@ -1054,7 +1054,7 @@ DockWith(const char* title)
 }
 
 void
-VerticalScrollDelta(float delta)
+VerticalScrollDelta(r32 delta)
 {
   assert(kIMUI.begin_mode.set);
   kIMUI.begin_mode.pane->vertical_scroll += delta;
@@ -1063,8 +1063,8 @@ VerticalScrollDelta(float delta)
   }
 }
 
-bool
-MouseInUI(v2f pos, uint32_t tag)
+b8
+MouseInUI(v2f pos, u32 tag)
 {
   for (int i = 0; i < kUsedPane; ++i) {
     Pane* pane = &kPane[i];
@@ -1074,8 +1074,8 @@ MouseInUI(v2f pos, uint32_t tag)
   return false;
 }
 
-bool
-MouseInUI(uint32_t tag)
+b8
+MouseInUI(u32 tag)
 {
   for (int i = 0; i < kUsedMousePosition[tag]; ++i) {
     MousePosition* mp = &kMousePosition[tag][i];
@@ -1085,7 +1085,7 @@ MouseInUI(uint32_t tag)
 }
 
 void
-MouseDown(v2f pos, PlatformButton b, uint32_t tag)
+MouseDown(v2f pos, PlatformButton b, u32 tag)
 {
   // Only record mouse down events if they occurred in the UI.
   if (!MouseInUI(pos, tag)) return;
@@ -1109,7 +1109,7 @@ MouseDown(v2f pos, PlatformButton b, uint32_t tag)
 }
 
 void
-MouseUp(v2f pos, PlatformButton b, uint32_t tag)
+MouseUp(v2f pos, PlatformButton b, u32 tag)
 {
   struct MouseUp* click = UseMouseUp(tag);
   if (!click) {
@@ -1128,7 +1128,7 @@ MouseUp(v2f pos, PlatformButton b, uint32_t tag)
 }
 
 void
-MouseWheel(float delta, uint32_t tag)
+MouseWheel(r32 delta, u32 tag)
 {
   struct MouseWheel* wheel = UseMouseWheel(tag);
   if (!wheel) {
@@ -1140,8 +1140,8 @@ MouseWheel(float delta, uint32_t tag)
 
 // Returns true if the mouse is contained within UI given bounds of last
 // UI frame.
-bool
-MousePosition(v2f pos, uint32_t tag)
+b8
+MousePosition(v2f pos, u32 tag)
 {
   struct MousePosition* mp = UseMousePosition(tag);
   if (!mp) {
@@ -1154,7 +1154,7 @@ MousePosition(v2f pos, uint32_t tag)
 
 // Prints useful imui internals for debugging.
 void
-DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
+DebugPane(const char* title, u32 tag, v2f* pos, b8* show)
 {
   char buffer[64];
   PaneOptions pane_options;
@@ -1162,7 +1162,7 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
   Begin(title, tag, pane_options, pos, show);
   snprintf(buffer, 64, "Pane Count (%u) Max Hash Count (%u) Collision (%.2f%%)",
            kUsedPane, kMaxHashPane,
-           ((float)(kFindCollisionsPane) / kFindCallsPane) * 100.f);
+           ((r32)(kFindCollisionsPane) / kFindCallsPane) * 100.f);
   Text(buffer);
   Text("Panes");
   HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
@@ -1178,7 +1178,7 @@ DebugPane(const char* title, uint32_t tag, v2f* pos, bool* show)
     if (FLAGGED(pane->flags, kPaneDebug)) {
       Indent(2);
       TITLE_WITH_TAG(pane->title, pane->tag);
-      uint32_t hash = GetHash(title_with_tag, strlen(title_with_tag));
+      u32 hash = GetHash(title_with_tag, strlen(title_with_tag));
       snprintf(buffer, 64, "tag: %u", pane->tag);
       Text(buffer);
       snprintf(buffer, 64, "hash: %u", hash);

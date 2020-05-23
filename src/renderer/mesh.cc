@@ -16,45 +16,45 @@ namespace rgg {
 // Artists can construct assets with many materials which may require
 // a high upper bound for some meshes yet a very low one for simple
 // meshes.
-constexpr uint32_t kMaxMaterial = 16;
-constexpr uint32_t kMaxVertPair = 32;
+constexpr u32 kMaxMaterial = 16;
+constexpr u32 kMaxVertPair = 32;
 
 struct MaterialVertPair {
-  uint64_t first = uint32_t(-1);
-  uint64_t count;
+  u64 first = u64(-1);
+  u64 count;
 };
 
 struct Material {
   char name[32];
-  int illum;
+  s32 illum;
   v3f kd;
   v3f ka;
   v3f tf;
-  float ni;
+  r32 ni;
   v3f ks;
   MaterialVertPair vert_pair[kMaxVertPair];
-  uint64_t vert_pair_count = 0;
+  u64 vert_pair_count = 0;
 };
 
 struct Mesh {
-  uint32_t vert_count = 0;
-  uint32_t norm_count = 0;
+  u32 vert_count = 0;
+  u32 norm_count = 0;
   GLuint vert_vbo = 0;
   GLuint norm_vbo = 0;
   GLuint vao = 0;
   Material material[kMaxMaterial];
-  uint32_t material_count = 0;
+  u32 material_count = 0;
   bool IsValid() const { return vert_count > 0; }
 };
 
-constexpr int kMaxVertCount = 65538;
-static float kVerts[kMaxVertCount * 8];
-static uint32_t kVertElementCount;
-static float kNorms[kMaxVertCount * 8];
-static uint32_t kNormElementCount;
+constexpr s32 kMaxVertCount = 65538;
+static r32 kVerts[kMaxVertCount * 8];
+static u32 kVertElementCount;
+static r32 kNorms[kMaxVertCount * 8];
+static u32 kNormElementCount;
 
 bool
-LoadMTL(const char* filename, Material* material, uint32_t* material_count)
+LoadMTL(const char* filename, Material* material, u32* material_count)
 {
   *material = {};
   FILE* f = fopen(filename, "rb");
@@ -65,7 +65,7 @@ LoadMTL(const char* filename, Material* material, uint32_t* material_count)
   char line[1024];
   Material* cmat = nullptr;
   while (1) {
-    int res = fscanf(f, "%s", line);
+    s32 res = fscanf(f, "%s", line);
     if (res == EOF) break;
     if (strcmp(line, "newmtl") == 0) {
       if (*material_count >= kMaxMaterial) {
@@ -99,7 +99,7 @@ LoadMTL(const char* filename, Material* material, uint32_t* material_count)
     }
   }
 #if DEBUGOBJ
-  for (int i = 0; i < *material_count; ++i) {
+  for (s32 i = 0; i < *material_count; ++i) {
     cmat = &material[i];
     printf("Loaded Material %s\n", cmat->name);
     printf("  illum %i\n", cmat->illum);
@@ -122,9 +122,9 @@ LoadOBJ(const char* filename, Mesh* mesh)
 {
   *mesh = {};
   static v3f v[kMaxVertCount];
-  static uint32_t cv = 0;
+  static u32 cv = 0;
   static v3f vn[kMaxVertCount];
-  static uint32_t cvn = 0;
+  static u32 cvn = 0;
 
   cv = 0;
   cvn = 0;
@@ -132,8 +132,8 @@ LoadOBJ(const char* filename, Mesh* mesh)
   kNormElementCount = 0;
 
 #define ADD_VERTS(vec) \
-  memcpy(&kVerts[kVertElementCount], &v[vec.x - 1].x, 3 * sizeof(float));  \
-  memcpy(&kNorms[kNormElementCount], &vn[vec.z - 1].x, 3 * sizeof(float)); \
+  memcpy(&kVerts[kVertElementCount], &v[vec.x - 1].x, 3 * sizeof(r32));  \
+  memcpy(&kNorms[kNormElementCount], &vn[vec.z - 1].x, 3 * sizeof(r32)); \
   kVertElementCount += 3;                                                  \
   kNormElementCount += 3;
 
@@ -150,7 +150,7 @@ LoadOBJ(const char* filename, Mesh* mesh)
   char line[1024];
   Material* mtl = nullptr;
   while (1) {
-    int res = fscanf(f, "%s", line);
+    s32 res = fscanf(f, "%s", line);
     if (res == EOF) break;
     if (strcmp(line, "v") == 0) {
       v3f* vert = &v[cv++];
@@ -178,7 +178,7 @@ LoadOBJ(const char* filename, Mesh* mesh)
     } else if (strcmp(line, "usemtl") == 0) {
       char mtlname[64] = {};
       fscanf(f, "%s\n", mtlname);
-      for (int i = 0; i < mesh->material_count; ++i) {
+      for (s32 i = 0; i < mesh->material_count; ++i) {
         if (strcmp(mesh->material[i].name, mtlname) == 0) {
           mtl = &mesh->material[i];
           mtl->vert_pair[mtl->vert_pair_count] = MaterialVertPair();
@@ -188,11 +188,11 @@ LoadOBJ(const char* filename, Mesh* mesh)
         }
       }
     } else if (strcmp(line, "f") == 0) {
-      uint32_t vert_pair_idx = mtl ? mtl->vert_pair_count - 1 : 0;
-      if (mtl && mtl->vert_pair[vert_pair_idx].first == uint32_t(-1)) {
+      u32 vert_pair_idx = mtl ? mtl->vert_pair_count - 1 : 0;
+      if (mtl && mtl->vert_pair[vert_pair_idx].first == u64(-1)) {
         mtl->vert_pair[vert_pair_idx].first = kVertElementCount / 3;
       }
-      int i = 0;
+      s32 i = 0;
       v3i first, second, third;
       fscanf(f, " %i/%i/%i", &first.x, &first.y, &first.z);
       fscanf(f, " %i/%i/%i", &second.x, &second.y, &second.z);
@@ -263,10 +263,10 @@ LoadOBJ(const char* filename, Mesh* mesh)
   printf("Loaded Mesh vert count %i verts vbo %i norms vbo %i vao %i \n",
          mesh->vert_count, mesh->vert_vbo, mesh->norm_vbo, mesh->vao);
 
-  for (int i = 0; i < mesh->material_count; ++i) {
+  for (s32 i = 0; i < mesh->material_count; ++i) {
     const Material* mat = &mesh->material[i];
     printf("  material %s\n", mat->name);
-    for (int j = 0; j < mat->vert_pair_count; ++j) {
+    for (s32 j = 0; j < mat->vert_pair_count; ++j) {
       const MaterialVertPair* vp = &mat->vert_pair[j];
       printf("    first %u count %u\n", vp->first, vp->count);
     }

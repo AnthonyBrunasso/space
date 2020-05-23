@@ -21,7 +21,7 @@ struct UI {
 
 static UI kUI;
 
-bool
+b8
 SetupUI()
 {
   Font& font = kUI.font;
@@ -58,12 +58,12 @@ SetupUI()
   return true;
 }
 
-int
-GetNextKerning(const char* msg, int msg_len, int first, int second)
+s32
+GetNextKerning(const char* msg, s32 msg_len, s32 first, s32 second)
 {
   if (first == msg_len - 1) return 0;
   const FontMetadataRow* row = &kFontMetadataRow[msg[first]];
-  for (int i = 0; i < row->kcount; ++i) {
+  for (s32 i = 0; i < row->kcount; ++i) {
     if (row->kerning[i].second == msg[second]) {
       return row->kerning[i].amount;
     }
@@ -72,40 +72,40 @@ GetNextKerning(const char* msg, int msg_len, int first, int second)
 }
 
 void
-GetTextInfo(const char* msg, int msg_len, float* width, float* height,
-            float* min_y_offset)
+GetTextInfo(const char* msg, s32 msg_len, r32* width, r32* height,
+            r32* min_y_offset)
 {
   auto& font = kUI.font;
   *height = kFontLineHeight;
   *width = 0.0f;
   *min_y_offset = 1000.0f;
-  int kerning_offset = 0;
-  for (int i = 0; i < msg_len; ++i) {
+  s32 kerning_offset = 0;
+  for (s32 i = 0; i < msg_len; ++i) {
     const FontMetadataRow* row = &kFontMetadataRow[msg[i]];
-    *width += (float)row->xadvance + kerning_offset;
-    float y_offset = (float)row->yoffset;
+    *width += (r32)row->xadvance + kerning_offset;
+    r32 y_offset = (r32)row->yoffset;
     if (y_offset < *min_y_offset) *min_y_offset = y_offset;
     kerning_offset = GetNextKerning(msg, msg_len, i, i + 1);
   }
 }
 
 Rectf
-GetTextRect(const char* msg, int msg_len, v2f pos, float scale)
+GetTextRect(const char* msg, s32 msg_len, v2f pos, r32 scale)
 {
-  float width, height, min_y_offset;
+  r32 width, height, min_y_offset;
   GetTextInfo(msg, msg_len, &width, &height, &min_y_offset);
   return Rectf(
       pos.x, pos.y, width * scale, height * scale - min_y_offset * scale);
 }
 
 Rectf
-GetTextRect(const char* msg, int msg_len, v2f pos)
+GetTextRect(const char* msg, s32 msg_len, v2f pos)
 {
   return GetTextRect(msg, msg_len, pos, 1.0f);
 }
 
 void
-RenderText(const char* msg, v2f pos, float scale, const v4f& color)
+RenderText(const char* msg, v2f pos, r32 scale, const v4f& color)
 {
   auto& font = kUI.font;
 
@@ -132,9 +132,9 @@ RenderText(const char* msg, v2f pos, float scale, const v4f& color)
   printf("\n");
 #endif
 
-  int msg_len = strlen(msg);
-  int kerning_offset = 0;
-  for (int i = 0; i < msg_len; ++i) {
+  s32 msg_len = strlen(msg);
+  s32 kerning_offset = 0;
+  for (s32 i = 0; i < msg_len; ++i) {
     const FontMetadataRow* row = &kFontMetadataRow[msg[i]];
     //printf("%i\n", msg[i]);
     // The character trying to render is invalid. This means the font sheet
@@ -143,20 +143,20 @@ RenderText(const char* msg, v2f pos, float scale, const v4f& color)
     assert(row->id != 0);
 
     // Scale to get uv coordinatoes.
-    float tex_x = (float)row->x / kFontWidth;
-    float tex_y = (float)row->y / kFontHeight;
-    float tex_w = (float)row->width / kFontWidth;
-    float tex_h = (float)row->height / kFontHeight;
+    r32 tex_x = (r32)row->x / kFontWidth;
+    r32 tex_y = (r32)row->y / kFontHeight;
+    r32 tex_w = (r32)row->width / kFontWidth;
+    r32 tex_h = (r32)row->height / kFontHeight;
 
     // Verts are subject to projection given by an orhthographic matrix
     // using the screen width and height.
-    float v_w = (float)row->width * scale;
-    float v_h = (float)row->height * scale;
+    r32 v_w = (r32)row->width * scale;
+    r32 v_h = (r32)row->height * scale;
     
-    float offset_start_x = pos.x + (float)row->xoffset * scale +
-                                   (float)kerning_offset * scale;
-    float offset_start_y = pos.y - (float)row->yoffset * scale +
-                                   (float)kFontLineHeight * scale;
+    r32 offset_start_x =
+      pos.x + (r32)row->xoffset * scale + (r32)kerning_offset * scale;
+    r32 offset_start_y =
+      pos.y - (r32)row->yoffset * scale + (r32)kFontLineHeight * scale;
 
 #if 0
     printf("id=%i char=%c width=%i height=%i xoffset=%i yoffset=%i"
@@ -185,7 +185,7 @@ RenderText(const char* msg, v2f pos, float scale, const v4f& color)
     glBindBuffer(GL_ARRAY_BUFFER, font.vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(text_point), text_point, GL_DYNAMIC_DRAW);
     glDrawArrays(GL_TRIANGLES, 0, 6);  // Draw the character 
-    pos.x += (float)row->xadvance * scale + (float)kerning_offset * scale;
+    pos.x += (r32)row->xadvance * scale + (r32)kerning_offset * scale;
     kerning_offset = GetNextKerning(msg, msg_len, i, i + 1);
 #if 0
     printf("%c(%i) to %c(%i) offset:%i\n",
@@ -201,8 +201,7 @@ RenderText(const char* msg, v2f pos, const v4f& color)
 }
 
 void
-RenderButton(const char* text, const Rectf& rect,
-             const v4f& color) {
+RenderButton(const char* text, const Rectf& rect, const v4f& color) {
   glUseProgram(kRGG.smooth_rectangle_program.reference);
   glBindVertexArray(kTextureState.vao_reference);
   v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, 0.0f);

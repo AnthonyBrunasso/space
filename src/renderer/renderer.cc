@@ -84,7 +84,7 @@ struct RGG {
   GLuint sphere_vao_reference;
   GLuint exhaust_vao_reference;
 
-  int meter_size = 50;
+  s32 meter_size = 50;
 };
 
 enum DebugType {
@@ -94,19 +94,19 @@ enum DebugType {
 
 struct DebugSphere {
   v3f position;
-  float radius;
+  r32 radius;
   v4f color;
 };
 
 struct DebugCube {
   Cubef cube;
   v4f color;
-  bool fill = false;
+  b8 fill = false;
 };
 
 struct DebugPoint {
   v3f position;
-  float radius;
+  r32 radius;
   v4f color;
   DebugType type;
 };
@@ -129,7 +129,7 @@ static RGG kRGG;
 #include "ui.cc"
 
 Mat4f
-DefaultPerspective(const v2f& dims, float fov = 64.f)
+DefaultPerspective(const v2f& dims, r32 fov = 64.f)
 {
   return math::Perspective(fov, dims.x / dims.y, .1f, 2000.f);
 }
@@ -162,7 +162,7 @@ GetObserver()
   return &kObserver;
 }
 
-bool
+b8
 SetupGeometryProgram3d()
 {
   GLuint vert_shader, frag_shader;
@@ -184,34 +184,34 @@ SetupGeometryProgram3d()
 
   kRGG.geometry_program_3d.projection_uniform =
       glGetUniformLocation(kRGG.geometry_program_3d.reference, "projection");
-  assert(kRGG.geometry_program_3d.projection_uniform != uint32_t(-1));
+  assert(kRGG.geometry_program_3d.projection_uniform != u32(-1));
   kRGG.geometry_program_3d.view_uniform =
       glGetUniformLocation(kRGG.geometry_program_3d.reference, "view");
-  assert(kRGG.geometry_program_3d.view_uniform != uint32_t(-1));
+  assert(kRGG.geometry_program_3d.view_uniform != u32(-1));
   kRGG.geometry_program_3d.model_uniform =
       glGetUniformLocation(kRGG.geometry_program_3d.reference, "model");
-  assert(kRGG.geometry_program_3d.model_uniform != uint32_t(-1));
+  assert(kRGG.geometry_program_3d.model_uniform != u32(-1));
   kRGG.geometry_program_3d.light_position_world_uniform =
       glGetUniformLocation(kRGG.geometry_program_3d.reference, "light_position_world");
-  assert(kRGG.geometry_program_3d.light_position_world_uniform != uint32_t(-1));
+  assert(kRGG.geometry_program_3d.light_position_world_uniform != u32(-1));
   kRGG.geometry_program_3d.suface_specular_uniform =
       glGetUniformLocation(kRGG.geometry_program_3d.reference, "surface_specular");
-  assert(kRGG.geometry_program_3d.suface_specular_uniform != uint32_t(-1));
+  assert(kRGG.geometry_program_3d.suface_specular_uniform != u32(-1));
   kRGG.geometry_program_3d.surface_diffuse_uniform =
       glGetUniformLocation(kRGG.geometry_program_3d.reference, "surface_diffuse");
-  assert(kRGG.geometry_program_3d.surface_diffuse_uniform != uint32_t(-1));
+  assert(kRGG.geometry_program_3d.surface_diffuse_uniform != u32(-1));
   kRGG.geometry_program_3d.surface_ambient_uniform =
       glGetUniformLocation(kRGG.geometry_program_3d.reference, "surface_ambient");
-  assert(kRGG.geometry_program_3d.surface_ambient_uniform != uint32_t(-1));
+  assert(kRGG.geometry_program_3d.surface_ambient_uniform != u32(-1));
 
   kRGG.geometry_program_3d.color_uniform =
       glGetUniformLocation(kRGG.geometry_program_3d.reference, "color");
-  //assert(kRGG.geometry_program_3d.color_uniform != uint32_t(-1));
+  //assert(kRGG.geometry_program_3d.color_uniform != u32(-1));
   return true;
 }
 
 
-bool
+b8
 SetupGeometryProgram()
 {
   GLuint vert_shader, frag_shader;
@@ -251,30 +251,30 @@ SetupGeometryProgram()
 
   kRGG.geometry_program.matrix_uniform =
       glGetUniformLocation(kRGG.geometry_program.reference, "matrix");
-  assert(kRGG.geometry_program.matrix_uniform != uint32_t(-1));
+  assert(kRGG.geometry_program.matrix_uniform != u32(-1));
   kRGG.geometry_program.color_uniform =
       glGetUniformLocation(kRGG.geometry_program.reference, "color");
-  assert(kRGG.geometry_program.color_uniform != uint32_t(-1));
+  assert(kRGG.geometry_program.color_uniform != u32(-1));
 
   kRGG.smooth_rectangle_program.model_uniform =
       glGetUniformLocation(kRGG.smooth_rectangle_program.reference, "model");
-  assert(kRGG.smooth_rectangle_program.model_uniform != uint32_t(-1));
+  assert(kRGG.smooth_rectangle_program.model_uniform != u32(-1));
   kRGG.smooth_rectangle_program.view_projection_uniform = glGetUniformLocation(
       kRGG.smooth_rectangle_program.reference, "view_projection");
-  assert(kRGG.smooth_rectangle_program.view_projection_uniform != uint32_t(-1));
+  assert(kRGG.smooth_rectangle_program.view_projection_uniform != u32(-1));
 
   kRGG.smooth_rectangle_program.color_uniform =
       glGetUniformLocation(kRGG.smooth_rectangle_program.reference, "color");
-  assert(kRGG.smooth_rectangle_program.color_uniform != uint32_t(-1));
+  assert(kRGG.smooth_rectangle_program.color_uniform != u32(-1));
   kRGG.smooth_rectangle_program.smoothing_radius_uniform = glGetUniformLocation(
       kRGG.smooth_rectangle_program.reference, "smoothing_radius");
   assert(kRGG.smooth_rectangle_program.smoothing_radius_uniform !=
-         uint32_t(-1));
+         u32(-1));
 
   return true;
 }
 
-bool
+b8
 SetupCircleProgram()
 {
   GLuint vert_shader, frag_shader;
@@ -299,22 +299,22 @@ SetupCircleProgram()
 
   kRGG.circle_program.model_uniform =
       glGetUniformLocation(kRGG.circle_program.reference, "model");
-  assert(kRGG.circle_program.model_uniform != uint32_t(-1));
+  assert(kRGG.circle_program.model_uniform != u32(-1));
   kRGG.circle_program.view_projection_uniform =
       glGetUniformLocation(kRGG.circle_program.reference, "view_projection");
-  assert(kRGG.circle_program.model_uniform != uint32_t(-1));
+  assert(kRGG.circle_program.model_uniform != u32(-1));
 
   kRGG.circle_program.color_uniform =
       glGetUniformLocation(kRGG.circle_program.reference, "color");
   kRGG.circle_program.inner_radius_uniform =
       glGetUniformLocation(kRGG.circle_program.reference, "inner_radius");
-  assert(kRGG.circle_program.inner_radius_uniform != uint32_t(-1));
+  assert(kRGG.circle_program.inner_radius_uniform != u32(-1));
   kRGG.circle_program.outer_radius_uniform =
       glGetUniformLocation(kRGG.circle_program.reference, "outer_radius");
-  assert(kRGG.circle_program.outer_radius_uniform != uint32_t(-1));
+  assert(kRGG.circle_program.outer_radius_uniform != u32(-1));
   kRGG.circle_program.color_uniform =
       glGetUniformLocation(kRGG.circle_program.reference, "color");
-  assert(kRGG.circle_program.color_uniform != uint32_t(-1));
+  assert(kRGG.circle_program.color_uniform != u32(-1));
   return true;
 }
 
@@ -327,7 +327,7 @@ DebugReset()
   kUsedDebugRect = 0;
 }
 
-bool
+b8
 Initialize()
 {
   const GLubyte* renderer = glGetString(GL_RENDERER);
@@ -348,7 +348,7 @@ Initialize()
   if (!SetupCircleProgram()) return false;
 
   // Create the geometry for basic shapes.
-  float m = kRGG.meter_size;
+  r32 m = kRGG.meter_size;
   GLfloat tri[9] = {0.0f, m / 2.f,  0.f,      m / 2.f, -m / 2.f,
                     0.f,  -m / 2.f, -m / 2.f, 0.f};
   kRGG.triangle_vao_reference = gl::CreateGeometryVAO(9, tri);
@@ -464,7 +464,7 @@ RenderRectangle(const v3f& position, const v3f& scale,
 }
 
 void
-RenderRectangle(const Rectf& rect, float z, const v4f& color)
+RenderRectangle(const Rectf& rect, r32 z, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   // Texture state has quad with length 1 geometry. This makes scaling simpler
@@ -488,7 +488,7 @@ RenderRectangle(const Rectf& rect, const v4f& color)
 }
 
 void
-RenderLineRectangle(const Rectf& rect, float z, const v4f& color)
+RenderLineRectangle(const Rectf& rect, r32 z, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   // Texture state has quad with length 1 geometry. This makes scaling simpler
@@ -512,7 +512,7 @@ RenderLineRectangle(const Rectf& rect, const v4f& color)
 }
 
 void
-RenderSmoothRectangle(const Rectf& rect, float smoothing_radius,
+RenderSmoothRectangle(const Rectf& rect, r32 smoothing_radius,
                       const v4f& color)
 {
   glUseProgram(kRGG.smooth_rectangle_program.reference);
@@ -533,7 +533,7 @@ RenderSmoothRectangle(const Rectf& rect, float smoothing_radius,
 }
 
 void
-RenderCircle(const v3f& position, float inner_radius, float outer_radius,
+RenderCircle(const v3f& position, r32 inner_radius, r32 outer_radius,
              const v4f& color)
 {
   glUseProgram(kRGG.circle_program.reference);
@@ -554,7 +554,7 @@ RenderCircle(const v3f& position, float inner_radius, float outer_radius,
 }
 
 void
-RenderCircle(const v3f& position, float radius, const v4f& color)
+RenderCircle(const v3f& position, r32 radius, const v4f& color)
 {
   RenderCircle(position, 0.0f, radius, color);
 }
@@ -570,7 +570,7 @@ RenderLine(const v3f& start, const v3f& end, const v4f& color)
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
                      &view_pojection.data_[0]);
-  float verts[6] = {start.x, start.y, start.z, end.x, end.y, end.z};
+  r32 verts[6] = {start.x, start.y, start.z, end.x, end.y, end.z};
   glBindBuffer(GL_ARRAY_BUFFER, kRGG.line_vbo_reference);
   glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_DYNAMIC_DRAW);
   glDrawArrays(GL_LINES, 0, 2);
@@ -586,8 +586,8 @@ RenderGrid(const v2f& grid, const Rectf& bounds, uint64_t color_count,
 
   // Draw horizontal lines.
   const v2f top_right(bounds.x + bounds.width, bounds.y + bounds.height);
-  int i = 0;
-  for (float y = bounds.y; y <= top_right.y; y += grid.y) {
+  s32 i = 0;
+  for (r32 y = bounds.y; y <= top_right.y; y += grid.y) {
     auto start = v3f(bounds.x, y, 0.f);
     auto end = v3f(top_right.x, y, 0.f);
     RenderLine(start, end, *color);
@@ -597,7 +597,7 @@ RenderGrid(const v2f& grid, const Rectf& bounds, uint64_t color_count,
 
   // Draw vertical lines.
   i = 0;
-  for (float x = bounds.x; x <= top_right.x; x += grid.x) {
+  for (r32 x = bounds.x; x <= top_right.x; x += grid.x) {
     auto start = v3f(x, bounds.y, 0.f);
     auto end = v3f(x, top_right.y, 0.f);
     RenderLine(start, end, *color);
@@ -619,7 +619,7 @@ SetDefaultSurfaceMaterial()
 
 void
 Render3d(const v3f& pos, const v3f& scale, const v4f& color, GLuint vao,
-         int verts)
+         s32 verts)
 {
   glUseProgram(kRGG.geometry_program_3d.reference);
   glBindVertexArray(vao);
@@ -641,7 +641,7 @@ Render3d(const v3f& pos, const v3f& scale, const v4f& color, GLuint vao,
 
 void
 Render3dWithRotation(const v3f& pos, const v3f& scale, const Quatf& quat,
-                     const v4f& color, GLuint vao, int verts)
+                     const v4f& color, GLuint vao, s32 verts)
 {
   glUseProgram(kRGG.geometry_program_3d.reference);
   glBindVertexArray(vao);
@@ -665,7 +665,7 @@ void
 RenderMesh(const Mesh& mesh, const Mat4f& model, 
            const v4f& color = v4f(1.f, 1.f, 1.f, 1.f))
 {
-  if (kRGG.geometry_program_3d.color_uniform != uint32_t(-1)) {
+  if (kRGG.geometry_program_3d.color_uniform != u32(-1)) {
     glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y,
                 color.z, color.w);
   }
@@ -682,7 +682,7 @@ RenderMesh(const Mesh& mesh, const Mat4f& model,
     SetDefaultSurfaceMaterial();
     glDrawArrays(GL_TRIANGLES, 0, mesh.vert_count);
   } else {
-    for (int i = 0; i < mesh.material_count; ++i) {
+    for (s32 i = 0; i < mesh.material_count; ++i) {
       const Material* mat = &mesh.material[i];
       glUniform3f(kRGG.geometry_program_3d.suface_specular_uniform,
                   mat->ks.x, mat->ks.y, mat->ks.z);
@@ -690,7 +690,7 @@ RenderMesh(const Mesh& mesh, const Mat4f& model,
                   mat->kd.x, mat->kd.y, mat->kd.z);
       glUniform3f(kRGG.geometry_program_3d.surface_ambient_uniform,
                   mat->ka.x, mat->ka.y, mat->ka.z);
-      for (int j = 0; j < mat->vert_pair_count; ++j) {
+      for (s32 j = 0; j < mat->vert_pair_count; ++j) {
         // Set surface lighting properties.
         const MaterialVertPair* vp = &mat->vert_pair[j];
         glDrawArrays(GL_TRIANGLES, vp->first, vp->count);
@@ -713,7 +713,7 @@ RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
 
 void
 RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
-           float x_rotation, float y_rotation, float z_rotation,
+           r32 x_rotation, r32 y_rotation, r32 z_rotation,
            const v4f& color = v4f(1.f, 1.f, 1.f, 1.f))
 {
   if (!mesh.IsValid()) return;
@@ -801,8 +801,8 @@ RenderLineCube(const Cubef& cube, const v4f& color)
 }
 
 void
-RenderProgressBar(const Rectf& rect, float z, float current_progress,
-                  float max_progress, const v4f& fill_color,
+RenderProgressBar(const Rectf& rect, r32 z, r32 current_progress,
+                  r32 max_progress, const v4f& fill_color,
                   const v4f& outline_color)
 {
   RenderLineRectangle(rect, z, outline_color);
@@ -820,13 +820,13 @@ void
 DebugRenderPrimitives()
 {
   // Perspetive / world debugging.
-  for (int i = 0; i < kUsedDebugSphere; ++i) {
-    float r = kDebugSphere[i].radius;
+  for (s32 i = 0; i < kUsedDebugSphere; ++i) {
+    r32 r = kDebugSphere[i].radius;
     rgg::RenderSphere(kDebugSphere[i].position, v3f(r, r, r),
                       kDebugSphere[i].color);
   }
 
-  for (int i = 0; i < kUsedDebugCube; ++i) {
+  for (s32 i = 0; i < kUsedDebugCube; ++i) {
     if (kDebugCube[i].fill) {
       rgg::RenderCube(kDebugCube[i].cube, kDebugCube[i].color);
     } else {
@@ -834,13 +834,13 @@ DebugRenderPrimitives()
     }
   }
 
-  for (int i = 0; i < kUsedDebugPoint; ++i) {
+  for (s32 i = 0; i < kUsedDebugPoint; ++i) {
     if (kDebugPoint[i].type != kDebugWorld) continue;
     DebugPoint* point = &kDebugPoint[i];
     rgg::RenderCircle(point->position, point->radius, point->color);
   }
 
-  for (int i = 0; i < kUsedDebugRect; ++i) {
+  for (s32 i = 0; i < kUsedDebugRect; ++i) {
     if (kDebugRect[i].type != kDebugWorld) continue;
     DebugRect* rect = &kDebugRect[i];
     rgg::RenderLineRectangle(rect->rect, rect->color);
@@ -853,13 +853,13 @@ DebugRenderPrimitives()
   rgg::ModifyObserver mod(math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f),
                           math::Identity());
 
-  for (int i = 0; i < kUsedDebugPoint; ++i) {
+  for (s32 i = 0; i < kUsedDebugPoint; ++i) {
     if (kDebugPoint[i].type != kDebugUI) continue;
     DebugPoint* point = &kDebugPoint[i];
     rgg::RenderCircle(point->position, point->radius, point->color);
   }
 
-  for (int i = 0; i < kUsedDebugRect; ++i) {
+  for (s32 i = 0; i < kUsedDebugRect; ++i) {
     if (kDebugRect[i].type != kDebugUI) continue;
     DebugRect* rect = &kDebugRect[i];
     rgg::RenderLineRectangle(rect->rect, rect->color);
@@ -869,7 +869,7 @@ DebugRenderPrimitives()
 }
 
 void
-DebugPushSphere(const v3f& position, float radius, const v4f& color)
+DebugPushSphere(const v3f& position, r32 radius, const v4f& color)
 {
   DebugSphere* dsphere = UseDebugSphere();
   dsphere->position = position;
@@ -878,7 +878,7 @@ DebugPushSphere(const v3f& position, float radius, const v4f& color)
 } 
 
 void
-DebugPushCube(const Cubef& cube, const v4f& color, bool fill = false)
+DebugPushCube(const Cubef& cube, const v4f& color, b8 fill = false)
 {
   DebugCube* dcube = UseDebugCube();
   dcube->cube = cube;
@@ -887,7 +887,7 @@ DebugPushCube(const Cubef& cube, const v4f& color, bool fill = false)
 }
 
 void
-DebugPushPoint(const v3f& position, float radius, const v4f& color,
+DebugPushPoint(const v3f& position, r32 radius, const v4f& color,
                DebugType type)
 {
   DebugPoint* dpoint = UseDebugPoint();

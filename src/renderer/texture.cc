@@ -2,10 +2,10 @@
 
 struct Texture {
   GLuint reference = 0;
-  float width = 0.f;
-  float height = 0.f;
+  r32 width = 0.f;
+  r32 height = 0.f;
   GLenum format;
-  bool IsValid() const { return width > 0.f && height > 0.f; }
+  b8 IsValid() const { return width > 0.f && height > 0.f; }
 };
 
 struct TextureState {
@@ -23,13 +23,13 @@ struct TextureInfo {
 };
 
 struct UV {
-  float u;
-  float v;
+  r32 u;
+  r32 v;
 };
 
 static TextureState kTextureState;
 
-bool
+b8
 SetupTexture()
 {
   GLuint vert_shader, frag_shader;
@@ -99,35 +99,35 @@ Texture CreateTexture2D(GLenum format, uint64_t width, uint64_t height,
   return texture;
 }
 
-bool
+b8
 LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
 {
 #pragma pack(push, 1)
   struct TgaImageSpec {
-    uint16_t x_origin;
-    uint16_t y_origin;
-    uint16_t image_width;
-    uint16_t image_height;
-    uint8_t pixel_depth;
-    uint8_t image_descriptor;
+    u16 x_origin;
+    u16 y_origin;
+    u16 image_width;
+    u16 image_height;
+    u8 pixel_depth;
+    u8 image_descriptor;
   };
   struct TgaHeader {
-    uint8_t id_length;
-    uint8_t color_map_type;
-    uint8_t image_type;
-    uint8_t color_map_spec[5];
+    u8 id_length;
+    u8 color_map_type;
+    u8 image_type;
+    u8 color_map_spec[5];
   };
 #pragma pack(pop)
 
   FILE* fptr;
-  uint8_t* buffer;
-  uint32_t file_length;
+  u8* buffer;
+  u32 file_length;
 
   fptr = fopen(file, "rb");
   fseek(fptr, 0, SEEK_END);
   file_length = ftell(fptr);
   rewind(fptr);
-  buffer = (uint8_t*)malloc(file_length);
+  buffer = (u8*)malloc(file_length);
   fread(buffer, file_length, 1, fptr);
 
   // First load the header.
@@ -153,7 +153,7 @@ LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
 #endif
 
   // Image bytes sz
-  uint8_t* image_bytes = &buffer[sizeof(TgaHeader) + sizeof(TgaImageSpec)];
+  u8* image_bytes = &buffer[sizeof(TgaHeader) + sizeof(TgaImageSpec)];
   GLenum format = GL_BGRA;
   if (image_spec->pixel_depth == 8) format = GL_RED;
   else if (image_spec->pixel_depth == 24) format = GL_RGB;
@@ -166,12 +166,12 @@ LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
   }
 
   if (format == GL_RGB || format == GL_RGBA) {
-    int stride = image_spec->pixel_depth / 8;
-    uint32_t image_bytes_size =
+    s32 stride = image_spec->pixel_depth / 8;
+    u32 image_bytes_size =
         image_spec->image_width * image_spec->image_height * stride;
-    for (int i = 0; i < image_bytes_size; i += stride) {
+    for (s32 i = 0; i < image_bytes_size; i += stride) {
       // Swap bytes for red and blue
-      uint8_t t = image_bytes[i];
+      u8 t = image_bytes[i];
       image_bytes[i] = image_bytes[i + 2];
       image_bytes[i + 2] = t;
     }
@@ -224,10 +224,10 @@ RenderTexture(const Texture& texture, const Rectf& src,
   glBindVertexArray(kTextureState.vao_reference);
   UV uv[6];
   // Match uv coordinates to quad coords.
-  float start_x = src.x / texture.width;
-  float start_y = src.y / texture.height;
-  float width = src.width / texture.width;
-  float height = src.height / texture.height;
+  r32 start_x = src.x / texture.width;
+  r32 start_y = src.y / texture.height;
+  r32 width = src.width / texture.width;
+  r32 height = src.height / texture.height;
 
   uv[0] = {start_x, start_y + height}; // BL
   uv[1] = {start_x, start_y}; // TL

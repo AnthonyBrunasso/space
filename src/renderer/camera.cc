@@ -21,26 +21,26 @@ struct Camera {
   CameraMode mode;
   v3f speed;
   v3f lerp_to;
-  float lerpv = 1.f;
+  r32 lerpv = 1.f;
 };
 
 struct CameraState {
-  uint32_t camera_index;
-  uint32_t camera_tag;
+  u32 camera_index;
+  u32 camera_tag;
 };
 
 static CameraState kCameraState;
 
-constexpr uint32_t kMaxCameras = 16;
-constexpr uint32_t kMaxTags = 3;
-constexpr uint32_t kLocalCameraTag = 2;
+constexpr u32 kMaxCameras = 16;
+constexpr u32 kMaxTags = 3;
+constexpr u32 kLocalCameraTag = 2;
 
 DECLARE_2D_ARRAY(Camera, kMaxTags, kMaxCameras);
 
 void
 CameraResetAll()
 {
-  for (int i = 0; i < kMaxTags; ++i) {
+  for (s32 i = 0; i < kMaxTags; ++i) {
     kUsedCamera[i] = 0;
   }
 }
@@ -97,7 +97,7 @@ CameraMove(const v3f& delta)
 }
 
 void
-CameraSwitch(uint32_t camera_tag, uint32_t camera_index)
+CameraSwitch(u32 camera_tag, u32 camera_index)
 {
   assert(camera_tag < kMaxTags);
   // Call CameraInit on new cameras.
@@ -107,7 +107,7 @@ CameraSwitch(uint32_t camera_tag, uint32_t camera_index)
 }
 
 void
-CameraInit(uint32_t camera_tag, const Camera& camera)
+CameraInit(u32 camera_tag, const Camera& camera)
 {
   Camera* c = UseCamera(camera_tag);
   if (!c) return;
@@ -189,7 +189,7 @@ CameraFirstPerson(const PlatformEvent& event)
 }
 
 void
-CameraUpdate(uint32_t tag)
+CameraUpdate(u32 tag)
 {
   kCameraState.camera_tag = tag;
   Camera* c = CameraGetCurrent();
@@ -207,7 +207,7 @@ CameraUpdate()
 }
 
 void
-CameraUpdateEvent(const PlatformEvent& event, uint32_t tag)
+CameraUpdateEvent(const PlatformEvent& event, u32 tag)
 {
   kCameraState.camera_tag = tag;
   Camera* c = CameraGetCurrent();

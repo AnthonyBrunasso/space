@@ -24,13 +24,13 @@ DECLARE_HASH_MAP_STR(Sprite, 32);
 rgg::Texture* kCurrentTexture = nullptr;
 animation::Sprite* kCurrentSprite = nullptr;
 
-static uint32_t kFrame;
+static u32 kFrame;
 
 void
 FileTGACallback(const char* filename)
 {
   if (strcmp(filesystem::GetFilenameExtension(filename), "tga") != 0) return;
-  uint32_t len = strlen(filename);
+  u32 len = strlen(filename);
   imui::TextOptions o;
   o.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
   if (imui::Text(filename, o).clicked) {
@@ -55,7 +55,7 @@ void
 FileAnimCallback(const char* filename)
 {
   if (strcmp(filesystem::GetFilenameExtension(filename), "anim") != 0) return;
-  uint32_t len = strlen(filename);
+  u32 len = strlen(filename);
   imui::TextOptions o;
   o.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
   if (imui::Text(filename, o).clicked) {
@@ -72,7 +72,7 @@ UI()
 {
   v2f screen = window::GetWindowSize();
   {
-    static bool dir_enable = true;
+    static b8 dir_enable = true;
     static v2f dir_pos(1500.f, screen.y - 200.f);
     imui::PaneOptions options;
     options.max_width = 315.f;
@@ -90,19 +90,25 @@ UI()
   }
 
   if (kCurrentSprite) {
-    bool enable = true;
+    b8 enable = true;
     static v2f pos(1500.f, screen.y - 600.f);
     imui::PaneOptions options;
     options.max_width = 315.f;
     imui::Begin("Animations", 0, options, &pos, &enable);
-    for (int i = 0; i < kCurrentSprite->label_size; ++i) {
+    for (s32 i = 0; i < kCurrentSprite->label_size; ++i) {
+      imui::Space(imui::kVertical, 2.f);
       animation::Label* l = &kCurrentSprite->label[i];
-      imui::TextOptions o;
-      o.highlight_color = v4f(1.f, 0.f, 0.f, 1.f);
-      if (imui::Text(l->name, o).clicked) {
-        printf("Set label %s\n", l->name);
-        animation::SetLabel(l->name, kCurrentSprite);
+      imui::SameLine();
+      b8 precheck = i == kCurrentSprite->label_idx;
+      b8 checked = precheck;
+      imui::Checkbox(16.f, 16.f, &checked);
+      if (checked && precheck != checked) {
+        kCurrentSprite->last_update = 0;
+        kCurrentSprite->label_idx = i;
+        kCurrentSprite->label_coord_idx = 0;
       }
+      imui::Text(l->name);
+      imui::NewLine(); 
     }
     imui::End();
   }
@@ -116,13 +122,13 @@ RenderAxis()
   rgg::RenderLine(v3f(0.f, 0.f, -1000.f), v3f(0.f, 0.f, 1000.f), v4f(0.f, 0.f, 1.f, 1.f));
 }
 
-int
-main(int argc, char** argv)
+s32
+main(s32 argc, char** argv)
 {
   window::CreateInfo create_info;
   create_info.window_width = 1920;
   create_info.window_height = 1080;
-  int window_result = window::Create("Space", create_info);
+  s32 window_result = window::Create("Space", create_info);
   if (!rgg::Initialize()) return 1;
   audio::Initialize();
 
@@ -138,7 +144,7 @@ main(int argc, char** argv)
   camera.speed = v3f(5.f, 5.f, 0.1f);
   rgg::CameraInit(camera);
   
-  bool mouse_down = false;
+  b8 mouse_down = false;
 
   while (!window::ShouldClose()) {
     ++kFrame;

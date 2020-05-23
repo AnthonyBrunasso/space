@@ -18,11 +18,11 @@ static Audio kAudio;
 
 struct Source {
   ALuint alreference;
-  float pitch = 1.f;
-  float gain = 1.f;
+  r32 pitch = 1.f;
+  r32 gain = 1.f;
   v3f position = {};
   v3f velocity = {};
-  bool looping = false;
+  b8 looping = false;
 };
 
 DECLARE_ARRAY(Source, 32);
@@ -42,7 +42,7 @@ ListAudioDevices(const ALCchar* devices)
   }
 }
 
-bool
+b8
 Initialize()
 {
   kAudio.device = alcOpenDevice(nullptr);
@@ -77,7 +77,7 @@ void
 Cleanup()
 {
   // Cleanup sources.
-  for (int i = 0; i < kUsedSource;) {
+  for (s32 i = 0; i < kUsedSource;) {
     Source* source = &kSource[i];
     if (source) {
       ALint source_state;

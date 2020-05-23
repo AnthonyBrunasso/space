@@ -13,20 +13,20 @@ namespace audio {
 
 #define AUDIODEBUG 0
 
-constexpr uint32_t kMaxSoundFileSize = 25e6;
+constexpr u32 kMaxSoundFileSize = 25e6;
 
-static uint8_t kBuffer[kMaxSoundFileSize];
+static u8 kBuffer[kMaxSoundFileSize];
 
 struct Sound {
-  float length_ms = 0.f;
-  uint32_t bitrate = 0;
-  uint32_t frequency = 0;
-  uint32_t channels = 0;
-  uint32_t size = 0;
+  r32 length_ms = 0.f;
+  u32 bitrate = 0;
+  u32 frequency = 0;
+  u32 channels = 0;
+  u32 size = 0;
   ALenum format;
   ALuint alreference;
 
-  bool IsValid() const { return size != 0; }
+  b8 IsValid() const { return size != 0; }
 };
 
 const char*
@@ -42,31 +42,31 @@ FormatToString(ALenum format)
   return "UNKNOWN";
 }
 
-bool
+b8
 LoadWAV(const char* filename, Sound* sound)
 {
 #pragma pack(push, 1)
   struct WavHeader {
-    uint8_t chunk_id[4];
-    uint32_t chunk_size;
-    uint8_t format[4];
+    u8 chunk_id[4];
+    u32 chunk_size;
+    u8 format[4];
   };
   struct WavChunk {
-    uint8_t chunk_id[4];
-    uint32_t chunk_size;
+    u8 chunk_id[4];
+    u32 chunk_size;
   };
   struct WavFmt {
-    uint16_t audio_format;
-    uint16_t num_channels;
-    uint32_t sample_rate;
-    uint32_t byte_rate;
-    uint16_t block_align;
-    uint16_t bits_per_sample;
+    u16 audio_format;
+    u16 num_channels;
+    u32 sample_rate;
+    u32 byte_rate;
+    u16 block_align;
+    u16 bits_per_sample;
   };
 #pragma pack(pop)
 
   FILE* f = fopen(filename, "rb");
-  uint32_t file_length;
+  u32 file_length;
 
   fseek(f, 0, SEEK_END);
   file_length = ftell(f);
@@ -81,7 +81,7 @@ LoadWAV(const char* filename, Sound* sound)
 #endif
 
   WavHeader* header = (WavHeader*)kBuffer;
-  uint32_t read = sizeof(WavHeader);
+  u32 read = sizeof(WavHeader);
 
 #if 0
   // Should say RIFF
@@ -95,7 +95,7 @@ LoadWAV(const char* filename, Sound* sound)
   assert(memcmp((char*)(&header->chunk_id), "RIFF", 4) == 0);
   assert(memcmp((char*)(&header->format), "WAVE", 4) == 0);
 
-  uint8_t* sound_bytes = nullptr;
+  u8* sound_bytes = nullptr;
   while (read < file_length) {
     WavChunk* chunk = (WavChunk*)(&kBuffer[read]);
 #if 0
@@ -115,7 +115,7 @@ LoadWAV(const char* filename, Sound* sound)
 #endif
       sound->channels = fmt->num_channels;
       sound->bitrate = fmt->bits_per_sample;
-      sound->frequency = (float)fmt->sample_rate;
+      sound->frequency = (r32)fmt->sample_rate;
     } else if (memcmp((char*)(chunk->chunk_id), "data", 4) == 0) {
       sound->size = chunk->chunk_size;
       sound_bytes = &kBuffer[read];
@@ -126,7 +126,7 @@ LoadWAV(const char* filename, Sound* sound)
 
   assert(sound_bytes);
 
-  sound->length_ms = (float)sound->size / 
+  sound->length_ms = (r32)sound->size / 
       (sound->channels * sound->frequency * (sound->bitrate / 8.f)) * 1000.f;
 
   if (sound->bitrate == 8) {

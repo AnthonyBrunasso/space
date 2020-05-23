@@ -9,6 +9,7 @@
 #include "renderer/camera.cc"
 #include "renderer/imui.cc"
 #include "math/math.cc"
+#include "memory/memory.cc"
 
 struct Texture {
   rgg::Texture texture;
@@ -125,6 +126,10 @@ RenderAxis()
 s32
 main(s32 argc, char** argv)
 {
+  if (!memory::Initialize(MiB(64))) {
+    return 1;
+  }
+
   window::CreateInfo create_info;
   create_info.window_width = 1920;
   create_info.window_height = 1080;

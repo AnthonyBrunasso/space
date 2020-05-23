@@ -5,35 +5,35 @@
 namespace animation
 {
 
-static constexpr uint32_t kMaxLabelSize = 16;
-static constexpr uint32_t kMaxCoordSize = 16;
+static constexpr u32 kMaxLabelSize = 16;
+static constexpr u32 kMaxCoordSize = 16;
 
 struct Label {
   char name[64];
   v2i coord[kMaxCoordSize];
-  uint32_t coord_size = 0;
+  u32 coord_size = 0;
   // Number of frames to wait before traversing to next image.
-  uint32_t frame_count = 0;
+  u32 frame_count = 0;
 };
 
 struct Sprite {
   // Texture specific data.
   char texture_name[64];
   // Width and height of sprite within the texture.
-  uint32_t width = 0;
-  uint32_t height = 0;
+  u32 width = 0;
+  u32 height = 0;
   Label label[kMaxLabelSize];
-  uint32_t label_size = 0;
+  u32 label_size = 0;
 
   // Animation specific data.
-  uint32_t last_update = 0;
-  uint32_t label_idx = 0;
-  uint32_t label_coord_idx = 0;
+  u32 last_update = 0;
+  u32 label_idx = 0;
+  u32 label_coord_idx = 0;
 
-  bool IsValid() const { return width && height; }
+  b8 IsValid() const { return width && height; }
 };
 
-bool
+b8
 LoadAnimation(const char* filename, Sprite* sprite)
 {
   FILE* f = fopen(filename, "rb");
@@ -42,7 +42,7 @@ LoadAnimation(const char* filename, Sprite* sprite)
   char line[64];
   Label* clabel = nullptr;
   while (1) {
-    int res = fscanf(f, "%s", line);
+    s32 res = fscanf(f, "%s", line);
     if (res == EOF) break;
     if (strcmp(line, "t") == 0) {
       char tex_name[64] = {};
@@ -61,7 +61,7 @@ LoadAnimation(const char* filename, Sprite* sprite)
     } else if (strcmp(line, "c") == 0) {
       assert(clabel);
       assert(clabel->coord_size + 1 < kMaxLabelSize);
-      uint32_t i = clabel->coord_size;
+      u32 i = clabel->coord_size;
       fscanf(f, "%u %u\n", &clabel->coord[i].x, &clabel->coord[i].y);
       ++clabel->coord_size;
     } else if (strcmp(line, "f") == 0) {
@@ -73,10 +73,10 @@ LoadAnimation(const char* filename, Sprite* sprite)
   printf("Loaded anim file %s\n", filename);
   printf("  texture %s\n", sprite->texture_name);
   printf("  width x height %ux%u\n", sprite->width, sprite->height);
-  for (int i = 0; i < sprite->label_size; ++i) {
+  for (s32 i = 0; i < sprite->label_size; ++i) {
     Label* label = &sprite->label[i];
     printf("  label %s\n", label->name);
-    for (int j = 0; j < label->coord_size; ++j) {
+    for (s32 j = 0; j < label->coord_size; ++j) {
       printf("    %u %u\n", label->coord[j].x, label->coord[j].y);
     }
     printf("    frames %u\n", label->frame_count);
@@ -87,7 +87,7 @@ LoadAnimation(const char* filename, Sprite* sprite)
 void
 SetLabel(const char* label, Sprite* sprite)
 {
-  for (int i = 0; i < sprite->label_size; ++i) {
+  for (s32 i = 0; i < sprite->label_size; ++i) {
     Label* l = &sprite->label[i];
     if (strcmp(l->name, label) == 0) {
       sprite->last_update = 0;

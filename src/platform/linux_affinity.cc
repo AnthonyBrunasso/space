@@ -6,34 +6,34 @@ thread_affinity_count()
 {
   cpu_set_t mask;
   pthread_t pt = pthread_self();
-  int ret = pthread_getaffinity_np(pt, sizeof(cpu_set_t), &mask);
+  s32 ret = pthread_getaffinity_np(pt, sizeof(cpu_set_t), &mask);
   if (ret == -1) return UINT_MAX;
 
   return CPU_COUNT(&mask);
 }
 
-bool
-thread_affinity_usecore(int cpu_index)
+b8
+thread_affinity_usecore(s32 cpu_index)
 {
   cpu_set_t mask;
   pthread_t pt = pthread_self();
 
   CPU_ZERO(&mask);
   CPU_SET(cpu_index, &mask);
-  int ret = pthread_setaffinity_np(pt, sizeof(cpu_set_t), &mask);
+  s32 ret = pthread_setaffinity_np(pt, sizeof(cpu_set_t), &mask);
 
   return ret != -1;
 }
 
-bool
-thread_affinity_avoidcore(int cpu_index)
+b8
+thread_affinity_avoidcore(s32 cpu_index)
 {
   cpu_set_t mask;
   pthread_t pt = pthread_self();
 
-  int get_ret = pthread_getaffinity_np(pt, sizeof(cpu_set_t), &mask);
+  s32 get_ret = pthread_getaffinity_np(pt, sizeof(cpu_set_t), &mask);
   CPU_CLR(cpu_index, &mask);
-  int set_ret = pthread_setaffinity_np(pt, sizeof(cpu_set_t), &mask);
+  s32 set_ret = pthread_setaffinity_np(pt, sizeof(cpu_set_t), &mask);
 
   return set_ret != -1;
 }

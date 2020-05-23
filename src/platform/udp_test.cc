@@ -2,9 +2,9 @@
 
 #include <cstdio>
 
-volatile int running = 1;
+volatile s32 running = 1;
 
-int
+s32
 main()
 {
   Udp4 peer;
@@ -23,8 +23,8 @@ main()
 
   while (running) {
 #define MAX_BUFFER 4 * 1024
-    uint8_t buffer[MAX_BUFFER];
-    int16_t received_bytes;
+    u8 buffer[MAX_BUFFER];
+    s16 received_bytes;
     if (!udp::ReceiveFrom(peer, MAX_BUFFER - 1, buffer, &received_bytes)) {
       if (udp_errno) printf("udp_errno %d\n", udp_errno);
       if (udp_errno) running = 0;

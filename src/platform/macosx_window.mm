@@ -103,7 +103,7 @@ CreateOpenGLContext()
       (CGLPixelFormatAttribute) 0,
   };
 
-  int ignore;
+  s32 ignore;
   CGLPixelFormatObj pixel_format;
   error = CGLChoosePixelFormat(pixel_attrs, &pixel_format, &ignore);
   assert(!error);
@@ -123,12 +123,12 @@ CreateOpenGLContext()
 }
 
 
-int
-Create(const char* name, int width, int height, bool fullscreen)
+s32
+Create(const char* name, s32 width, s32 height, b8 fullscreen)
 {
   kWindow.gl_context = CreateOpenGLContext();
 
-  unsigned int style_mask = NSTitledWindowMask   |
+  unsigned s32 style_mask = NSTitledWindowMask   |
                             NSClosableWindowMask |
                             NSWindowStyleMaskResizable;
   kWindow.nsview = [[OpenGLView alloc]
@@ -171,7 +171,7 @@ Create(const char* name, int width, int height, bool fullscreen)
   return 1;
 }
 
-int
+s32
 Create(const char* name, const CreateInfo& create_info)
 {
   return Create(name, create_info.window_width, create_info.window_height,
@@ -238,7 +238,7 @@ TranslateEvent(NSEvent* nsevent, PlatformEvent* event)
   }
 }
 
-bool
+b8
 PollEvent(PlatformEvent* event)
 {
   event->type = NOT_IMPLEMENTED;
@@ -263,7 +263,7 @@ SwapBuffers()
   [kWindow.gl_context flushBuffer];
 }
 
-bool
+b8
 ShouldClose()
 {
   return false;

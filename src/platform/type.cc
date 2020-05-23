@@ -14,5 +14,8 @@ typedef int8_t s8;
 
 typedef uint8_t b8;
 
+inline constexpr b8 kTrue = 1;
+inline constexpr b8 kFalse = 0;
+
 typedef float r32;
 typedef double r64;

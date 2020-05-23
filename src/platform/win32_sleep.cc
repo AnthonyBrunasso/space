@@ -3,22 +3,22 @@
 
 namespace platform
 {
-int
-SleepSec(uint64_t sec)
+s32
+SleepSec(u64 sec)
 {
   Sleep(sec * 1000);
   return 1;
 }
 
-int
-SleepMs(uint64_t duration)
+s32
+SleepMs(u64 duration)
 {
   Sleep(duration);
   return 1;
 }
 
-int
-SleepUsec(uint64_t usec)
+s32
+SleepUsec(u64 usec)
 {
   SleepMs(usec / 1000);
   return 1;

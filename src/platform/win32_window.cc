@@ -161,7 +161,7 @@ struct Window {
   // This is a handle to the OpenGL rendering context.
   HGLRC hglrc;
   // Whether the window should be closing or not.
-  bool should_close = false;
+  b8 should_close = false;
   // This is a pointer to the current platform event being
   // called with PollEvent. It is unsafe to modify this outside
   // of the context of WindowProc.
@@ -171,15 +171,15 @@ struct Window {
 static Window kWindow;
 
 void
-HandleKeyEvent(WPARAM wparam, bool is_down, PlatformEvent* event)
+HandleKeyEvent(WPARAM wparam, b8 is_down, PlatformEvent* event)
 {
-  event->type = is_down == true ? KEY_DOWN : KEY_UP;
+  event->type = is_down == kTrue ? KEY_DOWN : KEY_UP;
   if (wparam >= 'A' && wparam <= 'Z') event->key = wparam + 32;
   else event->key = wparam;
 }
 
 void
-HandleMouseEvent(bool is_down, PlatformEvent* event, PlatformButton button)
+HandleMouseEvent(b8 is_down, PlatformEvent* event, PlatformButton button)
 {
   DWORD message_pos = GetMessagePos();
   POINTS ps = MAKEPOINTS(message_pos);
@@ -234,7 +234,7 @@ WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
 
     case WM_MOUSEWHEEL: {
       platform_event->wheel_delta =
-        (float)GET_WHEEL_DELTA_WPARAM(wparam) / (float)WHEEL_DELTA;
+        (r32)GET_WHEEL_DELTA_WPARAM(wparam) / (r32)WHEEL_DELTA;
       platform_event->type = MOUSE_WHEEL;
     } break;
     case WM_SYSCOMMAND: {
@@ -493,7 +493,7 @@ SetupGLFunctions() {
 }
 
 int
-Create(const char* name, int width, int height, bool fullscreen)
+Create(const char* name, int width, int height, b8 fullscreen)
 { 
   // TODO: Remove this implementation when other platforms move to new api.
   CreateInfo info;
@@ -525,7 +525,7 @@ Create(const char* name, const CreateInfo& create_info)
   return 1;
 }
 
-bool
+b8
 PollEvent(PlatformEvent* event)
 {
   event->type = NOT_IMPLEMENTED;
@@ -563,7 +563,7 @@ SwapBuffers()
   SwapBuffers(kWindow.hdc);
 }
 
-bool
+b8
 ShouldClose()
 {
   return kWindow.should_close;
@@ -574,7 +574,7 @@ GetWindowSize()
 {
   RECT rect;
   GetClientRect(kWindow.hwnd, &rect);
-  return v2f((float)rect.right - rect.left, (float)rect.bottom - rect.top);
+  return v2f((r32)rect.right - rect.left, (r32)rect.bottom - rect.top);
 }
 
 
@@ -585,6 +585,6 @@ GetCursorPosition()
   GetCursorPos(&cursor);
   ScreenToClient(kWindow.hwnd, &cursor);
   v2f dims = GetWindowSize();
-  return v2f((float)cursor.x, dims.y - (float)cursor.y);
+  return v2f((r32)cursor.x, dims.y - (r32)cursor.y);
 }
 }  // namespace window

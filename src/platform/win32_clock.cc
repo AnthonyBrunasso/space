@@ -9,12 +9,12 @@ namespace platform
 
 struct Clock {
   // Start tick - Result of QueryPerformanceCounter
-  uint64_t start_tick = 0;
+  u64 start_tick = 0;
   // End tick - Result of QueryPerformanceCounter
-  uint64_t end_tick = 0;
+  u64 end_tick = 0;
 };
 
-static volatile uint64_t kClockFrequency = 0;
+static volatile u64 kClockFrequency = 0;
 
 void
 ClockStart(Clock* clock)
@@ -34,7 +34,7 @@ ClockStart(Clock* clock)
   clock->start_tick = now.QuadPart;
 }
 
-uint64_t
+u64
 ClockEnd(Clock* clock)
 {
   LARGE_INTEGER now;
@@ -45,10 +45,10 @@ ClockEnd(Clock* clock)
   return ClockDeltaUsec(*clock);
 }
 
-uint64_t
+u64
 ClockDeltaUsec(const Clock& clock)
 {
-  uint64_t elapsed = (clock.end_tick - clock.start_tick) * 1e6;
+  u64 elapsed = (clock.end_tick - clock.start_tick) * 1e6;
   return elapsed / kClockFrequency;
 }
 

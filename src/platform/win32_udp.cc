@@ -14,14 +14,14 @@ static_assert(sizeof(Udp4::socket_address) >= sizeof(struct sockaddr_in),
 
 namespace udp
 {
-bool
+b8
 Init()
 {
   WSADATA ws;
   return WSAStartup(MAKEWORD(2, 0), &ws) == 0;
 }
 
-bool
+b8
 Bind(Udp4 location)
 {
   if (bind(location.socket, (const struct sockaddr*)location.socket_address,
@@ -33,8 +33,8 @@ Bind(Udp4 location)
   return true;
 }
 
-bool
-Send(Udp4 peer, const void* buffer, uint16_t len)
+b8
+Send(Udp4 peer, const void* buffer, u16 len)
 {
   int bytes = sendto(peer.socket, (const char*)buffer, len, 0,
                          (const struct sockaddr*)peer.socket_address,
@@ -42,8 +42,8 @@ Send(Udp4 peer, const void* buffer, uint16_t len)
   return bytes == len;
 }
 
-bool
-SendTo(Udp4 location, Udp4 peer, const void* buffer, uint16_t len)
+b8
+SendTo(Udp4 location, Udp4 peer, const void* buffer, u16 len)
 {
   int bytes = sendto(
       location.socket, (const char*)buffer, len, 0,
@@ -52,9 +52,8 @@ SendTo(Udp4 location, Udp4 peer, const void* buffer, uint16_t len)
   return bytes == len;
 }
 
-bool
-ReceiveFrom(Udp4 peer, uint16_t buffer_len, uint8_t* buffer,
-            int16_t* bytes_received)
+b8
+ReceiveFrom(Udp4 peer, u16 buffer_len, u8* buffer, s16* bytes_received)
 {
   // MUST initialize: remote_len is an in/out parameter
   struct sockaddr_in remote_addr;
@@ -79,15 +78,15 @@ ReceiveFrom(Udp4 peer, uint16_t buffer_len, uint8_t* buffer,
   return true;
 }
 
-bool
-ReceiveAny(Udp4 location, uint16_t buffer_len, uint8_t* buffer,
-           uint16_t* bytes_received, Udp4* from_peer)
+b8
+ReceiveAny(Udp4 location, u16 buffer_len, u8* buffer, u16* bytes_received,
+           Udp4* from_peer)
 {
   // MUST initialize: remote_len is an in/out parameter
   struct sockaddr_in remote_addr;
   socklen_t remote_len = sizeof(struct sockaddr_in);
 
-  int bytes = recvfrom(location.socket, (char*)buffer, buffer_len, 0,
+  s32 bytes = recvfrom(location.socket, (char*)buffer, buffer_len, 0,
                        (struct sockaddr*)&remote_addr, &remote_len);
   *bytes_received = bytes;
   if (bytes < 0) {
@@ -105,15 +104,15 @@ ReceiveAny(Udp4 location, uint16_t buffer_len, uint8_t* buffer,
 
 #define IPTOS_LOWDELAY 0x10
 
-bool
+b8
 SetLowDelay(Udp4 location)
 {
-  int low_delay = IPTOS_LOWDELAY;
+  s32 low_delay = IPTOS_LOWDELAY;
   return (setsockopt(location.socket, IPPROTO_IP, IP_TOS, (const char*)&low_delay,
                      sizeof(low_delay)) < 0);
 }
 
-bool
+b8
 GetAddr4(const char* host, const char* service_or_port, Udp4* out)
 {
   static struct addrinfo hints;
@@ -139,7 +138,7 @@ GetAddr4(const char* host, const char* service_or_port, Udp4* out)
 
   // Set non-blocking. 
   u_long mode = 1;
-  int r = ioctlsocket(out->socket, FIONBIO, &mode);
+  s32 r = ioctlsocket(out->socket, FIONBIO, &mode);
   if (r != NO_ERROR) {
     udp_errno = errno;
     return false;

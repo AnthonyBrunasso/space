@@ -2,7 +2,7 @@
 
 #include "x64_intrin.h"
 
-uint64_t ai_flags;
+u64 ai_flags;
 
 enum AiGoals {
   kPower = 0,
@@ -11,8 +11,8 @@ enum AiGoals {
   kAiGoals = 64,
 };
 
-inline uint64_t
-flag(uint64_t id)
+inline u64
+flag(u64 id)
 {
   return 1 << id;
 }
@@ -30,10 +30,10 @@ main()
   printf("%lu satisfied needs, %lu highest satisfied\n", POPCNT(ai_flags),
          kAiGoals - LZCNT(ai_flags));
 
-  uint64_t all = flag(kPower) | flag(kMine) | flag(kThrust);
-  uint64_t desired_flags = ANDN(ai_flags, all);
+  u64 all = flag(kPower) | flag(kMine) | flag(kThrust);
+  u64 desired_flags = ANDN(ai_flags, all);
   printf("all 0x%lx desired 0x%lx\n", all, desired_flags);
-  uint64_t selected = TZCNT(desired_flags);
+  u64 selected = TZCNT(desired_flags);
   printf("selected 0x%lx\n", flag(selected));
   ai_flags |= flag(selected);
   printf("%lu satisfied needs, %lu highest satisfied\n", POPCNT(ai_flags),

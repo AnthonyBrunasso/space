@@ -11,11 +11,11 @@ void
 ClockStart(Clock* clock);
 
 // Sets the end time for the clock and returns the elapsed microseconds.
-uint64_t
+u64
 ClockEnd(Clock* clock);
 
 // Returns the clocks elapsed microseconds.
-uint64_t
+u64
 ClockDeltaUsec(const Clock& clock);
 
 }

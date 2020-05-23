@@ -7,21 +7,21 @@ DWORD WINAPI
 Win32ThreadFunc(LPVOID lpParam)
 {
   Thread* ti = (Thread*)lpParam;
-  uint64_t ret = ti->func(ti->arg);
+  u64 ret = ti->func(ti->arg);
   ti->return_value = ret;
   return ret;
 }
 
 
-uint64_t
+u64
 ThreadId()
 {
   // TODO: Replace with intrinsic __readgsqword
   // https://docs.microsoft.com/en-us/cpp/intrinsics/readgsbyte-readgsdword-readgsqword-readgsword?view=vs-2019
-  return (uint64_t)GetCurrentThreadId();
+  return (u64)GetCurrentThreadId();
 }
 
-bool
+b8
 ThreadCreate(Thread* t)
 {
   if (t->id) return false;
@@ -41,7 +41,7 @@ ThreadYield()
   SwitchToThread();
 }
 
-bool
+b8
 ThreadJoin(Thread* t)
 {
   WaitForSingleObject(t->handle, INFINITE);
@@ -51,13 +51,13 @@ ThreadJoin(Thread* t)
 }
 
 void
-ThreadExit(Thread* t, uint64_t value)
+ThreadExit(Thread* t, u64 value)
 {
   t->return_value = value;
   ExitThread((DWORD)t->return_value);
 }
 
-bool
+b8
 MutexCreate(Mutex* m)
 {
   m->handle = CreateMutex(

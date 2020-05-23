@@ -20,16 +20,16 @@ pthread_shim(void* pthread_arg)
   return NULL;
 }
 
-uint64_t
+u64
 ThreadId()
 {
   pthread_t ptid = pthread_self();
-  uint64_t tid;
+  u64 tid;
   memcpy(&tid, &ptid, MIN(sizeof(tid), sizeof(ptid)));
   return tid;
 }
 
-bool
+b8
 ThreadCreate(Thread* t)
 {
   if (t->id) return false;
@@ -47,7 +47,7 @@ ThreadYield()
   sched_yield();
 }
 
-bool
+b8
 ThreadJoin(Thread* t)
 {
   if (!t->id) return false;
@@ -58,14 +58,14 @@ ThreadJoin(Thread* t)
 }
 
 void
-ThreadExit(Thread* t, uint64_t value)
+ThreadExit(Thread* t, u64 value)
 {
   t->return_value = value;
   pthread_exit(&t->return_value);
 }
 
 
-bool
+b8
 MutexCreate(Mutex* m)
 {
   int res = pthread_mutex_init(&m->lock, nullptr);

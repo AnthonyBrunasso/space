@@ -8,49 +8,49 @@
 
 #include "window.h"
 
-EXTERN(float width_pixels);
-EXTERN(float height_pixels);
-EXTERN(float mouse_x);
-EXTERN(float mouse_y);
+EXTERN(r32 width_pixels);
+EXTERN(r32 height_pixels);
+EXTERN(r32 mouse_x);
+EXTERN(r32 mouse_y);
 
 Display* display;
-int window_id;
+s32 window_id;
 EGLDisplay egl_display;
 EGLSurface egl_surface;
 
 namespace window
 {
-int
+s32
 x11_error_handler(Display*, XErrorEvent*)
 {
   return 0;
 }
 
-int
+s32
 x11_ioerror_handler(Display*)
 {
   return 0;
 }
 
-int
-Create(const char* name, int width, int height, bool fullscreen)
+s32
+Create(const char* name, s32 width, s32 height, b8 fullscreen)
 {
   if (window_id) return 0;
 
   display = XOpenDisplay(NULL);
-  int screen = DefaultScreen(display);
+  s32 screen = DefaultScreen(display);
   Window root_window = RootWindow(display, screen);
 
-  int egl_major = 0;
-  int egl_minor = 0;
+  s32 egl_major = 0;
+  s32 egl_minor = 0;
   egl_display = eglGetDisplay(display);
-  int egl_version_ok = eglInitialize(egl_display, &egl_major, &egl_minor);
+  s32 egl_version_ok = eglInitialize(egl_display, &egl_major, &egl_minor);
   if (!egl_version_ok) {
     return 0;
   }
 
   // egl config
-  int egl_config_count;
+  s32 egl_config_count;
   if (!eglGetConfigs(egl_display, NULL, 0, &egl_config_count)) {
     return 0;
   }
@@ -66,31 +66,31 @@ Create(const char* name, int width, int height, bool fullscreen)
     return 0;
   }
 
-  int selected_config = 0;
-  for (int i = 0; i < egl_config_count; ++i) {
-    int color_type;
-    int renderable_type;
+  s32 selected_config = 0;
+  for (s32 i = 0; i < egl_config_count; ++i) {
+    s32 color_type;
+    s32 renderable_type;
 #define EGL_READ_CONFIG(attrib, x) \
   eglGetConfigAttrib(egl_display, egl_config[i], attrib, x);
     EGL_READ_CONFIG(EGL_COLOR_BUFFER_TYPE, &color_type);
     EGL_READ_CONFIG(EGL_RENDERABLE_TYPE, &renderable_type);
 
-    int red_bits;
-    int green_bits;
-    int blue_bits;
+    s32 red_bits;
+    s32 green_bits;
+    s32 blue_bits;
     eglGetConfigAttrib(egl_display, egl_config[i], EGL_RED_SIZE, &red_bits);
     eglGetConfigAttrib(egl_display, egl_config[i], EGL_GREEN_SIZE, &green_bits);
     eglGetConfigAttrib(egl_display, egl_config[i], EGL_BLUE_SIZE, &blue_bits);
 
-    int alpha_bits;
-    int depth_bits;
-    int stencil_bits;
+    s32 alpha_bits;
+    s32 depth_bits;
+    s32 stencil_bits;
     eglGetConfigAttrib(egl_display, egl_config[i], EGL_ALPHA_SIZE, &alpha_bits);
     eglGetConfigAttrib(egl_display, egl_config[i], EGL_DEPTH_SIZE, &depth_bits);
     eglGetConfigAttrib(egl_display, egl_config[i], EGL_STENCIL_SIZE,
                        &stencil_bits);
 
-    int egl_samples;
+    s32 egl_samples;
     eglGetConfigAttrib(egl_display, egl_config[i], EGL_SAMPLES, &egl_samples);
 
     if (red_bits + green_bits + blue_bits != 24) continue;
@@ -105,8 +105,8 @@ Create(const char* name, int width, int height, bool fullscreen)
     return 0;
   }
 #define MAX_EGL_ATTRIB 16
-  int attrib[MAX_EGL_ATTRIB] = {0};
-  int* write_attrib = attrib;
+  s32 attrib[MAX_EGL_ATTRIB] = {0};
+  s32* write_attrib = attrib;
   *write_attrib++ = EGL_CONTEXT_MAJOR_VERSION;
   *write_attrib++ = 4;
   *write_attrib++ = EGL_CONTEXT_MINOR_VERSION;
@@ -127,9 +127,9 @@ Create(const char* name, int width, int height, bool fullscreen)
 
   // X11 window create
   Visual* visual = DefaultVisual(display, screen);
-  int depth = DefaultDepth(display, screen);
+  s32 depth = DefaultDepth(display, screen);
 
-  int colormap = XCreateColormap(display, root_window, visual, AllocNone);
+  s32 colormap = XCreateColormap(display, root_window, visual, AllocNone);
 
   XSetWindowAttributes wa;
   const unsigned long wamask = CWBorderPixel | CWColormap | CWEventMask;
@@ -140,8 +140,8 @@ Create(const char* name, int width, int height, bool fullscreen)
                   PointerMotionMask | ButtonPressMask | ButtonReleaseMask |
                   ExposureMask | FocusChangeMask | VisibilityChangeMask |
                   EnterWindowMask | LeaveWindowMask | PropertyChangeMask;
-  int border_width = 0;
-  int x = 100, y = 100;
+  s32 border_width = 0;
+  s32 x = 100, y = 100;
   Window parent = root_window;
   window_id = XCreateWindow(display, parent, x, y, width, height, border_width,
                             depth, InputOutput, CopyFromParent, wamask, &wa);
@@ -179,7 +179,7 @@ Create(const char* name, int width, int height, bool fullscreen)
                SubstructureNotifyMask | SubstructureRedirectMask, &e);
   } else {
     GET_ATOM(_MOTIF_WM_HINTS);
-    const int border = 0;
+    const s32 border = 0;
     struct {
       unsigned long flags;
       unsigned long functions;
@@ -220,7 +220,7 @@ Create(const char* name, int width, int height, bool fullscreen)
   return 1;
 }
 
-int
+s32
 Create(const char* name, const CreateInfo& create_info)
 {
   return Create(name, create_info.window_width, create_info.window_height,
@@ -233,7 +233,7 @@ SwapBuffers()
   eglSwapBuffers(egl_display, egl_surface);
 }
 
-bool
+b8
 PollEvent(PlatformEvent* event)
 {
   event->type = NOT_IMPLEMENTED;
@@ -306,7 +306,7 @@ GetCursorPosition()
   return v2f(mouse_x, mouse_y);
 }
 
-bool
+b8
 ShouldClose()
 {
   return false;

@@ -3,16 +3,16 @@
 #include <cstdint>
 
 struct Thread;
-typedef uint64_t (*ThreadFunc)(void* arg);
+typedef u64 (*ThreadFunc)(void* arg);
 
 struct Thread {
-  uint64_t id = 0;
+  u64 id = 0;
 #ifdef _WIN32
   HANDLE handle = 0;
 #endif
   ThreadFunc func;
   void* arg = nullptr;
-  uint64_t return_value;
+  u64 return_value;
 } ti;
 
 struct Mutex {
@@ -26,13 +26,13 @@ struct Mutex {
 namespace platform
 {
 
-uint64_t ThreadId();
-bool ThreadCreate(Thread* t);
+u64 ThreadId();
+b8 ThreadCreate(Thread* t);
 void ThreadYield();
-bool ThreadJoin(Thread* t);
-void ThreadExit(Thread* t, uint64_t value);
+b8 ThreadJoin(Thread* t);
+void ThreadExit(Thread* t, u64 value);
 
-bool MutexCreate(Mutex* m);
+b8 MutexCreate(Mutex* m);
 void MutexLock(Mutex* m);
 void MutexUnlock(Mutex* m);
 void MutexFree(Mutex* m);

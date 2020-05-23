@@ -33,7 +33,7 @@ struct PlatformEvent {
   v2f position;
   // Event Detail
   union {
-    float wheel_delta;
+    r32 wheel_delta;
     char key;
     PlatformButton button;
   };
@@ -43,25 +43,25 @@ namespace window
 {
 
 struct CreateInfo {
-  uint64_t window_width = 1920;
-  uint64_t window_height = 1080;
+  u64 window_width = 1920;
+  u64 window_height = 1080;
   // If left as UINT64_MAX let the platform decide where the window should go.
-  uint64_t window_pos_x = UINT64_MAX;
-  uint64_t window_pos_y = UINT64_MAX;
-  bool fullscreen = false;
+  u64 window_pos_x = UINT64_MAX;
+  u64 window_pos_y = UINT64_MAX;
+  b8 fullscreen = false;
 };
 
-int Create(const char* name, int width, int height, bool fullscreen);
+int Create(const char* name, s32 width, s32 height, b8 fullscreen);
 
 int Create(const char* name, const CreateInfo& create_info);
 
 // Returns true if an event existed. False otherwise.
 // Fully poll this queue at the top of each game loop.
-bool PollEvent(PlatformEvent* event);
+b8 PollEvent(PlatformEvent* event);
 
 void SwapBuffers();
 
-bool ShouldClose();
+b8 ShouldClose();
 
 v2f GetWindowSize();
 

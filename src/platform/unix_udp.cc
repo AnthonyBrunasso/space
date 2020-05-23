@@ -19,14 +19,14 @@ static_assert(sizeof(Udp4::socket_address) >= sizeof(struct sockaddr_in),
 
 namespace udp
 {
-bool
+b8
 Init()
 {
   // derp: windows api compat
   return true;
 }
 
-bool
+b8
 Bind(Udp4 location)
 {
   if (bind(location.socket, (const struct sockaddr*)location.socket_address,
@@ -38,7 +38,7 @@ Bind(Udp4 location)
   return true;
 }
 
-bool
+b8
 BindAddr(Udp4 peer, const char* host, const char* service_or_port)
 {
   static struct addrinfo hints;
@@ -68,8 +68,8 @@ BindAddr(Udp4 peer, const char* host, const char* service_or_port)
   return true;
 }
 
-bool
-Send(Udp4 peer, const void* buffer, uint16_t len)
+b8
+Send(Udp4 peer, const void* buffer, u16 len)
 {
   ssize_t bytes = sendto(peer.socket, buffer, len, MSG_DONTWAIT,
                          (const struct sockaddr*)peer.socket_address,
@@ -80,8 +80,8 @@ Send(Udp4 peer, const void* buffer, uint16_t len)
   return bytes == len;
 }
 
-bool
-SendTo(Udp4 location, Udp4 peer, const void* buffer, uint16_t len)
+b8
+SendTo(Udp4 location, Udp4 peer, const void* buffer, u16 len)
 {
   ssize_t bytes = sendto(location.socket, buffer, len, MSG_DONTWAIT,
                          (const struct sockaddr*)peer.socket_address,
@@ -92,9 +92,8 @@ SendTo(Udp4 location, Udp4 peer, const void* buffer, uint16_t len)
   return bytes == len;
 }
 
-bool
-ReceiveFrom(Udp4 peer, uint16_t buffer_len, uint8_t* buffer,
-            int16_t* bytes_received)
+b8
+ReceiveFrom(Udp4 peer, u16 buffer_len, u8* buffer, s16* bytes_received)
 {
   // MUST initialize: remote_len is an in/out parameter
   struct sockaddr_in remote_addr;
@@ -119,9 +118,9 @@ ReceiveFrom(Udp4 peer, uint16_t buffer_len, uint8_t* buffer,
   return true;
 }
 
-bool
-ReceiveAny(Udp4 location, uint16_t buffer_len, uint8_t* buffer,
-           uint16_t* bytes_received, Udp4* from_peer)
+b8
+ReceiveAny(Udp4 location, u16 buffer_len, u8* buffer, u16* bytes_received,
+           Udp4* from_peer)
 {
   // MUST initialize: remote_len is an in/out parameter
   struct sockaddr_in remote_addr;
@@ -144,13 +143,13 @@ ReceiveAny(Udp4 location, uint16_t buffer_len, uint8_t* buffer,
 }
 
 void
-PollUsec(Udp4 location, uint64_t usec)
+PollUsec(Udp4 location, u64 usec)
 {
   struct pollfd fd = {.fd = location.socket, .events = POLLIN};
   poll(&fd, 1, usec / 1000);
 }
 
-bool
+b8
 SetLowDelay(Udp4 location)
 {
   int low_delay = IPTOS_LOWDELAY;
@@ -158,7 +157,7 @@ SetLowDelay(Udp4 location)
                      sizeof(low_delay)) < 0);
 }
 
-bool
+b8
 GetAddr4(const char* host, const char* service_or_port, Udp4* out)
 {
   static struct addrinfo hints;

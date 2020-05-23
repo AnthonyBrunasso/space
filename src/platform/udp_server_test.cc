@@ -4,14 +4,14 @@
 
 volatile bool running = true;
 
-int
-main(int argc, char** argv)
+s32
+main(s32 argc, char** argv)
 {
   const char* ip = "127.0.0.1";
   const char* port = "9845";
 
   while (1) {
-    int opt = platform_getopt(argc, argv, "i:p:");
+    s32 opt = platform_getopt(argc, argv, "i:p:");
     if (opt == -1) break;
 
     switch (opt) {
@@ -24,7 +24,7 @@ main(int argc, char** argv)
     };
   }
 #define MAX_BUFFER 4 * 1024
-  uint8_t buffer[MAX_BUFFER];
+  u8 buffer[MAX_BUFFER];
   udp::Init();
 
   Udp4 location;
@@ -40,7 +40,7 @@ main(int argc, char** argv)
   }
 
   while (running) {
-    uint16_t received_bytes;
+    u16 received_bytes;
     Udp4 peer;
 
     if (!udp::ReceiveAny(location, MAX_BUFFER, buffer, &received_bytes,

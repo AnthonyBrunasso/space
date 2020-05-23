@@ -8,7 +8,7 @@
 
 #if defined(__i386__) || defined(__x86_64__)
 
-uint64_t
+u64
 rdtsc(void)
 {
   return __builtin_ia32_rdtsc();
@@ -23,8 +23,8 @@ rdtsc(void)
 int
 cmp(const void* lhs, const void* rhs)
 {
-  uint64_t lhv = *((const uint64_t*)lhs);
-  uint64_t rhv = *((const uint64_t*)rhs);
+  u64 lhv = *((const u64*)lhs);
+  u64 rhv = *((const u64*)rhs);
   if (lhv < rhv) return -1;
   if (lhv > rhv) return 1;
   return 0;
@@ -39,11 +39,11 @@ main()
 
   clock_t c = clock();
   clock_t p;
-  uint64_t rc = rdtsc();
-  uint64_t rp;
+  u64 rc = rdtsc();
+  u64 rp;
 
 #define MAX_SAMPLES 10
-  uint64_t tsc_per_usec[MAX_SAMPLES];
+  u64 tsc_per_usec[MAX_SAMPLES];
   for (int i = 0; i < MAX_SAMPLES; ++i) {
     p = c;
     rp = rc;

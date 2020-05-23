@@ -14,7 +14,7 @@ struct Udp4 {
   SOCKET socket;
 #else
   // File descriptor for socket
-  int socket;
+  s32 socket;
 #endif
   // Family, address, port of destination
   char socket_address[16];

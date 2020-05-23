@@ -4,25 +4,25 @@
 
 namespace search {
 
-constexpr uint32_t kMapMaxWidth = 64;
-constexpr uint32_t kMapMaxHeight = 64;
+constexpr u32 kMapMaxWidth = 64;
+constexpr u32 kMapMaxHeight = 64;
 
 struct Path {
   v2i queue[kMapMaxWidth * kMapMaxHeight];
-  int size;
+  s32 size;
 };
 
 struct Search {
   struct PathMapNode {
     v2i from;
-    uint32_t depth = 0;
-    bool checked = false;
+    u32 depth = 0;
+    b8 checked = false;
   };
   // Visited Nodes
   PathMapNode path_map[kMapMaxWidth][kMapMaxHeight];
   // BFS queue.
   v2i queue[kMapMaxWidth * kMapMaxHeight];
-  int queue_size;
+  s32 queue_size;
 };
 
 static Search kSearch;

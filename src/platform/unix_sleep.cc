@@ -4,8 +4,8 @@
 
 namespace platform
 {
-int
-SleepSec(uint64_t sec)
+s32
+SleepSec(u64 sec)
 {
   struct timespec duration;
   duration.tv_sec = sec;
@@ -13,8 +13,8 @@ SleepSec(uint64_t sec)
   return nanosleep(&duration, NULL);
 }
 
-int
-SleepMs(uint64_t msec)
+s32
+SleepMs(u64 msec)
 {
   struct timespec duration;
   duration.tv_sec = msec / 1000;
@@ -24,8 +24,8 @@ SleepMs(uint64_t msec)
 
 // Return -1 if interrupted
 // Return 0 on completed sleep
-int
-SleepUsec(uint64_t usec)
+s32
+SleepUsec(u64 usec)
 {
   assert(usec < 2 * (1000 * 1000));
 

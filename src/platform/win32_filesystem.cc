@@ -6,7 +6,7 @@
 namespace filesystem
 {
 
-bool
+b8
 MakeDirectory(const char* name)
 {
   return CreateDirectoryA(name, nullptr);
@@ -15,7 +15,7 @@ MakeDirectory(const char* name)
 void
 WalkDirectory(const char* dir, FileCallback* file_callback)
 {
-  uint32_t len = strlen(dir);
+  u32 len = strlen(dir);
   assert(dir[len - 1] == '/');
   WIN32_FIND_DATA ffd;
   wchar_t wtext[MAX_PATH] = {};

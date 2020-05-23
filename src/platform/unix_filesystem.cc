@@ -8,7 +8,7 @@
 namespace filesystem
 {
 
-bool
+b8
 MakeDirectory(const char* name)
 {
   if (mkdir(name, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) < 0)

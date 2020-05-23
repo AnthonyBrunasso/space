@@ -1,11 +1,11 @@
 
 static const char* kEmptyString = "";
 
-EXTERN(int platform_optind = 1);
+EXTERN(s32 platform_optind = 1);
 EXTERN(const char* platform_optarg);
 
-int
-platform_getopt(int argc, char* const argv[], const char* optstring)
+s32
+platform_getopt(s32 argc, char* const argv[], const char* optstring)
 {
   for (; platform_optind < argc; ++platform_optind) {
     const char* arg = argv[platform_optind];
@@ -13,7 +13,7 @@ platform_getopt(int argc, char* const argv[], const char* optstring)
 
     const char* optiter = optstring;
     for (; *optiter; ++optiter) {
-      int val_param = *(optiter + 1) == ':';
+      s32 val_param = *(optiter + 1) == ':';
       if (arg[0] == '-' && *optiter == arg[1]) {
         unsigned used_param = 1;
         if (val_param && platform_optind + 1 < argc) {

@@ -1,6 +1,5 @@
 #include "platform.cc"
 
-#include <cstdint>
 #include <cstdio>
 
 #define MAX_BUFFER 4 * 1024
@@ -8,10 +7,10 @@
 #define MAX_TURN (MAX_BUFFER / 16)
 #define MAX_RECEIVE (1500 - IPV4_HEADER)
 #define MIN_RECEIVE 16
-uint8_t buffer[MAX_BUFFER];
-uint16_t record[MAX_TURN + 1];
+u8 buffer[MAX_BUFFER];
+u16 record[MAX_TURN + 1];
 
-int
+s32
 main()
 {
   Udp4 local_socket;
@@ -29,19 +28,19 @@ main()
   printf("Listening on %s\n", port);
   printf("Limits [ %lu turns ] [ %lu bytes ]\n", MAX_TURN, MAX_BUFFER);
   TscClock_t server_clock;
-  uint64_t time_step_usec = 1000;
+  u64 time_step_usec = 1000;
   clock_init(time_step_usec, &server_clock);
 
-  uint8_t* write_buffer = buffer;
-  uint16_t* write_record = record;
-  uint64_t running = 1;
+  u8* write_buffer = buffer;
+  u16* write_record = record;
+  u64 running = 1;
   while (running) {
     if (write_buffer - buffer > (MAX_BUFFER - MAX_RECEIVE)) break;
     if (write_record - record >= MAX_TURN) break;
     Udp4 peer;
-    uint16_t bytes = 0;
+    u16 bytes = 0;
 
-    uint64_t sleep_usec;
+    u64 sleep_usec;
     clock_sync(&server_clock, &sleep_usec);
 
     if (!udp::ReceiveAny(local_socket, MAX_RECEIVE, write_buffer, &bytes,
@@ -52,7 +51,7 @@ main()
       continue;
     }
 
-    for (int i = 0; i < bytes; ++i) {
+    for (s32 i = 0; i < bytes; ++i) {
       printf("%02hhx", write_buffer[i]);
     }
     puts("");
@@ -72,7 +71,7 @@ main()
 
   FILE* f = fopen("logger.bin", "w");
   write_record += 1;
-  fwrite(record, sizeof(uint16_t), write_record - record, f);
+  fwrite(record, sizeof(u16), write_record - record, f);
   fwrite(buffer, write_buffer - buffer, 1, f);
   fclose(f);
 

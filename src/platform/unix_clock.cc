@@ -21,14 +21,14 @@ ClockStart(Clock* clock)
   }
 }
 
-uint64_t
+u64
 ClockDeltaUsec(const Clock& clock)
 {
   return (1000000000L * (clock.end.tv_sec - clock.start.tv_sec) +
       clock.end.tv_nsec - clock.start.tv_nsec) / 1e3;
 }
 
-uint64_t
+u64
 ClockEnd(Clock* clock)
 {
   struct timespec t;

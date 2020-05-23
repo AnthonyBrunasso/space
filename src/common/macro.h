@@ -9,6 +9,10 @@
 #define EXTERN(x) x
 #endif
 
+#define KiB(bytes) ((u64)bytes * 1024)
+#define MiB(bytes) (KiB((u64)bytes) * 1024)
+#define GiB(bytes) (MiB((u64)bytes) * 1024)
+
 #define MIN(x, y) (y ^ ((x ^ y) & -(x < y)))
 #define MAX(x, y) (x ^ ((x ^ y) & -(x < y)))
 #define MINF(x, y) x < y ? x : y

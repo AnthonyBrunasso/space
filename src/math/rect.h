@@ -12,20 +12,20 @@ struct Rectf {
   {
   }
 
-  Rectf(const v2f& min, float width, float height)
+  Rectf(const v2f& min, r32 width, r32 height)
       : x(min.x), y(min.y), width(width), height(height)
   {
   }
 
-  Rectf(float x, float y, float width, float height)
+  Rectf(r32 x, r32 y, r32 width, r32 height)
       : x(x), y(y), width(width), height(height)
   {
   }
 
-  float x;
-  float y;
-  float width;
-  float height;
+  r32 x;
+  r32 y;
+  r32 width;
+  r32 height;
 
   v2f
   Center() const
@@ -74,12 +74,12 @@ OrientToAabb(const Rectf& rect)
 v2f
 RandomPointInRect(const Rectf& rect)
 {
-  float min_x = rect.x;
-  float max_x = rect.x + rect.width;
-  float min_y = rect.y;
-  float max_y = rect.y + rect.height;
-  return v2f(ScaleRange((float)rand() / RAND_MAX, 0.f, 1.f, min_x, max_x),
-             ScaleRange((float)rand() / RAND_MAX, 0.f, 1.f, min_y, max_y));
+  r32 min_x = rect.x;
+  r32 max_x = rect.x + rect.width;
+  r32 min_y = rect.y;
+  r32 max_y = rect.y + rect.height;
+  return v2f(ScaleRange((r32)rand() / RAND_MAX, 0.f, 1.f, min_x, max_x),
+             ScaleRange((r32)rand() / RAND_MAX, 0.f, 1.f, min_y, max_y));
 }
 
 // The Anthony-especial algorithm for calculating a random point on exterior
@@ -127,14 +127,14 @@ RandomPointOnRect(const Rectf& rect)
   return pkeep + t;
 }
 
-bool
+b8
 PointInRect(const v2f& point, const Rectf& rect)
 {
   return (point.x >= rect.x && point.x <= rect.x + rect.width) &&
          (point.y >= rect.y && point.y <= rect.y + rect.height);
 }
 
-bool
+b8
 IntersectRect(const Rectf& a, const Rectf& b)
 {
   v2f amin = a.Min();
@@ -147,7 +147,7 @@ IntersectRect(const Rectf& a, const Rectf& b)
 }
 
 // Check if a is full contained in b.
-bool
+b8
 IsContainedInRect(const Rectf& a, const Rectf& b)
 {
   v2f amin = a.Min();

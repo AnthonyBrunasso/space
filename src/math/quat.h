@@ -19,16 +19,16 @@ struct Quat {
   {
   }
 
-  Quat(float angle_degrees, const v3f& axis) { Set(angle_degrees, axis); }
+  Quat(r32 angle_degrees, const v3f& axis) { Set(angle_degrees, axis); }
 
   Quat() : Quat(0.0f, v3f(0.f, 0.f, 1.f)) { Set(angle_degrees, axis); }
 
   void
-  Set(float new_angle, const v3f& new_axis)
+  Set(r32 new_angle, const v3f& new_axis)
   {
     angle_degrees = new_angle;
     axis = Normalize(new_axis);
-    float angle_radians = (angle_degrees)*PI / 180.0f;
+    r32 angle_radians = (angle_degrees)*PI / 180.0f;
     w = cos(angle_radians / 2.0f);
     x = sin(angle_radians / 2.0f) * axis.x;
     y = sin(angle_radians / 2.0f) * axis.y;
@@ -36,10 +36,10 @@ struct Quat {
   }
 
   void
-  Rotate(float angle_degrees_delta)
+  Rotate(r32 angle_degrees_delta)
   {
     // Wrap the  angle?
-    float angle = angle_degrees + angle_degrees_delta;
+    r32 angle = angle_degrees + angle_degrees_delta;
     Set(angle, axis);
   }
 
@@ -70,9 +70,9 @@ struct Quat {
   T z;
 
   v3f axis;
-  float angle_degrees;
+  r32 angle_degrees;
 };
 
 }  // namespace math
 
-using Quatf = math::Quat<float>;
+using Quatf = math::Quat<r32>;

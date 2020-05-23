@@ -1,5 +1,7 @@
 #pragma once
 
+#include "platform/type.cc"
+
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
@@ -136,14 +138,14 @@ Dot(const Vec2<T>& lhs, const Vec2<T>& rhs)
 }
 
 template <typename T>
-float
+r32
 LengthSquared(const Vec2<T>& v)
 {
   return Dot(v, v);
 }
 
 template <typename T>
-float
+r32
 Length(const Vec2<T>& v)
 {
   return std::sqrt(Dot(v, v));
@@ -318,14 +320,14 @@ Dot(const Vec3<T>& lhs, const Vec3<T>& rhs)
 }
 
 template <typename T>
-float
+r32
 LengthSquared(const Vec3<T>& v)
 {
   return Dot(v, v);
 }
 
 template <typename T>
-float
+r32
 Length(const Vec3<T>& v)
 {
   return std::sqrt(Dot(v, v));
@@ -513,14 +515,14 @@ Dot(const Vec4<T>& lhs, const Vec4<T>& rhs)
 }
 
 template <typename T>
-float
+r32
 LengthSquared(const Vec4<T>& v)
 {
   return Dot(v, v);
 }
 
 template <typename T>
-float
+r32
 Length(const Vec4<T>& v)
 {
   return std::sqrt(Dot(v, v));
@@ -542,19 +544,19 @@ Project(const Vec4<T>& a, const Vec4<T>& onto_b)
 
 }  // namespace math
 
-using v2i = math::Vec2<int>;
-using v2f = math::Vec2<float>;
+using v2i = math::Vec2<s32>;
+using v2f = math::Vec2<r32>;
 
-using v3i = math::Vec3<int>;
+using v3i = math::Vec3<s32>;
 
-using v3f = math::Vec3<float>;
+using v3f = math::Vec3<r32>;
 
-using v4f = math::Vec4<float>;
+using v4f = math::Vec4<r32>;
 
 v2f
 to_v2f(const v2i& v)
 {
-  return v2f((float)v.x, (float)v.y);
+  return v2f((r32)v.x, (r32)v.y);
 }
 
 void

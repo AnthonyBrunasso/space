@@ -124,7 +124,7 @@ Inverse(const Mat4f& m)
             m.data_[8] * m.data_[1] * m.data_[6] - 
             m.data_[8] * m.data_[2] * m.data_[5];
 
-  float det = m.data_[0] * inv.data_[0] + m.data_[1] * inv.data_[4] + m.data_[2] * inv.data_[8] + m.data_[3] * inv.data_[12];
+  r32 det = m.data_[0] * inv.data_[0] + m.data_[1] * inv.data_[4] + m.data_[2] * inv.data_[8] + m.data_[3] * inv.data_[12];
 
   det = 1.0f / det;
 
@@ -190,10 +190,10 @@ LookAt(const v3f& eye, const v3f& target, const v3f& up)
 }
 
 Mat4f
-Perspective(float fov_degrees, float aspect, float znear, float zfar)
+Perspective(r32 fov_degrees, r32 aspect, r32 znear, r32 zfar)
 {
-  float fov = fov_degrees * ONE_DEG_IN_RAD;
-  float thf = tan(fov / 2.f);
+  r32 fov = fov_degrees * ONE_DEG_IN_RAD;
+  r32 thf = tan(fov / 2.f);
   return Mat4f(
       1.f / (aspect * thf), 0.f, 0.f, 0.f,
       0.f, 1.f / thf, 0.f, 0.f,
@@ -202,19 +202,18 @@ Perspective(float fov_degrees, float aspect, float znear, float zfar)
 }
 
 Mat4f
-Ortho(float right, float left, float top, float bottom, float far_clip,
-      float near_clip)
+Ortho(r32 right, r32 left, r32 top, r32 bottom, r32 far_clip, r32 near_clip)
 {
   // Goal with this matrix is to scale a point, in likely screen space relative
   // to the cameras to GL space or the unit cube.
   //
   // To do that use the diagonal of this matrix to to scale the point
   // down to a unit cube.
-  float w = right - left;
+  r32 w = right - left;
   w = w == 0.f ? 1.f : w;
-  float h = top - bottom;
+  r32 h = top - bottom;
   h = h == 0.f ? 1.f : h;
-  float d = far_clip - near_clip;
+  r32 d = far_clip - near_clip;
   d = d == 0.f ? 1.f : d;
   return Mat4f(2.f / w, 0.f    , 0.f     , 0.f,
                0.f    , 2.f / h, 0.f     , 0.f,
@@ -225,14 +224,13 @@ Ortho(float right, float left, float top, float bottom, float far_clip,
 // This function orients origin to bottom left of screen. Useful for UI so
 // points can be specified in actual screen space.
 Mat4f
-Ortho2(float right, float left, float top, float bottom, float far_clip,
-       float near_clip)
+Ortho2(r32 right, r32 left, r32 top, r32 bottom, r32 far_clip, r32 near_clip)
 {
-  float w = right - left;
+  r32 w = right - left;
   w = w == 0.f ? 1.f : w;
-  float h = top - bottom;
+  r32 h = top - bottom;
   h = h == 0.f ? 1.f : h;
-  float d = far_clip - near_clip;
+  r32 d = far_clip - near_clip;
   d = d == 0.f ? 1.f : d;
   return Mat4f(2.f / w, 0.f    , 0.f     , 0.f,
                0.f    , 2.f / h, 0.f     , 0.f,
@@ -244,12 +242,12 @@ Ortho2(float right, float left, float top, float bottom, float far_clip,
 }
 
 Mat4f
-RotationX(float angle_degrees)
+RotationX(r32 angle_degrees)
 {
   if (angle_degrees == 0.f) return math::Identity();
-  float angle_radians = (angle_degrees)*PI / 180.0f;
-  float c = cos(angle_radians);
-  float s = sin(angle_radians);
+  r32 angle_radians = (angle_degrees)*PI / 180.0f;
+  r32 c = cos(angle_radians);
+  r32 s = sin(angle_radians);
   return Mat4f(1.0f, 0.f, 0.f, 0.f, 
                0.0f, c  , -s , 0.f,
                0.0f, s  ,  c , 0.f,
@@ -257,12 +255,12 @@ RotationX(float angle_degrees)
 }
 
 Mat4f
-RotationY(float angle_degrees)
+RotationY(r32 angle_degrees)
 {
   if (angle_degrees == 0.f) return math::Identity();
-  float angle_radians = (angle_degrees)*PI / 180.0f;
-  float c = cos(angle_radians);
-  float s = sin(angle_radians);
+  r32 angle_radians = (angle_degrees)*PI / 180.0f;
+  r32 c = cos(angle_radians);
+  r32 s = sin(angle_radians);
   return Mat4f(c   , 0.0f, s   , 0.f, 
                0.0f, 1.0f, 0.0f, 0.f,
                -s  , 0.0f, c   , 0.f,
@@ -270,12 +268,12 @@ RotationY(float angle_degrees)
 }
 
 Mat4f
-RotationZ(float angle_degrees)
+RotationZ(r32 angle_degrees)
 {
   if (angle_degrees == 0.f) return math::Identity();
-  float angle_radians = (angle_degrees)*PI / 180.0f;
-  float c = cos(angle_radians);
-  float s = sin(angle_radians);
+  r32 angle_radians = (angle_degrees)*PI / 180.0f;
+  r32 c = cos(angle_radians);
+  r32 s = sin(angle_radians);
   return Mat4f(c  , -s , 0.f, 0.f,
                s  , c  , 0.f, 0.f,
                0.f, 0.f, 1.f, 0.f,

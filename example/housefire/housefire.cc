@@ -5,33 +5,32 @@
 #include "audio/audio.cc"
 #include "audio/sound.cc"
 #include "common/macro.h"
-#include "gfx/imui.cc"
 #include "math/math.cc"
-#include "network/network.cc"
 #include "renderer/renderer.cc"
 #include "renderer/camera.cc"
 #include "renderer/mesh.cc"
+#include "renderer/imui.cc"
 #include "search/search.cc"
 
 #include "housefire_map.cc"
 
 struct State {
   // Game and render updates per second
-  uint64_t framerate = 60;
+  u64 framerate = 60;
   // Calculated available microseconds per game_update
-  uint64_t frame_target_usec;
+  u64 frame_target_usec;
   // Estimate of gime passed since game start.
-  uint64_t game_time_usec = 0;
+  u64 game_time_usec = 0;
   // Estimated frames per second.
-  float frames_per_second = 0;
+  r32 frames_per_second = 0;
   // (optional) yield unused cpu time to the system
-  bool sleep_on_loop = true;
+  b8 sleep_on_loop = true;
   // Number of times the game has been updated.
-  uint64_t game_updates = 0;
+  u64 game_updates = 0;
   // Parameters window::Create will be called with.
   window::CreateInfo window_create_info;
   // Id to music.
-  uint32_t music_id;
+  u32 music_id;
 };
 
 // Player is actual dude on screen.
@@ -40,9 +39,9 @@ struct Player {
   v3f position_world;
   v3f dims;
   v2i destination_position_map;
-  float lerp_to_destination = 0.f;
-  bool moving = false;
-  float rotation_y = 180.f;
+  r32 lerp_to_destination = 0.f;
+  b8 moving = false;
+  r32 rotation_y = 180.f;
 };
 
 static Player kPlayer;
@@ -57,7 +56,7 @@ static audio::Sound kWinSound;
 static audio::Sound kLossSound;
 static audio::Sound kExtinguisherSound;
 
-static bool kLeftClickDown = false;
+static b8 kLeftClickDown = false;
 
 static State kGameState;
 static Stats kGameStats;
@@ -74,10 +73,10 @@ static const v4f kWoodenBrownFire(1.0f, 0.368f, 0.258f, 1.0f);
 static char kCurrentMap[64];
 
 // If set will reset the game at the given loop
-static uint64_t kResetGameAt = UINT64_MAX;
-static bool kEditorMode = false;
-static bool kEditMapMenu = false;
-static bool kEditTileMenu = false;
+static u64 kResetGameAt = UINT64_MAX;
+static b8 kEditorMode = false;
+static b8 kEditMapMenu = false;
+static b8 kEditTileMenu = false;
 static Tile* kEditTile = nullptr;
 
 void
@@ -133,7 +132,7 @@ void
 GameUI()
 {
   v2f screen = window::GetWindowSize();
-  static bool enable = true;
+  static b8 enable = true;
   static v2f pos(0.f, screen.y);
   imui::PaneOptions options;
   imui::Begin("Game", imui::kEveryoneTag, options, &pos, &enable);
@@ -154,7 +153,7 @@ EditorUI()
 {
   v2f screen = window::GetWindowSize();
   {
-    static bool enable_tileviewer = false;
+    static b8 enable_tileviewer = false;
     static v2f tileviewer_pos = v2f(screen.x - 300.f, screen.y);
     imui::PaneOptions options;
     options.width = options.max_width = 300.f;
@@ -185,7 +184,7 @@ EditorUI()
 
 
   {
-    static bool enable_admin = true;
+    static b8 enable_admin = true;
     static v2f admin_pos = v2f(0.f, screen.y - 500.f);
     imui::PaneOptions options;
     options.width = options.max_width = 300.f;
@@ -206,7 +205,7 @@ EditorUI()
       MapGenerateUniqueName();
       strcpy(kCurrentMap, kEditMapName);
     }
-    static bool load_map_toggle = false;
+    static b8 load_map_toggle = false;
     if (imui::Text("Load Map", to).clicked) {
       load_map_toggle = !load_map_toggle;
     }
@@ -220,13 +219,13 @@ EditorUI()
 
   {
     if (kEditMapMenu) {
-      bool show_kEditMapMenu = true;
+      b8 show_kEditMapMenu = true;
       static v2f kEditMapMenu_pos = v2f(screen.x / 2.f, screen.y / 2.f);
-      static uint32_t starting_ttf = 5;
+      static u32 starting_ttf = 5;
       imui::PaneOptions options;
       imui::Begin("Edit Map", imui::kEveryoneTag, options, &kEditMapMenu_pos,
                   &show_kEditMapMenu);
-      static const float kWidth = 100.f;
+      static const r32 kWidth = 100.f;
       imui::Space(imui::kVertical, 3.f);
       imui::SameLine();
       imui::Width(kWidth);
@@ -310,9 +309,9 @@ EditorUI()
 
   {
     if (kEditTileMenu && kEditTile) {
-      static bool test = true;
+      static b8 test = true;
       static v2f edit_tile_pos = v2f(screen.x / 2.f, screen.y / 2.f);
-      static uint32_t starting_ttf = 5;
+      static u32 starting_ttf = 5;
       imui::PaneOptions options;
       imui::Begin("Edit Tile", imui::kEveryoneTag, options, &edit_tile_pos,
                   &test);
@@ -322,7 +321,7 @@ EditorUI()
       snprintf(kUIBuffer, sizeof(kUIBuffer), "Tile %u %u",
                kEditTile->position_map.x, kEditTile->position_map.y);
       imui::Text(kUIBuffer);
-      //constexpr float width = 80.f;
+      //constexpr r32 width = 80.f;
       snprintf(kUIBuffer, sizeof(kUIBuffer), "TTF %u ",
                kEditTile->turns_to_fire_max);
       imui::SameLine();
@@ -367,7 +366,7 @@ EditorUI()
 #define FLAG_OPTION(name, str)                        \
       imui::NewLine();                                \
       imui::SameLine();                               \
-      bool name = FLAGGED(kEditTile->flags, k##name); \
+      b8 name = FLAGGED(kEditTile->flags, k##name); \
       imui::Checkbox(17.f, 17.f, &name);              \
       imui::Text(str);                                \
       if (name) {                                     \
@@ -386,9 +385,9 @@ EditorUI()
   }
 
   {
-    static bool enable_debug = true;
+    static b8 enable_debug = true;
     static v2f diagnostics_pos(3.f, screen.y);
-    static float right_align = 130.f;
+    static r32 right_align = 130.f;
     imui::PaneOptions options;
     options.max_width = 350.f;
     imui::Begin("Diagnostics", imui::kEveryoneTag, options, &diagnostics_pos,
@@ -443,14 +442,14 @@ EditorUI()
 
 #if UIDEBUG
   {
-    static bool enable_debug = false;
+    static b8 enable_debug = false;
     static v2f ui_pos(300.f, screen.y);
     imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
   }
 #endif
 }
 
-bool
+b8
 GraphicsInitialize(const window::CreateInfo& window_create_info)
 {
   int window_result = window::Create("Space", window_create_info);
@@ -475,7 +474,7 @@ GraphicsInitialize(const window::CreateInfo& window_create_info)
   return true;
 }
 
-bool
+b8
 AudioInitialize()
 {
   if (!audio::Initialize()) {
@@ -514,8 +513,8 @@ AudioInitialize()
   return true;
 }
 
-bool
-CanMoveTo(const v2i& target, v2i* possible_move, uint32_t possible_move_count)
+b8
+CanMoveTo(const v2i& target, v2i* possible_move, u32 possible_move_count)
 {
   for (int i = 0; i < possible_move_count; ++i) {
     if (possible_move[i] == target) return true;
@@ -523,7 +522,7 @@ CanMoveTo(const v2i& target, v2i* possible_move, uint32_t possible_move_count)
   return false;
 }
 
-bool
+b8
 TileIsBlocked(const v2i& from)
 {
   Tile* t = &kMap[from.x][from.y];
@@ -532,7 +531,7 @@ TileIsBlocked(const v2i& from)
 
 
 v2i
-TileNeighbor(const v2i& from, uint32_t i)
+TileNeighbor(const v2i& from, u32 i)
 {
   static const v2i kNeighbor[kMaxTileNeighbor] = {
       v2i(-1, 0), v2i(1, 0),  v2i(0, 1),  v2i(0, -1),
@@ -541,7 +540,7 @@ TileNeighbor(const v2i& from, uint32_t i)
 }
 
 search::BfsIterator
-SetupBfsIterator(const v2i& from, uint32_t max_depth = UINT32_MAX)
+SetupBfsIterator(const v2i& from, u32 max_depth = UINT32_MAX)
 {
   search::BfsIterator itr = {};
   itr.blocked_callback = TileIsBlocked;
@@ -570,9 +569,9 @@ Tile*
 TileHover(const v2f& cursor)
 {
   v3f cray = rgg::CameraRayFromMouse(cursor);
-  float d = 0;
+  r32 d = 0;
   v3f n(0.f, 0.f, 1.f);
-  float t = -(math::Dot(rgg::CameraPosition(), n) + d) / math::Dot(cray, n);
+  r32 t = -(math::Dot(rgg::CameraPosition(), n) + d) / math::Dot(cray, n);
   v3f res = rgg::CameraPosition() + cray * t;
   //rgg::DebugPushSphere(res, 2.f, v4f(0.f, 1.f, 0.f, 0.8f));
   for (int i = 0; i < kMapX; ++i) {
@@ -648,9 +647,9 @@ PlayerMove()
 {
   static const int kMaxMoves = 32;
   v2i possible_move[kMaxMoves];
-  uint32_t possible_move_count = 0;
+  u32 possible_move_count = 0;
   v2f cursor = window::GetCursorPosition();
-  uint32_t depth = FLAGGED(GetPlayerTile()->flags, kTileCup) ? 2 : 1;
+  u32 depth = FLAGGED(GetPlayerTile()->flags, kTileCup) ? 2 : 1;
   search::BfsIterator bfs_itr =
         SetupBfsIterator(kPlayer.position_map, depth);
   if (search::BfsStart(&bfs_itr)) {
@@ -662,7 +661,7 @@ PlayerMove()
   }
   Tile* tile = TileHover(cursor);
   if (tile) {
-    static float depth = 1.f;
+    static r32 depth = 1.f;
     v4f color = v4f(0.f, .99f, .33f, 1.f);
     if (TileIsBlocked(tile->position_map)) {
       color = v4f(0.99f, 0.f, .33f, 1.f);
@@ -691,12 +690,12 @@ PlayerMove()
       if (FLAGGED(GetPlayerTile()->flags, kTileCup)) {
         CBIT(GetPlayerTile()->flags, kTileCup);
       }
-      bool can_move = CanMoveTo(tp, possible_move, possible_move_count);
+      b8 can_move = CanMoveTo(tp, possible_move, possible_move_count);
       if (can_move) {
         kPlayer.moving = true;
         kPlayer.destination_position_map = tile->position_map;
         v2f dir = tile->position_world.xy() - kPlayer.position_world.xy();
-        float rot_deg = ((atan2(dir.y, dir.x) * 180.f) / PI);
+        r32 rot_deg = ((atan2(dir.y, dir.x) * 180.f) / PI);
         // LOL
         if (rot_deg == -135.f) kPlayer.rotation_y = 45.f;
         else if (rot_deg == -90.f) kPlayer.rotation_y = 0.f;
@@ -775,7 +774,7 @@ EditUpdate()
   }
 }
 
-bool
+b8
 AdjacentTileBlocked(Tile* t)
 {
   if (!t) return false;
@@ -793,23 +792,23 @@ Render()
 {
   static int dumb = 0;
   ++dumb;
-  static float vib[kMapMaxX][kMapMaxY] = {};  // LOL
-  static const uint32_t kDumbMod = 10;
-  uint32_t mdumb = dumb % kDumbMod;
+  static r32 vib[kMapMaxX][kMapMaxY] = {};  // LOL
+  static const u32 kDumbMod = 10;
+  u32 mdumb = dumb % kDumbMod;
   for (int i = 0; i < kMapX; ++i) {
     for (int j = 0; j < kMapY; ++j) {
       Tile* t = &kMap[i][j];
       if (FLAGGED(t->flags, kTileRemove)) continue;
       if (mdumb == 0) {
-        vib[i][j] = math::ScaleRange((float)rand() / RAND_MAX, 0.f, 1.f, -1.f, 1.f);
+        vib[i][j] = math::ScaleRange((r32)rand() / RAND_MAX, 0.f, 1.f, -1.f, 1.f);
       }
       if (t->turns_to_fire) {
         if (t->turns_to_fire < 5) {
           v3f stgt =
-            v3f(t->dims.x, t->dims.y, .1f) / ((float)t->turns_to_fire + .5f);
+            v3f(t->dims.x, t->dims.y, .1f) / ((r32)t->turns_to_fire + .5f);
           v3f lstgt = stgt + v3f(vib[i][j], vib[i][j], 0.f);
-          float lerp_amount =
-              t->turns_to_fire == 1 ? (float)mdumb / kDumbMod : 0.f;
+          r32 lerp_amount =
+              t->turns_to_fire == 1 ? (r32)mdumb / kDumbMod : 0.f;
           rgg::RenderLineCube(
               Cubef(t->position_world + v3f(0.f, 0.f, kTileDepth / 2.f),
                     math::Lerp(stgt, lstgt, lerp_amount)),
@@ -839,7 +838,7 @@ Render()
         v3f scale = v3f(7.f, 7.f, 7.f);
         v3f dumb_scale = v3f(7.f, 7.f, 7.f + vib[i][j]);
         v3f lerped_scale =
-            math::Lerp(scale, dumb_scale, (float)mdumb / kDumbMod);
+            math::Lerp(scale, dumb_scale, (r32)mdumb / kDumbMod);
         rgg::RenderMesh(kFireMesh, t->position_world + v3f(0.f, 0.f, 3.f),
                         lerped_scale,
                         Quatf(270.f, v3f(1.f, 0.f, 0.f)));
@@ -867,13 +866,13 @@ SetWindowDims()
     if (res == EOF) break;
     if (strcmp(line, "//") == 0) continue;
     if (strcmp(line, "window_width") == 0) {
-      uint32_t width = 0;
+      u32 width = 0;
       fscanf(f, "%u\n", &width);
       if (width) {
         kGameState.window_create_info.window_width = width;
       }
     } else if (strcmp(line, "window_height") == 0) {
-      uint32_t height = 0;
+      u32 height = 0;
       fscanf(f, "%u\n", &height);
       if (height) {
         kGameState.window_create_info.window_height = height;
@@ -945,7 +944,7 @@ main(int argc, char** argv)
 
     const v2f cursor = window::GetCursorPosition();
     imui::MousePosition(cursor, imui::kEveryoneTag);
-    bool is_mouse_in_ui = imui::MouseInUI(imui::kEveryoneTag);
+    b8 is_mouse_in_ui = imui::MouseInUI(imui::kEveryoneTag);
 
     PlatformEvent event;
     while (window::PollEvent(&event)) {
@@ -1003,12 +1002,12 @@ main(int argc, char** argv)
     window::SwapBuffers();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    const uint64_t elapsed_usec = platform::ClockEnd(&game_clock);
+    const u64 elapsed_usec = platform::ClockEnd(&game_clock);
 
     StatsAdd(elapsed_usec, &kGameStats);
 
     if (kGameState.frame_target_usec > elapsed_usec) {
-      uint64_t wait_usec = kGameState.frame_target_usec - elapsed_usec;
+      u64 wait_usec = kGameState.frame_target_usec - elapsed_usec;
       platform::Clock wait_clock;
       platform::ClockStart(&wait_clock);
       while (platform::ClockEnd(&wait_clock) < wait_usec) {}

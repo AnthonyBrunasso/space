@@ -57,21 +57,21 @@ class Mat4
   }
 
   T&
-  operator()(size_t col, size_t row)
+  operator()(u64 col, u64 row)
   {
     assert(col * row < 16);
     return data_[col * 4 + row];
   }
 
   const T&
-  operator()(size_t col, size_t row) const
+  operator()(u64 col, u64 row) const
   {
     assert(col * row < 16);
     return data_[col * 4 + row];
   }
 
   // Get the i'th column of the matrix as a vec4
-  v4f& operator[](size_t i) const {
+  v4f& operator[](u64 i) const {
     assert(i < 4 && i >= 0);
     return *((v4f*)(&data_[i * 4]));
   }
@@ -343,4 +343,4 @@ v4f operator*(const Mat4<T>& lhs, const v4f& rhs)
 // clang-format on
 }  // namespace math
 
-using Mat4f = math::Mat4<float>;
+using Mat4f = math::Mat4<r32>;

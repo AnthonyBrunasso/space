@@ -6,6 +6,7 @@
 #include "audio/sound.cc"
 #include "common/macro.h"
 #include "math/math.cc"
+#include "memory/memory.cc"
 #include "renderer/renderer.cc"
 #include "renderer/camera.cc"
 #include "renderer/mesh.cc"
@@ -893,6 +894,10 @@ SetWindowDims()
 int
 main(int argc, char** argv)
 {
+  if (!memory::Initialize(MiB(64))) {
+    return 1;
+  }
+
   platform::Clock game_clock;
 
 #if __APPLE__

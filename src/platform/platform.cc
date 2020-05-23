@@ -16,7 +16,6 @@
 #include "x64_intrin.h"
 
 #include "clock.cc"
-#include "platform_clock.cc"
 #include "platform_getopt.cc"
 #include "window.cc"
 

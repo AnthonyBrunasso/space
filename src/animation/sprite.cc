@@ -14,6 +14,7 @@ struct Label {
   u32 coord_size = 0;
   // Number of frames to wait before traversing to next image.
   u32 frame_count = 0;
+
 };
 
 struct Sprite {

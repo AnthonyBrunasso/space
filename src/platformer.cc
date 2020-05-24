@@ -42,21 +42,48 @@ struct Game {
 
 static Game kGame;
 
-struct Player {
-  v3f position;
-  v3f velocity;
-  v3f acceleration;
-  v2f max_speed = v2f(1.f, 10.f);
-};
-
-static Player kPlayer;
-
-struct Physics {
+struct PhysicsGlobal {
   float friction_coefficient = .05f;
   float gravity = 1.f;
 };
 
-static Physics kPhysics;
+static PhysicsGlobal kPhysicsGlobal;
+
+struct PhysicsComponent {
+  u32 id;
+  v3f position;
+  v3f velocity;
+  v3f acceleration;
+  v3f max_speed = v3f(1.f, 10.f, 0.f);
+  Rectf bounds;
+};
+
+DECLARE_HASH_ARRAY(PhysicsComponent, 16);
+
+struct RenderSpriteComponent {
+  u32 id;
+  rgg::Texture texture;
+  animation::Sprite sprite_anim;
+};
+
+DECLARE_HASH_ARRAY(RenderSpriteComponent, 8);
+
+struct RenderRectComponent {
+  u32 id;
+};
+
+DECLARE_HASH_ARRAY(RenderRectComponent, 8);
+
+struct Entity {
+  u32 id;
+  u64 physics_component_id = kInvalidId;
+  u64 render_sprite_component_id = kInvalidId;
+  u64 render_rect_component_id = kInvalidId;
+};
+
+DECLARE_HASH_ARRAY(Entity, 16);
+
+static u32 kPlayerId = kInvalidId;
 
 #define UIBUFFER_SIZE 64
 static char kUIBuffer[UIBUFFER_SIZE];
@@ -118,6 +145,16 @@ void
 InitializeGame()
 {
   kGame.ground = 0.f;
+  // Create the player.
+  Entity* entity = UseEntity();
+  PhysicsComponent* physics = UsePhysicsComponent();
+  entity->physics_component_id = physics->id;
+  RenderSpriteComponent* sprite_component = UseRenderSpriteComponent();
+  sprite_component->texture = kAsset.player_texture;
+  sprite_component->sprite_anim = kAsset.player_sprite;
+  entity->render_sprite_component_id = sprite_component->id;
+  physics->bounds = Rectf(0.f, 0.f, 20.f, 31.f);
+  entity->render_rect_component_id = UseRenderRectComponent()->id;
 }
 
 b8
@@ -142,48 +179,68 @@ UpdateGame()
 {
   rgg::CameraUpdate();
 
-  v3f pre_velocity = kPlayer.velocity;
-  kPlayer.velocity += kPlayer.acceleration;
+  for (int i = 0; i < kUsedEntity; ++i) {
+    PhysicsComponent* physics =
+        FindPhysicsComponent(kEntity[i].physics_component_id);
 
-  if (kPlayer.velocity.x * kPlayer.velocity.x >
-      kPlayer.max_speed.x * kPlayer.max_speed.x) {
-    if (kPlayer.velocity.x < 0.f) kPlayer.velocity.x = -kPlayer.max_speed.x;
-    if (kPlayer.velocity.x > 0.f) kPlayer.velocity.x = kPlayer.max_speed.x;
-  }
+    if (!physics) continue;
 
-  kPlayer.position += kPlayer.velocity;
-  if (kPlayer.velocity.x > 0.f) {
-    kPlayer.velocity.x -= kPhysics.friction_coefficient;
-    if (kPlayer.velocity.x < 0.f) kPlayer.velocity.x = 0.f;
-  } else if (kPlayer.velocity.x < 0.f) {
-    kPlayer.velocity.x += kPhysics.friction_coefficient;
-    if (kPlayer.velocity.x > 0.f) kPlayer.velocity.x = 0.f;
-  }
+    v3f pre_velocity = physics->velocity;
+    physics->velocity += physics->acceleration;
 
-  if (kPlayer.velocity.y > 0.f) {
-    kPlayer.velocity.y -= kPhysics.gravity;
-    if (kPlayer.velocity.x < 0.f) kPlayer.velocity.x = 0.f;
-  }
+    if (physics->velocity.x * physics->velocity.x >
+        physics->max_speed.x * physics->max_speed.x) {
+      if (physics->velocity.x < 0.f) physics->velocity.x = -physics->max_speed.x;
+      if (physics->velocity.x > 0.f) physics->velocity.x = physics->max_speed.x;
+    }
 
-  if (kPlayer.position.y > kGame.ground) {
-    kPlayer.velocity.y -= kPhysics.gravity;
-  }
+    physics->position += physics->velocity;
+    if (physics->velocity.x > 0.f) {
+      physics->velocity.x -= kPhysicsGlobal.friction_coefficient;
+      if (physics->velocity.x < 0.f) physics->velocity.x = 0.f;
+    } else if (physics->velocity.x < 0.f) {
+      physics->velocity.x += kPhysicsGlobal.friction_coefficient;
+      if (physics->velocity.x > 0.f) physics->velocity.x = 0.f;
+    }
 
-  if (kPlayer.position.y < kGame.ground) {
-    kPlayer.velocity.y = 0.f;
-    kPlayer.position.y = kGame.ground;
-  }
+    if (physics->velocity.y > 0.f) {
+      physics->velocity.y -= kPhysicsGlobal.gravity;
+      if (physics->velocity.x < 0.f) physics->velocity.x = 0.f;
+    }
 
-  if (pre_velocity.x <= 0.f && kPlayer.velocity.x > 0.f) {
-    animation::SetLabel("run", &kAsset.player_sprite);
-  } else if (pre_velocity.x >= 0.f && kPlayer.velocity.x < 0.f) {
-    animation::SetLabel("run", &kAsset.player_sprite, true);
-  }
-  if (pre_velocity.x > 0.f && kPlayer.velocity.x == 0.f) {
-    animation::SetLabel("idle", &kAsset.player_sprite);
-  }
-  if (pre_velocity.x < 0.f && kPlayer.velocity.x == 0.f) {
-    animation::SetLabel("idle", &kAsset.player_sprite, true);
+    if (physics->position.y > kGame.ground) {
+      physics->velocity.y -= kPhysicsGlobal.gravity;
+    }
+
+    if (physics->position.y < kGame.ground) {
+      physics->velocity.y = 0.f;
+      physics->position.y = kGame.ground;
+    }
+
+    physics->bounds.x = physics->position.x;
+    physics->bounds.y = physics->position.y;
+
+    RenderSpriteComponent* sprite =
+        FindRenderSpriteComponent(kEntity[i].render_sprite_component_id);
+
+    if (!sprite) continue;
+
+    // TODO: Is this actually right?
+    physics->bounds.x += ((float)sprite->sprite_anim.width / 4.f) + 2.f;
+
+    if (pre_velocity.x <= 0.f && physics->velocity.x > 0.f) {
+      animation::SetLabel("run", &sprite->sprite_anim);
+    } else if (pre_velocity.x >= 0.f && physics->velocity.x < 0.f) {
+      animation::SetLabel("run", &sprite->sprite_anim, true);
+    }
+
+    if (pre_velocity.x > 0.f && physics->velocity.x == 0.f) {
+      animation::SetLabel("idle", &sprite->sprite_anim);
+    }
+
+    if (pre_velocity.x < 0.f && physics->velocity.x == 0.f) {
+      animation::SetLabel("idle", &sprite->sprite_anim, true);
+    }
   }
 }
 
@@ -197,12 +254,43 @@ RenderGame()
                   v3f(1000.f, kGame.ground, 0.f),
                   v4f(1.f, 1.f, 1.f, 1.f));
 
+  // Render all rect components.
+  for (u32 i = 0; i < kUsedEntity; ++i) {
+    Entity* ent = &kEntity[i];
 
-  rgg::RenderTexture(
-      kAsset.player_texture, animation::Update(&kAsset.player_sprite),
-      Rectf(kPlayer.position.xy(),
-            kAsset.player_sprite.width, kAsset.player_sprite.height),
-      kAsset.player_sprite.mirror);
+    PhysicsComponent* physics =
+        FindPhysicsComponent(ent->physics_component_id);
+
+    if (!physics) continue;
+
+    RenderRectComponent* rect =
+        FindRenderRectComponent(ent->render_rect_component_id);
+
+    if (!rect) continue;
+
+    rgg::RenderLineRectangle(physics->bounds, 0.f, v4f(1.f, 0.f, 0.f, 1.f));
+  }
+
+  // Render all sprite components.
+  for (u32 i = 0; i < kUsedEntity; ++i) {
+    Entity* ent = &kEntity[i];
+
+    PhysicsComponent* physics =
+        FindPhysicsComponent(ent->physics_component_id);
+
+    if (!physics) continue;
+
+    RenderSpriteComponent* sprite =
+        FindRenderSpriteComponent(ent->render_sprite_component_id);
+
+    if (!sprite) continue;
+
+    rgg::RenderTexture(
+        sprite->texture, animation::Update(&sprite->sprite_anim),
+        Rectf(physics->position.xy(),
+              sprite->sprite_anim.width, sprite->sprite_anim.height),
+        sprite->sprite_anim.mirror);
+  }
   
   rgg::DebugRenderPrimitives();
   imui::Render(imui::kEveryoneTag);
@@ -237,6 +325,8 @@ main(s32 argc, char** argv)
     printf("Unable to load assets.\n");
     return 1;
   }
+
+  InitializeGame();
 
   rgg::GetObserver()->projection = rgg::DefaultOrtho(window::GetWindowSize());
 
@@ -277,19 +367,22 @@ main(s32 argc, char** argv)
     PlatformEvent event;
     while (window::PollEvent(&event)) {
       rgg::CameraUpdateEvent(event);
+      Entity* player = FindEntity(kPlayerId);
+      PhysicsComponent* physics =
+          FindPhysicsComponent(player->physics_component_id);
       switch(event.type) {
         case KEY_DOWN: {
           switch (event.key) {
             case 'w': {
-              kPlayer.acceleration.y = 3.f;
+              physics->acceleration.y = 3.f;
             } break;
             case 'a': {
-              kPlayer.acceleration.x = -1.f;
+              physics->acceleration.x = -1.f;
             } break;
             case 's': {
             } break;
             case 'd': {
-              kPlayer.acceleration.x = 1.f;
+              physics->acceleration.x = 1.f;
             } break;
             case 27 /* ESC */: {
               exit(1);
@@ -299,13 +392,13 @@ main(s32 argc, char** argv)
         case KEY_UP: {
           switch (event.key) {
             case 'w': {
-              kPlayer.acceleration.y = 0.f;
+              physics->acceleration.y = 0.f;
             } break;
             case 'a': {
-              kPlayer.acceleration.x = 0.f;
+              physics->acceleration.x = 0.f;
             } break;
             case 'd': {
-              kPlayer.acceleration.x = 0.f;
+              physics->acceleration.x = 0.f;
             } break;
           }
         } break;

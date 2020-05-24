@@ -217,7 +217,7 @@ EndRenderTo()
 
 void
 RenderTexture(const Texture& texture, const Rectf& src,
-              const Rectf& dest)
+              const Rectf& dest, bool mirror = false)
 {
   glUseProgram(kTextureState.program);
   glBindTexture(GL_TEXTURE_2D, texture.reference);
@@ -229,12 +229,21 @@ RenderTexture(const Texture& texture, const Rectf& src,
   r32 width = src.width / texture.width;
   r32 height = src.height / texture.height;
 
-  uv[0] = {start_x, start_y + height}; // BL
-  uv[1] = {start_x, start_y}; // TL
-  uv[2] = {start_x + width, start_y}; // TR 
-  uv[3] = {start_x + width, start_y + height}; // BR
-  uv[4] = {start_x, start_y + height}; // BL
-  uv[5] = {start_x + width, start_y}; // TR 
+  if (mirror) {
+    uv[0] = {start_x + width, start_y + height}; // BR
+    uv[1] = {start_x + width, start_y}; // TR 
+    uv[2] = {start_x, start_y}; // TL
+    uv[3] = {start_x, start_y + height}; // BL
+    uv[4] = {start_x + width, start_y + height}; // BR
+    uv[5] = {start_x, start_y}; // TL
+  } else {
+    uv[0] = {start_x, start_y + height}; // BL
+    uv[1] = {start_x, start_y}; // TL
+    uv[2] = {start_x + width, start_y}; // TR 
+    uv[3] = {start_x + width, start_y + height}; // BR
+    uv[4] = {start_x, start_y + height}; // BL
+    uv[5] = {start_x + width, start_y}; // TR 
+  }
 #if 0
   printf("uv[0]=(%.3f, %3.f)\n", uv[0].u, uv[0].v);
   printf("uv[1]=(%.3f, %3.f)\n", uv[1].u, uv[1].v);

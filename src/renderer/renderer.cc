@@ -128,6 +128,13 @@ DefaultPerspective(const v2f& dims, r32 fov = 64.f)
   return math::Perspective(fov, dims.x / dims.y, .1f, 2000.f);
 }
 
+Mat4f
+DefaultOrtho(const v2f& dims)
+{
+  return math::Ortho(dims.x, 0.f, dims.y, 0.f, -100.f, 100.f);
+
+}
+
 class ModifyObserver
 {
  public:

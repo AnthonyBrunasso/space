@@ -10,6 +10,7 @@ enum CameraMode {
   kCameraOverhead,
   kCameraBrowser,
   kCameraFirstPerson,
+  kCameraFollow,
   kCameraMaxMode,
 };
 
@@ -214,6 +215,8 @@ CameraUpdateEvent(const PlatformEvent& event, u32 tag)
   // Otherwise let the player control the camera.
   if (!c) return;
   switch (c->mode) {
+    case kCameraFollow: {  // Relies on camera move.
+    } break;
     case kCameraOverhead: {
       CameraOverhead(event);
     } break;
@@ -246,6 +249,7 @@ CameraView()
   Camera* c = CameraGetCurrent();
   if (!c) return math::Identity();
   switch (c->mode) {
+    case kCameraFollow:
     case kCameraBrowser:
     case kCameraOverhead: {
       return CameraLookAt();

@@ -29,6 +29,7 @@ struct Sprite {
   u32 last_update = 0;
   u32 label_idx = 0;
   u32 label_coord_idx = 0;
+  b8 mirror = false;
 
   b8 IsValid() const { return width && height; }
 };
@@ -85,7 +86,7 @@ LoadAnimation(const char* filename, Sprite* sprite)
 }
 
 void
-SetLabel(const char* label, Sprite* sprite)
+SetLabel(const char* label, Sprite* sprite, bool mirror = false)
 {
   for (s32 i = 0; i < sprite->label_size; ++i) {
     Label* l = &sprite->label[i];
@@ -93,6 +94,7 @@ SetLabel(const char* label, Sprite* sprite)
       sprite->last_update = 0;
       sprite->label_idx = i;
       sprite->label_coord_idx = 0;
+      sprite->mirror = mirror;
       return;
     }
   }

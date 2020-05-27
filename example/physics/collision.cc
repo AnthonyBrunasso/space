@@ -8,6 +8,9 @@
 #include "renderer/camera.cc"
 #include "renderer/imui.cc"
 
+#define PARTICLE_COUNT 64
+#include "physics/particle.cc"
+
 struct State {
   // Game and render updates per second
   u64 framerate = 60;
@@ -30,8 +33,9 @@ struct State {
 static State kGameState;
 static Stats kGameStats;
 
-#define UIBUFFER_SIZE 64
-static char kUIBuffer[UIBUFFER_SIZE];
+static physics::Particle2d* kParticle = nullptr;
+
+static char kUIBuffer[64];
 
 void
 DebugUI()
@@ -86,6 +90,46 @@ DebugUI()
   }
 }
 
+void
+GameInitialize()
+{
+  rgg::GetObserver()->projection = rgg::DefaultOrtho(window::GetWindowSize());
+
+  rgg::Camera camera;
+  camera.position = v3f(0.f, 1.f, -.85f);
+  camera.dir = v3f(0.f, 0.f, -1.f);
+  camera.up = v3f(0.f, 1.f, 0.f);
+  camera.mode = rgg::kCameraBrowser;
+  camera.speed = v3f(5.f, 5.f, 0.01f);
+  rgg::CameraInit(camera);
+
+  kParticle = physics::UseParticle2d();
+  kParticle->dims = v2f(10.f, 10.f);
+}
+
+void
+GameUpdate()
+{
+  // Execute game code.
+  DebugUI();
+  rgg::CameraUpdate();
+  rgg::GetObserver()->view = rgg::CameraView();
+}
+
+void
+GameRender()
+{
+  for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
+    physics::Particle2d* p = &physics::kParticle2d[i];
+    rgg::RenderLineRectangle(p->aabb(), rgg::kRed);
+    rgg::RenderCircle(p->position, 0.5f, rgg::kGreen);
+  }
+  rgg::DebugRenderPrimitives();
+  imui::Render(imui::kEveryoneTag);
+  window::SwapBuffers();
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
 s32
 main(s32 argc, char** argv)
 {
@@ -107,16 +151,8 @@ main(s32 argc, char** argv)
     return 1;
   }
 
-  rgg::GetObserver()->projection = rgg::DefaultOrtho(window::GetWindowSize());
-
-  rgg::Camera camera;
-  camera.position = v3f(0.f, 1.f, -.69f);
-  camera.dir = v3f(0.f, 0.f, -1.f);
-  camera.up = v3f(0.f, 1.f, 0.f);
-  camera.mode = rgg::kCameraBrowser;
-  camera.speed = v3f(5.f, 5.f, 0.01f);
-  rgg::CameraInit(camera);
-
+  GameInitialize();
+  
   // main thread affinity set to core 0
   if (platform::thread_affinity_count() > 1) {
     platform::thread_affinity_usecore(0);
@@ -168,23 +204,10 @@ main(s32 argc, char** argv)
 
     const v2f cursor = window::GetCursorPosition();
     imui::MousePosition(cursor, imui::kEveryoneTag);
-
-    // Execute game code.
-    DebugUI();
-
-    rgg::CameraUpdate();
-    rgg::GetObserver()->view = rgg::CameraView();
-
-    rgg::RenderLineRectangle(Rectf(0, 0, 10, 10), v4f(1.f, 0.f, 0.f, 1.f));
     
-    // Render
-    rgg::DebugRenderPrimitives();
-
-    imui::Render(imui::kEveryoneTag);
+    GameUpdate();
+    GameRender();  
     
-    window::SwapBuffers();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     const u64 elapsed_usec = platform::ClockEnd(&game_clock);
     StatsAdd(elapsed_usec, &kGameStats);
 

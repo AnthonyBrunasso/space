@@ -88,6 +88,40 @@ DebugUI()
     static v2f ui_pos(300.f, screen.y);
     imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
   }
+
+  {
+    static b8 enable_physics = true;
+    static v2f physics_pos(0.f, screen.y - 300.f);
+    imui::PaneOptions options;
+    options.width = options.max_width = 315.f;
+    imui::Begin("Physics", imui::kEveryoneTag, options, &physics_pos,
+                &enable_physics);
+    imui::Space(imui::kVertical, 3.f);
+    static const r32 kWidth = 120.f;
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Position");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f,%.3f", kParticle->position.x,
+             kParticle->position.y);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Velocity");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f,%.3f", kParticle->velocity.x,
+             kParticle->velocity.y);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Acceleration");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f,%.3f",
+             kParticle->acceleration.x, kParticle->acceleration.y);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::End();
+  }
+
 }
 
 void
@@ -114,6 +148,7 @@ GameUpdate()
   DebugUI();
   rgg::CameraUpdate();
   rgg::GetObserver()->view = rgg::CameraView();
+  physics::Integrate(1.f);
 }
 
 void
@@ -183,22 +218,36 @@ main(s32 argc, char** argv)
     while (window::PollEvent(&event)) {
       rgg::CameraUpdateEvent(event);
       switch(event.type) {
-        case KEY_DOWN: {
-          switch (event.key) {
-            case 27 /* ESC */: {
-              exit(1);
-            } break;
-          }
-        case MOUSE_DOWN:
-          imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
-          break;
-        case MOUSE_UP:
-          imui::MouseUp(event.position, event.button, imui::kEveryoneTag);
-          break;
-        case MOUSE_WHEEL:
-          imui::MouseWheel(event.wheel_delta, imui::kEveryoneTag);
-          break;
+      case KEY_DOWN: {
+        switch (event.key) {
+          case 27 /* ESC */: {
+            exit(1);
+          } break;
+          case 'j': {
+            kParticle->acceleration.x = -0.5f;
+          } break;
+          case 'l': {
+            kParticle->acceleration.x = 0.5f;
+          } break;
         }
+      } break;
+      case KEY_UP: {
+        case 'j': {
+          kParticle->acceleration.x = 0.f;
+        } break;
+        case 'l': {
+          kParticle->acceleration.x = 0.f;
+        } break;
+      } break;
+      case MOUSE_DOWN:
+        imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
+        break;
+      case MOUSE_UP:
+        imui::MouseUp(event.position, event.button, imui::kEveryoneTag);
+        break;
+      case MOUSE_WHEEL:
+        imui::MouseWheel(event.wheel_delta, imui::kEveryoneTag);
+        break;
       }
     }
 

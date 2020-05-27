@@ -119,6 +119,36 @@ DebugUI()
              kParticle->acceleration.x, kParticle->acceleration.y);
     imui::Text(kUIBuffer);
     imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Inverse Mass");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f", kParticle->inverse_mass);
+    imui::Width(kWidth / 2.f);
+    imui::Text(kUIBuffer);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      kParticle->inverse_mass -= .1f;
+    }
+    imui::Space(imui::kHorizontal, 5.f);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      kParticle->inverse_mass += .1f;
+    }
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Damping");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f", kParticle->damping);
+    imui::Width(kWidth / 2.f);
+    imui::Text(kUIBuffer);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      kParticle->damping -= .05f;
+    }
+    imui::Space(imui::kHorizontal, 5.f);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      kParticle->damping += .05f;
+    }
+    kParticle->damping = CLAMPF(kParticle->damping, 0.f, 1.0f);
+    imui::NewLine();
+
     imui::End();
   }
 

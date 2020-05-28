@@ -76,9 +76,9 @@ DECLARE_HASH_ARRAY(RenderRectComponent, 8);
 
 struct Entity {
   u32 id;
-  u64 physics_component_id = kInvalidId;
-  u64 render_sprite_component_id = kInvalidId;
-  u64 render_rect_component_id = kInvalidId;
+  u32 physics_component_id = kInvalidId;
+  u32 render_sprite_component_id = kInvalidId;
+  u32 render_rect_component_id = kInvalidId;
 };
 
 DECLARE_HASH_ARRAY(Entity, 16);
@@ -145,6 +145,7 @@ void
 InitializeGame()
 {
   kGame.ground = 0.f;
+  {
   // Create the player.
   Entity* entity = UseEntity();
   PhysicsComponent* physics = UsePhysicsComponent();
@@ -153,8 +154,30 @@ InitializeGame()
   sprite_component->texture = kAsset.player_texture;
   sprite_component->sprite_anim = kAsset.player_sprite;
   entity->render_sprite_component_id = sprite_component->id;
-  physics->bounds = Rectf(0.f, 0.f, 20.f, 31.f);
+  physics->bounds = Rectf(physics->position.xy(), 20.f, 31.f);
   entity->render_rect_component_id = UseRenderRectComponent()->id;
+  kPlayerId = entity->id;
+  }
+
+  // Create ground
+  {
+  Entity* entity = UseEntity();
+  PhysicsComponent* physics = UsePhysicsComponent();
+  physics->position = v3f(-1000.f, -5.f, 0.f);
+  entity->physics_component_id = physics->id;
+  physics->bounds = Rectf(physics->position.xy(), 2000.f, 5.f);
+  entity->render_rect_component_id = UseRenderRectComponent()->id;
+  }
+
+  // Create some stuff for collisions.
+  { 
+  Entity* entity = UseEntity();
+  PhysicsComponent* physics = UsePhysicsComponent();
+  physics->position = v3f(50.f, 0.f, 0.f);
+  entity->physics_component_id = physics->id;
+  physics->bounds = Rectf(physics->position.xy(), 30.f, 30.f);
+  entity->render_rect_component_id = UseRenderRectComponent()->id;
+  }
 }
 
 b8
@@ -208,15 +231,6 @@ UpdateGame()
       if (physics->velocity.x < 0.f) physics->velocity.x = 0.f;
     }
 
-    if (physics->position.y > kGame.ground) {
-      physics->velocity.y -= kPhysicsGlobal.gravity;
-    }
-
-    if (physics->position.y < kGame.ground) {
-      physics->velocity.y = 0.f;
-      physics->position.y = kGame.ground;
-    }
-
     physics->bounds.x = physics->position.x;
     physics->bounds.y = physics->position.y;
 
@@ -249,10 +263,6 @@ RenderGame()
 {
   rgg::Observer* obs = rgg::GetObserver();
   obs->view = rgg::CameraView();
-
-  rgg::RenderLine(v3f(-1000.f, kGame.ground, 0.f),
-                  v3f(1000.f, kGame.ground, 0.f),
-                  v4f(1.f, 1.f, 1.f, 1.f));
 
   // Render all rect components.
   for (u32 i = 0; i < kUsedEntity; ++i) {
@@ -374,7 +384,7 @@ main(s32 argc, char** argv)
         case KEY_DOWN: {
           switch (event.key) {
             case 'w': {
-              physics->acceleration.y = 3.f;
+              //physics->acceleration.y = 3.f;
             } break;
             case 'a': {
               physics->acceleration.x = -1.f;
@@ -392,7 +402,7 @@ main(s32 argc, char** argv)
         case KEY_UP: {
           switch (event.key) {
             case 'w': {
-              physics->acceleration.y = 0.f;
+              //physics->acceleration.y = 0.f;
             } break;
             case 'a': {
               physics->acceleration.x = 0.f;

@@ -226,6 +226,7 @@ CameraUpdateEvent(const PlatformEvent& event, u32 tag)
     case kCameraFirstPerson: {
       CameraFirstPerson(event);
     } break;
+    default: break;
   }
 }
 

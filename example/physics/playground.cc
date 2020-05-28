@@ -253,36 +253,41 @@ main(s32 argc, char** argv)
     while (window::PollEvent(&event)) {
       rgg::CameraUpdateEvent(event);
       switch(event.type) {
-      case KEY_DOWN: {
-        switch (event.key) {
-          case 27 /* ESC */: {
-            exit(1);
-          } break;
-          case 'j': {
-            kParticle->acceleration.x = -0.5f;
-          } break;
-          case 'l': {
-            kParticle->acceleration.x = 0.5f;
-          } break;
-        }
-      } break;
-      case KEY_UP: {
-        case 'j': {
-          kParticle->acceleration.x = 0.f;
+        case KEY_DOWN: {
+          switch (event.key) {
+            case 27 /* ESC */: {
+              exit(1);
+            } break;
+            case 'j': {
+              kParticle->acceleration.x = -0.5f;
+            } break;
+            case 'l': {
+              kParticle->acceleration.x = 0.5f;
+            } break;
+          }
         } break;
-        case 'l': {
-          kParticle->acceleration.x = 0.f;
+        case KEY_UP: {
+          switch (event.key) {
+            case 'j': {
+              kParticle->acceleration.x = 0.f;
+            } break;
+            case 'l': {
+              kParticle->acceleration.x = 0.f;
+            } break;
+          }
         } break;
-      } break;
-      case MOUSE_DOWN:
-        imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
-        break;
-      case MOUSE_UP:
-        imui::MouseUp(event.position, event.button, imui::kEveryoneTag);
-        break;
-      case MOUSE_WHEEL:
-        imui::MouseWheel(event.wheel_delta, imui::kEveryoneTag);
-        break;
+        case MOUSE_DOWN: {
+          imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
+        } break;
+        case MOUSE_UP: {
+          imui::MouseUp(event.position, event.button, imui::kEveryoneTag);
+        } break;
+        case MOUSE_WHEEL: {
+          imui::MouseWheel(event.wheel_delta, imui::kEveryoneTag);
+        } break;
+        case NOT_IMPLEMENTED:
+        case MOUSE_POSITION:
+        default: break;
       }
     }
 

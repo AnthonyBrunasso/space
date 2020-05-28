@@ -59,6 +59,7 @@ struct HashEntry {
                                                                               \
   type* Find##type(u32 id)                                                    \
   {                                                                           \
+    if (!id) return nullptr;                                                  \
     u32 hash = Hash##type(id);                                                \
     HashEntry* entry = &kHashEntry##type[hash];                               \
     if (entry->id != id) return nullptr;                                      \

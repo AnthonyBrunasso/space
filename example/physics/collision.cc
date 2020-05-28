@@ -8,8 +8,8 @@
 #include "renderer/camera.cc"
 #include "renderer/imui.cc"
 
-#define PARTICLE_COUNT 64
-#include "physics/particle.cc"
+#define PHYSICS_PARTICLE_COUNT 64
+#include "physics/physics.cc"
 
 struct State {
   // Game and render updates per second

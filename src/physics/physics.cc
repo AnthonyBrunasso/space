@@ -22,7 +22,7 @@ struct Particle2d {
   }
 };
 
-DECLARE_ARRAY(Particle2d, PARTICLE_COUNT);
+DECLARE_ARRAY(Particle2d, PHYSICS_PARTICLE_COUNT);
 
 void
 Integrate(r32 dt)

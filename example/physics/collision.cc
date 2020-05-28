@@ -97,58 +97,63 @@ DebugUI()
     imui::Begin("Physics", imui::kEveryoneTag, options, &physics_pos,
                 &enable_physics);
     imui::Space(imui::kVertical, 3.f);
-    static const r32 kWidth = 120.f;
-    imui::SameLine();
-    imui::Width(kWidth);
-    imui::Text("Position");
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f,%.3f", kParticle->position.x,
-             kParticle->position.y);
-    imui::Text(kUIBuffer);
-    imui::NewLine();
-    imui::SameLine();
-    imui::Width(kWidth);
-    imui::Text("Velocity");
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f,%.3f", kParticle->velocity.x,
-             kParticle->velocity.y);
-    imui::Text(kUIBuffer);
-    imui::NewLine();
-    imui::SameLine();
-    imui::Width(kWidth);
-    imui::Text("Acceleration");
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f,%.3f",
-             kParticle->acceleration.x, kParticle->acceleration.y);
-    imui::Text(kUIBuffer);
-    imui::NewLine();
-    imui::SameLine();
-    imui::Width(kWidth);
-    imui::Text("Inverse Mass");
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f", kParticle->inverse_mass);
-    imui::Width(kWidth / 2.f);
-    imui::Text(kUIBuffer);
-    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
-      kParticle->inverse_mass -= .1f;
+    for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
+      physics::Particle2d* p = &physics::kParticle2d[i];
+      imui::Text("Particle");
+      imui::Indent(2);
+      static const r32 kWidth = 120.f;
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Position");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f,%.3f", p->position.x,
+               p->position.y);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Velocity");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f,%.3f", p->velocity.x,
+               p->velocity.y);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Acceleration");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f,%.3f", p->acceleration.x,
+               p->acceleration.y);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Inverse Mass");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f", p->inverse_mass);
+      imui::Width(kWidth / 2.f);
+      imui::Text(kUIBuffer);
+      if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+        p->inverse_mass -= .1f;
+      }
+      imui::Space(imui::kHorizontal, 5.f);
+      if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+        p->inverse_mass += .1f;
+      }
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Damping");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f", p->damping);
+      imui::Width(kWidth / 2.f);
+      imui::Text(kUIBuffer);
+      if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+        p->damping -= .05f;
+      }
+      imui::Space(imui::kHorizontal, 5.f);
+      if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+        p->damping += .05f;
+      }
+      p->damping = CLAMPF(p->damping, 0.f, 1.0f);
+      imui::NewLine();
+      imui::Indent(-2);
     }
-    imui::Space(imui::kHorizontal, 5.f);
-    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
-      kParticle->inverse_mass += .1f;
-    }
-    imui::NewLine();
-    imui::SameLine();
-    imui::Width(kWidth);
-    imui::Text("Damping");
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f", kParticle->damping);
-    imui::Width(kWidth / 2.f);
-    imui::Text(kUIBuffer);
-    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
-      kParticle->damping -= .05f;
-    }
-    imui::Space(imui::kHorizontal, 5.f);
-    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
-      kParticle->damping += .05f;
-    }
-    kParticle->damping = CLAMPF(kParticle->damping, 0.f, 1.0f);
-    imui::NewLine();
-
     imui::End();
   }
 

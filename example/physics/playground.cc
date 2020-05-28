@@ -285,8 +285,6 @@ main(s32 argc, char** argv)
         case MOUSE_WHEEL: {
           imui::MouseWheel(event.wheel_delta, imui::kEveryoneTag);
         } break;
-        case NOT_IMPLEMENTED:
-        case MOUSE_POSITION:
         default: break;
       }
     }

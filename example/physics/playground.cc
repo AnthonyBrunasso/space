@@ -98,6 +98,7 @@ DebugUI()
     static v2f physics_pos(0.f, screen.y - 300.f);
     imui::PaneOptions options;
     options.width = options.max_width = 315.f;
+    options.max_height = 500.f;
     imui::Begin("Physics", imui::kEveryoneTag, options, &physics_pos,
                 &enable_physics);
     imui::Space(imui::kVertical, 3.f);
@@ -164,16 +165,17 @@ DebugUI()
 }
 
 void
-GameInitialize()
+GameInitialize(const v2f& dims)
 {
-  rgg::GetObserver()->projection = rgg::DefaultOrtho(window::GetWindowSize());
+  rgg::GetObserver()->projection = rgg::DefaultPerspective(dims);
 
   rgg::Camera camera;
-  camera.position = v3f(0.f, 1.f, -.85f);
+  camera.position = v3f(0.f, 1.f, 100.f);
   camera.dir = v3f(0.f, 0.f, -1.f);
   camera.up = v3f(0.f, 1.f, 0.f);
   camera.mode = rgg::kCameraBrowser;
-  camera.speed = v3f(5.f, 5.f, 0.01f);
+  camera.speed = v3f(5.f, 5.f, 5.f);
+  camera.viewport = dims;
   rgg::CameraInit(camera);
 
   kParticle = physics::UseParticle2d();
@@ -224,7 +226,8 @@ main(s32 argc, char** argv)
     return 1;
   }
 
-  GameInitialize();
+  const v2f dims = window::GetWindowSize();
+  GameInitialize(dims);
   
   // main thread affinity set to core 0
   if (platform::thread_affinity_count() > 1) {
@@ -251,6 +254,9 @@ main(s32 argc, char** argv)
     rgg::DebugReset();
 
     if (window::ShouldClose()) break;
+
+    const v2f cursor = window::GetCursorPosition();
+    imui::MousePosition(cursor, imui::kEveryoneTag);
 
     PlatformEvent event;
     while (window::PollEvent(&event)) {
@@ -281,6 +287,11 @@ main(s32 argc, char** argv)
         } break;
         case MOUSE_DOWN: {
           imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
+          if (!imui::MouseInUI(cursor, imui::kEveryoneTag)) {
+            physics::Particle2d* p = physics::UseParticle2d();
+            p->position = rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy();
+            p->dims = v2f(5.f, 5.f);
+          }
         } break;
         case MOUSE_UP: {
           imui::MouseUp(event.position, event.button, imui::kEveryoneTag);
@@ -292,9 +303,6 @@ main(s32 argc, char** argv)
       }
     }
 
-    const v2f cursor = window::GetCursorPosition();
-    imui::MousePosition(cursor, imui::kEveryoneTag);
-    
     GameUpdate();
     GameRender();  
     

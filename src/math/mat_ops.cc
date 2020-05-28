@@ -217,7 +217,7 @@ Ortho(r32 right, r32 left, r32 top, r32 bottom, r32 far_clip, r32 near_clip)
   d = d == 0.f ? 1.f : d;
   return Mat4f(2.f / w, 0.f    , 0.f     , 0.f,
                0.f    , 2.f / h, 0.f     , 0.f,
-               0.f    , 0.f    , 2.f / d, -1.f,
+               0.f    , 0.f    , -2.f / d, -1.f,
                0.f    , 0.f    , 0.f     , 1.f);
 }
 

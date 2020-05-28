@@ -246,7 +246,7 @@ static IMUI kIMUI;
 
 DECLARE_2D_ARRAY(Text, kMaxTags, 128);
 DECLARE_2D_ARRAY(Line, kMaxTags, 32);
-DECLARE_2D_ARRAY(Button, kMaxTags, 16);
+DECLARE_2D_ARRAY(Button, kMaxTags, 32);
 DECLARE_2D_ARRAY(ButtonCircle, kMaxTags, 16);
 DECLARE_2D_ARRAY(Checkbox, kMaxTags, 16);
 DECLARE_2D_ARRAY(MouseDown, kMaxTags, 8);

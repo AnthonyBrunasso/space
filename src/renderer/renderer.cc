@@ -114,8 +114,8 @@ struct DebugRect {
 
 DECLARE_ARRAY(DebugSphere, 8);
 DECLARE_ARRAY(DebugCube, 128);
-DECLARE_ARRAY(DebugPoint, 64);
-DECLARE_ARRAY(DebugRect, 64);
+DECLARE_ARRAY(DebugPoint, 128);
+DECLARE_ARRAY(DebugRect, 128);
 
 static Observer kObserver;
 static RGG kRGG;
@@ -132,7 +132,7 @@ DefaultPerspective(const v2f& dims, r32 fov = 64.f)
 Mat4f
 DefaultOrtho(const v2f& dims)
 {
-  return math::Ortho(dims.x, 0.f, dims.y, 0.f, -100.f, 100.f);
+  return math::Ortho(dims.x, 0.f, dims.y, 0.f, 2000.f, .1f);
 
 }
 
@@ -873,7 +873,7 @@ DebugPushCube(const Cubef& cube, const v4f& color, b8 fill = false)
 
 void
 DebugPushPoint(const v3f& position, r32 radius, const v4f& color,
-               DebugType type)
+               DebugType type = kDebugWorld)
 {
   DebugPoint* dpoint = UseDebugPoint();
   dpoint->position = position;

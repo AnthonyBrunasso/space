@@ -28,6 +28,8 @@ struct State {
   window::CreateInfo window_create_info;
   // Id to music.
   u32 music_id;
+  // Game clock.
+  platform::Clock game_clock;
 };
 
 static State kGameState;
@@ -36,6 +38,8 @@ static Stats kGameStats;
 static physics::Particle2d* kParticle = nullptr;
 
 static char kUIBuffer[64];
+
+static const r32 kDelta = 0.016666f;
 
 void
 DebugUI()
@@ -183,7 +187,7 @@ GameUpdate()
   DebugUI();
   rgg::CameraUpdate();
   rgg::GetObserver()->view = rgg::CameraView();
-  physics::Integrate(1.f);
+  physics::Integrate(kDelta);
 }
 
 void
@@ -203,7 +207,6 @@ GameRender()
 s32
 main(s32 argc, char** argv)
 {
-  platform::Clock game_clock;
 
   if (!memory::Initialize(MiB(64))) {
   }
@@ -242,7 +245,7 @@ main(s32 argc, char** argv)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   while (1) {
-    platform::ClockStart(&game_clock);
+    platform::ClockStart(&kGameState.game_clock);
 
     imui::ResetTag(imui::kEveryoneTag);
     rgg::DebugReset();
@@ -259,10 +262,10 @@ main(s32 argc, char** argv)
               exit(1);
             } break;
             case 'j': {
-              kParticle->acceleration.x = -0.5f;
+              kParticle->acceleration.x = -100.f;
             } break;
             case 'l': {
-              kParticle->acceleration.x = 0.5f;
+              kParticle->acceleration.x = 100.f;
             } break;
           }
         } break;
@@ -295,7 +298,7 @@ main(s32 argc, char** argv)
     GameUpdate();
     GameRender();  
     
-    const u64 elapsed_usec = platform::ClockEnd(&game_clock);
+    const u64 elapsed_usec = platform::ClockEnd(&kGameState.game_clock);
     StatsAdd(elapsed_usec, &kGameStats);
 
     if (kGameState.frame_target_usec > elapsed_usec) {
@@ -305,7 +308,7 @@ main(s32 argc, char** argv)
       while (platform::ClockEnd(&wait_clock) < wait_usec) {}
     }
 
-    kGameState.game_time_usec += platform::ClockEnd(&game_clock);
+    kGameState.game_time_usec += platform::ClockEnd(&kGameState.game_clock);
     kGameState.game_updates++;
   }
 

@@ -13,6 +13,22 @@ Render()
   char buffer[64];
 
   imui::PaneOptions pane_options;
+  static b8 show = true;
+  static v2f pos(300, 300);
+  imui::Begin("Small", imui::kEveryoneTag, pane_options, &pos, &show);
+  imui::Text("No indent");
+  imui::Indent(2);
+  imui::Text("Indent(1)");
+  imui::Text("Indent(1)");
+  imui::Indent(-2);
+  imui::Text("No indent");
+  imui::Indent(2);
+  imui::Text("Indent(1)");
+  imui::Text("Indent(1)");
+  imui::Indent(-2);
+  imui::End();
+#if 0
+  imui::PaneOptions pane_options;
   pane_options.max_height = 200.f;
   static b8 show = true;
   static v2f pos(300, 300);
@@ -107,7 +123,7 @@ Render()
     static b8 show = true;
     imui::DebugPane("Debug UI", imui::kEveryoneTag, &pos, &show);
   }
-
+#endif
   rgg::DebugRenderPrimitives();
   imui::Render(imui::kEveryoneTag);
   window::SwapBuffers();

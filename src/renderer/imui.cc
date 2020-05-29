@@ -218,6 +218,7 @@ struct BeginMode {
   // A bit of a hack?
   b8 ignore_vertical_scroll = false;
   r32 overwrite_width;
+  u32 indent = 0;
   b8* show = nullptr;
   v2f* start = nullptr;
   Pane* pane;
@@ -554,7 +555,8 @@ Indent(int spaces)
   auto& font = rgg::kUI.font;
   rgg::FontMetadataRow* row = &rgg::kFontMetadataRow[' '];
   if (!row || !row->id) return;
-  kIMUI.begin_mode.pos.x += spaces * row->xadvance;
+  kIMUI.begin_mode.indent = spaces;
+  kIMUI.begin_mode.pos.x = kIMUI.begin_mode.start->x + spaces * row->xadvance;
 }
 
 // Returns rect representing bounds for the current object.
@@ -870,14 +872,18 @@ NewLine()
 {
   assert(kIMUI.begin_mode.set);
   IF_HIDDEN(return);
-  kIMUI.begin_mode.flow_type = kNewLine;
-  kIMUI.begin_mode.flow_switch = true;
-  kIMUI.begin_mode.pos.x = kIMUI.begin_mode.start->x;
+  BeginMode* begin_mode = &kIMUI.begin_mode;
+  begin_mode->flow_type = kNewLine;
+  begin_mode->flow_switch = true;
+  auto& font = rgg::kUI.font;
+  rgg::FontMetadataRow* row = &rgg::kFontMetadataRow[' '];
+  if (!row || !row->id) return;
+  begin_mode->pos.x = begin_mode->start->x + begin_mode->indent * row->xadvance;
 }
 
 void
-Begin(const char* title, u32 tag, const PaneOptions& pane_options,
-      v2f* start, b8* show = nullptr)
+Begin(const char* title, u32 tag, const PaneOptions& pane_options, v2f* start,
+      b8* show = nullptr)
 {
   assert(tag < kMaxTags);
   assert(title);
@@ -1164,7 +1170,6 @@ DebugPane(const char* title, u32 tag, v2f* pos, b8* show)
   Text(buffer);
   Text("Panes");
   HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
-  Indent(2);
   for (int i = 0; i < kUsedPane; ++i) {
     Pane* pane = &kPane[i];
     TextOptions toptions;
@@ -1201,18 +1206,16 @@ DebugPane(const char* title, u32 tag, v2f* pos, b8* show)
       imui::SameLine();
       Text("flags: "); Bitfield8(pane->flags);
       imui::NewLine();
-      Indent(-2);
       HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
+      Indent(0);
     }
   }
-  Indent(-2);
   //imui::SameLine();
   //Checkbox(16.f, 16.f, &kIMUI.debug_enabled);
   //Text(" Debug Enabled");
   NewLine();
   Text("Tags");
   HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
-  Indent(2);
   for (int i = 0; i < kMaxTags; ++i) {
     snprintf(buffer, 64, "Tag %i", i);
     TextOptions toptions;
@@ -1222,7 +1225,6 @@ DebugPane(const char* title, u32 tag, v2f* pos, b8* show)
     }
     HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
     if (kIMUI.debug_show_details[i]) {
-      Indent(2);
       snprintf(buffer, 64, "Text Exhaustion (%u / %u)  ",
                kIMUI.text_exhaustion[i], kMaxText);
       Text(buffer);
@@ -1232,11 +1234,9 @@ DebugPane(const char* title, u32 tag, v2f* pos, b8* show)
                kIMUI.button_exhaustion[i], kMaxButton,
                kIMUI.button_circle_exhaustion[i], kMaxButtonCircle);
       Text(buffer);
-      Indent(-2);
       HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
     }
   }
-  Indent(-2);
 
   v2f mouse_pos = GetMousePosition();
   snprintf(buffer, 64, "Mouse Pos (%.2f,%.2f)", mouse_pos.x, mouse_pos.y);

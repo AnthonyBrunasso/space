@@ -101,7 +101,6 @@ DebugUI()
     options.max_height = 500.f;
     imui::Begin("Physics", imui::kEveryoneTag, options, &physics_pos,
                 &enable_physics);
-    imui::Space(imui::kVertical, 3.f);
     for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
       physics::Particle2d* p = &physics::kParticle2d[i];
       imui::Text("Particle");
@@ -157,7 +156,7 @@ DebugUI()
       }
       p->damping = CLAMPF(p->damping, 0.f, 1.0f);
       imui::NewLine();
-      imui::Indent(-2);
+      imui::Indent(0);
     }
     imui::End();
   }

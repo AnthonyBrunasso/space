@@ -7,6 +7,7 @@
 #include <cstring>
 
 #include "gl/gl.cc"
+#include "memory/memory.cc"
 
 namespace rgg {
 

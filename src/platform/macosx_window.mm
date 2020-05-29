@@ -100,6 +100,8 @@ CreateOpenGLContext()
       kCGLPFAStencilSize, (CGLPixelFormatAttribute)8,
       kCGLPFASampleBuffers, (CGLPixelFormatAttribute)1,
       kCGLPFASamples, (CGLPixelFormatAttribute)4,
+      kCGLPFANoRecovery, (CGLPixelFormatAttribute)1,
+      kCGLPFAMultisample, (CGLPixelFormatAttribute)1,
       (CGLPixelFormatAttribute) 0,
   };
 

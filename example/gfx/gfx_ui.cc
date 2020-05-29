@@ -12,7 +12,6 @@ Render()
 
   char buffer[64];
 
-#if 1
   imui::PaneOptions pane_options;
   pane_options.max_height = 200.f;
   static b8 show = true;
@@ -34,9 +33,7 @@ Render()
   imui::Button(35.f, 35.f, v4f(1.f, 0.f, 0.f, .5f));
   imui::Text("test 2..");
   imui::End();
-#endif
 
-#if 1
   {
     imui::PaneOptions pane_options;
     pane_options.max_height = 300.f;
@@ -92,49 +89,18 @@ Render()
     imui::End();
   }
 
-  static b8 show_window = false;
-
   {
-#if 0
     imui::PaneOptions pane_options;
     pane_options.height = 170.f;
     pane_options.width = 300.f;
     static b8 show = true;
     static v2f pos(1200, 500);
-    imui::Begin("imui test", 0, pane_options, &pos, &show);
-    // imui::DockWith("scroll test");
-    imui::Text("Other stuff...");
-    v2f cursor = window::GetCursorPosition();
-    snprintf(buffer, 64, "Mouse(%.2f,%.2f)", cursor.x, cursor.y);
-    imui::Text(buffer);
-    v2f delta = imui::MouseDelta();
-    snprintf(buffer, 64, "Mouse Delta(%.2f,%.2f)", delta.x, delta.y);
-    imui::Text(buffer);
-    snprintf(buffer, 64, "Mouse Down(%i)", imui::IsMouseDown());
-    imui::Text(buffer);
-    snprintf(buffer, 64, "IMUI Panes(%i)", imui::kUsedPane);
-    imui::Text(buffer);
-    if (imui::Button(32.f, 32.f, v4f(1.f, 0.f, 0.f, 1.f)).clicked) {
-      show_window = !show_window;
-    }
+    imui::Begin("imui test", imui::kEveryoneTag, pane_options, &pos, &show);
+    imui::Text("Test 1");
+    imui::Text("Test 2");
+    imui::Text("Test 3");
     imui::End();
-#endif
   }
-
-  {
-    if (show_window) {
-      imui::PaneOptions pane_options;
-      static b8 show = true;
-      static v2f pos(1500, 300);
-      imui::Begin("dynamically created pane", 0, pane_options, &pos, &show);
-      imui::Text("Test..");
-      imui::Text("Test 2");
-      imui::Text("Test 3");
-      imui::End();
-    }
-  }
-
-#endif
 
   rgg::DebugRenderPrimitives();
   imui::Render(imui::kEveryoneTag);

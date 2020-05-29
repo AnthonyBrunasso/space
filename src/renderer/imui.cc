@@ -127,8 +127,8 @@ struct Pane {
   Rectf header_rect;
   // The height the pane would be if constraints like max_height screen
   // clipping where done. This is used for scrolling.
-  r32 theoretical_height = 0.f;
-  r32 theoretical_y;
+  r32 theoretical_height = FLT_MIN;
+  r32 theoretical_y = FLT_MAX;
   Rectf scroll_rect;
   char title[kMaxHashKeyLength];
   // Docked panes as linked lists with forward and backward pane pointers.
@@ -214,7 +214,6 @@ struct BeginMode {
   FlowType flow_type = kNewLine;
   b8 flow_switch = false;
   Rectf last_rect;
-  r32 x_reset;
   b8 mouse_down;
   // A bit of a hack?
   b8 ignore_vertical_scroll = false;
@@ -570,57 +569,58 @@ UpdatePane(r32 width, r32 height, b8* element_in_pane)
   auto& begin_mode = kIMUI.begin_mode;
   assert(begin_mode.set);
   assert(begin_mode.pane);
-  if (begin_mode.overwrite_width) width = begin_mode.overwrite_width;
+  width = begin_mode.overwrite_width > 0.f ?
+      begin_mode.overwrite_width : width;
   begin_mode.overwrite_width = 0.f;
-  if (begin_mode.flow_switch || begin_mode.flow_type == kNewLine) {
-    begin_mode.pos.y = begin_mode.pane->theoretical_y - height;
-  }
-  r32 height_growth = height;
-  if (!begin_mode.flow_switch && begin_mode.flow_type == kSameLine) {
-    begin_mode.pos.x += begin_mode.last_rect.width;
-    // If the new element is larger than the last align them
-    // s.t. their max y aligns & update pane bounds.
-    begin_mode.pos.y -= (height - begin_mode.last_rect.height);
-    height_growth = (height - begin_mode.last_rect.height);
-  }
-  if ((begin_mode.flow_switch || begin_mode.flow_type == kNewLine) ||
-       begin_mode.pos.y < begin_mode.pane->rect.y) {
-      // Grow enough to show begin_mode.pos.y
-    begin_mode.pane->rect.y = begin_mode.pos.y;
-    begin_mode.pane->rect.height += height_growth;
-    begin_mode.pane->theoretical_height += height_growth;
-    if (begin_mode.pane->options.max_height) {
-      if (begin_mode.pane->rect.height >
-          begin_mode.pane->options.max_height) {
-        begin_mode.pane->rect.height = begin_mode.pane->options.max_height;
-        begin_mode.pane->rect.y =
-            begin_mode.start->y - begin_mode.pane->rect.height;
-      }
-    }
-  }
-  begin_mode.pane->theoretical_y =
-        MINF(begin_mode.pos.y, begin_mode.pane->theoretical_y);
-  r32 new_width = (begin_mode.pos.x + width) - begin_mode.pane->rect.x;
-  if (!begin_mode.flow_switch && begin_mode.flow_type == kSameLine) {
-    new_width += begin_mode.last_rect.width;
-  }
-  if (new_width > begin_mode.pane->rect.width) {
-    begin_mode.pane->rect.width = new_width;
-    if (begin_mode.pane->options.max_width &&
-        begin_mode.pane->rect.width > begin_mode.pane->options.max_width) {
-      begin_mode.pane->rect.width = begin_mode.pane->options.max_width;
-    }
-  }
+  // Determine if element goes on same line or new line.
+  bool new_line = begin_mode.flow_type == kNewLine || begin_mode.flow_switch;
   begin_mode.flow_switch = false;
-  begin_mode.last_rect = Rectf(
-      begin_mode.pos.x, begin_mode.pos.y, width, height);
+  // Move begin_mode.pos to where the next element should be.
+  if (new_line) {
+    begin_mode.pos.y -= height; 
+  } else {
+    begin_mode.pos.x += begin_mode.last_rect.width;
+  }
+  // Determine the new pane size.
+  Pane* pane = begin_mode.pane;
+  if (pane->options.width) {
+    pane->rect.width = pane->options.width;
+  } else {
+    // The new width is the growth in x if the elements position outgrows
+    // the width of the panel.
+    float max_x = begin_mode.pos.x + width;
+    if (max_x > pane->rect.Max().x) {
+      pane->rect.width += max_x - pane->rect.Max().x;
+    }
+    if (pane->options.max_width > 0.f &&
+        pane->rect.width >= pane->options.max_width) {
+      pane->rect.width = pane->options.max_width;
+      pane->rect.x = begin_mode.start->x + pane->rect.width;
+    }
+  }
+  if (pane->options.height) {
+    pane->rect.height = pane->options.height;
+    pane->theoretical_height = pane->rect.height;
+  } else {
+    pane->rect.height += pane->rect.y - begin_mode.pos.y;
+    pane->theoretical_height = begin_mode.start->y - begin_mode.pos.y;
+    pane->rect.y = begin_mode.pos.y;
+    // The height has surpssed the max allowed height - correct it.
+    if (pane->options.max_height > 0.f &&
+        pane->rect.height >= pane->options.max_height) {
+      pane->rect.height = pane->options.max_height;
+      pane->rect.y = begin_mode.start->y - pane->rect.height;
+    }
+  }
+  begin_mode.last_rect = Rectf(begin_mode.pos, width, height);
   if (!begin_mode.ignore_vertical_scroll) {
     begin_mode.last_rect.y += begin_mode.pane->vertical_scroll;
   }
+  pane->theoretical_y = MINF(begin_mode.pos.y, pane->theoretical_y);
   *element_in_pane =
-      math::IntersectRect(begin_mode.last_rect, begin_mode.pane->rect);
+      math::IntersectRect(begin_mode.last_rect, pane->rect);
   begin_mode.pane->element_off_pane =
-      !math::IsContainedInRect(begin_mode.last_rect, begin_mode.pane->rect);
+      !math::IsContainedInRect(begin_mode.last_rect, pane->rect);
   if (FLAGGED(begin_mode.pane->flags, kPaneDebug) && *element_in_pane) {
     DEBUG_POINT(v2f(begin_mode.last_rect.x, begin_mode.last_rect.y));
     DEBUG_RECT(begin_mode.last_rect);
@@ -854,7 +854,6 @@ SameLine()
   IF_HIDDEN(return);
   kIMUI.begin_mode.flow_type = kSameLine;
   kIMUI.begin_mode.flow_switch = true;
-  kIMUI.begin_mode.x_reset = kIMUI.begin_mode.pos.x;
 }
 
 // Overwrite width to a certain value for the next imui call.
@@ -873,7 +872,7 @@ NewLine()
   IF_HIDDEN(return);
   kIMUI.begin_mode.flow_type = kNewLine;
   kIMUI.begin_mode.flow_switch = true;
-  kIMUI.begin_mode.pos.x = kIMUI.begin_mode.x_reset;
+  kIMUI.begin_mode.pos.x = kIMUI.begin_mode.start->x;
 }
 
 void
@@ -895,7 +894,6 @@ Begin(const char* title, u32 tag, const PaneOptions& pane_options,
   begin_mode.pos = *start;
   begin_mode.set = true;
   begin_mode.tag = tag;
-  begin_mode.x_reset = start->x;
   begin_mode.start = start;
   begin_mode.pane = FindOrUsePane(title_with_tag, title_with_tag_len);
   u32 title_len = strlen(begin_mode.pane->title);

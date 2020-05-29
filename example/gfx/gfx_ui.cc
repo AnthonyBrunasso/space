@@ -102,6 +102,12 @@ Render()
     imui::End();
   }
 
+  {
+    static v2f pos(500, 500);
+    static b8 show = true;
+    imui::DebugPane("Debug UI", imui::kEveryoneTag, &pos, &show);
+  }
+
   rgg::DebugRenderPrimitives();
   imui::Render(imui::kEveryoneTag);
   window::SwapBuffers();

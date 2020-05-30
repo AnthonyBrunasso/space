@@ -15,6 +15,7 @@ enum PhysicsFlags {
 
 struct Physics {
   u32 flags;
+  // Force of gravity.
   r32 gravity = 150.f;
 };
 
@@ -22,9 +23,12 @@ static Physics kPhysics;
 
 enum ParticleFlags {
   // Ignores the force of gravity if it's enabled.
-  kIgnoreGravity = 0,
+  kParticleIgnoreGravity = 0,
   // If set the particle will not run its integration step.
-  kFreeze = 1,
+  kParticleFreeze = 1,
+  // If set the particle will be removed at the beginning of the next
+  // integration step.
+  kParticleRemove = 2,
 };
 
 struct Particle2d {
@@ -67,7 +71,7 @@ void
 ApplyGravity(Particle2d* p)
 {
   if (p->inverse_mass <= 0.f) return;
-  if (FLAGGED(p->flags, kIgnoreGravity)) return;
+  if (FLAGGED(p->flags, kParticleIgnoreGravity)) return;
   p->force += v2f(0.f, -1.f) * kPhysics.gravity * p->mass();
 }
 
@@ -91,9 +95,21 @@ void
 Integrate(r32 dt_sec)
 {
   assert(dt_sec > 0.f);
+  for (u32 i = 0; i < kUsedParticle2d;) {
+    Particle2d* p = &kParticle2d[i];
+    if (!FLAGGED(p->flags, kParticleRemove)) {
+      ++i;
+      continue;
+    }
+    // Swap the last and and current particle of the used list.
+    kParticle2d[i] = kParticle2d[kUsedParticle2d - 1];
+    kParticle2d[kUsedParticle2d - 1] = {};
+    --kUsedParticle2d;
+  }
+
   for (u32 i = 0; i < kUsedParticle2d; ++i) {
     Particle2d* p = &kParticle2d[i];
-    if (FLAGGED(p->flags, kFreeze)) continue;
+    if (FLAGGED(p->flags, kParticleFreeze)) continue;
     // Infinite mass object - do nothing.
     if (p->inverse_mass <= 0.f) continue;
     for (u32 j = 0; j < kUsedForceGenerator; ++j) {

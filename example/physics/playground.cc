@@ -107,8 +107,7 @@ DebugUI()
       imui::Text("Particle");
       imui::Indent(2);
       if (imui::ButtonCircle(8.f, v4f(1.f, 0.f, 0.f, .7f)).clicked) {
-        physics::CompressParticle2d(i);
-        continue;
+        SBIT(p->flags, physics::kParticleRemove);
       }
       imui::SameLine();
       imui::Width(kWidth);
@@ -163,23 +162,23 @@ DebugUI()
       imui::SameLine();
       imui::Width(kWidth);
       imui::Text("Freeze");
-      b8 set = FLAGGED(p->flags, physics::kFreeze);
+      b8 set = FLAGGED(p->flags, physics::kParticleFreeze);
       imui::Checkbox(16, 16, &set);
       if (set) {
-        SBIT(p->flags, physics::kFreeze);
+        SBIT(p->flags, physics::kParticleFreeze);
       } else {
-        CBIT(p->flags, physics::kFreeze);
+        CBIT(p->flags, physics::kParticleFreeze);
       }
       imui::NewLine();
       imui::SameLine();
       imui::Width(kWidth);
       imui::Text("Ignore Gravity");
-      set = FLAGGED(p->flags, physics::kIgnoreGravity);
+      set = FLAGGED(p->flags, physics::kParticleIgnoreGravity);
       imui::Checkbox(16, 16, &set);
       if (set) {
-        SBIT(p->flags, physics::kIgnoreGravity);
+        SBIT(p->flags, physics::kParticleIgnoreGravity);
       } else {
-        CBIT(p->flags, physics::kIgnoreGravity);
+        CBIT(p->flags, physics::kParticleIgnoreGravity);
       }
       imui::NewLine();
 
@@ -210,7 +209,7 @@ GameInitialize(const v2f& dims)
 
   kParticle = physics::UseParticle2d();
   kParticle->dims = v2f(10.f, 10.f);
-  SBIT(kParticle->flags, physics::kIgnoreGravity);
+  SBIT(kParticle->flags, physics::kParticleIgnoreGravity);
 }
 
 void

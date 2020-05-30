@@ -183,6 +183,7 @@ GameInitialize(const v2f& dims)
 
   kParticle = physics::UseParticle2d();
   kParticle->dims = v2f(10.f, 10.f);
+  SBIT(kParticle->flags, physics::kIgnoreGravity);
 }
 
 void

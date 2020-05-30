@@ -7,17 +7,27 @@
 namespace physics {
 
 enum PhysicsFlags {
+  // Gravity applied along negative y-axis to all particles.
   kGravity = 0,
+  // Drag applied in the opposite direction of velocity vector.
+  kDrag = 1,
 };
 
 struct Physics {
   u32 flags;
   r32 gravity = 9.8f;
+  r32 drag_coefficient = 0.3f;
 };
 
 static Physics kPhysics;
 
+enum ParticleFlags {
+  // Ignores the force of gravity if it's enabled.
+  kIgnoreGravity = 0,
+};
+
 struct Particle2d {
+  u32 flags = 0;
   v2f position;       // Position of particle - center of aabb.
   v2f velocity;
   v2f acceleration;
@@ -56,6 +66,7 @@ void
 ApplyGravity(Particle2d* p)
 {
   if (p->inverse_mass <= 0.f) return;
+  if (FLAGGED(p->flags, kIgnoreGravity)) return;
   p->force += v2f(0.f, -1.f) * kPhysics.gravity * p->mass();
 }
 

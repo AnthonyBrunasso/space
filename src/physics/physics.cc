@@ -24,6 +24,8 @@ static Physics kPhysics;
 enum ParticleFlags {
   // Ignores the force of gravity if it's enabled.
   kIgnoreGravity = 0,
+  // If set the particle will not run its integration step.
+  kFreeze = 1,
 };
 
 struct Particle2d {
@@ -92,6 +94,7 @@ Integrate(r32 dt_sec)
   assert(dt_sec > 0.f);
   for (u32 i = 0; i < kUsedParticle2d; ++i) {
     Particle2d* p = &kParticle2d[i];
+    if (FLAGGED(p->flags, kFreeze)) continue;
     // Infinite mass object - do nothing.
     if (p->inverse_mass <= 0.f) continue;
     for (u32 j = 0; j < kUsedForceGenerator; ++j) {

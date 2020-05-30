@@ -156,6 +156,17 @@ DebugUI()
       }
       p->damping = CLAMPF(p->damping, 0.f, 1.0f);
       imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Freeze");
+      b8 set = FLAGGED(p->flags, physics::kFreeze);
+      imui::Checkbox(16, 16, &set);
+      if (set) {
+        SBIT(p->flags, physics::kFreeze);
+      } else {
+        CBIT(p->flags, physics::kFreeze);
+      }
+      imui::NewLine();
       imui::Indent(0);
     }
     imui::End();

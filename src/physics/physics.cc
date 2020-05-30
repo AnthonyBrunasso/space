@@ -44,6 +44,9 @@ struct Particle2d {
   v2f force = {};      // Sum of all forces acting on this particle.
   v2f dims;            // Used to create the aabb.
 
+  Particle2d* next_p2d_x = nullptr;
+  Particle2d* next_p2d_y = nullptr;
+
   Rectf
   aabb() const
   {
@@ -66,6 +69,53 @@ struct ForceGenerator {
 };
 
 DECLARE_ARRAY(ForceGenerator, 8);
+
+Particle2d*
+CreateParticle2d(v2f pos, v2f dims)
+{
+  Particle2d* p = UseParticle2d();
+  p->position = pos;
+  p->dims = dims;
+  bool x_set = false;
+  bool y_set = false;
+  for (u32 i = 0; i < kUsedParticle2d; ++i) {
+    Particle2d* np = &kParticle2d[i];
+    if (np == p) continue;
+    if (!x_set) {
+      if (p->position.x < np->position.x) {
+        p->next_p2d_x = np;
+        x_set = true;
+      }
+      if (p->position.x >= np->position.x && (!np->next_p2d_x ||
+          p->position.x <= np->next_p2d_x->position.x)) {
+        p->next_p2d_x = np->next_p2d_x;
+        np->next_p2d_x = p;
+        x_set = true;
+      }
+    }
+    if (!y_set) {
+      if (p->position.y < np->position.y) {
+        p->next_p2d_y = np;
+        y_set = true;
+      }
+      if (p->position.y >= np->position.y && (!np->next_p2d_y ||
+          p->position.y <= np->next_p2d_y->position.y)) {
+        p->next_p2d_y = np->next_p2d_y;
+        np->next_p2d_y = p;
+        y_set = true;
+      }
+    }
+    if (x_set && y_set) break;
+  }
+  return p;
+}
+
+void
+DeleteParticle2d(Particle2d* p)
+{
+  if (!p) return;
+  SBIT(p->flags, physics::kParticleRemove);
+}
 
 void
 ApplyGravity(Particle2d* p)

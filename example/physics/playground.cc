@@ -104,11 +104,38 @@ DebugUI()
     static const r32 kWidth = 130.f;
     for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
       physics::Particle2d* p = &physics::kParticle2d[i];
-      imui::Text("Particle");
+      imui::SameLine();
+      imui::Width(80);
+      imui::TextOptions o;
+      o.highlight_color = rgg::kRed;
+      if (imui::Text("Particle", o).highlighted) {
+        rgg::DebugPushRect(p->aabb(), rgg::kGreen);
+        if (p->next_p2d_x) {
+          rgg::DebugPushRect(p->next_p2d_x->aabb(), rgg::kBlue);
+        }
+        if (p->next_p2d_y) {
+          rgg::DebugPushRect(p->next_p2d_y->aabb(), rgg::kPurple);
+        }
+      }
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%p", (void*)p);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
       imui::Indent(2);
       if (imui::ButtonCircle(8.f, v4f(1.f, 0.f, 0.f, .7f)).clicked) {
-        SBIT(p->flags, physics::kParticleRemove);
+        physics::DeleteParticle2d(p);
       }
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Next X");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%p", (void*)p->next_p2d_x);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Next Y");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%p", (void*)p->next_p2d_y);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
       imui::SameLine();
       imui::Width(kWidth);
       imui::Text("Position");
@@ -207,8 +234,7 @@ GameInitialize(const v2f& dims)
   camera.viewport = dims;
   rgg::CameraInit(camera);
 
-  kParticle = physics::UseParticle2d();
-  kParticle->dims = v2f(10.f, 10.f);
+  kParticle = physics::CreateParticle2d(v2f(0.f, 0.f), v2f(10.f, 10.f));
   SBIT(kParticle->flags, physics::kParticleIgnoreGravity);
 }
 
@@ -225,12 +251,12 @@ GameUpdate()
 void
 GameRender()
 {
+  rgg::DebugRenderPrimitives();
   for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
     physics::Particle2d* p = &physics::kParticle2d[i];
     rgg::RenderLineRectangle(p->aabb(), rgg::kRed);
     rgg::RenderCircle(p->position, 0.5f, rgg::kGreen);
   }
-  rgg::DebugRenderPrimitives();
   imui::Render(imui::kEveryoneTag);
   window::SwapBuffers();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -318,9 +344,10 @@ main(s32 argc, char** argv)
         case MOUSE_DOWN: {
           imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
           if (!imui::MouseInUI(cursor, imui::kEveryoneTag)) {
-            physics::Particle2d* p = physics::UseParticle2d();
-            p->position = rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy();
-            p->dims = v2f(5.f, 5.f);
+            physics::Particle2d* p = physics::CreateParticle2d(
+                rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy(),
+                v2f(5.f, 5.f));
+            SBIT(p->flags, physics::kParticleIgnoreGravity);
           }
         } break;
         case MOUSE_UP: {

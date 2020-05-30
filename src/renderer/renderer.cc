@@ -827,6 +827,7 @@ DebugRenderPrimitives()
   for (s32 i = 0; i < kUsedDebugRect; ++i) {
     if (kDebugRect[i].type != kDebugWorld) continue;
     DebugRect* rect = &kDebugRect[i];
+    //printf("...\n");
     rgg::RenderLineRectangle(rect->rect, rect->color);
   }
 
@@ -882,7 +883,8 @@ DebugPushPoint(const v3f& position, r32 radius, const v4f& color,
 }
 
 void
-DebugPushRect(const Rectf& rect, const v4f& color, DebugType type = kDebugWorld)
+DebugPushRect(const Rectf& rect, const v4f& color,
+              DebugType type = kDebugWorld)
 {
   DebugRect* drect = UseDebugRect();
   drect->rect = rect;

@@ -13,24 +13,6 @@ enum PhysicsFlags {
   kDrag = 1,
 };
 
-struct Physics {
-  u32 flags;
-  // Force of gravity.
-  r32 gravity = 150.f;
-};
-
-static Physics kPhysics;
-
-enum ParticleFlags {
-  // Ignores the force of gravity if it's enabled.
-  kParticleIgnoreGravity = 0,
-  // If set the particle will not run its integration step.
-  kParticleFreeze = 1,
-  // If set the particle will be removed at the beginning of the next
-  // integration step.
-  kParticleRemove = 2,
-};
-
 struct Particle2d {
   u32 flags = 0;
   v2f position;        // Position of particle - center of aabb.
@@ -44,8 +26,12 @@ struct Particle2d {
   v2f force = {};      // Sum of all forces acting on this particle.
   v2f dims;            // Used to create the aabb.
 
+  // Particles keep forward and backward pointers so they can quickly sort
+  // themselves after updating.
   Particle2d* next_p2d_x = nullptr;
+  Particle2d* prev_p2d_x = nullptr;
   Particle2d* next_p2d_y = nullptr;
+  Particle2d* prev_p2d_y = nullptr;
 
   Rectf
   aabb() const
@@ -60,6 +46,28 @@ struct Particle2d {
   }
 };
 
+struct Physics {
+  u32 flags;
+  // Force of gravity.
+  r32 gravity = 150.f;
+
+  // Linked list in sorted order on x / y axis for collision checks.
+  Particle2d* p2d_head_x = nullptr;
+  Particle2d* p2d_head_y = nullptr;
+};
+
+static Physics kPhysics;
+
+enum ParticleFlags {
+  // Ignores the force of gravity if it's enabled.
+  kParticleIgnoreGravity = 0,
+  // If set the particle will not run its integration step.
+  kParticleFreeze = 1,
+  // If set the particle will be removed at the beginning of the next
+  // integration step.
+  kParticleRemove = 2,
+};
+
 DECLARE_ARRAY(Particle2d, PHYSICS_PARTICLE_COUNT);
 
 typedef void ApplyForceCallback(Particle2d* p);
@@ -70,44 +78,47 @@ struct ForceGenerator {
 
 DECLARE_ARRAY(ForceGenerator, 8);
 
+// Sorted insertion into a double linked list.
+#define INSERT_SORTED(p, a)                                             \
+  if (!kPhysics.p2d_head_##a) {                                         \
+    kPhysics.p2d_head_##a = particle;                                   \
+  } else {                                                              \
+    if (particle->position.##a < kPhysics.p2d_head_##a->position.##a) { \
+      kPhysics.p2d_head_##a->prev_p2d_##a = particle;                   \
+      particle->next_p2d_##a = kPhysics.p2d_head_##a;                   \
+      kPhysics.p2d_head_##a = particle;                                 \
+    } else {                                                            \
+      Particle2d* prev = kPhysics.p2d_head_##a;                         \
+      Particle2d* next = kPhysics.p2d_head_##a->next_p2d_##a;           \
+      while (prev) {                                                    \
+        if (!next) {                                                    \
+          particle->prev_p2d_##a = prev;                                \
+          prev->next_p2d_##a = particle;                                \
+          break;                                                        \
+        }                                                               \
+        if (particle->position.##a >= prev->position.##a &&             \
+            particle->position.##a <= next->position.##a) {             \
+          particle->prev_p2d_##a = prev;                                \
+          particle->next_p2d_##a = next;                                \
+          next->prev_p2d_##a = particle;                                \
+          prev->next_p2d_##a = particle;                                \
+          break;                                                        \
+        }                                                               \
+        prev = next;                                                    \
+        next = next->next_p2d_##a;                                      \
+      }                                                                 \
+    }                                                                   \
+  }
+
 Particle2d*
 CreateParticle2d(v2f pos, v2f dims)
 {
-  Particle2d* p = UseParticle2d();
-  p->position = pos;
-  p->dims = dims;
-  bool x_set = false;
-  bool y_set = false;
-  for (u32 i = 0; i < kUsedParticle2d; ++i) {
-    Particle2d* np = &kParticle2d[i];
-    if (np == p) continue;
-    if (!x_set) {
-      if (p->position.x < np->position.x) {
-        p->next_p2d_x = np;
-        x_set = true;
-      }
-      if (p->position.x >= np->position.x && (!np->next_p2d_x ||
-          p->position.x <= np->next_p2d_x->position.x)) {
-        p->next_p2d_x = np->next_p2d_x;
-        np->next_p2d_x = p;
-        x_set = true;
-      }
-    }
-    if (!y_set) {
-      if (p->position.y < np->position.y) {
-        p->next_p2d_y = np;
-        y_set = true;
-      }
-      if (p->position.y >= np->position.y && (!np->next_p2d_y ||
-          p->position.y <= np->next_p2d_y->position.y)) {
-        p->next_p2d_y = np->next_p2d_y;
-        np->next_p2d_y = p;
-        y_set = true;
-      }
-    }
-    if (x_set && y_set) break;
-  }
-  return p;
+  Particle2d* particle = UseParticle2d();
+  particle->position = pos;
+  particle->dims = dims;
+  INSERT_SORTED(particle, x);
+  INSERT_SORTED(particle, y);
+  return particle;
 }
 
 void

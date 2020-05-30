@@ -97,11 +97,18 @@ DebugUI()
     static b8 enable_physics = true;
     static v2f physics_pos(0.f, screen.y - 300.f);
     imui::PaneOptions options;
-    options.width = options.max_width = 315.f;
+    options.width = options.max_width = 365.f;
     options.max_height = 500.f;
     imui::Begin("Physics", imui::kEveryoneTag, options, &physics_pos,
                 &enable_physics);
     static const r32 kWidth = 130.f;
+    imui::SameLine();
+    imui::Width(80);
+    imui::Text("X Head");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%p",
+             (void*)physics::kPhysics.p2d_head_x);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
     for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
       physics::Particle2d* p = &physics::kParticle2d[i];
       imui::SameLine();
@@ -113,8 +120,14 @@ DebugUI()
         if (p->next_p2d_x) {
           rgg::DebugPushRect(p->next_p2d_x->aabb(), rgg::kBlue);
         }
+        if (p->prev_p2d_x) {
+          rgg::DebugPushRect(p->prev_p2d_x->aabb(), rgg::kPurple);
+        }
         if (p->next_p2d_y) {
-          rgg::DebugPushRect(p->next_p2d_y->aabb(), rgg::kPurple);
+          rgg::DebugPushRect(p->next_p2d_y->aabb(), rgg::kBlue);
+        }
+        if (p->prev_p2d_y) {
+          rgg::DebugPushRect(p->prev_p2d_y->aabb(), rgg::kPurple);
         }
       }
       snprintf(kUIBuffer, sizeof(kUIBuffer), "%p", (void*)p);
@@ -128,6 +141,12 @@ DebugUI()
       imui::Width(kWidth);
       imui::Text("Next X");
       snprintf(kUIBuffer, sizeof(kUIBuffer), "%p", (void*)p->next_p2d_x);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Prev X");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%p", (void*)p->prev_p2d_x);
       imui::Text(kUIBuffer);
       imui::NewLine();
       imui::SameLine();

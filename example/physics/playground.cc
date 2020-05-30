@@ -166,6 +166,10 @@ DebugUI()
 void
 GameInitialize(const v2f& dims)
 {
+  u32 physics_flags = 0;
+  SBIT(physics_flags, physics::kGravity);
+  physics::Initialize(physics_flags);
+
   rgg::GetObserver()->projection = rgg::DefaultPerspective(dims);
 
   rgg::Camera camera;

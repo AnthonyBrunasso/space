@@ -15,8 +15,7 @@ enum PhysicsFlags {
 
 struct Physics {
   u32 flags;
-  r32 gravity = 9.8f;
-  r32 drag_coefficient = 0.3f;
+  r32 gravity = 150.f;
 };
 
 static Physics kPhysics;
@@ -30,7 +29,7 @@ enum ParticleFlags {
 
 struct Particle2d {
   u32 flags = 0;
-  v2f position;       // Position of particle - center of aabb.
+  v2f position;        // Position of particle - center of aabb.
   v2f velocity;
   v2f acceleration;
   // Inverse mass of this particle. Inverse infinite mass can be reprented
@@ -104,10 +103,14 @@ Integrate(r32 dt_sec)
     }
     // F = m * a
     // a = F * (1 / m)
+    v2f acc = p->acceleration;
     p->acceleration += p->force * p->inverse_mass;
     p->position += p->velocity * dt_sec;
     p->velocity += p->acceleration * dt_sec;
     p->velocity *= pow(p->damping, dt_sec);
+    // Acceleration applied from forces only last a single frame.
+    // Reverting here allows any user imposed acceleration to stick around.
+    p->acceleration = acc;
     // Force applied over a single integration step then reset.
     p->force = {};
   }

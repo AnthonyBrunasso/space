@@ -101,11 +101,15 @@ DebugUI()
     options.max_height = 500.f;
     imui::Begin("Physics", imui::kEveryoneTag, options, &physics_pos,
                 &enable_physics);
+    static const r32 kWidth = 130.f;
     for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
       physics::Particle2d* p = &physics::kParticle2d[i];
       imui::Text("Particle");
       imui::Indent(2);
-      static const r32 kWidth = 120.f;
+      if (imui::ButtonCircle(8.f, v4f(1.f, 0.f, 0.f, .7f)).clicked) {
+        physics::CompressParticle2d(i);
+        continue;
+      }
       imui::SameLine();
       imui::Width(kWidth);
       imui::Text("Position");
@@ -167,6 +171,18 @@ DebugUI()
         CBIT(p->flags, physics::kFreeze);
       }
       imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Ignore Gravity");
+      set = FLAGGED(p->flags, physics::kIgnoreGravity);
+      imui::Checkbox(16, 16, &set);
+      if (set) {
+        SBIT(p->flags, physics::kIgnoreGravity);
+      } else {
+        CBIT(p->flags, physics::kIgnoreGravity);
+      }
+      imui::NewLine();
+
       imui::Indent(0);
     }
     imui::End();

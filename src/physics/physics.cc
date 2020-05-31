@@ -44,6 +44,11 @@ struct Particle2d {
   }
 };
 
+struct Particle2dCollision {
+  Particle2d* p1;
+  Particle2d* p2;
+};
+
 struct Physics {
   u32 flags;
   // Force of gravity.
@@ -66,6 +71,7 @@ enum ParticleFlags {
 };
 
 DECLARE_ARRAY(Particle2d, PHYSICS_PARTICLE_COUNT);
+DECLARE_ARRAY(Particle2dCollision, PHYSICS_PARTICLE_COUNT);
 
 typedef void ApplyForceCallback(Particle2d* p);
 
@@ -152,6 +158,16 @@ Initialize(u32 physics_flags)
 void
 __MoveP2d(Particle2d* p, Particle2d* prev, Particle2d* next)
 {
+  // Consider the case where head must be updated.
+  // If p was head it is being moved forward. Its next is now head.
+  if (p == kPhysics.p2d_head_x) {
+    kPhysics.p2d_head_x = p->next_p2d_x;
+  }
+  // If p has the smallest x in the list it will become the new head.
+  if (p->position.x < kPhysics.p2d_head_x->position.x) {
+    kPhysics.p2d_head_x = p;
+  }
+  // Swap all node pointers
   if (p->prev_p2d_x) p->prev_p2d_x->next_p2d_x = p->next_p2d_x;
   if (p->next_p2d_x) p->next_p2d_x->prev_p2d_x = p->prev_p2d_x;
   if (prev) prev->next_p2d_x = p;
@@ -160,10 +176,40 @@ __MoveP2d(Particle2d* p, Particle2d* prev, Particle2d* next)
   p->prev_p2d_x = prev;
 }
 
+// Updates the particle to be sorted.
+void
+__SortP2d(Particle2d* p)
+{
+  // Updates particle position in sorted list if its x is now out of order.
+  Particle2d* prev = p->prev_p2d_x;
+  Particle2d* next = p->next_p2d_x;
+  // Move the particle forward if needed.
+  while (next && p->position.x > next->position.x) {
+    prev = next;
+    next = next->next_p2d_x;
+  }
+  if (next != p->next_p2d_x) {
+    __MoveP2d(p, prev, next);
+  }
+  prev = p->prev_p2d_x;
+  next = p->next_p2d_x;
+  // Move the particle backward if needed.
+  while (prev && p->position.x < prev->position.x) {
+    next = prev;
+    prev = prev->prev_p2d_x;
+  }
+  if (prev != p->prev_p2d_x) {
+    __MoveP2d(p, prev, next);
+  }
+}
+
 void
 Integrate(r32 dt_sec)
 {
+  kUsedParticle2dCollision = 0;
+
   assert(dt_sec > 0.f);
+  // Delete any particles that must be deleted for this integration step.
   for (u32 i = 0; i < kUsedParticle2d;) {
     Particle2d* p = &kParticle2d[i];
     if (!FLAGGED(p->flags, kParticleRemove)) {
@@ -217,6 +263,7 @@ Integrate(r32 dt_sec)
     }
   }
 
+  // Move all particles according to our laws of physics ignoring collisions.
   for (u32 i = 0; i < kUsedParticle2d; ++i) {
     Particle2d* p = &kParticle2d[i];
     if (FLAGGED(p->flags, kParticleFreeze)) continue;
@@ -240,26 +287,32 @@ Integrate(r32 dt_sec)
     // Force applied over a single integration step then reset.
     p->force = {};
 
-    // Updates particle position in sorted list if its x is now out of order.
-    Particle2d* prev = p->prev_p2d_x;
-    Particle2d* next = p->next_p2d_x;
-    // Move the particle forward if needed.
-    while (next && p->position.x > next->position.x) {
-      prev = next;
-      next = next->next_p2d_x;
+    __SortP2d(p);
+  }
+
+  // Detect all colliding particles.
+  Particle2d* p1 = kPhysics.p2d_head_x;
+  Particle2d* p2 = p1->next_p2d_x;
+  while (p1->next_p2d_x) {
+    if (!p2) {
+      p1 = p1->next_p2d_x;
+      p2 = p1->next_p2d_x;
+      continue;
     }
-    if (next != p->next_p2d_x) {
-      __MoveP2d(p, prev, next);
+    if (math::IntersectRect(p1->aabb(), p2->aabb())) {
+      Particle2dCollision* collision = UseParticle2dCollision();
+      collision->p1 = p1;
+      collision->p2 = p2;
+      p2 = p2->next_p2d_x;
+      continue;
     }
-    prev = p->prev_p2d_x;
-    next = p->next_p2d_x;
-    // Move the particle backward if needed.
-    while (prev && p->position.x < prev->position.x) {
-      next = prev;
-      prev = prev->prev_p2d_x;
-    }
-    if (prev != p->prev_p2d_x) {
-      __MoveP2d(p, prev, next);
+    // If x axis intersects move p2 forward only, this may be a non
+    // intersecting y.
+    if (p2->aabb().Min().x < p1->aabb().Max().x) {
+      p2 = p2->next_p2d_x;
+    } else {
+      p1 = p1->next_p2d_x;
+      p2 = p1->next_p2d_x;
     }
   }
 }

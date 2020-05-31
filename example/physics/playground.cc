@@ -41,6 +41,8 @@ static char kUIBuffer[64];
 
 static const r32 kDelta = 0.016666f;
 
+static b8 kRenderCollision = true;
+
 void
 DebugUI()
 {
@@ -102,6 +104,11 @@ DebugUI()
     imui::Begin("Physics", imui::kEveryoneTag, options, &physics_pos,
                 &enable_physics);
     static const r32 kWidth = 130.f;
+    imui::SameLine();
+    imui::Width(80);
+    imui::Text("Collision");
+    imui::Checkbox(16.f, 16.f, &kRenderCollision);
+    imui::NewLine();
     imui::SameLine();
     imui::Width(80);
     imui::Text("X Head");
@@ -258,6 +265,13 @@ GameUpdate()
 void
 GameRender()
 {
+  if (kRenderCollision) {
+    for (u32 i = 0; i < physics::kUsedParticle2dCollision; ++i) {
+      physics::Particle2dCollision* c = &physics::kParticle2dCollision[i];
+      rgg::RenderLineRectangle(c->p1->aabb(), rgg::kWhite);
+      rgg::RenderLineRectangle(c->p2->aabb(), rgg::kWhite);
+    }
+  }
   rgg::DebugRenderPrimitives();
   for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
     physics::Particle2d* p = &physics::kParticle2d[i];

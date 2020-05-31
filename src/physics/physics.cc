@@ -89,7 +89,7 @@ __InsertSorted(Particle2d* particle)
     return;
   }
 
-  if (particle->position.x < kPhysics.p2d_head_x->position.x) {
+  if (particle->aabb().Min().x < kPhysics.p2d_head_x->aabb().Min().x) {
     kPhysics.p2d_head_x->prev_p2d_x = particle;
     particle->next_p2d_x = kPhysics.p2d_head_x;
     kPhysics.p2d_head_x = particle;
@@ -104,8 +104,8 @@ __InsertSorted(Particle2d* particle)
       prev->next_p2d_x = particle;
       break;
     }
-    if (particle->position.x >= prev->position.x &&
-        particle->position.x <= next->position.x) {
+    if (particle->aabb().Min().x >= prev->aabb().Min().x &&
+        particle->aabb().Min().x <= next->aabb().Min().x) {
       particle->prev_p2d_x = prev;
       particle->next_p2d_x = next;
       next->prev_p2d_x = particle;
@@ -168,7 +168,7 @@ __MoveP2d(Particle2d* p, Particle2d* prev, Particle2d* next)
     kPhysics.p2d_head_x = p->next_p2d_x;
   }
   // If p has the smallest x in the list it will become the new head.
-  if (p->position.x < kPhysics.p2d_head_x->position.x) {
+  if (p->aabb().Min().x < kPhysics.p2d_head_x->aabb().Min().x) {
     kPhysics.p2d_head_x = p;
   }
   // Swap all node pointers
@@ -188,7 +188,7 @@ __SortP2d(Particle2d* p)
   Particle2d* prev = p->prev_p2d_x;
   Particle2d* next = p->next_p2d_x;
   // Move the particle forward if needed.
-  while (next && p->position.x > next->position.x) {
+  while (next && p->aabb().Min().x > next->aabb().Min().x) {
     prev = next;
     next = next->next_p2d_x;
   }
@@ -198,7 +198,7 @@ __SortP2d(Particle2d* p)
   prev = p->prev_p2d_x;
   next = p->next_p2d_x;
   // Move the particle backward if needed.
-  while (prev && p->position.x < prev->position.x) {
+  while (prev && p->aabb().Min().x < prev->aabb().Min().x) {
     next = prev;
     prev = prev->prev_p2d_x;
   }

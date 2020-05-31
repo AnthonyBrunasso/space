@@ -123,12 +123,6 @@ DebugUI()
         if (p->prev_p2d_x) {
           rgg::DebugPushRect(p->prev_p2d_x->aabb(), rgg::kPurple);
         }
-        if (p->next_p2d_y) {
-          rgg::DebugPushRect(p->next_p2d_y->aabb(), rgg::kBlue);
-        }
-        if (p->prev_p2d_y) {
-          rgg::DebugPushRect(p->prev_p2d_y->aabb(), rgg::kPurple);
-        }
       }
       snprintf(kUIBuffer, sizeof(kUIBuffer), "%p", (void*)p);
       imui::Text(kUIBuffer);
@@ -147,12 +141,6 @@ DebugUI()
       imui::Width(kWidth);
       imui::Text("Prev X");
       snprintf(kUIBuffer, sizeof(kUIBuffer), "%p", (void*)p->prev_p2d_x);
-      imui::Text(kUIBuffer);
-      imui::NewLine();
-      imui::SameLine();
-      imui::Width(kWidth);
-      imui::Text("Next Y");
-      snprintf(kUIBuffer, sizeof(kUIBuffer), "%p", (void*)p->next_p2d_y);
       imui::Text(kUIBuffer);
       imui::NewLine();
       imui::SameLine();

@@ -30,8 +30,6 @@ struct Particle2d {
   // themselves after updating.
   Particle2d* next_p2d_x = nullptr;
   Particle2d* prev_p2d_x = nullptr;
-  Particle2d* next_p2d_y = nullptr;
-  Particle2d* prev_p2d_y = nullptr;
 
   Rectf
   aabb() const
@@ -53,7 +51,6 @@ struct Physics {
 
   // Linked list in sorted order on x / y axis for collision checks.
   Particle2d* p2d_head_x = nullptr;
-  Particle2d* p2d_head_y = nullptr;
 };
 
 static Physics kPhysics;
@@ -117,7 +114,6 @@ CreateParticle2d(v2f pos, v2f dims)
   particle->position = pos;
   particle->dims = dims;
   INSERT_SORTED(particle, x);
-  INSERT_SORTED(particle, y);
   return particle;
 }
 
@@ -162,10 +158,51 @@ Integrate(r32 dt_sec)
       ++i;
       continue;
     }
+
+    // If we are deleting the head adjust the head pointer.
+    if (p == kPhysics.p2d_head_x) {
+      kPhysics.p2d_head_x = kPhysics.p2d_head_x->next_p2d_x;
+    }
+
+    // Get the particles next and prev pointers - update their next and prev.
+    Particle2d* nextx = p->next_p2d_x; 
+    Particle2d* prevx = p->prev_p2d_x; 
+
+    if (nextx) {
+      if (prevx) nextx->prev_p2d_x = prevx;
+      else nextx->prev_p2d_x = nullptr;
+    }
+
+    if (prevx) {
+      if (nextx) prevx->next_p2d_x = nextx;
+      else prevx->next_p2d_x = nullptr;
+    }
+
     // Swap the last and and current particle of the used list.
     kParticle2d[i] = kParticle2d[kUsedParticle2d - 1];
     kParticle2d[kUsedParticle2d - 1] = {};
+
+    // This is the case that the fixed pointers actually point to an index
+    // that gets swapped.
+    if (nextx && nextx->prev_p2d_x &&
+        nextx->prev_p2d_x == &kParticle2d[kUsedParticle2d - 1]) {
+      nextx->prev_p2d_x = &kParticle2d[i];
+    }
+
+    if (prevx && prevx->next_p2d_x &&
+        prevx->next_p2d_x == &kParticle2d[kUsedParticle2d - 1]) {
+      prevx->next_p2d_x = &kParticle2d[i];
+    }
+
+    if (kParticle2d[i].prev_p2d_x) {
+      kParticle2d[i].prev_p2d_x->next_p2d_x = &kParticle2d[i];
+    }
+
     --kUsedParticle2d;
+
+    if (!kUsedParticle2d) {
+      kPhysics.p2d_head_x = nullptr;
+    }
   }
 
   for (u32 i = 0; i < kUsedParticle2d; ++i) {

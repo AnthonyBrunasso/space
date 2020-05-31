@@ -81,37 +81,41 @@ struct ForceGenerator {
 
 DECLARE_ARRAY(ForceGenerator, 8);
 
-// Sorted insertion into a double linked list.
-#define INSERT_SORTED(p, a)                                             \
-  if (!kPhysics.p2d_head_##a) {                                         \
-    kPhysics.p2d_head_##a = particle;                                   \
-  } else {                                                              \
-    if (particle->position.a < kPhysics.p2d_head_##a->position.a) {     \
-      kPhysics.p2d_head_##a->prev_p2d_##a = particle;                   \
-      particle->next_p2d_##a = kPhysics.p2d_head_##a;                   \
-      kPhysics.p2d_head_##a = particle;                                 \
-    } else {                                                            \
-      Particle2d* prev = kPhysics.p2d_head_##a;                         \
-      Particle2d* next = kPhysics.p2d_head_##a->next_p2d_##a;           \
-      while (prev) {                                                    \
-        if (!next) {                                                    \
-          particle->prev_p2d_##a = prev;                                \
-          prev->next_p2d_##a = particle;                                \
-          break;                                                        \
-        }                                                               \
-        if (particle->position.a >= prev->position.a &&                 \
-            particle->position.a <= next->position.a) {                 \
-          particle->prev_p2d_##a = prev;                                \
-          particle->next_p2d_##a = next;                                \
-          next->prev_p2d_##a = particle;                                \
-          prev->next_p2d_##a = particle;                                \
-          break;                                                        \
-        }                                                               \
-        prev = next;                                                    \
-        next = next->next_p2d_##a;                                      \
-      }                                                                 \
-    }                                                                   \
+void
+__InsertSorted(Particle2d* particle)
+{
+  if (!kPhysics.p2d_head_x) {
+    kPhysics.p2d_head_x = particle;
+    return;
   }
+
+  if (particle->position.x < kPhysics.p2d_head_x->position.x) {
+    kPhysics.p2d_head_x->prev_p2d_x = particle;
+    particle->next_p2d_x = kPhysics.p2d_head_x;
+    kPhysics.p2d_head_x = particle;
+    return;
+  }
+
+  Particle2d* prev = kPhysics.p2d_head_x;
+  Particle2d* next = kPhysics.p2d_head_x->next_p2d_x;
+  while (prev) {
+    if (!next) {
+      particle->prev_p2d_x = prev;
+      prev->next_p2d_x = particle;
+      break;
+    }
+    if (particle->position.x >= prev->position.x &&
+        particle->position.x <= next->position.x) {
+      particle->prev_p2d_x = prev;
+      particle->next_p2d_x = next;
+      next->prev_p2d_x = particle;
+      prev->next_p2d_x = particle;
+      break;
+    }
+    prev = next;
+    next = next->next_p2d_x;
+  }
+}
 
 Particle2d*
 CreateParticle2d(v2f pos, v2f dims)
@@ -119,7 +123,7 @@ CreateParticle2d(v2f pos, v2f dims)
   Particle2d* particle = UseParticle2d();
   particle->position = pos;
   particle->dims = dims;
-  INSERT_SORTED(particle, x);
+  __InsertSorted(particle);
   return particle;
 }
 
@@ -223,8 +227,8 @@ Integrate(r32 dt_sec)
     }
 
     // Get the particles next and prev pointers - update their next and prev.
-    Particle2d* nextx = p->next_p2d_x; 
-    Particle2d* prevx = p->prev_p2d_x; 
+    Particle2d* nextx = p->next_p2d_x;
+    Particle2d* prevx = p->prev_p2d_x;
 
     if (nextx) {
       if (prevx) nextx->prev_p2d_x = prevx;

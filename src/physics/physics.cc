@@ -148,6 +148,18 @@ Initialize(u32 physics_flags)
   }
 }
 
+// Moves particle to between prev and next pointers.
+void
+__MoveP2d(Particle2d* p, Particle2d* prev, Particle2d* next)
+{
+  if (p->prev_p2d_x) p->prev_p2d_x->next_p2d_x = p->next_p2d_x;
+  if (p->next_p2d_x) p->next_p2d_x->prev_p2d_x = p->prev_p2d_x;
+  if (prev) prev->next_p2d_x = p;
+  if (next) next->prev_p2d_x = p;
+  p->next_p2d_x = next;
+  p->prev_p2d_x = prev;
+}
+
 void
 Integrate(r32 dt_sec)
 {
@@ -227,6 +239,28 @@ Integrate(r32 dt_sec)
     p->acceleration = acc;
     // Force applied over a single integration step then reset.
     p->force = {};
+
+    // Updates particle position in sorted list if its x is now out of order.
+    Particle2d* prev = p->prev_p2d_x;
+    Particle2d* next = p->next_p2d_x;
+    // Move the particle forward if needed.
+    while (next && p->position.x > next->position.x) {
+      prev = next;
+      next = next->next_p2d_x;
+    }
+    if (next != p->next_p2d_x) {
+      __MoveP2d(p, prev, next);
+    }
+    prev = p->prev_p2d_x;
+    next = p->next_p2d_x;
+    // Move the particle backward if needed.
+    while (prev && p->position.x < prev->position.x) {
+      next = prev;
+      prev = prev->prev_p2d_x;
+    }
+    if (prev != p->prev_p2d_x) {
+      __MoveP2d(p, prev, next);
+    }
   }
 }
 

@@ -344,8 +344,14 @@ main(s32 argc, char** argv)
             case 27 /* ESC */: {
               exit(1);
             } break;
-            case 'j': {
+            case 'h': {
               kParticle->acceleration.x = -100.f;
+            } break;
+            case 'j': {
+              kParticle->acceleration.y = -100.f;
+            } break;
+            case 'k': {
+              kParticle->acceleration.y = 100.f;
             } break;
             case 'l': {
               kParticle->acceleration.x = 100.f;
@@ -354,8 +360,14 @@ main(s32 argc, char** argv)
         } break;
         case KEY_UP: {
           switch (event.key) {
-            case 'j': {
+            case 'h': {
               kParticle->acceleration.x = 0.f;
+            } break;
+            case 'j': {
+              kParticle->acceleration.y = 0.f;
+            } break;
+            case 'k': {
+              kParticle->acceleration.y = 0.f;
             } break;
             case 'l': {
               kParticle->acceleration.x = 0.f;

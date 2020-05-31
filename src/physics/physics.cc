@@ -80,7 +80,7 @@ DECLARE_ARRAY(ForceGenerator, 8);
   if (!kPhysics.p2d_head_##a) {                                         \
     kPhysics.p2d_head_##a = particle;                                   \
   } else {                                                              \
-    if (particle->position.##a < kPhysics.p2d_head_##a->position.##a) { \
+    if (particle->position.a < kPhysics.p2d_head_##a->position.a) {     \
       kPhysics.p2d_head_##a->prev_p2d_##a = particle;                   \
       particle->next_p2d_##a = kPhysics.p2d_head_##a;                   \
       kPhysics.p2d_head_##a = particle;                                 \
@@ -93,8 +93,8 @@ DECLARE_ARRAY(ForceGenerator, 8);
           prev->next_p2d_##a = particle;                                \
           break;                                                        \
         }                                                               \
-        if (particle->position.##a >= prev->position.##a &&             \
-            particle->position.##a <= next->position.##a) {             \
+        if (particle->position.a >= prev->position.a &&                 \
+            particle->position.a <= next->position.a) {                 \
           particle->prev_p2d_##a = prev;                                \
           particle->next_p2d_##a = next;                                \
           next->prev_p2d_##a = particle;                                \

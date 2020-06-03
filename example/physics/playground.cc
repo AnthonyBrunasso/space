@@ -266,8 +266,8 @@ void
 GameRender()
 {
   if (kRenderCollision) {
-    for (u32 i = 0; i < physics::kUsedParticle2dCollision; ++i) {
-      physics::Particle2dCollision* c = &physics::kParticle2dCollision[i];
+    for (u32 i = 0; i < physics::kUsedBP2dCollision; ++i) {
+      physics::BP2dCollision* c = &physics::kBP2dCollision[i];
       rgg::RenderLineRectangle(c->p1->aabb(), rgg::kWhite);
       rgg::RenderLineRectangle(c->p2->aabb(), rgg::kWhite);
     }

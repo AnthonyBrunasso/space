@@ -129,16 +129,20 @@ __ResolvePositionAndVelocity(Particle2d* p, v2f correction)
   if (correction.x > 0.f) {
     if (p->velocity.x > 0.f) {
       p->position.x -= correction.x;
+      //p->velocity.x -= correction.x;
     } else {
       p->position.x += correction.x;
+      //p->velocity.x += correction.x;
     }
     p->velocity.x = 0.f;
   }
   if (correction.y > 0.f) {
     if (p->velocity.y > 0.f) {
       p->position.y -= correction.y;
+      //p->velocity.y -= correction.y;
     } else {
       p->position.y += correction.y;
+      //p->velocity.y += correction.y;
     }
     p->velocity.y = 0.f;
   }
@@ -175,8 +179,8 @@ Integrate(r32 dt_sec)
     // a = F * (1 / m)
     v2f acc = p->acceleration;
     p->acceleration += p->force * p->inverse_mass;
-    p->position += p->velocity * dt_sec;
     p->velocity += p->acceleration * dt_sec;
+    p->position += p->velocity * dt_sec;
     p->velocity *= pow(p->damping, dt_sec);
     // Acceleration applied from forces only last a single frame.
     // Reverting here allows any user imposed acceleration to stick around.

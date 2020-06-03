@@ -11,7 +11,7 @@ struct BP2dCollision {
 DECLARE_ARRAY(BP2dCollision, PHYSICS_PARTICLE_COUNT);
 
 u32
-PBGetNextId(u32 id)
+BPGetNextId(u32 id)
 {
   if (!id) return kInvalidId;
   Particle2d* p = FindParticle2d(id);
@@ -19,21 +19,12 @@ PBGetNextId(u32 id)
   return p->next_p2d_x;
 }
 
-u32
-PBGetPrevId(u32 id)
-{
-  if (!id) return kInvalidId;
-  Particle2d* p = FindParticle2d(id);
-  if (!p) return kInvalidId;
-  return p->prev_p2d_x;
-}
-
 void
 BPDeleteP2d(Particle2d* p, u32 i)
 {
   // If we are deleting the head adjust the head pointer.
   if (p->id == kPhysics.p2d_head_x) {
-    kPhysics.p2d_head_x = PBGetNextId(kPhysics.p2d_head_x);
+    kPhysics.p2d_head_x = BPGetNextId(kPhysics.p2d_head_x);
   }
 
   // Get the particles next and prev pointers - update their next and prev.
@@ -66,7 +57,7 @@ __MoveP2d(Particle2d* p, Particle2d* prev, Particle2d* next)
   // Consider the case where head must be updated.
   // If p was head it is being moved forward. Its next is now head.
   if (p->id == kPhysics.p2d_head_x) {
-    kPhysics.p2d_head_x = PBGetNextId(p->id);
+    kPhysics.p2d_head_x = BPGetNextId(p->id);
   }
   // If p has the smallest x in the list it will become the new head.
   Particle2d* head = FindParticle2d(kPhysics.p2d_head_x);

@@ -203,6 +203,27 @@ DebugUI()
       imui::NewLine();
       imui::SameLine();
       imui::Width(kWidth);
+      imui::Text("Width");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f", p->dims.x);
+      imui::Width(kWidth / 2.f);
+      imui::Text(kUIBuffer);
+      if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+        p->dims.x -= 1.f;
+      }
+      imui::Space(imui::kHorizontal, 5.f);
+      if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+        p->dims.x += 1.f;
+      }
+      if (imui::Button(16.f, 16.f, rgg::kGreen).clicked) {
+        p->dims.x -= 10.f;
+      }
+      imui::Space(imui::kHorizontal, 5.f);
+      if (imui::Button(16.f, 16.f, rgg::kGreen).clicked) {
+        p->dims.x += 10.f;
+      }
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
       imui::Text("Freeze");
       b8 set = FLAGGED(p->flags, physics::kParticleFreeze);
       imui::Checkbox(16, 16, &set);
@@ -278,7 +299,7 @@ GameRender()
   for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
     physics::Particle2d* p = &physics::kParticle2d[i];
     rgg::RenderLineRectangle(p->aabb(), rgg::kRed);
-    rgg::RenderCircle(p->position, 0.5f, rgg::kGreen);
+    //rgg::RenderCircle(p->position, 0.5f, rgg::kGreen);
   }
   imui::Render(imui::kEveryoneTag);
   window::SwapBuffers();
@@ -354,7 +375,7 @@ main(s32 argc, char** argv)
               kParticle->acceleration.y = -100.f;
             } break;
             case 'k': {
-              kParticle->acceleration.y = 100.f;
+              kParticle->acceleration.y = 1000.f;
             } break;
             case 'l': {
               kParticle->acceleration.x = 100.f;

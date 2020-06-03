@@ -122,6 +122,29 @@ Initialize(u32 physics_flags)
 }
 
 void
+__ResolvePositionAndVelocity(Particle2d* p, v2f correction)
+{
+  if (IsZero(p->velocity)) return;
+
+  if (correction.x > 0.f) {
+    if (p->velocity.x > 0.f) {
+      p->position.x -= correction.x;
+    } else {
+      p->position.x += correction.x;
+    }
+    p->velocity.x = 0.f;
+  }
+  if (correction.y > 0.f) {
+    if (p->velocity.y > 0.f) {
+      p->position.y -= correction.y;
+    } else {
+      p->position.y += correction.y;
+    }
+    p->velocity.y = 0.f;
+  }
+}
+
+void
 Integrate(r32 dt_sec)
 {
 
@@ -165,6 +188,29 @@ Integrate(r32 dt_sec)
   }
 
   BPCalculateCollisions();
+
+  // Resolve collisions.
+  for (u32 i = 0; i < kUsedBP2dCollision; ++i) {
+    BP2dCollision* c = &kBP2dCollision[i];
+    // Another correction may have moved this collision out of intersection.
+    if (!math::IntersectRect(c->p1->aabb(), c->p2->aabb(), &c->intersection)) {
+      continue;
+    }
+
+    // Use min axis of intersection to correct collisions.
+    v2f correction;
+    if (c->intersection.width < c->intersection.height) {
+      correction = v2f(c->intersection.width, 0.f);
+    } else {
+      correction = v2f(0.f, c->intersection.height);
+    }
+
+    __ResolvePositionAndVelocity(c->p1, correction);
+    __ResolvePositionAndVelocity(c->p2, correction);
+
+    BPUpdateP2d(c->p1);
+    BPUpdateP2d(c->p2);
+  }
 }
 
 }  // namesapce physics

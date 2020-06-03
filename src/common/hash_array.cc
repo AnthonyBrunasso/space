@@ -70,4 +70,31 @@ struct HashEntry {
   {                                                                           \
     u32 hash = Hash##type(id);                                                \
     kHashEntry##type[hash] = {0, 0};                                          \
+  }                                                                           \
+                                                                              \
+  void Clear##type(u32 id)                                                    \
+  {                                                                           \
+    if (!id) return;                                                          \
+    u32 hash = Hash##type(id);                                                \
+    HashEntry* entry = &kHashEntry##type[hash];                               \
+    if (entry->id != id) return;                                              \
+    k##type[entry->array_idx] = {};                                           \
+    *entry = {0, 0};                                                          \
+    --kUsed##type;                                                            \
+  }                                                                           \
+                                                                              \
+  void Swap##type(u32 id1, u32 id2)                                           \
+  {                                                                           \
+    if (!id1) return;                                                         \
+    u32 hash1 = Hash##type(id1);                                              \
+    HashEntry* entry1 = &kHashEntry##type[hash1];                             \
+    if (!id2) return;                                                         \
+    u32 hash2 = Hash##type(id2);                                              \
+    HashEntry* entry2 = &kHashEntry##type[hash2];                             \
+    type t = k##type[entry1->array_idx];                                      \
+    k##type[entry1->array_idx] = k##type[entry2->array_idx];                  \
+    k##type[entry2->array_idx] = t;                                           \
+    u32 tarr = entry1->array_idx;                                             \
+    entry1->array_idx = entry2->array_idx;                                    \
+    entry2->array_idx = tarr;                                                 \
   }

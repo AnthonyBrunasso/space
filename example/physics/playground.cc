@@ -8,7 +8,7 @@
 #include "renderer/camera.cc"
 #include "renderer/imui.cc"
 
-#define PHYSICS_PARTICLE_COUNT 64
+#define PHYSICS_PARTICLE_COUNT 128
 #include "physics/physics.cc"
 
 struct State {
@@ -112,8 +112,7 @@ DebugUI()
     imui::SameLine();
     imui::Width(80);
     imui::Text("X Head");
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "%p",
-             (void*)physics::kPhysics.p2d_head_x);
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%u", physics::kPhysics.p2d_head_x);
     imui::Text(kUIBuffer);
     imui::NewLine();
     for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
@@ -125,13 +124,15 @@ DebugUI()
       if (imui::Text("Particle", o).highlighted) {
         rgg::DebugPushRect(p->aabb(), rgg::kGreen);
         if (p->next_p2d_x) {
-          rgg::DebugPushRect(p->next_p2d_x->aabb(), rgg::kBlue);
+          rgg::DebugPushRect(
+              physics::FindParticle2d(p->next_p2d_x)->aabb(), rgg::kBlue);
         }
         if (p->prev_p2d_x) {
-          rgg::DebugPushRect(p->prev_p2d_x->aabb(), rgg::kPurple);
+          rgg::DebugPushRect(
+              physics::FindParticle2d(p->prev_p2d_x)->aabb(), rgg::kPurple);
         }
       }
-      snprintf(kUIBuffer, sizeof(kUIBuffer), "%p", (void*)p);
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%u", p->id);
       imui::Text(kUIBuffer);
       imui::NewLine();
       imui::Indent(2);
@@ -140,14 +141,14 @@ DebugUI()
       }
       imui::SameLine();
       imui::Width(kWidth);
-      imui::Text("Next X");
-      snprintf(kUIBuffer, sizeof(kUIBuffer), "%p", (void*)p->next_p2d_x);
+      imui::Text("Next");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%u", p->next_p2d_x);
       imui::Text(kUIBuffer);
       imui::NewLine();
       imui::SameLine();
       imui::Width(kWidth);
-      imui::Text("Prev X");
-      snprintf(kUIBuffer, sizeof(kUIBuffer), "%p", (void*)p->prev_p2d_x);
+      imui::Text("Prev");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%u", p->prev_p2d_x);
       imui::Text(kUIBuffer);
       imui::NewLine();
       imui::SameLine();
@@ -286,6 +287,8 @@ GameRender()
 s32
 main(s32 argc, char** argv)
 {
+
+  while (!IsDebuggerPresent());
 
   if (!memory::Initialize(MiB(64))) {
   }

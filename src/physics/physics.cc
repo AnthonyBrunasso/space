@@ -15,6 +15,7 @@ enum PhysicsFlags {
 };
 
 struct Particle2d {
+  u32 id;
   u32 flags = 0;
   v2f position;        // Position of particle - center of aabb.
   v2f velocity;
@@ -29,8 +30,8 @@ struct Particle2d {
 
   // Particles keep forward and backward pointers so they can quickly sort
   // themselves after updating.
-  Particle2d* next_p2d_x = nullptr;
-  Particle2d* prev_p2d_x = nullptr;
+  u32 next_p2d_x = kInvalidId;
+  u32 prev_p2d_x = kInvalidId;
 
   Rectf
   aabb() const
@@ -52,7 +53,7 @@ struct Physics {
   r32 gravity = 150.f;
 
   // Linked list in sorted order on x / y axis for collision checks.
-  Particle2d* p2d_head_x = nullptr;
+  u32 p2d_head_x = kInvalidId;
 };
 
 static Physics kPhysics;
@@ -67,7 +68,7 @@ enum ParticleFlags {
   kParticleRemove = 2,
 };
 
-DECLARE_ARRAY(Particle2d, PHYSICS_PARTICLE_COUNT);
+DECLARE_HASH_ARRAY(Particle2d, PHYSICS_PARTICLE_COUNT);
 
 typedef void ApplyForceCallback(Particle2d* p);
 

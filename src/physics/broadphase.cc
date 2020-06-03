@@ -5,6 +5,7 @@
 struct BP2dCollision {
   Particle2d* p1;
   Particle2d* p2;
+  Rectf intersection;
 };
 
 DECLARE_ARRAY(BP2dCollision, PHYSICS_PARTICLE_COUNT);
@@ -167,10 +168,12 @@ BPCalculateCollisions()
       p2 = FindParticle2d(p1->next_p2d_x);
       continue;
     }
-    if (math::IntersectRect(p1->aabb(), p2->aabb())) {
+    Rectf intersection;
+    if (math::IntersectRect(p1->aabb(), p2->aabb(), &intersection)) {
       BP2dCollision* collision = UseBP2dCollision();
       collision->p1 = p1;
       collision->p2 = p2;
+      collision->intersection = intersection;
       p2 = FindParticle2d(p2->next_p2d_x);
       continue;
     }

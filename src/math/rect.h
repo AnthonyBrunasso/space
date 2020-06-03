@@ -2,6 +2,8 @@
 
 #include <cstdlib>
 
+#include "common/macro.h"
+
 #include "vec.h"
 #include "util.cc"
 
@@ -135,7 +137,7 @@ PointInRect(const v2f& point, const Rectf& rect)
 }
 
 b8
-IntersectRect(const Rectf& a, const Rectf& b)
+IntersectRect(const Rectf& a, const Rectf& b, Rectf* intersection = nullptr)
 {
   v2f amin = a.Min();
   v2f amax = a.Max();
@@ -143,6 +145,13 @@ IntersectRect(const Rectf& a, const Rectf& b)
   v2f bmax = b.Max();
   if (amin.x >= bmax.x || bmin.x >= amax.x) return false;
   if (amin.y >= bmax.y || bmin.y >= amax.y) return false;
+  if (intersection) {
+    r32 x = Max(a.x, b.x);
+    r32 y = Max(a.y, b.y);
+    r32 w = Min(amax.x, bmax.x) - x;
+    r32 h = Min(amax.y, bmax.y) - y;
+    *intersection = Rectf(x, y, w, h);
+  }
   return true;
 }
 

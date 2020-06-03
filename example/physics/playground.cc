@@ -269,8 +269,9 @@ GameRender()
   if (kRenderCollision) {
     for (u32 i = 0; i < physics::kUsedBP2dCollision; ++i) {
       physics::BP2dCollision* c = &physics::kBP2dCollision[i];
-      rgg::RenderLineRectangle(c->p1->aabb(), rgg::kWhite);
-      rgg::RenderLineRectangle(c->p2->aabb(), rgg::kWhite);
+      rgg::RenderLineRectangle(c->intersection, rgg::kWhite);
+      //rgg::RenderLineRectangle(c->p1->aabb(), rgg::kWhite);
+      //rgg::RenderLineRectangle(c->p2->aabb(), rgg::kWhite);
     }
   }
   rgg::DebugRenderPrimitives();
@@ -289,6 +290,7 @@ main(s32 argc, char** argv)
 {
 
   if (!memory::Initialize(MiB(64))) {
+    return 1;
   }
 
   if (!window::Create("Game", kGameState.window_create_info)) {

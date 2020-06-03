@@ -618,7 +618,7 @@ UpdatePane(r32 width, r32 height, b8* element_in_pane)
   if (!begin_mode.ignore_vertical_scroll) {
     begin_mode.last_rect.y += begin_mode.pane->vertical_scroll;
   }
-  pane->theoretical_y = MINF(begin_mode.pos.y, pane->theoretical_y);
+  pane->theoretical_y = math::Min(begin_mode.pos.y, pane->theoretical_y);
   *element_in_pane =
       math::IntersectRect(begin_mode.last_rect, pane->rect);
   begin_mode.pane->element_off_pane =

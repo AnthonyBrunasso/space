@@ -28,4 +28,18 @@ Lerp(const v4f& a, const v4f& b, r32 t)
   return a * (1.f - t) + b * t;
 }
 
+template <typename T>
+T
+Max(T x, T y)
+{
+  return x > y ? x : y;
+}
+
+template <typename T>
+T
+Min(T x, T y)
+{
+  return x < y ? x : y;
+}
+
 }

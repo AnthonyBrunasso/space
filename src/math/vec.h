@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
+#include <cfloat>
 
 namespace math
 {
@@ -557,6 +558,14 @@ v2f
 to_v2f(const v2i& v)
 {
   return v2f((r32)v.x, (r32)v.y);
+}
+
+bool
+IsZero(v2f v)
+{
+  return v.x < FLT_EPSILON && v.x > -FLT_EPSILON &&
+         v.y < FLT_EPSILON && v.y > -FLT_EPSILON;
+
 }
 
 void

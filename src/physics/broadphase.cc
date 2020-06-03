@@ -88,6 +88,11 @@ __MoveP2d(Particle2d* p, Particle2d* prev, Particle2d* next)
 void
 BPUpdateP2d(Particle2d* p)
 {
+  // TODO: There is a weird bug with this where if there are only two 
+  // particles the next and prev pointers do not properly update. It doesn't
+  // cause an issue in functionality that I can discern but leaving this
+  // comment for documentation if it ever does.
+
   // Updates particle position in sorted list if its x is now out of order.
   Particle2d* prev = FindParticle2d(p->prev_p2d_x);
   Particle2d* next = FindParticle2d(p->next_p2d_x);

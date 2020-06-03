@@ -288,8 +288,6 @@ s32
 main(s32 argc, char** argv)
 {
 
-  while (!IsDebuggerPresent());
-
   if (!memory::Initialize(MiB(64))) {
   }
 

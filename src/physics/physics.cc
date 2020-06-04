@@ -7,13 +7,6 @@
 
 namespace physics {
 
-enum PhysicsFlags {
-  // Gravity applied along negative y-axis to all particles.
-  kGravity = 0,
-  // Drag applied in the opposite direction of velocity vector.
-  kDrag = 1,
-};
-
 struct Particle2d {
   u32 id;
   u32 flags = 0;
@@ -27,6 +20,9 @@ struct Particle2d {
   r32 damping = 0.05f; // Damping force applied to particle to slow it down.
   v2f force = {};      // Sum of all forces acting on this particle.
   v2f dims;            // Used to create the aabb.
+  // Set to true when the particle is colliding with a 0.0 inverse mass
+  // particle underneath it.
+  b8 on_ground = false;
 
   // Particles keep forward and backward pointers so they can quickly sort
   // themselves after updating.
@@ -48,10 +44,8 @@ struct Particle2d {
 
 
 struct Physics {
-  u32 flags;
-  // Force of gravity.
-  r32 gravity = 250.f;
-
+  // Acceleration of gravity.
+  r32 gravity = 100.f;
   // Linked list in sorted order on x / y axis for collision checks.
   u32 p2d_head_x = kInvalidId;
 };
@@ -71,12 +65,6 @@ enum ParticleFlags {
 DECLARE_HASH_ARRAY(Particle2d, PHYSICS_PARTICLE_COUNT);
 
 typedef void ApplyForceCallback(Particle2d* p);
-
-struct ForceGenerator {
-  ApplyForceCallback* apply_force = nullptr;
-};
-
-DECLARE_ARRAY(ForceGenerator, 8);
 
 #include "broadphase.cc"
 
@@ -106,22 +94,6 @@ ApplyGravity(Particle2d* p)
 }
 
 void
-CreateGravityGenerator()
-{
-  ForceGenerator* fg = UseForceGenerator();
-  fg->apply_force = ApplyGravity;
-}
-
-void
-Initialize(u32 physics_flags)
-{
-  kPhysics.flags = physics_flags;
-  if (FLAGGED(kPhysics.flags, kGravity)) {
-    CreateGravityGenerator();
-  }
-}
-
-void
 __ResolvePositionAndVelocity(Particle2d* p, v2f correction)
 {
   if (p->inverse_mass < FLT_EPSILON) return;
@@ -129,22 +101,32 @@ __ResolvePositionAndVelocity(Particle2d* p, v2f correction)
   if (correction.x > 0.f) {
     if (p->velocity.x > 0.f) {
       p->position.x -= correction.x;
-      //p->velocity.x -= correction.x;
     } else {
       p->position.x += correction.x;
-      //p->velocity.x += correction.x;
     }
     p->velocity.x = 0.f;
   }
   if (correction.y > 0.f) {
     if (p->velocity.y > 0.f) {
       p->position.y -= correction.y;
-      //p->velocity.y -= correction.y;
     } else {
       p->position.y += correction.y;
-      //p->velocity.y += correction.y;
     }
     p->velocity.y = 0.f;
+  }
+}
+
+void
+__SetOnGround(Particle2d* p1, Particle2d* p2, const Rectf& intersection)
+{
+  Rectf underneath_p1(p1->aabb());
+  underneath_p1.y -= 1.f;
+  underneath_p1.height = 2.f;
+  underneath_p1.x += 1.f;
+  underneath_p1.width -= 2.f;
+  if (!p1->on_ground) {
+    p1->on_ground = p2->inverse_mass < FLT_EPSILON &&
+        math::IntersectRect(underneath_p1, intersection);
   }
 }
 
@@ -170,15 +152,16 @@ Integrate(r32 dt_sec)
     if (FLAGGED(p->flags, kParticleFreeze)) continue;
     // Infinite mass object - do nothing.
     if (p->inverse_mass <= 0.f) continue;
-    for (u32 j = 0; j < kUsedForceGenerator; ++j) {
-      ForceGenerator* fg = &kForceGenerator[j];
-      // TODO: Perhaps add proximity checks?
-      fg->apply_force(p);
-    }
+    
+    // Set after collision code runs.
+    p->on_ground = false;
     // F = m * a
     // a = F * (1 / m)
     v2f acc = p->acceleration;
     p->acceleration += p->force * p->inverse_mass;
+    if (!FLAGGED(p->flags, kParticleIgnoreGravity)) {
+      p->acceleration -= v2f(0.f, kPhysics.gravity);
+    }
     p->velocity += p->acceleration * dt_sec;
     p->position += p->velocity * dt_sec;
     p->velocity *= pow(p->damping, dt_sec);
@@ -201,6 +184,9 @@ Integrate(r32 dt_sec)
       continue;
     }
 
+    __SetOnGround(c->p1, c->p2, c->intersection);
+    __SetOnGround(c->p2, c->p1, c->intersection);
+    
     // Use min axis of intersection to correct collisions.
     v2f correction;
     if (c->intersection.width < c->intersection.height) {

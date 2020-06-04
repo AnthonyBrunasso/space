@@ -153,6 +153,12 @@ DebugUI()
       imui::NewLine();
       imui::SameLine();
       imui::Width(kWidth);
+      imui::Text("On Ground");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%i", p->on_ground);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
       imui::Text("Position");
       snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f,%.3f", p->position.x,
                p->position.y);
@@ -276,10 +282,6 @@ DebugUI()
 void
 GameInitialize(const v2f& dims)
 {
-  u32 physics_flags = 0;
-  SBIT(physics_flags, physics::kGravity);
-  physics::Initialize(physics_flags);
-
   rgg::GetObserver()->projection = rgg::DefaultPerspective(dims);
 
   rgg::Camera camera;

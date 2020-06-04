@@ -193,11 +193,11 @@ DebugUI()
       imui::Width(kWidth / 2.f);
       imui::Text(kUIBuffer);
       if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
-        p->damping -= .05f;
+        p->damping -= .01f;
       }
       imui::Space(imui::kHorizontal, 5.f);
       if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
-        p->damping += .05f;
+        p->damping += .01f;
       }
       p->damping = CLAMPF(p->damping, 0.f, 1.0f);
       imui::NewLine();
@@ -220,6 +220,27 @@ DebugUI()
       imui::Space(imui::kHorizontal, 5.f);
       if (imui::Button(16.f, 16.f, rgg::kGreen).clicked) {
         p->dims.x += 10.f;
+      }
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Height");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f", p->dims.y);
+      imui::Width(kWidth / 2.f);
+      imui::Text(kUIBuffer);
+      if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+        p->dims.y -= 1.f;
+      }
+      imui::Space(imui::kHorizontal, 5.f);
+      if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+        p->dims.y += 1.f;
+      }
+      if (imui::Button(16.f, 16.f, rgg::kGreen).clicked) {
+        p->dims.y -= 10.f;
+      }
+      imui::Space(imui::kHorizontal, 5.f);
+      if (imui::Button(16.f, 16.f, rgg::kGreen).clicked) {
+        p->dims.y += 10.f;
       }
       imui::NewLine();
       imui::SameLine();
@@ -404,7 +425,7 @@ main(s32 argc, char** argv)
             physics::Particle2d* p = physics::CreateParticle2d(
                 rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy(),
                 v2f(5.f, 5.f));
-            SBIT(p->flags, physics::kParticleIgnoreGravity);
+            p->inverse_mass = 0.f;
           }
         } break;
         case MOUSE_UP: {

@@ -50,7 +50,7 @@ struct Particle2d {
 struct Physics {
   u32 flags;
   // Force of gravity.
-  r32 gravity = 150.f;
+  r32 gravity = 250.f;
 
   // Linked list in sorted order on x / y axis for collision checks.
   u32 p2d_head_x = kInvalidId;
@@ -124,8 +124,8 @@ Initialize(u32 physics_flags)
 void
 __ResolvePositionAndVelocity(Particle2d* p, v2f correction)
 {
+  if (p->inverse_mass < FLT_EPSILON) return;
   if (IsZero(p->velocity)) return;
-
   if (correction.x > 0.f) {
     if (p->velocity.x > 0.f) {
       p->position.x -= correction.x;

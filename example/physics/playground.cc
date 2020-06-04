@@ -395,10 +395,11 @@ main(s32 argc, char** argv)
               kParticle->acceleration.x = -100.f;
             } break;
             case 'j': {
-              kParticle->acceleration.y = -100.f;
             } break;
             case 'k': {
-              kParticle->acceleration.y = 1000.f;
+              if (kParticle->on_ground) {
+                kParticle->force.y = 10000.f;
+              }
             } break;
             case 'l': {
               kParticle->acceleration.x = 100.f;

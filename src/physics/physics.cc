@@ -86,14 +86,6 @@ DeleteParticle2d(Particle2d* p)
 }
 
 void
-ApplyGravity(Particle2d* p)
-{
-  if (p->inverse_mass <= 0.f) return;
-  if (FLAGGED(p->flags, kParticleIgnoreGravity)) return;
-  p->force += v2f(0.f, -1.f) * kPhysics.gravity * p->mass();
-}
-
-void
 __ResolvePositionAndVelocity(Particle2d* p, v2f correction)
 {
   if (p->inverse_mass < FLT_EPSILON) return;

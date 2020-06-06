@@ -40,6 +40,7 @@ static physics::Particle2d* kParticle = nullptr;
 static char kUIBuffer[64];
 
 static const r32 kDelta = 0.016666f;
+static r32 kJumpForce = 10000.f;
 
 static b8 kRenderCollision = true;
 
@@ -115,6 +116,35 @@ DebugUI()
     snprintf(kUIBuffer, sizeof(kUIBuffer), "%u", physics::kPhysics.p2d_head_x);
     imui::Text(kUIBuffer);
     imui::NewLine();
+    imui::SameLine();
+    imui::Width(80);
+    imui::Text("Gravity");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%.2f", physics::kPhysics.gravity);
+    imui::Width(100.f);
+    imui::Text(kUIBuffer);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      physics::kPhysics.gravity -= 10.f;
+    }
+    imui::Space(imui::kHorizontal, 5.f);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      physics::kPhysics.gravity += 10.f;
+    }
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(80);
+    imui::Text("Jump For");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%.2f", kJumpForce);
+    imui::Width(100.f);
+    imui::Text(kUIBuffer);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      kJumpForce -= 1000.f;
+    }
+    imui::Space(imui::kHorizontal, 5.f);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      kJumpForce += 1000.f;
+    }
+    imui::NewLine();
+
     for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
       physics::Particle2d* p = &physics::kParticle2d[i];
       imui::SameLine();
@@ -398,7 +428,7 @@ main(s32 argc, char** argv)
             } break;
             case 'k': {
               if (kParticle->on_ground) {
-                kParticle->force.y = 10000.f;
+                kParticle->force.y = kJumpForce;
               }
             } break;
             case 'l': {

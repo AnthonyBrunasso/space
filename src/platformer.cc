@@ -3,11 +3,13 @@
 
 #include "math/math.cc"
 
-#include "animation/sprite.cc"
 #include "audio/audio.cc"
 #include "renderer/renderer.cc"
 #include "renderer/camera.cc"
 #include "renderer/imui.cc"
+
+#define PHYSICS_PARTICLE_COUNT 128
+#include "physics/physics.cc"
 
 struct State {
   // Game and render updates per second
@@ -18,75 +20,29 @@ struct State {
   u64 game_time_usec = 0;
   // Estimated frames per second.
   r32 frames_per_second = 0;
+  // (optional) yield unused cpu time to the system
+  b8 sleep_on_loop = true;
   // Number of times the game has been updated.
   u64 game_updates = 0;
   // Parameters window::Create will be called with.
   window::CreateInfo window_create_info;
   // Id to music.
   u32 music_id;
+  // Game clock.
+  platform::Clock game_clock;
 };
 
 static State kGameState;
 static Stats kGameStats;
 
-struct Asset {
-  rgg::Texture player_texture;  
-  animation::Sprite player_sprite;
-};
+static physics::Particle2d* kParticle = nullptr;
 
-static Asset kAsset;
+static char kUIBuffer[64];
 
-struct Game {
-  r32 ground;
-};
+static const r32 kDelta = 0.016666f;
+static r32 kJumpForce = 10000.f;
 
-static Game kGame;
-
-struct PhysicsGlobal {
-  float friction_coefficient = .05f;
-  float gravity = 1.f;
-};
-
-static PhysicsGlobal kPhysicsGlobal;
-
-struct PhysicsComponent {
-  u32 id;
-  v3f position;
-  v3f velocity;
-  v3f acceleration;
-  v3f max_speed = v3f(1.f, 10.f, 0.f);
-  Rectf bounds;
-};
-
-DECLARE_HASH_ARRAY(PhysicsComponent, 16);
-
-struct RenderSpriteComponent {
-  u32 id;
-  rgg::Texture texture;
-  animation::Sprite sprite_anim;
-};
-
-DECLARE_HASH_ARRAY(RenderSpriteComponent, 8);
-
-struct RenderRectComponent {
-  u32 id;
-};
-
-DECLARE_HASH_ARRAY(RenderRectComponent, 8);
-
-struct Entity {
-  u32 id;
-  u32 physics_component_id = kInvalidId;
-  u32 render_sprite_component_id = kInvalidId;
-  u32 render_rect_component_id = kInvalidId;
-};
-
-DECLARE_HASH_ARRAY(Entity, 16);
-
-static u32 kPlayerId = kInvalidId;
-
-#define UIBUFFER_SIZE 64
-static char kUIBuffer[UIBUFFER_SIZE];
+static b8 kRenderCollision = true;
 
 void
 DebugUI()
@@ -139,172 +95,264 @@ DebugUI()
     static v2f ui_pos(300.f, screen.y);
     imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
   }
+
+  {
+    static b8 enable_physics = true;
+    static v2f physics_pos(0.f, screen.y - 300.f);
+    imui::PaneOptions options;
+    options.width = options.max_width = 365.f;
+    options.max_height = 500.f;
+    imui::Begin("Physics", imui::kEveryoneTag, options, &physics_pos,
+                &enable_physics);
+    static const r32 kWidth = 130.f;
+    imui::SameLine();
+    imui::Width(80);
+    imui::Text("Collision");
+    imui::Checkbox(16.f, 16.f, &kRenderCollision);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(80);
+    imui::Text("X Head");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%u", physics::kPhysics.p2d_head_x);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(80);
+    imui::Text("Gravity");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%.2f", physics::kPhysics.gravity);
+    imui::Width(100.f);
+    imui::Text(kUIBuffer);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      physics::kPhysics.gravity -= 10.f;
+    }
+    imui::Space(imui::kHorizontal, 5.f);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      physics::kPhysics.gravity += 10.f;
+    }
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(80);
+    imui::Text("Jump For");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%.2f", kJumpForce);
+    imui::Width(100.f);
+    imui::Text(kUIBuffer);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      kJumpForce -= 1000.f;
+    }
+    imui::Space(imui::kHorizontal, 5.f);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      kJumpForce += 1000.f;
+    }
+    imui::NewLine();
+
+    for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
+      physics::Particle2d* p = &physics::kParticle2d[i];
+      imui::SameLine();
+      imui::Width(80);
+      imui::TextOptions o;
+      o.highlight_color = rgg::kRed;
+      if (imui::Text("Particle", o).highlighted) {
+        rgg::DebugPushRect(p->aabb(), rgg::kGreen);
+        if (p->next_p2d_x) {
+          rgg::DebugPushRect(
+              physics::FindParticle2d(p->next_p2d_x)->aabb(), rgg::kBlue);
+        }
+        if (p->prev_p2d_x) {
+          rgg::DebugPushRect(
+              physics::FindParticle2d(p->prev_p2d_x)->aabb(), rgg::kPurple);
+        }
+      }
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%u", p->id);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
+      imui::Indent(2);
+      if (imui::ButtonCircle(8.f, v4f(1.f, 0.f, 0.f, .7f)).clicked) {
+        physics::DeleteParticle2d(p);
+      }
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Next");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%u", p->next_p2d_x);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Prev");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%u", p->prev_p2d_x);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("On Ground");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%i", p->on_ground);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Position");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f,%.3f", p->position.x,
+               p->position.y);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Velocity");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f,%.3f", p->velocity.x,
+               p->velocity.y);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Acceleration");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f,%.3f", p->acceleration.x,
+               p->acceleration.y);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Inverse Mass");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f", p->inverse_mass);
+      imui::Width(kWidth / 2.f);
+      imui::Text(kUIBuffer);
+      if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+        p->inverse_mass -= .1f;
+      }
+      imui::Space(imui::kHorizontal, 5.f);
+      if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+        p->inverse_mass += .1f;
+      }
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Damping");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f", p->damping);
+      imui::Width(kWidth / 2.f);
+      imui::Text(kUIBuffer);
+      if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+        p->damping -= .01f;
+      }
+      imui::Space(imui::kHorizontal, 5.f);
+      if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+        p->damping += .01f;
+      }
+      p->damping = CLAMPF(p->damping, 0.f, 1.0f);
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Width");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f", p->dims.x);
+      imui::Width(kWidth / 2.f);
+      imui::Text(kUIBuffer);
+      if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+        p->dims.x -= 1.f;
+      }
+      imui::Space(imui::kHorizontal, 5.f);
+      if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+        p->dims.x += 1.f;
+      }
+      if (imui::Button(16.f, 16.f, rgg::kGreen).clicked) {
+        p->dims.x -= 10.f;
+      }
+      imui::Space(imui::kHorizontal, 5.f);
+      if (imui::Button(16.f, 16.f, rgg::kGreen).clicked) {
+        p->dims.x += 10.f;
+      }
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Height");
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "%.3f", p->dims.y);
+      imui::Width(kWidth / 2.f);
+      imui::Text(kUIBuffer);
+      if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+        p->dims.y -= 1.f;
+      }
+      imui::Space(imui::kHorizontal, 5.f);
+      if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+        p->dims.y += 1.f;
+      }
+      if (imui::Button(16.f, 16.f, rgg::kGreen).clicked) {
+        p->dims.y -= 10.f;
+      }
+      imui::Space(imui::kHorizontal, 5.f);
+      if (imui::Button(16.f, 16.f, rgg::kGreen).clicked) {
+        p->dims.y += 10.f;
+      }
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Freeze");
+      b8 set = FLAGGED(p->flags, physics::kParticleFreeze);
+      imui::Checkbox(16, 16, &set);
+      if (set) {
+        SBIT(p->flags, physics::kParticleFreeze);
+      } else {
+        CBIT(p->flags, physics::kParticleFreeze);
+      }
+      imui::NewLine();
+      imui::SameLine();
+      imui::Width(kWidth);
+      imui::Text("Ignore Gravity");
+      set = FLAGGED(p->flags, physics::kParticleIgnoreGravity);
+      imui::Checkbox(16, 16, &set);
+      if (set) {
+        SBIT(p->flags, physics::kParticleIgnoreGravity);
+      } else {
+        CBIT(p->flags, physics::kParticleIgnoreGravity);
+      }
+      imui::NewLine();
+
+      imui::Indent(0);
+    }
+    imui::End();
+  }
+
 }
 
 void
-InitializeGame()
+GameInitialize(const v2f& dims)
 {
-  kGame.ground = 0.f;
-  {
-  // Create the player.
-  Entity* entity = UseEntity();
-  PhysicsComponent* physics = UsePhysicsComponent();
-  entity->physics_component_id = physics->id;
-  RenderSpriteComponent* sprite_component = UseRenderSpriteComponent();
-  sprite_component->texture = kAsset.player_texture;
-  sprite_component->sprite_anim = kAsset.player_sprite;
-  entity->render_sprite_component_id = sprite_component->id;
-  physics->bounds = Rectf(physics->position.xy(), 20.f, 31.f);
-  entity->render_rect_component_id = UseRenderRectComponent()->id;
-  kPlayerId = entity->id;
-  }
+  rgg::GetObserver()->projection = rgg::DefaultPerspective(dims);
 
-  // Create ground
-  {
-  Entity* entity = UseEntity();
-  PhysicsComponent* physics = UsePhysicsComponent();
-  physics->position = v3f(-1000.f, -5.f, 0.f);
-  entity->physics_component_id = physics->id;
-  physics->bounds = Rectf(physics->position.xy(), 2000.f, 5.f);
-  entity->render_rect_component_id = UseRenderRectComponent()->id;
-  }
+  rgg::Camera camera;
+  camera.position = v3f(0.f, 1.f, 100.f);
+  camera.dir = v3f(0.f, 0.f, -1.f);
+  camera.up = v3f(0.f, 1.f, 0.f);
+  camera.mode = rgg::kCameraBrowser;
+  camera.speed = v3f(5.f, 5.f, 5.f);
+  camera.viewport = dims;
+  rgg::CameraInit(camera);
 
-  // Create some stuff for collisions.
-  { 
-  Entity* entity = UseEntity();
-  PhysicsComponent* physics = UsePhysicsComponent();
-  physics->position = v3f(50.f, 0.f, 0.f);
-  entity->physics_component_id = physics->id;
-  physics->bounds = Rectf(physics->position.xy(), 30.f, 30.f);
-  entity->render_rect_component_id = UseRenderRectComponent()->id;
-  }
-}
-
-b8
-LoadAssets()
-{
-  rgg::TextureInfo tinfo;
-  tinfo.mag_filter = GL_NEAREST;
-  tinfo.min_filter = GL_NEAREST_MIPMAP_NEAREST;
-  if (!rgg::LoadTGA("asset/adventurer.tga", tinfo, &kAsset.player_texture)) {
-    return false;
-  }
-
-  if (!animation::LoadAnimation("asset/adventurer.anim", &kAsset.player_sprite)) {
-    return false;
-  }
-
-  return true;
+  kParticle = physics::CreateParticle2d(v2f(0.f, 0.f), v2f(5.f, 5.f));
+  physics::CreateInfinteMassParticle2d(v2f(0.f, -10.f), v2f(100.f, 5.f));
 }
 
 void
-UpdateGame()
+GameUpdate()
 {
+  // Execute game code.
+  DebugUI();
   rgg::CameraUpdate();
-
-  for (int i = 0; i < kUsedEntity; ++i) {
-    PhysicsComponent* physics =
-        FindPhysicsComponent(kEntity[i].physics_component_id);
-
-    if (!physics) continue;
-
-    v3f pre_velocity = physics->velocity;
-    physics->velocity += physics->acceleration;
-
-    if (physics->velocity.x * physics->velocity.x >
-        physics->max_speed.x * physics->max_speed.x) {
-      if (physics->velocity.x < 0.f) physics->velocity.x = -physics->max_speed.x;
-      if (physics->velocity.x > 0.f) physics->velocity.x = physics->max_speed.x;
-    }
-
-    physics->position += physics->velocity;
-    if (physics->velocity.x > 0.f) {
-      physics->velocity.x -= kPhysicsGlobal.friction_coefficient;
-      if (physics->velocity.x < 0.f) physics->velocity.x = 0.f;
-    } else if (physics->velocity.x < 0.f) {
-      physics->velocity.x += kPhysicsGlobal.friction_coefficient;
-      if (physics->velocity.x > 0.f) physics->velocity.x = 0.f;
-    }
-
-    if (physics->velocity.y > 0.f) {
-      physics->velocity.y -= kPhysicsGlobal.gravity;
-      if (physics->velocity.x < 0.f) physics->velocity.x = 0.f;
-    }
-
-    physics->bounds.x = physics->position.x;
-    physics->bounds.y = physics->position.y;
-
-    RenderSpriteComponent* sprite =
-        FindRenderSpriteComponent(kEntity[i].render_sprite_component_id);
-
-    if (!sprite) continue;
-
-    // TODO: Is this actually right?
-    physics->bounds.x += ((float)sprite->sprite_anim.width / 4.f) + 2.f;
-
-    if (pre_velocity.x <= 0.f && physics->velocity.x > 0.f) {
-      animation::SetLabel("run", &sprite->sprite_anim);
-    } else if (pre_velocity.x >= 0.f && physics->velocity.x < 0.f) {
-      animation::SetLabel("run", &sprite->sprite_anim, true);
-    }
-
-    if (pre_velocity.x > 0.f && physics->velocity.x == 0.f) {
-      animation::SetLabel("idle", &sprite->sprite_anim);
-    }
-
-    if (pre_velocity.x < 0.f && physics->velocity.x == 0.f) {
-      animation::SetLabel("idle", &sprite->sprite_anim, true);
-    }
-  }
+  rgg::GetObserver()->view = rgg::CameraView();
+  physics::Integrate(kDelta);
 }
 
 void
-RenderGame()
+GameRender()
 {
-  rgg::Observer* obs = rgg::GetObserver();
-  obs->view = rgg::CameraView();
-
-  // Render all rect components.
-  for (u32 i = 0; i < kUsedEntity; ++i) {
-    Entity* ent = &kEntity[i];
-
-    PhysicsComponent* physics =
-        FindPhysicsComponent(ent->physics_component_id);
-
-    if (!physics) continue;
-
-    RenderRectComponent* rect =
-        FindRenderRectComponent(ent->render_rect_component_id);
-
-    if (!rect) continue;
-
-    rgg::RenderLineRectangle(physics->bounds, 0.f, v4f(1.f, 0.f, 0.f, 1.f));
+  if (kRenderCollision) {
+    for (u32 i = 0; i < physics::kUsedBP2dCollision; ++i) {
+      physics::BP2dCollision* c = &physics::kBP2dCollision[i];
+      rgg::RenderLineRectangle(c->intersection, rgg::kWhite);
+    }
   }
-
-  // Render all sprite components.
-  for (u32 i = 0; i < kUsedEntity; ++i) {
-    Entity* ent = &kEntity[i];
-
-    PhysicsComponent* physics =
-        FindPhysicsComponent(ent->physics_component_id);
-
-    if (!physics) continue;
-
-    RenderSpriteComponent* sprite =
-        FindRenderSpriteComponent(ent->render_sprite_component_id);
-
-    if (!sprite) continue;
-
-    rgg::RenderTexture(
-        sprite->texture, animation::Update(&sprite->sprite_anim),
-        Rectf(physics->position.xy(),
-              sprite->sprite_anim.width, sprite->sprite_anim.height),
-        sprite->sprite_anim.mirror);
-  }
-  
   rgg::DebugRenderPrimitives();
+  for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
+    physics::Particle2d* p = &physics::kParticle2d[i];
+    rgg::RenderLineRectangle(p->aabb(), rgg::kRed);
+    //rgg::RenderCircle(p->position, 0.5f, rgg::kGreen);
+  }
   imui::Render(imui::kEveryoneTag);
-
   window::SwapBuffers();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -312,13 +360,12 @@ RenderGame()
 s32
 main(s32 argc, char** argv)
 {
-  platform::Clock game_clock;
 
   if (!memory::Initialize(MiB(64))) {
     return 1;
   }
 
-  if (!window::Create("Platformer", kGameState.window_create_info)) {
+  if (!window::Create("Game", kGameState.window_create_info)) {
     return 1;
   }
 
@@ -331,23 +378,9 @@ main(s32 argc, char** argv)
     return 1;
   }
 
-  if (!LoadAssets()) {
-    printf("Unable to load assets.\n");
-    return 1;
-  }
-
-  InitializeGame();
-
-  rgg::GetObserver()->projection = rgg::DefaultOrtho(window::GetWindowSize());
-
-  rgg::Camera camera;
-  camera.position = v3f(0.f, 1.f, -.69f);
-  camera.dir = v3f(0.f, 0.f, -1.f);
-  camera.up = v3f(0.f, 1.f, 0.f);
-  camera.mode = rgg::kCameraFollow;
-  camera.speed = v3f(5.f, 5.f, 0.1f);
-  rgg::CameraInit(camera);
-
+  const v2f dims = window::GetWindowSize();
+  GameInitialize(dims);
+  
   // main thread affinity set to core 0
   if (platform::thread_affinity_count() > 1) {
     platform::thread_affinity_usecore(0);
@@ -367,54 +400,64 @@ main(s32 argc, char** argv)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   while (1) {
-    platform::ClockStart(&game_clock);
+    platform::ClockStart(&kGameState.game_clock);
 
     imui::ResetTag(imui::kEveryoneTag);
     rgg::DebugReset();
 
     if (window::ShouldClose()) break;
 
+    const v2f cursor = window::GetCursorPosition();
+    imui::MousePosition(cursor, imui::kEveryoneTag);
+
     PlatformEvent event;
     while (window::PollEvent(&event)) {
       rgg::CameraUpdateEvent(event);
-      Entity* player = FindEntity(kPlayerId);
-      PhysicsComponent* physics =
-          FindPhysicsComponent(player->physics_component_id);
       switch(event.type) {
         case KEY_DOWN: {
           switch (event.key) {
-            case 'w': {
-              //physics->acceleration.y = 3.f;
-            } break;
-            case 'a': {
-              physics->acceleration.x = -1.f;
-            } break;
-            case 's': {
-            } break;
-            case 'd': {
-              physics->acceleration.x = 1.f;
-            } break;
             case 27 /* ESC */: {
               exit(1);
+            } break;
+            case 'h': {
+              kParticle->acceleration.x = -100.f;
+            } break;
+            case 'j': {
+            } break;
+            case 'k': {
+              if (kParticle->on_ground) {
+                kParticle->force.y = kJumpForce;
+              }
+            } break;
+            case 'l': {
+              kParticle->acceleration.x = 100.f;
             } break;
           }
         } break;
         case KEY_UP: {
           switch (event.key) {
-            case 'w': {
-              //physics->acceleration.y = 0.f;
+            case 'h': {
+              kParticle->acceleration.x = 0.f;
             } break;
-            case 'a': {
-              physics->acceleration.x = 0.f;
+            case 'j': {
+              kParticle->acceleration.y = 0.f;
             } break;
-            case 'd': {
-              physics->acceleration.x = 0.f;
+            case 'k': {
+              kParticle->acceleration.y = 0.f;
+            } break;
+            case 'l': {
+              kParticle->acceleration.x = 0.f;
             } break;
           }
         } break;
-
         case MOUSE_DOWN: {
           imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
+          if (!imui::MouseInUI(cursor, imui::kEveryoneTag)) {
+            physics::Particle2d* p = physics::CreateParticle2d(
+                rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy(),
+                v2f(5.f, 5.f));
+            p->inverse_mass = 0.f;
+          }
         } break;
         case MOUSE_UP: {
           imui::MouseUp(event.position, event.button, imui::kEveryoneTag);
@@ -422,18 +465,14 @@ main(s32 argc, char** argv)
         case MOUSE_WHEEL: {
           imui::MouseWheel(event.wheel_delta, imui::kEveryoneTag);
         } break;
+        default: break;
       }
     }
 
-    const v2f cursor = window::GetCursorPosition();
-    imui::MousePosition(cursor, imui::kEveryoneTag);
-
-    DebugUI();
-
-    UpdateGame();
-    RenderGame();
+    GameUpdate();
+    GameRender();  
     
-    const u64 elapsed_usec = platform::ClockEnd(&game_clock);
+    const u64 elapsed_usec = platform::ClockEnd(&kGameState.game_clock);
     StatsAdd(elapsed_usec, &kGameStats);
 
     if (kGameState.frame_target_usec > elapsed_usec) {
@@ -443,7 +482,7 @@ main(s32 argc, char** argv)
       while (platform::ClockEnd(&wait_clock) < wait_usec) {}
     }
 
-    kGameState.game_time_usec += platform::ClockEnd(&game_clock);
+    kGameState.game_time_usec += platform::ClockEnd(&kGameState.game_clock);
     kGameState.game_updates++;
   }
 

@@ -78,6 +78,17 @@ CreateParticle2d(v2f pos, v2f dims)
   return particle;
 }
 
+Particle2d*
+CreateInfinteMassParticle2d(v2f pos, v2f dims)
+{
+  Particle2d* particle = UseParticle2d();
+  particle->position = pos;
+  particle->dims = dims;
+  particle->inverse_mass = 0.f;
+  BPInitP2d(particle);
+  return particle;
+}
+
 void
 DeleteParticle2d(Particle2d* p)
 {

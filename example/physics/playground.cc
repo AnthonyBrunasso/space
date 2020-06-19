@@ -323,7 +323,7 @@ GameInitialize(const v2f& dims)
   camera.viewport = dims;
   rgg::CameraInit(camera);
 
-  kParticle = physics::CreateParticle2d(v2f(0.f, 0.f), v2f(10.f, 10.f));
+  kParticle = physics::CreateParticle2d(v2f(0.f, 0.f), v2f(5.f, 5.f));
   SBIT(kParticle->flags, physics::kParticleIgnoreGravity);
 }
 

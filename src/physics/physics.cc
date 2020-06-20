@@ -231,13 +231,13 @@ DebugUI(v2f screen)
   imui::SameLine();
   imui::Width(80);
   imui::Text("X Head");
-  snprintf(kUIBuffer, kUIBufferSize, "%u", physics::kPhysics.p2d_head_x);
+  snprintf(kUIBuffer, kUIBufferSize, "%u", kPhysics.p2d_head_x);
   imui::Text(kUIBuffer);
   imui::NewLine();
   imui::SameLine();
   imui::Width(80);
   imui::Text("Gravity");
-  snprintf(kUIBuffer, kUIBufferSize, "%.2f", physics::kPhysics.gravity);
+  snprintf(kUIBuffer, kUIBufferSize, "%.2f", kPhysics.gravity);
   imui::Width(100.f);
   imui::Text(kUIBuffer);
   if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
@@ -414,8 +414,8 @@ void
 DebugRender()
 {
   if (kPhysics.debug_render_collision) {
-    for (u32 i = 0; i < physics::kUsedBP2dCollision; ++i) {
-      physics::BP2dCollision* c = &physics::kBP2dCollision[i];
+    for (u32 i = 0; i < kUsedBP2dCollision; ++i) {
+      BP2dCollision* c = &kBP2dCollision[i];
       rgg::RenderLineRectangle(c->intersection, rgg::kWhite);
     }
   }

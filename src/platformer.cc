@@ -206,7 +206,7 @@ main(s32 argc, char** argv)
               exit(1);
             } break;
             case 'h': {
-              kParticle->acceleration.x = -100.f;
+              kParticle->acceleration.x = -150.f;
             } break;
             case 'j': {
             } break;
@@ -216,7 +216,7 @@ main(s32 argc, char** argv)
               }
             } break;
             case 'l': {
-              kParticle->acceleration.x = 100.f;
+              kParticle->acceleration.x = 150.f;
             } break;
           }
         } break;

@@ -4,6 +4,7 @@
 #include "common/common.cc"
 #include "math/vec.h"
 #include "math/rect.h"
+#include "renderer/imui.cc"
 
 namespace physics {
 
@@ -48,6 +49,8 @@ struct Physics {
   r32 gravity = 350.f;
   // Linked list in sorted order on x / y axis for collision checks.
   u32 p2d_head_x = kInvalidId;
+  // If using DebugUI will render rectangles where collisions occur.
+  b8 debug_render_collision = true;
 };
 
 static Physics kPhysics;
@@ -204,6 +207,217 @@ Integrate(r32 dt_sec)
 
     BPUpdateP2d(c->p1);
     BPUpdateP2d(c->p2);
+  }
+}
+
+void
+DebugUI(v2f screen)
+{
+  static const u32 kUIBufferSize = 64;
+  static char kUIBuffer[kUIBufferSize];
+  static b8 enable_physics = true;
+  static v2f physics_pos(0.f, screen.y - 300.f);
+  imui::PaneOptions options;
+  options.width = options.max_width = 365.f;
+  options.max_height = 500.f;
+  imui::Begin("Physics", imui::kEveryoneTag, options, &physics_pos,
+              &enable_physics);
+  static const r32 kWidth = 130.f;
+  imui::SameLine();
+  imui::Width(80);
+  imui::Text("Collision");
+  imui::Checkbox(16.f, 16.f, &kPhysics.debug_render_collision);
+  imui::NewLine();
+  imui::SameLine();
+  imui::Width(80);
+  imui::Text("X Head");
+  snprintf(kUIBuffer, kUIBufferSize, "%u", physics::kPhysics.p2d_head_x);
+  imui::Text(kUIBuffer);
+  imui::NewLine();
+  imui::SameLine();
+  imui::Width(80);
+  imui::Text("Gravity");
+  snprintf(kUIBuffer, kUIBufferSize, "%.2f", physics::kPhysics.gravity);
+  imui::Width(100.f);
+  imui::Text(kUIBuffer);
+  if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+    kPhysics.gravity -= 10.f;
+  }
+  imui::Space(imui::kHorizontal, 5.f);
+  if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+    kPhysics.gravity += 10.f;
+  }
+  imui::NewLine();
+  for (u32 i = 0; i < kUsedParticle2d; ++i) {
+    Particle2d* p = &kParticle2d[i];
+    imui::SameLine();
+    imui::Width(80);
+    imui::TextOptions o;
+    o.highlight_color = rgg::kRed;
+    if (imui::Text("Particle", o).highlighted) {
+      rgg::DebugPushRect(p->aabb(), rgg::kGreen);
+      if (p->next_p2d_x) {
+        rgg::DebugPushRect(
+            FindParticle2d(p->next_p2d_x)->aabb(), rgg::kBlue);
+      }
+      if (p->prev_p2d_x) {
+        rgg::DebugPushRect(
+            FindParticle2d(p->prev_p2d_x)->aabb(), rgg::kPurple);
+      }
+    }
+    snprintf(kUIBuffer, kUIBufferSize, "%u", p->id);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::Indent(2);
+    if (imui::ButtonCircle(8.f, v4f(1.f, 0.f, 0.f, .7f)).clicked) {
+      DeleteParticle2d(p);
+    }
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Next");
+    snprintf(kUIBuffer, kUIBufferSize, "%u", p->next_p2d_x);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Prev");
+    snprintf(kUIBuffer, kUIBufferSize, "%u", p->prev_p2d_x);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("On Ground");
+    snprintf(kUIBuffer, kUIBufferSize, "%i", p->on_ground);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Position");
+    snprintf(kUIBuffer, kUIBufferSize, "%.3f,%.3f", p->position.x,
+             p->position.y);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Velocity");
+    snprintf(kUIBuffer, kUIBufferSize, "%.3f,%.3f", p->velocity.x,
+             p->velocity.y);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Acceleration");
+    snprintf(kUIBuffer, kUIBufferSize, "%.3f,%.3f", p->acceleration.x,
+             p->acceleration.y);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Inverse Mass");
+    snprintf(kUIBuffer, kUIBufferSize, "%.3f", p->inverse_mass);
+    imui::Width(kWidth / 2.f);
+    imui::Text(kUIBuffer);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      p->inverse_mass -= .1f;
+    }
+    imui::Space(imui::kHorizontal, 5.f);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      p->inverse_mass += .1f;
+    }
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Damping");
+    snprintf(kUIBuffer, kUIBufferSize, "%.3f", p->damping);
+    imui::Width(kWidth / 2.f);
+    imui::Text(kUIBuffer);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      p->damping -= .01f;
+    }
+    imui::Space(imui::kHorizontal, 5.f);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      p->damping += .01f;
+    }
+    p->damping = CLAMPF(p->damping, 0.f, 1.0f);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Width");
+    snprintf(kUIBuffer, kUIBufferSize, "%.3f", p->dims.x);
+    imui::Width(kWidth / 2.f);
+    imui::Text(kUIBuffer);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      p->dims.x -= 1.f;
+    }
+    imui::Space(imui::kHorizontal, 5.f);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      p->dims.x += 1.f;
+    }
+    if (imui::Button(16.f, 16.f, rgg::kGreen).clicked) {
+      p->dims.x -= 10.f;
+    }
+    imui::Space(imui::kHorizontal, 5.f);
+    if (imui::Button(16.f, 16.f, rgg::kGreen).clicked) {
+      p->dims.x += 10.f;
+    }
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Height");
+    snprintf(kUIBuffer, kUIBufferSize, "%.3f", p->dims.y);
+    imui::Width(kWidth / 2.f);
+    imui::Text(kUIBuffer);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      p->dims.y -= 1.f;
+    }
+    imui::Space(imui::kHorizontal, 5.f);
+    if (imui::Button(16.f, 16.f, rgg::kBlue).clicked) {
+      p->dims.y += 1.f;
+    }
+    if (imui::Button(16.f, 16.f, rgg::kGreen).clicked) {
+      p->dims.y -= 10.f;
+    }
+    imui::Space(imui::kHorizontal, 5.f);
+    if (imui::Button(16.f, 16.f, rgg::kGreen).clicked) {
+      p->dims.y += 10.f;
+    }
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Freeze");
+    b8 set = FLAGGED(p->flags, kParticleFreeze);
+    imui::Checkbox(16, 16, &set);
+    if (set) {
+      SBIT(p->flags, kParticleFreeze);
+    } else {
+      CBIT(p->flags, kParticleFreeze);
+    }
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Ignore Gravity");
+    set = FLAGGED(p->flags, kParticleIgnoreGravity);
+    imui::Checkbox(16, 16, &set);
+    if (set) {
+      SBIT(p->flags, kParticleIgnoreGravity);
+    } else {
+      CBIT(p->flags, kParticleIgnoreGravity);
+    }
+    imui::NewLine();
+    imui::Indent(0);
+    BPUpdateP2d(p);
+  }
+  imui::End();
+}
+
+void
+DebugRender()
+{
+  if (kPhysics.debug_render_collision) {
+    for (u32 i = 0; i < physics::kUsedBP2dCollision; ++i) {
+      physics::BP2dCollision* c = &physics::kBP2dCollision[i];
+      rgg::RenderLineRectangle(c->intersection, rgg::kWhite);
+    }
   }
 }
 

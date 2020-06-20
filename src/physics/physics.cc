@@ -45,7 +45,7 @@ struct Particle2d {
 
 struct Physics {
   // Acceleration of gravity.
-  r32 gravity = 100.f;
+  r32 gravity = 350.f;
   // Linked list in sorted order on x / y axis for collision checks.
   u32 p2d_head_x = kInvalidId;
 };
@@ -97,12 +97,13 @@ DeleteParticle2d(Particle2d* p)
 }
 
 void
-__ResolvePositionAndVelocity(Particle2d* p, v2f correction)
+__ResolvePositionAndVelocity(
+    Particle2d* p, v2f correction, const Rectf& intersection)
 {
   if (p->inverse_mass < FLT_EPSILON) return;
   if (IsZero(p->velocity)) return;
   if (correction.x > 0.f) {
-    if (p->velocity.x > 0.f) {
+    if (p->aabb().x < intersection.x) {
       p->position.x -= correction.x;
     } else {
       p->position.x += correction.x;
@@ -110,7 +111,7 @@ __ResolvePositionAndVelocity(Particle2d* p, v2f correction)
     p->velocity.x = 0.f;
   }
   if (correction.y > 0.f) {
-    if (p->velocity.y > 0.f) {
+    if (p->aabb().y < intersection.y) {
       p->position.y -= correction.y;
     } else {
       p->position.y += correction.y;
@@ -198,8 +199,8 @@ Integrate(r32 dt_sec)
       correction = v2f(0.f, c->intersection.height);
     }
 
-    __ResolvePositionAndVelocity(c->p1, correction);
-    __ResolvePositionAndVelocity(c->p2, correction);
+    __ResolvePositionAndVelocity(c->p1, correction, c->intersection);
+    __ResolvePositionAndVelocity(c->p2, correction, c->intersection);
 
     BPUpdateP2d(c->p1);
     BPUpdateP2d(c->p2);

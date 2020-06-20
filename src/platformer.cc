@@ -324,7 +324,8 @@ GameInitialize(const v2f& dims)
   rgg::CameraInit(camera);
 
   kParticle = physics::CreateParticle2d(v2f(0.f, 0.f), v2f(5.f, 5.f));
-  physics::CreateInfinteMassParticle2d(v2f(0.f, -10.f), v2f(100.f, 5.f));
+  physics::CreateInfinteMassParticle2d(v2f(0.f, -5.f), v2f(100.f, 5.f));
+  physics::CreateInfinteMassParticle2d(v2f(10.f, 10.f), v2f(50.f, 5.f));
 }
 
 void

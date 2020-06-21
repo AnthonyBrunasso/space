@@ -24,6 +24,7 @@ struct Particle2d {
   // Set to true when the particle is colliding with a 0.0 inverse mass
   // particle underneath it.
   b8 on_ground = false;
+  b8 on_wall = false;
 
   // Particles keep forward and backward pointers so they can quickly sort
   // themselves after updating.
@@ -126,16 +127,19 @@ __ResolvePositionAndVelocity(
 }
 
 void
-__SetOnGround(Particle2d* p1, Particle2d* p2, const Rectf& intersection)
+__SetOnGround(Particle2d* p, const Rectf& intersection)
 {
-  Rectf underneath_p1(p1->aabb());
-  underneath_p1.height = 1.f;
-  // Hack so particle will not collide with wall on its left or right.
-  underneath_p1.x += .1f;
-  underneath_p1.width -= .2f;
-  if (!p1->on_ground) {
-    p1->on_ground = p2->inverse_mass < FLT_EPSILON &&
-        math::IntersectRect(underneath_p1, intersection);
+  if (!p->on_ground) {
+    p->on_ground = intersection.y < p->aabb().y;
+  }
+}
+
+void
+__SetOnWall(Particle2d* p, const Rectf& intersection)
+{
+  if (!p->on_wall) {
+    p->on_wall = intersection.x < p->aabb().x ||
+                 intersection.Max().x > p->aabb().Max().x;
   }
 }
 
@@ -164,6 +168,7 @@ Integrate(r32 dt_sec)
     
     // Set after collision code runs.
     p->on_ground = false;
+    p->on_wall = false;
     // F = m * a
     // a = F * (1 / m)
     v2f acc = p->acceleration;
@@ -193,9 +198,6 @@ Integrate(r32 dt_sec)
       continue;
     }
 
-    __SetOnGround(c->p1, c->p2, c->intersection);
-    __SetOnGround(c->p2, c->p1, c->intersection);
-    
     // Use min axis of intersection to correct collisions.
     v2f correction;
     if (c->intersection.width < c->intersection.height) {
@@ -206,6 +208,12 @@ Integrate(r32 dt_sec)
 
     __ResolvePositionAndVelocity(c->p1, correction, c->intersection);
     __ResolvePositionAndVelocity(c->p2, correction, c->intersection);
+
+    __SetOnGround(c->p1, c->intersection);
+    __SetOnGround(c->p2, c->intersection);
+
+    __SetOnWall(c->p1, c->intersection);
+    __SetOnWall(c->p2, c->intersection);
 
     BPUpdateP2d(c->p1);
     BPUpdateP2d(c->p2);
@@ -290,6 +298,12 @@ DebugUI(v2f screen)
     imui::Width(kWidth);
     imui::Text("On Ground");
     snprintf(kUIBuffer, kUIBufferSize, "%i", p->on_ground);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("On Wall");
+    snprintf(kUIBuffer, kUIBufferSize, "%i", p->on_wall);
     imui::Text(kUIBuffer);
     imui::NewLine();
     imui::SameLine();

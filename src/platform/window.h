@@ -53,7 +53,6 @@ struct ControllerState {
   s16 stick_y;
   // bitfield containing fields from ControllerButton enum.
   u16 controller_flags;
-  u16 sequence_number;
 };
 
 struct PlatformEvent {

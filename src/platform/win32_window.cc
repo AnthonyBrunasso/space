@@ -270,21 +270,21 @@ bool
 PollXboxController()
 {
   PlatformEvent* platform_event = kWindow.platform_event;
+  static u32 previous_sequence_num = -1;
   // Get state of controller.
   for (DWORD i = 0; i < XUSER_MAX_COUNT; ++i) {
     XINPUT_STATE state = {};
     // TODO: Takes first connected controller. Perhaps allow multiple
     // controllers.
     if (__XInputGetState(i, &state) == ERROR_SUCCESS) {
-      if (state.dwPacketNumber ==
-          platform_event->controller.sequence_number) {
+      if (state.dwPacketNumber == previous_sequence_num) {
         return false;
       }
       platform_event->type = XBOX_CONTROLLER;
       platform_event->controller.stick_x = state.Gamepad.sThumbLX;
       platform_event->controller.stick_y = state.Gamepad.sThumbLY;
       platform_event->controller.controller_flags = state.Gamepad.wButtons;
-      platform_event->controller.sequence_number = state.dwPacketNumber;
+      previous_sequence_num = state.dwPacketNumber;
       return true;
     }
   }

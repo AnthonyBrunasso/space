@@ -281,8 +281,12 @@ PollXboxController()
         return false;
       }
       platform_event->type = XBOX_CONTROLLER;
-      platform_event->controller.stick_x = state.Gamepad.sThumbLX;
-      platform_event->controller.stick_y = state.Gamepad.sThumbLY;
+      platform_event->controller.lstick_x = state.Gamepad.sThumbLX;
+      platform_event->controller.lstick_y = state.Gamepad.sThumbLY;
+      platform_event->controller.rstick_x = state.Gamepad.sThumbRX;
+      platform_event->controller.rstick_y = state.Gamepad.sThumbRY;
+      platform_event->controller.left_trigger = state.Gamepad.bLeftTrigger;
+      platform_event->controller.right_trigger = state.Gamepad.bRightTrigger;
       platform_event->controller.controller_flags = state.Gamepad.wButtons;
       previous_sequence_num = state.dwPacketNumber;
       return true;
@@ -587,9 +591,7 @@ Create(const char* name, const CreateInfo& create_info)
 b8
 PollEvent(PlatformEvent* event)
 {
-  event->type = NOT_IMPLEMENTED;
-  event->key = 0;
-  event->position = v2f(0.f, 0.f);
+  *event = {};
   kWindow.platform_event = event;
 
   MSG msg;

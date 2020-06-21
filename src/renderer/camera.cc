@@ -73,6 +73,15 @@ CameraLerpToXY(const v2f& position)
   c->lerpv = c->lerpv >= 1.f ? 0.f : c->lerpv;
 }
 
+void
+CameraSetPositionXY(const v2f& position)
+{
+  Camera* c = CameraGetCurrent();
+  if (!c) return;
+  c->position.x = position.x;
+  c->position.y = position.y;
+}
+
 v3f
 CameraPosition()
 {

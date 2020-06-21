@@ -128,6 +128,7 @@ GameUpdate()
   rgg::CameraUpdate();
   rgg::GetObserver()->view = rgg::CameraView();
   physics::Integrate(kDelta);
+  rgg::CameraSetPositionXY(kParticle->position);
 }
 
 void
@@ -261,7 +262,7 @@ main(s32 argc, char** argv)
           // TODO: Calculate controller deadzone with min magnitude.
           constexpr r32 kInputDeadzone = 4000.f;
           constexpr r32 kMaxControllerMagnitude = 32767.f;
-          v2f stick(event.controller.stick_x, event.controller.stick_y);
+          v2f stick(event.controller.lstick_x, event.controller.lstick_y);
           r32 magnitude = math::Length(stick);
           v2f nstick = stick / magnitude;
           r32 normalized_magnitude = 0;

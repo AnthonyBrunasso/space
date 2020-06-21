@@ -49,8 +49,15 @@ enum ControllerButton {
 };
 
 struct ControllerState {
-  s16 stick_x;
-  s16 stick_y;
+  // Left stick x / y.
+  s16 lstick_x;
+  s16 lstick_y;
+  // Right stick x / y.
+  s16 rstick_x;
+  s16 rstick_y;
+  // Whether the left and right trigger are pressed.
+  b8 left_trigger;
+  b8 right_trigger;
   // bitfield containing fields from ControllerButton enum.
   u16 controller_flags;
 };

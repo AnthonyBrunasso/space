@@ -276,8 +276,7 @@ PollXboxController()
     // TODO: Takes first connected controller. Perhaps allow multiple
     // controllers.
     if (__XInputGetState(i, &state) == ERROR_SUCCESS) {
-      if (platform_event->type == XBOX_CONTROLLER &&
-          state.dwPacketNumber ==
+      if (state.dwPacketNumber ==
           platform_event->controller.sequence_number) {
         return false;
       }

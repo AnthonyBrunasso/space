@@ -197,6 +197,8 @@ main(s32 argc, char** argv)
     imui::MousePosition(cursor, imui::kEveryoneTag);
 
     PlatformEvent event;
+    ControllerState previous_controller;
+    ControllerState current_controller = {};
     while (window::PollEvent(&event)) {
       rgg::CameraUpdateEvent(event);
       switch(event.type) {
@@ -252,9 +254,34 @@ main(s32 argc, char** argv)
           imui::MouseWheel(event.wheel_delta, imui::kEveryoneTag);
         } break;
         case XBOX_CONTROLLER: {
-          //printf("stick_x: %i\nstick_y:%i\nbuttons:%u\n",
-          //       event.controller.stick_x, event.controller.stick_y,
-          //       event.controller.controller_flags);
+          if (FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_A) &&
+              kParticle->on_ground) {
+            kParticle->force.y = kJumpForce;
+          }
+          // TODO: Calculate controller deadzone with min magnitude.
+          constexpr float kInputDeadzone = 4000.f;
+          constexpr float kMaxControllerMagnitude = 32767.f;
+          v2f stick(event.controller.stick_x, event.controller.stick_y);
+          float magnitude = math::Length(stick);
+          v2f nstick = stick  / magnitude;
+          float normalized_magnitude = 0;
+          if (magnitude > kInputDeadzone) {
+            if (magnitude > kMaxControllerMagnitude) {
+              magnitude = kMaxControllerMagnitude;
+            }
+            magnitude -= kInputDeadzone;
+            normalized_magnitude =
+                magnitude / (kMaxControllerMagnitude - kInputDeadzone);
+            if (nstick.x > 0.f) {
+              kParticle->acceleration.x = 150.f * normalized_magnitude;
+            } else if (nstick.x < 0.f) {
+              kParticle->acceleration.x = -150.f * normalized_magnitude;
+            }
+          } else {
+            magnitude = 0.0;
+            normalized_magnitude = 0.0;
+            kParticle->acceleration.x = 0.f;
+          }
         } break;
         default: break;
       }

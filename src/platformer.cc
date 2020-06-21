@@ -33,12 +33,20 @@ struct State {
   platform::Clock game_clock;
   // Cooldown that dictates whether the player can boost.
   util::Cooldown boost_cooldown;
+  // Cooldown that dictates whether the player can teleport.
+  util::Cooldown teleport_cooldown;
 };
 
 static State kGameState;
 static Stats kGameStats;
 
-static physics::Particle2d* kParticle = nullptr;
+struct Player {
+  b8 teleport_set = false;
+  v2f teleport_position;
+  physics::Particle2d* particle = nullptr;
+};
+
+static Player kPlayer;
 
 static char kUIBuffer[64];
 
@@ -115,8 +123,10 @@ GameInitialize(const v2f& dims)
   camera.viewport = dims;
   rgg::CameraInit(camera);
 
-  kParticle = physics::CreateParticle2d(v2f(0.f, 0.f), v2f(5.f, 5.f));
-  kParticle->damping = 0.005f;
+  kPlayer.teleport_set = false;
+  kPlayer.particle = physics::CreateParticle2d(v2f(0.f, 0.f), v2f(5.f, 5.f));
+  kPlayer.particle->damping = 0.005f;
+
   physics::CreateInfinteMassParticle2d(v2f(0.f, -5.f), v2f(100.f, 5.f));
   physics::CreateInfinteMassParticle2d(v2f(10.f, 10.f), v2f(50.f, 5.f));
   physics::CreateInfinteMassParticle2d(v2f(-30.f, 10.f), v2f(5.f, 50.f));
@@ -124,6 +134,8 @@ GameInitialize(const v2f& dims)
 
   kGameState.boost_cooldown.usec = SECONDS(1);
   util::CooldownInitialize(&kGameState.boost_cooldown);
+  kGameState.teleport_cooldown.usec = SECONDS(2);
+  util::CooldownInitialize(&kGameState.teleport_cooldown);
 }
 
 void
@@ -134,7 +146,7 @@ GameUpdate()
   rgg::CameraUpdate();
   rgg::GetObserver()->view = rgg::CameraView();
   physics::Integrate(kDelta);
-  rgg::CameraSetPositionXY(kParticle->position);
+  rgg::CameraSetPositionXY(kPlayer.particle->position);
 }
 
 void
@@ -146,6 +158,10 @@ GameRender()
     physics::Particle2d* p = &physics::kParticle2d[i];
     rgg::RenderLineRectangle(p->aabb(), rgg::kRed);
     //rgg::RenderCircle(p->position, 0.5f, rgg::kGreen);
+  }
+  if (kPlayer.teleport_set) {
+    rgg::RenderLineRectangle(
+        Rectf(kPlayer.teleport_position, kPlayer.particle->dims), rgg::kGreen);
   }
   imui::Render(imui::kEveryoneTag);
   window::SwapBuffers();
@@ -215,33 +231,33 @@ main(s32 argc, char** argv)
               exit(1);
             } break;
             case 'h': {
-              kParticle->acceleration.x = -150.f;
+              kPlayer.particle->acceleration.x = -150.f;
             } break;
             case 'j': {
             } break;
             case 'k': {
-              if (kParticle->on_ground) {
-                kParticle->force.y = kJumpForce;
+              if (kPlayer.particle->on_ground) {
+                kPlayer.particle->force.y = kJumpForce;
               }
             } break;
             case 'l': {
-              kParticle->acceleration.x = 150.f;
+              kPlayer.particle->acceleration.x = 150.f;
             } break;
           }
         } break;
         case KEY_UP: {
           switch (event.key) {
             case 'h': {
-              kParticle->acceleration.x = 0.f;
+              kPlayer.particle->acceleration.x = 0.f;
             } break;
             case 'j': {
-              kParticle->acceleration.y = 0.f;
+              kPlayer.particle->acceleration.y = 0.f;
             } break;
             case 'k': {
-              kParticle->acceleration.y = 0.f;
+              kPlayer.particle->acceleration.y = 0.f;
             } break;
             case 'l': {
-              kParticle->acceleration.x = 0.f;
+              kPlayer.particle->acceleration.x = 0.f;
             } break;
           }
         } break;
@@ -262,8 +278,8 @@ main(s32 argc, char** argv)
         } break;
         case XBOX_CONTROLLER: {
           if (FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_A) &&
-              kParticle->on_ground) {
-            kParticle->force.y += kJumpForce;
+              kPlayer.particle->on_ground) {
+            kPlayer.particle->force.y += kJumpForce;
           }
           // TODO: Calculate controller deadzone with min magnitude.
           constexpr r32 kInputDeadzone = 4000.f;
@@ -280,21 +296,33 @@ main(s32 argc, char** argv)
             normalized_magnitude =
                 magnitude / (kMaxControllerMagnitude - kInputDeadzone);
             if (nstick.x > 0.f) {
-              kParticle->acceleration.x = 150.f * normalized_magnitude;
+              kPlayer.particle->acceleration.x = 150.f * normalized_magnitude;
             } else if (nstick.x < 0.f) {
-              kParticle->acceleration.x = -150.f * normalized_magnitude;
+              kPlayer.particle->acceleration.x = -150.f * normalized_magnitude;
             }
           } else {
             magnitude = 0.0;
             normalized_magnitude = 0.0;
-            kParticle->acceleration.x = 0.f;
+            kPlayer.particle->acceleration.x = 0.f;
           }
 
           if (event.controller.right_trigger &&
               util::CooldownReady(&kGameState.boost_cooldown) &&
               magnitude > 0.0f) {
             util::CooldownReset(&kGameState.boost_cooldown);
-            kParticle->force += nstick * 10000.f;
+            kPlayer.particle->force += nstick * 10000.f;
+          }
+
+          if (event.controller.left_trigger &&
+              util::CooldownReady(&kGameState.teleport_cooldown)) {
+            util::CooldownReset(&kGameState.teleport_cooldown);
+            if (!kPlayer.teleport_set) {
+              kPlayer.teleport_set = true;
+              kPlayer.teleport_position = kPlayer.particle->aabb().Min();
+            } else {
+              kPlayer.teleport_set = false;
+              kPlayer.particle->position = kPlayer.teleport_position;
+            }
           }
         } break;
         default: break;

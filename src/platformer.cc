@@ -7,6 +7,7 @@
 #include "renderer/renderer.cc"
 #include "renderer/camera.cc"
 #include "renderer/imui.cc"
+#include "util/cooldown.cc"
 
 #define PHYSICS_PARTICLE_COUNT 128
 #include "physics/physics.cc"
@@ -30,6 +31,8 @@ struct State {
   u32 music_id;
   // Game clock.
   platform::Clock game_clock;
+  // Cooldown that dictates whether the player can boost.
+  util::Cooldown boost_cooldown;
 };
 
 static State kGameState;
@@ -118,6 +121,10 @@ GameInitialize(const v2f& dims)
   physics::CreateInfinteMassParticle2d(v2f(10.f, 10.f), v2f(50.f, 5.f));
   physics::CreateInfinteMassParticle2d(v2f(-30.f, 10.f), v2f(5.f, 50.f));
   physics::CreateInfinteMassParticle2d(v2f(30.f, 10.f), v2f(5.f, 50.f));
+
+  // 3 second boost cooldown
+  kGameState.boost_cooldown.usec = 3e6;
+  util::CooldownReset(&kGameState.boost_cooldown);
 }
 
 void
@@ -282,6 +289,12 @@ main(s32 argc, char** argv)
             magnitude = 0.0;
             normalized_magnitude = 0.0;
             kParticle->acceleration.x = 0.f;
+          }
+
+          if (event.controller.right_trigger &&
+              util::CooldownReady(&kGameState.boost_cooldown)) {
+            printf("Boost!\n");
+            util::CooldownReset(&kGameState.boost_cooldown);
           }
         } break;
         default: break;

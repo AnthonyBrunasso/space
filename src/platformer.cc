@@ -261,7 +261,7 @@ main(s32 argc, char** argv)
           constexpr r32 kMaxControllerMagnitude = 32767.f;
           v2f stick(event.controller.stick_x, event.controller.stick_y);
           r32 magnitude = math::Length(stick);
-          v2f nstick = stick  / magnitude;
+          v2f nstick = stick / magnitude;
           r32 normalized_magnitude = 0;
           if (magnitude > kInputDeadzone) {
             if (magnitude > kMaxControllerMagnitude) {

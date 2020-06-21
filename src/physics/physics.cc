@@ -127,10 +127,10 @@ void
 __SetOnGround(Particle2d* p1, Particle2d* p2, const Rectf& intersection)
 {
   Rectf underneath_p1(p1->aabb());
-  underneath_p1.y -= 1.f;
-  underneath_p1.height = 2.f;
-  underneath_p1.x += 1.f;
-  underneath_p1.width -= 2.f;
+  underneath_p1.height = 1.f;
+  // Hack so particle will not collide with wall on its left or right.
+  underneath_p1.x += .1f;
+  underneath_p1.width -= .2f;
   if (!p1->on_ground) {
     p1->on_ground = p2->inverse_mass < FLT_EPSILON &&
         math::IntersectRect(underneath_p1, intersection);

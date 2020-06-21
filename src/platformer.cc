@@ -197,8 +197,6 @@ main(s32 argc, char** argv)
     imui::MousePosition(cursor, imui::kEveryoneTag);
 
     PlatformEvent event;
-    ControllerState previous_controller;
-    ControllerState current_controller = {};
     while (window::PollEvent(&event)) {
       rgg::CameraUpdateEvent(event);
       switch(event.type) {

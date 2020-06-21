@@ -123,7 +123,7 @@ GameInitialize(const v2f& dims)
   physics::CreateInfinteMassParticle2d(v2f(30.f, 10.f), v2f(5.f, 50.f));
 
   kGameState.boost_cooldown.usec = SECONDS(1);
-  util::CooldownReset(&kGameState.boost_cooldown);
+  util::CooldownInitialize(&kGameState.boost_cooldown);
 }
 
 void

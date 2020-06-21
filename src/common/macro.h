@@ -13,6 +13,8 @@
 #define MiB(bytes) (KiB(bytes) * 1024LL)
 #define GiB(bytes) (MiB(bytes) * 1024LL)
 
+#define SECONDS(usec) (usec * 1e6)
+
 #define MIN(x, y) (y ^ ((x ^ y) & -(x < y)))
 #define MAX(x, y) (x ^ ((x ^ y) & -(x < y)))
 #define ABS64(val) ((val+(val>>63))^(val>>63))

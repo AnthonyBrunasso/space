@@ -259,12 +259,12 @@ main(s32 argc, char** argv)
             kParticle->force.y = kJumpForce;
           }
           // TODO: Calculate controller deadzone with min magnitude.
-          constexpr float kInputDeadzone = 4000.f;
-          constexpr float kMaxControllerMagnitude = 32767.f;
+          constexpr r32 kInputDeadzone = 4000.f;
+          constexpr r32 kMaxControllerMagnitude = 32767.f;
           v2f stick(event.controller.stick_x, event.controller.stick_y);
-          float magnitude = math::Length(stick);
+          r32 magnitude = math::Length(stick);
           v2f nstick = stick  / magnitude;
-          float normalized_magnitude = 0;
+          r32 normalized_magnitude = 0;
           if (magnitude > kInputDeadzone) {
             if (magnitude > kMaxControllerMagnitude) {
               magnitude = kMaxControllerMagnitude;

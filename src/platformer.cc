@@ -122,8 +122,7 @@ GameInitialize(const v2f& dims)
   physics::CreateInfinteMassParticle2d(v2f(-30.f, 10.f), v2f(5.f, 50.f));
   physics::CreateInfinteMassParticle2d(v2f(30.f, 10.f), v2f(5.f, 50.f));
 
-  // 3 second boost cooldown
-  kGameState.boost_cooldown.usec = SECONDS(3);
+  kGameState.boost_cooldown.usec = SECONDS(1);
   util::CooldownReset(&kGameState.boost_cooldown);
 }
 
@@ -264,7 +263,7 @@ main(s32 argc, char** argv)
         case XBOX_CONTROLLER: {
           if (FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_A) &&
               kParticle->on_ground) {
-            kParticle->force.y = kJumpForce;
+            kParticle->force.y += kJumpForce;
           }
           // TODO: Calculate controller deadzone with min magnitude.
           constexpr r32 kInputDeadzone = 4000.f;
@@ -292,9 +291,10 @@ main(s32 argc, char** argv)
           }
 
           if (event.controller.right_trigger &&
-              util::CooldownReady(&kGameState.boost_cooldown)) {
-            printf("Boost!\n");
+              util::CooldownReady(&kGameState.boost_cooldown) &&
+              magnitude > 0.0f) {
             util::CooldownReset(&kGameState.boost_cooldown);
+            kParticle->force += nstick * 10000.f;
           }
         } break;
         default: break;

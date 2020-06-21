@@ -251,6 +251,11 @@ main(s32 argc, char** argv)
         case MOUSE_WHEEL: {
           imui::MouseWheel(event.wheel_delta, imui::kEveryoneTag);
         } break;
+        case XBOX_CONTROLLER: {
+          //printf("stick_x: %i\nstick_y:%i\nbuttons:%u\n",
+          //       event.controller.stick_x, event.controller.stick_y,
+          //       event.controller.controller_flags);
+        } break;
         default: break;
       }
     }

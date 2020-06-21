@@ -17,6 +17,7 @@ enum PlatformEventType {
   KEY_DOWN,
   KEY_UP,
   MOUSE_POSITION,
+  XBOX_CONTROLLER,
 };
 
 enum PlatformButton {
@@ -24,6 +25,35 @@ enum PlatformButton {
   BUTTON_LEFT = 1,
   BUTTON_MIDDLE,
   BUTTON_RIGHT,
+};
+
+enum ControllerButton {
+  XBOX_CONTROLLER_UP = 0,
+  XBOX_CONTROLLER_DOWN = 1,
+  XBOX_CONTROLLER_LEFT = 2,
+  XBOX_CONTROLLER_RIGHT = 3,
+
+  XBOX_CONTROLLER_START = 4,
+  XBOX_CONTROLLER_BACK = 5,
+
+  XBOX_CONTROLLER_LEFT_THUMB = 6,
+  XBOX_CONTROLLER_RIGHT_THUMB = 7,
+
+  XBOX_CONTROLLER_LEFT_SHOULDER = 8,
+  XBOX_CONTROLLER_RIGHT_SHOULDER = 9,
+
+  XBOX_CONTROLLER_A = 12,
+  XBOX_CONTROLLER_B = 13,
+  XBOX_CONTROLLER_X = 14,
+  XBOX_CONTROLLER_Y = 15,
+};
+
+struct ControllerState {
+  s16 stick_x;
+  s16 stick_y;
+  // bitfield containing fields from ControllerButton enum.
+  u16 controller_flags;
+  u16 sequence_number;
 };
 
 struct PlatformEvent {
@@ -36,6 +66,7 @@ struct PlatformEvent {
     r32 wheel_delta;
     char key;
     PlatformButton button;
+    ControllerState controller;
   };
 };
 

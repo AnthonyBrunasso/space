@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <windows.h>
+#include <xinput.h>
 #include <gl/gl.h>
 
 // https://www.khronos.org/registry/OpenGL/api/GL/glext.h
@@ -120,6 +121,22 @@ glGenerateMipmap_Func* glGenerateMipmap;
 #define GL_COLOR_ATTACHMENT0              0x8CE0
 #define GL_BGR                            0x80E0
 #define GL_BGRA                           0x80E1
+
+static DWORD XInputGetState_Stub(DWORD, XINPUT_STATE*)
+{
+  printf("Calling stub...\n");
+  return 1;
+}
+
+static DWORD XInputSetState_Stub(DWORD, XINPUT_VIBRATION*)
+{
+  return 1;
+}
+
+typedef DWORD XInputGetState_Func(DWORD, XINPUT_STATE*);
+XInputGetState_Func* __XInputGetState = XInputGetState_Stub;
+typedef DWORD XInputSetState_Func(DWORD, XINPUT_VIBRATION*);
+XInputSetState_Func* __XInputSetState = XInputSetState_Stub;
 
 namespace window {
 
@@ -247,6 +264,32 @@ WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
     } break;
   }
   return result;
+}
+
+bool
+PollXboxController()
+{
+  PlatformEvent* platform_event = kWindow.platform_event;
+  // Get state of controller.
+  for (DWORD i = 0; i < XUSER_MAX_COUNT; ++i) {
+    XINPUT_STATE state = {};
+    // TODO: Takes first connected controller. Perhaps allow multiple
+    // controllers.
+    if (__XInputGetState(i, &state) == ERROR_SUCCESS) {
+      if (platform_event->type == XBOX_CONTROLLER &&
+          state.dwPacketNumber ==
+          platform_event->controller.sequence_number) {
+        return false;
+      }
+      platform_event->type = XBOX_CONTROLLER;
+      platform_event->controller.stick_x = state.Gamepad.sThumbLX;
+      platform_event->controller.stick_y = state.Gamepad.sThumbLY;
+      platform_event->controller.controller_flags = state.Gamepad.wButtons;
+      platform_event->controller.sequence_number = state.dwPacketNumber;
+      return true;
+    }
+  }
+  return false;
 }
 
 HWND
@@ -492,6 +535,21 @@ SetupGLFunctions() {
   glGenerateMipmap = (glGenerateMipmap_Func*)GetGLFunction("glGenerateMipmap");
 }
 
+void
+SetupXboxController()
+{
+  HMODULE xinput_library = LoadLibrary(L"xinput1_4.dll");
+  if (!xinput_library) {
+    xinput_library = LoadLibrary(L"xinput9_1_0.dll");
+  }
+  if (!xinput_library) {
+    return;
+  }
+  printf("Loaded xinput\n");
+  __XInputGetState = (XInputGetState_Func*)GetProcAddress(xinput_library, "XInputGetState");
+  __XInputSetState = (XInputSetState_Func*)GetProcAddress(xinput_library, "XInputSetState");
+}
+
 int
 Create(const char* name, int width, int height, b8 fullscreen)
 { 
@@ -504,6 +562,7 @@ Create(const char* name, int width, int height, b8 fullscreen)
   kWindow.hdc = GetDC(kWindow.hwnd);
   kWindow.hglrc = InitOpenGL(kWindow.hdc);
   SetupGLFunctions();
+  SetupXboxController();
 
   ShowWindow(kWindow.hwnd, 1);
   UpdateWindow(kWindow.hwnd);
@@ -518,6 +577,7 @@ Create(const char* name, const CreateInfo& create_info)
   kWindow.hdc = GetDC(kWindow.hwnd);
   kWindow.hglrc = InitOpenGL(kWindow.hdc);
   SetupGLFunctions();
+  SetupXboxController();
 
   ShowWindow(kWindow.hwnd, 1);
   UpdateWindow(kWindow.hwnd);
@@ -542,6 +602,10 @@ PollEvent(PlatformEvent* event)
       // This dispatches messages to the WindowProc function.
       DispatchMessageA(&msg);
     }
+    return true;
+  }
+
+  if (PollXboxController()) {
     return true;
   }
 

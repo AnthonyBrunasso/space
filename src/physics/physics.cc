@@ -111,7 +111,9 @@ __ResolvePositionAndVelocity(
     } else {
       p->position.x += correction.x;
     }
-    p->velocity.x = 0.f;
+    // Don't zero out x velocity. This would cause the particle to stutter
+    // when walking over multiple blocks.
+    //p->velocity.x = 0.f;
   }
   if (correction.y > 0.f) {
     if (p->aabb().y < intersection.y) {

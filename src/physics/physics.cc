@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "common/common.cc"
 #include "math/vec.h"
 #include "math/rect.h"
@@ -30,6 +29,9 @@ struct Particle2d {
   // themselves after updating.
   u32 next_p2d_x = kInvalidId;
   u32 prev_p2d_x = kInvalidId;
+
+  // Flags set by user to resolve collision, for example.
+  u32 user_flags;
 
   Rectf
   aabb() const
@@ -64,6 +66,9 @@ enum ParticleFlags {
   // If set the particle will be removed at the beginning of the next
   // integration step.
   kParticleRemove = 2,
+  // If set on one of the colliding particles NEITHER particle will resolve
+  // collision overlap.
+  kParticleIgnoreCollisionResolution = 3,
 };
 
 DECLARE_HASH_ARRAY(Particle2d, PHYSICS_PARTICLE_COUNT);
@@ -98,6 +103,13 @@ DeleteParticle2d(Particle2d* p)
 {
   if (!p) return;
   SBIT(p->flags, physics::kParticleRemove);
+}
+
+void
+DeleteParticle2d(u32 id)
+{
+  if (!id) return;
+  DeleteParticle2d(FindParticle2d(id));
 }
 
 void
@@ -193,6 +205,10 @@ Integrate(r32 dt_sec)
   // Resolve collisions.
   for (u32 i = 0; i < kUsedBP2dCollision; ++i) {
     BP2dCollision* c = &kBP2dCollision[i];
+
+    if (FLAGGED(c->p1->flags, kParticleIgnoreCollisionResolution)) continue;
+    if (FLAGGED(c->p2->flags, kParticleIgnoreCollisionResolution)) continue;
+
     // Another correction may have moved this collision out of intersection.
     if (!math::IntersectRect(c->p1->aabb(), c->p2->aabb(), &c->intersection)) {
       continue;

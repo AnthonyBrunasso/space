@@ -34,7 +34,6 @@ ProjectileUpdate()
 
     --p->updates_to_live;
     if (!p->updates_to_live) {
-      printf("DESTROY LAZER WITH PARTICLE %u\n", p->id, particle->id);
       p->MarkDestroy();
     }
   });

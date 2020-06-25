@@ -89,7 +89,7 @@ struct Projectile {
 };
 
 union Entity {
-  struct  {
+  struct {
     ENTITY_DECL;
   };
   Character character;

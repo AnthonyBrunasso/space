@@ -85,6 +85,7 @@ struct HashEntry {
                                                                               \
   void Swap##type(u32 id1, u32 id2)                                           \
   {                                                                           \
+    if (id1 == id2) return;                                                   \
     if (!id1) return;                                                         \
     u32 hash1 = Hash##type(id1);                                              \
     HashEntry* entry1 = &kHashEntry##type[hash1];                             \

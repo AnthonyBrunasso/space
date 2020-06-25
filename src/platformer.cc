@@ -12,9 +12,11 @@
 #include "util/cooldown.cc"
 
 // Gameplay stuff.
-#include "mood/ai.cc"
-#include "mood/entity.cc"
-#include "mood/projectile.cc"
+#include "mood/constants.cc"
+#include "mood/sim.cc"
+#include "mood/interaction.cc"
+
+#define WIN_ATTACH_DEBUGGER 0
 
 struct State {
   // Game and render updates per second
@@ -35,12 +37,6 @@ struct State {
   u32 music_id;
   // Game clock.
   platform::Clock game_clock;
-  // Cooldown that dictates whether the player can boost.
-  util::Cooldown boost_cooldown;
-  // Cooldown that lets player fire weapon.
-  util::Cooldown weapon_cooldown;
-  // Cooldown for when to spawn an enemy.
-  util::Cooldown enemy_cooldown;
 };
 
 static State kGameState;
@@ -48,9 +44,7 @@ static Stats kGameStats;
 
 static char kUIBuffer[64];
 
-static const r32 kDelta = 0.016666f;
 static r32 kJumpForce = 10000.f;
-
 
 void
 DebugUI()
@@ -104,6 +98,8 @@ DebugUI()
     imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
   }
 
+  mood::EntityViewer(screen);
+
   physics::DebugUI(screen);
 }
 
@@ -121,22 +117,7 @@ GameInitialize(const v2f& dims)
   camera.viewport = dims;
   rgg::CameraInit(camera);
 
-  mood::Player* player = mood::UsePlayer();
-  physics::Particle2d* particle =
-      physics::CreateParticle2d(v2f(0.f, 0.f), v2f(5.f, 5.f));
-  particle->damping = 0.005f;
-  player->particle_id = particle->id;
-
-  physics::CreateInfinteMassParticle2d(v2f(0.f, -5.f), v2f(1000.f, 5.f));
-
-  kGameState.boost_cooldown.usec = SECONDS(0.75f);
-  util::CooldownInitialize(&kGameState.boost_cooldown);
-
-  kGameState.weapon_cooldown.usec = SECONDS(0.15f);
-  util::CooldownInitialize(&kGameState.weapon_cooldown);
-
-  kGameState.enemy_cooldown.usec = SECONDS(3.0f);
-  util::CooldownInitialize(&kGameState.enemy_cooldown);
+  mood::SimInitialize();
 }
 
 void
@@ -146,29 +127,8 @@ GameUpdate()
   DebugUI();
   rgg::CameraUpdate();
   rgg::GetObserver()->view = rgg::CameraView();
-  physics::Integrate(kDelta);
 
-  if (util::CooldownReady(&kGameState.enemy_cooldown)) {
-    mood::AICreate(
-        v2f(math::ScaleRange((r32)rand() / RAND_MAX, 0.f, 1.f, 10.f, 100.f),
-            10.f));
-    util::CooldownReset(&kGameState.enemy_cooldown);
-  }
-
-  for (u32 i = 0; i < physics::kUsedBP2dCollision; ++i) {
-    physics::BP2dCollision* c = &physics::kBP2dCollision[i];
-    if (physics::BPHasUserFlags(
-          c, mood::kPhysicsCharacter, mood::kPhysicsProjectile)) {
-      //printf("????\n");
-      physics::Particle2d* p =
-          FLAGGED(c->p1->flags, mood::kPhysicsCharacter) ? c->p2 : c->p1;
-      mood::AIDelete(p->id);
-    }
-  }
-
-  mood::ProjectileUpdate();
-  mood::AIUpdate();
-  rgg::CameraSetPositionXY(mood::PlayerParticle(0)->position);
+  mood::SimUpdate();
 }
 
 void
@@ -178,7 +138,7 @@ GameRender()
   physics::DebugRender(); 
   for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
     physics::Particle2d* p = &physics::kParticle2d[i];
-    if (p == mood::PlayerParticle(0)) {
+    if (p == mood::Player()->particle()) {
       rgg::RenderLineRectangle(p->aabb(), rgg::kGreen);
     } else {
       rgg::RenderLineRectangle(p->aabb(), rgg::kRed);
@@ -192,7 +152,11 @@ GameRender()
 s32
 main(s32 argc, char** argv)
 {
-
+#ifdef _WIN32
+#if WIN_ATTACH_DEBUGGER
+  while (!IsDebuggerPresent()) {};
+#endif
+#endif
   if (!memory::Initialize(MiB(64))) {
     return 1;
   }
@@ -245,7 +209,7 @@ main(s32 argc, char** argv)
     PlatformEvent event;
     while (window::PollEvent(&event)) {
       rgg::CameraUpdateEvent(event);
-      physics::Particle2d* particle = mood::PlayerParticle(0);
+      physics::Particle2d* particle = mood::Player()->particle();
       switch(event.type) {
         case KEY_DOWN: {
           switch (event.key) {
@@ -329,17 +293,17 @@ main(s32 argc, char** argv)
           }
 
           if (FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_X) &&
-              util::CooldownReady(&kGameState.boost_cooldown) &&
+              util::CooldownReady(&mood::kSim.boost_cooldown) &&
               magnitude > 0.0f) {
-            util::CooldownReset(&kGameState.boost_cooldown);
+            util::CooldownReset(&mood::kSim.boost_cooldown);
             particle->force += nstick * 10000.f;
           }
 
           if (event.controller.right_trigger &&
-              util::CooldownReady(&kGameState.weapon_cooldown)) {
-            util::CooldownReset(&kGameState.weapon_cooldown);
+              util::CooldownReady(&mood::kSim.weapon_cooldown)) {
+            util::CooldownReset(&mood::kSim.weapon_cooldown);
             mood::ProjectileCreate(particle->position, v2f(1.0, 0),
-                                   mood::PROJECTILE_LAZER);
+                                   mood::kProjectileLaser);
           }
         } break;
         default: break;

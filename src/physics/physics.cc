@@ -30,8 +30,8 @@ struct Particle2d {
   u32 next_p2d_x = kInvalidId;
   u32 prev_p2d_x = kInvalidId;
 
-  // Flags set by user to resolve collision, for example.
-  u32 user_flags;
+  // Id to entity that contains this particle. Zero if not owned by an entity.
+  u32 entity_id = 0;
 
   Rectf
   aabb() const

@@ -178,15 +178,3 @@ BPCalculateCollisions()
     }
   }
 }
-
-bool
-BPHasUserFlags(BP2dCollision* c, u32 f1, u32 f2)
-{
-  if (FLAGGED(c->p1->user_flags, f1) && FLAGGED(c->p2->user_flags, f2)) {
-    return true;
-  }
-  if (FLAGGED(c->p2->user_flags, f1) && FLAGGED(c->p1->user_flags, f2)) {
-    return true;
-  }
-  return false;
-}

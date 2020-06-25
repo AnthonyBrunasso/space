@@ -4,36 +4,29 @@
 
 namespace mood {
 
-Projectile*
+void
 ProjectileCreate(v2f start, v2f dir, ProjectileType type)
 {
-  physics::Particle2d* particle = nullptr;
+  Projectile* projectile = UseEntityProjectile(start, v2f(.3f, .3f));
+  physics::Particle2d* particle = projectile->particle();
   switch (type) {
-    case PROJECTILE_LAZER: {
-      particle = physics::CreateParticle2d(start, v2f(.3f, .3f));
+    case kProjectileLaser: {
       SBIT(particle->flags, physics::kParticleIgnoreGravity);
       SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
     } break;
     default: break;
   };
-  if (!particle) return nullptr;
-  SBIT(particle->user_flags, kPhysicsProjectile);
-  Projectile* projectile = UseProjectile();
-  projectile->particle_id = particle->id;
   projectile->dir = dir;
-  //printf("Create particle %u\n", particle->id);
-  projectile->type = type;
+  projectile->projectile_type = type;
   projectile->updates_to_live = 20;
 }
 
 void
 ProjectileUpdate()
 {
-  for (s32 i = 0; i < kUsedProjectile;) {
-    Projectile* p = &kProjectile[i];
-    
+  FOR_EACH_ENTITY(Projectile, p, {
     // Run projectile updates logic here. 
-    physics::Particle2d* particle = ProjectileParticle(i);  
+    physics::Particle2d* particle = p->particle();
 
     v2f delta = p->dir * 10.f;
     particle->dims += p->dir * 10.f;
@@ -41,15 +34,10 @@ ProjectileUpdate()
 
     --p->updates_to_live;
     if (!p->updates_to_live) {
-      //printf("Delete particle %u\n", p->particle_id);
-      // Delete the particle before compressing or we'll delete the wrong
-      // particle.
-      physics::DeleteParticle2d(p->particle_id);
-      CompressProjectile(i);
-      continue;
+      printf("DESTROY LAZER WITH PARTICLE %u\n", p->id, particle->id);
+      p->MarkDestroy();
     }
-    ++i;
-  }
+  });
 }
 
 }

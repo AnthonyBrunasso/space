@@ -77,7 +77,7 @@ SimUpdate()
     if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
       if (util::CooldownReady(&kSim.weapon_cooldown)) {
         util::CooldownReset(&kSim.weapon_cooldown);
-        ProjectileCreate(particle->position, v2f(1.0, 0), kSim.player_id,
+        ProjectileCreate(particle->position, c->facing, kSim.player_id,
                          kProjectileLaser);
       }
     }

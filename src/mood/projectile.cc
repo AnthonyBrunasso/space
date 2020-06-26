@@ -29,12 +29,6 @@ ProjectileUpdate()
     // Run projectile updates logic here. 
     physics::Particle2d* particle = FindParticle(p);
 
-    Character* from_character = FindCharacter(p->from_entity);
-    if (from_character) {
-      p->dir = from_character->facing;
-    }
-
-    // NOTE: This only handles horizontal shots right now.
     v2f delta = p->dir * 10.f;
     particle->dims += Vabs(p->dir) * 10.f;
     particle->position += delta / 2.f;

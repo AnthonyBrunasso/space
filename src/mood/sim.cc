@@ -78,9 +78,13 @@ SimUpdate()
                          kProjectileLaser);
       }
     }
-    if (IsZero(particle->velocity)) break;
-    if (particle->velocity.x > 0) c->facing = v2f(1.0f, 0.f);
-    else if (particle->velocity.x < 0) c->facing = v2f(-1.0f, 0.f);
+    if (FLAGGED(c->character_flags, kCharacterJump)) {
+      if (particle->on_ground) particle->force.y += kJumpForce;
+    }
+    if (!IsZero(particle->velocity)) {
+      if (particle->velocity.x > 0) c->facing = v2f(1.0f, 0.f);
+      else if (particle->velocity.x < 0) c->facing = v2f(-1.0f, 0.f);
+    }
   });
 
   __ResolveCollisions();

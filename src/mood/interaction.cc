@@ -60,10 +60,7 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
       imui::MouseWheel(event.wheel_delta, imui::kEveryoneTag);
     } break;
     case XBOX_CONTROLLER: {
-      if (FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_A) &&
-          particle->on_ground) {
-        particle->force.y += kJumpForce;
-      }
+      
       // TODO: Calculate controller deadzone with min magnitude.
       constexpr r32 kInputDeadzone = 4000.f;
       constexpr r32 kMaxControllerMagnitude = 32767.f;
@@ -94,6 +91,12 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
           magnitude > 0.0f) {
         util::CooldownReset(&kSim.boost_cooldown);
         particle->force += nstick * 10000.f;
+      }
+
+      if (FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_A)) {
+        SBIT(player->character_flags, kCharacterJump);
+      } else {
+        CBIT(player->character_flags, kCharacterJump);
       }
 
       if (event.controller.right_trigger) {

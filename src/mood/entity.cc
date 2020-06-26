@@ -84,6 +84,8 @@ enum EntityFlags {
 enum CharacterFlags {
   // If true the character will attempt to fire their primary weapon.
   kCharacterFireWeapon = 0,
+  // If true the character will attempt to jump.
+  kCharacterJump = 1,
 };
 
 struct Character {

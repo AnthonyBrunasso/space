@@ -78,6 +78,12 @@ SimUpdate()
                          kProjectileLaser);
       }
     }
+    if (FLAGGED(c->ability_flags, kCharacterAbilityBoost)) {
+      if (util::CooldownReady(&kSim.boost_cooldown)) {
+        util::CooldownReset(&kSim.boost_cooldown);
+        particle->force += c->ability_dir * 10000.f;
+      }
+    }
     if (FLAGGED(c->character_flags, kCharacterJump)) {
       if (particle->on_ground) particle->force.y += kJumpForce;
     }

@@ -86,11 +86,12 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
         particle->acceleration.x = 0.f;
       }
 
-      if (FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_X) &&
-          util::CooldownReady(&kSim.boost_cooldown) &&
-          magnitude > 0.0f) {
-        util::CooldownReset(&kSim.boost_cooldown);
-        particle->force += nstick * 10000.f;
+      if (magnitude > 0.f &&
+          FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_X)) {
+        SBIT(player->ability_flags, kCharacterAbilityBoost);
+        player->ability_dir = nstick;
+      } else {
+        CBIT(player->ability_flags, kCharacterAbilityBoost);
       }
 
       if (FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_A)) {

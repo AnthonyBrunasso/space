@@ -82,16 +82,24 @@ enum EntityFlags {
 };
 
 enum CharacterFlags {
-  // If true the character will attempt to fire their primary weapon.
+  // If set the character will attempt to fire their primary weapon.
   kCharacterFireWeapon = 0,
-  // If true the character will attempt to jump.
+  // If set the character will attempt to jump.
   kCharacterJump = 1,
+};
+
+enum CharacterAbilityFlags {
+  // If set the character will boost in the direction of its velocity.
+  kCharacterAbilityBoost = 0,
 };
 
 struct Character {
   ENTITY_DECL = kEntityTypeCharacter;
   v2f facing = {1.f, 0.f};
   u8 character_flags = 0;
+  // Ability state.
+  u8 ability_flags = 0;
+  v2f ability_dir = {};
 };
 
 enum ProjectileType {

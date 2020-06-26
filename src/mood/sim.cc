@@ -28,7 +28,7 @@ void
 SimInitialize()
 {
   Character* player = UseEntityCharacter(v2f(0.f, 0.f), v2f(5.f, 5.f));
-  physics::Particle2d* particle = GetParticle(player);
+  physics::Particle2d* particle = FindParticle(player);
   particle->damping = 0.005f;
   kSim.player_id = player->id;
 
@@ -73,7 +73,7 @@ SimUpdate()
   physics::Integrate(kFrameDelta);
 
   FOR_EACH_ENTITY(Character, c, {
-    physics::Particle2d* particle = GetParticle(c);
+    physics::Particle2d* particle = FindParticle(c);
     if (IsZero(particle->velocity)) break;
     if (particle->velocity.x > 0) c->facing = v2f(1.0f, 0.f);
     else if (particle->velocity.x < 0) c->facing = v2f(-1.0f, 0.f);
@@ -90,7 +90,7 @@ SimUpdate()
 
   ProjectileUpdate();
   AIUpdate();
-  rgg::CameraSetPositionXY(GetParticle(Player())->position);
+  rgg::CameraSetPositionXY(FindParticle(Player())->position);
 
   // Cleanup entities marked to die at the end of each simulation update
   // frame. Particle for physics system will be destroyed at the top of the

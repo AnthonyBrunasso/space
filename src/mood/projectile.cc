@@ -8,7 +8,7 @@ void
 ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
 {
   Projectile* projectile = UseEntityProjectile(start, v2f(.3f, .3f));
-  physics::Particle2d* particle = GetParticle(projectile);
+  physics::Particle2d* particle = FindParticle(projectile);
   switch (type) {
     case kProjectileLaser: {
       SBIT(particle->flags, physics::kParticleIgnoreGravity);
@@ -27,7 +27,7 @@ ProjectileUpdate()
 {
   FOR_EACH_ENTITY(Projectile, p, {
     // Run projectile updates logic here. 
-    physics::Particle2d* particle = GetParticle(p);
+    physics::Particle2d* particle = FindParticle(p);
 
     Character* from_character = FindCharacter(p->from_entity);
     if (from_character) {

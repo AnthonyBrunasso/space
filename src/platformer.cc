@@ -138,7 +138,7 @@ GameRender()
   physics::DebugRender(); 
   for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
     physics::Particle2d* p = &physics::kParticle2d[i];
-    if (p == mood::GetParticle(mood::Player())) {
+    if (p == mood::FindParticle(mood::Player())) {
       rgg::RenderLineRectangle(p->aabb(), rgg::kGreen);
     } else {
       rgg::RenderLineRectangle(p->aabb(), rgg::kRed);
@@ -209,7 +209,7 @@ main(s32 argc, char** argv)
     PlatformEvent event;
     while (window::PollEvent(&event)) {
       rgg::CameraUpdateEvent(event);
-      physics::Particle2d* particle = mood::GetParticle(mood::Player());
+      physics::Particle2d* particle = mood::FindParticle(mood::Player());
       switch(event.type) {
         case KEY_DOWN: {
           switch (event.key) {

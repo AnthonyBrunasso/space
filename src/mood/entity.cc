@@ -48,7 +48,7 @@ namespace mood {
   }                                                 \
                                                     \
   physics::Particle2d*                              \
-  GetParticle(entity_type* type)                    \
+  FindParticle(entity_type* type)                    \
   {                                                 \
     return physics::FindParticle2d(                 \
         type->particle_id);                         \

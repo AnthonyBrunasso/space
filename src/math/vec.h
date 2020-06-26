@@ -568,6 +568,12 @@ IsZero(v2f v)
 
 }
 
+v2f
+Vabs(const v2f& v)
+{
+  return v2f(fabs(v.x), fabs(v.y));
+}
+
 void
 Printv3f(v3f v)
 {

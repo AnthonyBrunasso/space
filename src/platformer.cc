@@ -303,6 +303,7 @@ main(s32 argc, char** argv)
               util::CooldownReady(&mood::kSim.weapon_cooldown)) {
             util::CooldownReset(&mood::kSim.weapon_cooldown);
             mood::ProjectileCreate(particle->position, v2f(1.0, 0),
+                                   mood::kSim.player_id,
                                    mood::kProjectileLaser);
           }
         } break;

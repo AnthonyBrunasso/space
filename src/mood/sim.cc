@@ -72,6 +72,13 @@ SimUpdate()
 {
   physics::Integrate(kFrameDelta);
 
+  FOR_EACH_ENTITY(Character, c, {
+    physics::Particle2d* particle = GetParticle(c);
+    if (IsZero(particle->velocity)) break;
+    if (particle->velocity.x > 0) c->facing = v2f(1.0f, 0.f);
+    else if (particle->velocity.x < 0) c->facing = v2f(-1.0f, 0.f);
+  });
+
   __ResolveCollisions();
 
   if (util::CooldownReady(&kSim.enemy_cooldown)) {

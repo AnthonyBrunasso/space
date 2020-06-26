@@ -30,6 +30,12 @@ struct Rectf {
   r32 height;
 
   v2f
+  Dims() const
+  {
+    return v2f(width, height);
+  }
+
+  v2f
   Center() const
   {
     return v2f(x + .5f * width, y + .5f * height);

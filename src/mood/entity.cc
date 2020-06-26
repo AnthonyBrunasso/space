@@ -83,6 +83,7 @@ enum EntityFlags {
 
 struct Character {
   ENTITY_DECL = kEntityTypeCharacter;
+  v2f facing = {1.f, 0.f};
 };
 
 enum ProjectileType {
@@ -95,6 +96,8 @@ struct Projectile {
   ProjectileType projectile_type;
   // Number of updates the projectile should live for.
   uint64_t updates_to_live = 0;
+  // Entity that fired the projectile.
+  u32 from_entity = 0;
 };
 
 union Entity {
@@ -106,10 +109,6 @@ union Entity {
 
   Entity() : type(kEntityTypeInvalid) {}
 };
-
-
-
-
 
 DECLARE_HASH_ARRAY(Entity, 256);
 

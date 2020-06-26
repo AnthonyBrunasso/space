@@ -14,8 +14,6 @@ struct Sim {
   util::Cooldown boost_cooldown;
   // Cooldown that lets player fire weapon.
   util::Cooldown weapon_cooldown;
-  // Cooldown for when to spawn an enemy.
-  util::Cooldown enemy_cooldown;
 };
 
 static Sim kSim;
@@ -39,9 +37,8 @@ SimInitialize()
 
   kSim.weapon_cooldown.usec = SECONDS(0.15f);
   util::CooldownInitialize(&kSim.weapon_cooldown);
-
-  kSim.enemy_cooldown.usec = SECONDS(1.f);
-  util::CooldownInitialize(&kSim.enemy_cooldown);
+  
+  AIInitialize();
 }
 
 void
@@ -87,13 +84,6 @@ SimUpdate()
   });
 
   __ResolveCollisions();
-
-  if (util::CooldownReady(&kSim.enemy_cooldown)) {
-    AICreate(
-        v2f(math::ScaleRange((r32)rand() / RAND_MAX, 0.f, 1.f, 10.f, 100.f),
-            10.f), v2f(5.f, 5.f));
-    util::CooldownReset(&kSim.enemy_cooldown);
-  }
 
   ProjectileUpdate();
   AIUpdate();

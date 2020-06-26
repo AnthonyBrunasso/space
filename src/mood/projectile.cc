@@ -8,7 +8,7 @@ void
 ProjectileCreate(v2f start, v2f dir, ProjectileType type)
 {
   Projectile* projectile = UseEntityProjectile(start, v2f(.3f, .3f));
-  physics::Particle2d* particle = projectile->particle();
+  physics::Particle2d* particle = GetParticle(projectile);
   switch (type) {
     case kProjectileLaser: {
       SBIT(particle->flags, physics::kParticleIgnoreGravity);
@@ -26,7 +26,7 @@ ProjectileUpdate()
 {
   FOR_EACH_ENTITY(Projectile, p, {
     // Run projectile updates logic here. 
-    physics::Particle2d* particle = p->particle();
+    physics::Particle2d* particle = GetParticle(p);
 
     v2f delta = p->dir * 10.f;
     particle->dims += p->dir * 10.f;
@@ -34,7 +34,7 @@ ProjectileUpdate()
 
     --p->updates_to_live;
     if (!p->updates_to_live) {
-      p->MarkDestroy();
+      SetDestroyFlag(p);
     }
   });
 }

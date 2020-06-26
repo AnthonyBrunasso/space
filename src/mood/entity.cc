@@ -10,13 +10,8 @@ namespace mood {
   u32 id;                                        \
   u32 particle_id;                               \
   u32 flags;                                     \
-  physics::Particle2d* particle() {              \
-    return physics::FindParticle2d(particle_id); \
-  }                                              \
-  void MarkDestroy() {                           \
-    SBIT(flags, 0);                              \
-  }                                              \
   u32 type
+
 
 #define DECLARE_ENTITY(entity_type, tid)            \
   entity_type*                                      \
@@ -50,7 +45,21 @@ namespace mood {
     entity_type* t = (entity_type*)FindEntity(id);  \
     if (!t || t->type != tid) return nullptr;       \
     return t;                                       \
+  }                                                 \
+                                                    \
+  physics::Particle2d*                              \
+  GetParticle(entity_type* type)                    \
+  {                                                 \
+    return physics::FindParticle2d(                 \
+        type->particle_id);                         \
+  }                                                 \
+                                                    \
+  void                                              \
+  SetDestroyFlag(entity_type* entity)               \
+  {                                                 \
+    SBIT(entity->flags, 0);                         \
   }
+
 
 #define FOR_EACH_ENTITY(type, vname, body)                          \
   {                                                                 \
@@ -97,6 +106,10 @@ union Entity {
 
   Entity() : type(kEntityTypeInvalid) {}
 };
+
+
+
+
 
 DECLARE_HASH_ARRAY(Entity, 256);
 

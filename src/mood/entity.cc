@@ -81,9 +81,15 @@ enum EntityFlags {
   kEntityDestroy = 0,
 };
 
+enum CharacterFlags {
+  // If true the character will attempt to fire their primary weapon.
+  kCharacterFireWeapon = 0,
+};
+
 struct Character {
   ENTITY_DECL = kEntityTypeCharacter;
   v2f facing = {1.f, 0.f};
+  u8 character_flags = 0;
 };
 
 enum ProjectileType {

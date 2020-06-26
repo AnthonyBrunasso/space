@@ -74,6 +74,13 @@ SimUpdate()
 
   FOR_EACH_ENTITY(Character, c, {
     physics::Particle2d* particle = FindParticle(c);
+    if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
+      if (util::CooldownReady(&kSim.weapon_cooldown)) {
+        util::CooldownReset(&kSim.weapon_cooldown);
+        ProjectileCreate(particle->position, v2f(1.0, 0), kSim.player_id,
+                         kProjectileLaser);
+      }
+    }
     if (IsZero(particle->velocity)) break;
     if (particle->velocity.x > 0) c->facing = v2f(1.0f, 0.f);
     else if (particle->velocity.x < 0) c->facing = v2f(-1.0f, 0.f);

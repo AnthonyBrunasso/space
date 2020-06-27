@@ -98,4 +98,16 @@ struct HashEntry {
     u32 tarr = entry1->array_idx;                                             \
     entry1->array_idx = entry2->array_idx;                                    \
     entry2->array_idx = tarr;                                                 \
+  }                                                                           \
+                                                                              \
+  void Reset##type()                                                          \
+  {                                                                           \
+    for (u32 i = 0; i < kMax##type; ++i) {                                    \
+      k##type[i] = {};                                                        \
+    }                                                                         \
+    for (u32 i = 0; i < kMaxHash##type; ++i) {                                \
+      kHashEntry##type[i] = {};                                               \
+    }                                                                         \
+    kUsed##type = 0;                                                          \
+    kAutoIncrementId##type = 1;                                               \
   }

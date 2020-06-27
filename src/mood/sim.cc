@@ -15,6 +15,8 @@ struct Sim {
   util::Cooldown boost_cooldown;
   // Cooldown that lets player fire weapon.
   util::Cooldown weapon_cooldown;
+  // Cooldown that makes player invulnerable.
+  util::Cooldown player_invulnerable;
 };
 
 static Sim kSim;
@@ -52,8 +54,18 @@ SimInitialize()
 
   kSim.weapon_cooldown.usec = SECONDS(0.15f);
   util::CooldownInitialize(&kSim.weapon_cooldown);
+
+  kSim.player_invulnerable.usec = SECONDS(0.5f);
+  util::CooldownInitialize(&kSim.player_invulnerable);
   
   AIInitialize();
+}
+
+void
+SimReset()
+{
+  physics::Reset();
+  ResetEntity();
 }
 
 void
@@ -76,15 +88,23 @@ __ProjectileParticleCollision(Projectile* projectile,
     v2f dir = -math::Normalize(projectile_particle->velocity);
     for (int i = 0; i < 4; ++i) {
       physics::Particle2d* ep =
-          physics::CreateParticle2d(projectile_particle->position, v2f(.3f, .3f));
-      // TODO: Somehow cast to the nearest valid position.
-      ep->position += dir * 1.f;
+          physics::CreateParticle2d(projectile_particle->position + dir * 1.f,
+                                    v2f(.3f, .3f));
       ep->collision_mask = kCollisionMaskCharacter;
       v2f fdir = Rotate(dir, math::Random(-1.f, 1.f));
       ep->force = fdir * math::Random(1000.f, 5000.f);
       ep->ttl = 30;
       SBIT(ep->user_flags, kParticleSpark);
     }
+  }
+}
+
+void
+__PlayerCharacterCollision(Character* player, Character* character)
+{
+  if (util::CooldownReady(&kSim.player_invulnerable)) {
+    player->health -= 1.f;
+    util::CooldownReset(&kSim.player_invulnerable);
   }
 }
 
@@ -105,6 +125,26 @@ __ResolveCollisions()
       }
     }
     {
+      Character* player = FindCharacter(c->p1->entity_id);
+      Character* character = nullptr;
+      if (player == Player()) {
+        character = FindCharacter(c->p2->entity_id);
+      }
+      if (player && character && player != character) {
+        __PlayerCharacterCollision(player, character);
+        continue;
+      }
+      player = FindCharacter(c->p2->entity_id);
+      character = nullptr;
+      if (player == Player()) {
+        character = FindCharacter(c->p1->entity_id);
+      }
+      if (player && character && player != character) {
+        __PlayerCharacterCollision(player, character);
+        continue;
+      }
+    }
+    {
       Projectile* projectile = FindProjectile(c->p1->entity_id);
       physics::Particle2d* particle = c->p2;
       if (!projectile) {
@@ -119,7 +159,7 @@ __ResolveCollisions()
   }
 }
 
-void
+bool
 SimUpdate()
 {
   FOR_EACH_ENTITY_P(Character, c, particle, {
@@ -134,6 +174,8 @@ SimUpdate()
       if (FLAGGED(c->ability_flags, kCharacterAbilityBoost)) {
         if (util::CooldownReady(&kSim.boost_cooldown)) {
           util::CooldownReset(&kSim.boost_cooldown);
+          // Boosting make player invulnerable briefly.
+          util::CooldownReset(&kSim.player_invulnerable);
           particle->force += c->ability_dir * 10000.f;
           c->trail_effect_ttl = 30;
         }
@@ -160,17 +202,21 @@ SimUpdate()
     }
 
     if (c->health <= 0.f) {
-      SetDestroyFlag(c);
-      v2f up(0.f, 1.f);
-      for (int i = 0; i < 30; ++i) {
-        physics::Particle2d* ep =
-            physics::CreateParticle2d(particle->position, v2f(.3f, .3f));
-        ep->position += up * 1.f;
-        ep->collision_mask = kCollisionMaskCharacter;
-        v2f dir = Rotate(up, math::Random(-1.3f, 1.3f));
-        ep->force = dir * math::Random(1000.f, 7000.f);
-        SBIT(ep->user_flags, kParticleBlood);
-        ep->ttl = 30;
+      if (c == Player()) {
+        return true;
+      } else {
+        SetDestroyFlag(c);
+        v2f up(0.f, 1.f);
+        for (int i = 0; i < 30; ++i) {
+          physics::Particle2d* ep =
+              physics::CreateParticle2d(particle->position + up * 1.f,
+                                        v2f(.3f, .3f));
+          ep->collision_mask = kCollisionMaskCharacter;
+          v2f dir = Rotate(up, math::Random(-1.3f, 1.3f));
+          ep->force = dir * math::Random(1000.f, 7000.f);
+          SBIT(ep->user_flags, kParticleBlood);
+          ep->ttl = 30;
+        }
       }
     }
   });
@@ -196,6 +242,8 @@ SimUpdate()
     }
     ++i;
   }
+
+  return false;
 }
 
 }

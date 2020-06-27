@@ -117,17 +117,15 @@ GameInitialize(const v2f& dims)
   mood::SimInitialize();
 }
 
-void
+bool
 GameUpdate()
 {
   mood::RenderUpdate();
-
   // Execute game code.
   DebugUI();
   rgg::CameraUpdate();
   rgg::GetObserver()->view = rgg::CameraView();
-
-  mood::SimUpdate();
+  return mood::SimUpdate();
 }
 
 void
@@ -202,8 +200,12 @@ main(s32 argc, char** argv)
       mood::ProcessPlatformEvent(event, cursor);
     }
 
-    GameUpdate();
-    GameRender();  
+    if (GameUpdate()) {
+      mood::SimReset();
+      GameInitialize(dims);
+    } else {
+      GameRender();  
+    }
     
     const u64 elapsed_usec = platform::ClockEnd(&kGameState.game_clock);
     StatsAdd(elapsed_usec, &kGameStats);

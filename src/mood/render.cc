@@ -75,6 +75,16 @@ Render()
     rgg::RenderProgressBar(pb_rect, 0.f, c->health, c->max_health,
                            v4f(1.f, 0.f, 0.f, .7f), v4f(.8f, .8f, .8f, .5f));
   });
+
+  // Render the players health...
+  auto dims = window::GetWindowSize();
+  rgg::ModifyObserver mod(math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f),
+                          math::Identity());
+  Character* c = Player();
+  rgg::RenderProgressBar(
+      Rectf(dims.x / 2.f - kPlayerHealthBarWidth / 2.f,
+            50.f, kPlayerHealthBarWidth, kPlayerHealthBarHeight),
+      0.f, c->health, c->max_health, rgg::kRed, rgg::kWhite);
 }
 
 }

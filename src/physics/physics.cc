@@ -92,6 +92,14 @@ typedef void ApplyForceCallback(Particle2d* p);
 
 #include "broadphase.cc"
 
+void
+Reset()
+{
+  ResetParticle2d();
+  kPhysics = {};
+  kUsedBP2dCollision = 0;
+}
+
 Particle2d*
 CreateParticle2d(v2f pos, v2f dims)
 {
@@ -151,6 +159,7 @@ __ResolvePositionAndVelocity(
     }
     p->velocity.y = 0.f;
   }
+  BPUpdateP2d(p);
 }
 
 void
@@ -254,9 +263,6 @@ Integrate(r32 dt_sec)
 
     __SetOnWall(c->p1, c->intersection);
     __SetOnWall(c->p2, c->intersection);
-
-    BPUpdateP2d(c->p1);
-    BPUpdateP2d(c->p2);
   }
 }
 

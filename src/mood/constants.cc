@@ -5,6 +5,8 @@ namespace mood {
 constexpr r32 kFrameDelta  = 0.016666f;
 constexpr r32 kJumpForce = 12000.f;
 constexpr r32 kPlayerAcceleration = 200.f;
+constexpr r32 kPlayerHealthBarWidth = 400.f;
+constexpr r32 kPlayerHealthBarHeight = 20.f;
 
 enum CollisionMask {
   // Collide with everything.

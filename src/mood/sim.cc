@@ -1,6 +1,5 @@
 #pragma once
 
-#include "mood/ai.cc"
 #include "mood/entity.cc"
 #include "mood/projectile.cc"
 
@@ -24,6 +23,8 @@ Character* Player() {
   return FindCharacter(kSim.player_id);
 }
 
+#include "mood/ai.cc"
+
 void
 SimInitialize()
 {
@@ -36,9 +37,9 @@ SimInitialize()
   physics::CreateInfinteMassParticle2d(v2f(0.f, -5.f), v2f(500.f, 5.f));
   physics::CreateInfinteMassParticle2d(v2f(-50.f, 15.f), v2f(30.f, 5.f));
   physics::CreateInfinteMassParticle2d(v2f(-10.f, 10.f), v2f(10.f, 5.f));
-  physics::CreateInfinteMassParticle2d(v2f(10.f, 10.f), v2f(5.f, 35.f));
+  physics::CreateInfinteMassParticle2d(v2f(10.f, 25.f), v2f(5.f, 35.f));
 
-  kSim.boost_cooldown.usec = SECONDS(0.75f);
+  kSim.boost_cooldown.usec = SECONDS(1.f);
   util::CooldownInitialize(&kSim.boost_cooldown);
 
   kSim.weapon_cooldown.usec = SECONDS(0.15f);
@@ -51,13 +52,14 @@ void
 __CharacterProjectileCollision(Character* character, Projectile* projectile)
 {
   if (character->id == kSim.player_id) return;
+  SetDestroyFlag(projectile);
   SetDestroyFlag(character);
 }
 
 void
-__ProjectileParticleCollision(
-    Projectile* projectile, physics::Particle2d* particle,
-    physics::BP2dCollision* c)
+__ProjectileParticleCollision(Projectile* projectile,
+                              physics::Particle2d* particle,
+                              physics::BP2dCollision* c)
 {
   SetDestroyFlag(projectile);
   physics::Particle2d* projectile_particle = FindParticle(projectile);
@@ -148,9 +150,8 @@ SimUpdate()
     }
   });
 
-
   ProjectileUpdate();
-  //AIUpdate();
+  AIUpdate();
   rgg::CameraSetPositionXY(FindParticle(Player())->position);
 
   physics::Integrate(kFrameDelta);

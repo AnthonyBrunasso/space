@@ -60,7 +60,6 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
       imui::MouseWheel(event.wheel_delta, imui::kEveryoneTag);
     } break;
     case XBOX_CONTROLLER: {
-      
       // TODO: Calculate controller deadzone with min magnitude.
       constexpr r32 kInputDeadzone = 4000.f;
       constexpr r32 kMaxControllerMagnitude = 32767.f;

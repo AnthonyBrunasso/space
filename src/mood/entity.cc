@@ -99,6 +99,17 @@ enum CharacterAbilityFlags {
   kCharacterAbilityBoost = 0,
 };
 
+enum CharacterBbEntry {
+  kAIBbType = 0,
+};
+
+enum CharacterAIBehavior {
+  kBehaviorNull = 0,   // Blackboard entries can't be 0.
+  kBehaviorSimple = 1,
+};
+
+u32 Behavior(CharacterAIBehavior behavior) { return (u32)behavior; }
+
 struct Character {
   ENTITY_DECL = kEntityTypeCharacter;
   v2f facing = {1.f, 0.f};
@@ -107,6 +118,7 @@ struct Character {
   u8 ability_flags = 0;
   v2f ability_dir = {};
   u8 trail_effect_ttl = 0;
+  Blackboard bb;
 };
 
 enum ProjectileType {

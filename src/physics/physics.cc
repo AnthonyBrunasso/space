@@ -10,7 +10,10 @@ namespace physics {
 struct Particle2d {
   u32 id;
   u32 flags = 0;
-  v2f position;        // Position of particle - center of aabb.
+  // NOTE: This should really not be modified outside of Integrate. If it is
+  // do it knowing that collisions will only take place after position updates
+  // therefore one could see particle penetration for a frame before resolution
+  v2f position;
   v2f velocity;
   v2f acceleration;
   // Inverse mass of this particle. Inverse infinite mass can be reprented
@@ -69,6 +72,8 @@ enum ParticleFlags {
   // If set on one of the colliding particles NEITHER particle will resolve
   // collision overlap.
   kParticleIgnoreCollisionResolution = 3,
+  // If set velocity will not be dampened.
+  kParticleIgnoreDamping = 4,
 };
 
 DECLARE_HASH_ARRAY(Particle2d, PHYSICS_PARTICLE_COUNT);
@@ -168,7 +173,7 @@ Integrate(r32 dt_sec)
       continue;
     }
 
-    BPDeleteP2d(p, i);
+    BPDeleteP2d(p);
   }
 
   // Move all particles according to our laws of physics ignoring collisions.
@@ -190,7 +195,9 @@ Integrate(r32 dt_sec)
     }
     p->velocity += p->acceleration * dt_sec;
     p->position += p->velocity * dt_sec;
-    p->velocity *= pow(p->damping, dt_sec);
+    if (!FLAGGED(p->flags, kParticleIgnoreDamping)) {
+      p->velocity *= pow(p->damping, dt_sec);
+    }
     // Acceleration applied from forces only last a single frame.
     // Reverting here allows any user imposed acceleration to stick around.
     p->acceleration = acc;

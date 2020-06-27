@@ -58,6 +58,12 @@ namespace mood {
   SetDestroyFlag(entity_type* entity)               \
   {                                                 \
     SBIT(entity->flags, 0);                         \
+  }                                                 \
+                                                    \
+  bool                                              \
+  IsDestroyFlagSet(entity_type* entity)             \
+  {                                                 \
+    return FLAGGED(entity->flags, 0);               \
   }
 
 

@@ -30,7 +30,8 @@ SimInitialize()
   particle->damping = 0.005f;
   kSim.player_id = player->id;
 
-  physics::CreateInfinteMassParticle2d(v2f(0.f, -5.f), v2f(1000.f, 5.f));
+  physics::CreateInfinteMassParticle2d(v2f(0.f, -5.f), v2f(500.f, 5.f));
+  physics::CreateInfinteMassParticle2d(v2f(-50.f, 15.f), v2f(10.f, 5.f));
 
   kSim.boost_cooldown.usec = SECONDS(0.75f);
   util::CooldownInitialize(&kSim.boost_cooldown);
@@ -49,17 +50,44 @@ __CharacterProjectileCollision(Character* character, Projectile* projectile)
 }
 
 void
+__ProjectileParticleCollision(
+    Projectile* projectile, physics::Particle2d* particle,
+    physics::BP2dCollision* c)
+{
+  physics::Particle2d* projectile_particle = FindParticle(projectile);
+  if (projectile_particle) {
+    //physics::BPDeleteP2d(projectile_particle);
+  }
+  SetDestroyFlag(projectile);
+}
+
+void
 __ResolveCollisions()
 {
   for (u32 i = 0; i < physics::kUsedBP2dCollision; ++i) {
     physics::BP2dCollision* c = &physics::kBP2dCollision[i];
-    // Check for character / projectile collisions.
-    Character* character = FindCharacter(c->p1->entity_id);
-    Projectile* projectile = FindProjectile(c->p2->entity_id);
-    if (!character) character = FindCharacter(c->p2->entity_id);
-    if (!projectile) projectile = FindProjectile(c->p1->entity_id);
-    if (character && projectile) {
-      __CharacterProjectileCollision(character, projectile);
+    {
+      // Check for character / projectile collisions.
+      Character* character = FindCharacter(c->p1->entity_id);
+      Projectile* projectile = FindProjectile(c->p2->entity_id);
+      if (!character) character = FindCharacter(c->p2->entity_id);
+      if (!projectile) projectile = FindProjectile(c->p1->entity_id);
+      if (character && projectile) {
+        __CharacterProjectileCollision(character, projectile);
+        continue;
+      }
+    }
+    {
+      Projectile* projectile = FindProjectile(c->p1->entity_id);
+      physics::Particle2d* particle = c->p2;
+      if (!projectile) {
+        projectile = FindProjectile(c->p2->entity_id);
+        particle = c->p1;
+      }
+      if (projectile && particle && particle->inverse_mass == 0.f) {
+        __ProjectileParticleCollision(projectile, particle, c);
+        continue;
+      }
     }
   }
 }
@@ -71,32 +99,34 @@ SimUpdate()
 
   FOR_EACH_ENTITY(Character, c, {
     physics::Particle2d* particle = FindParticle(c);
-    if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
-      if (util::CooldownReady(&kSim.weapon_cooldown)) {
-        util::CooldownReset(&kSim.weapon_cooldown);
-        ProjectileCreate(particle->position, c->facing, kSim.player_id,
-                         kProjectileLaser);
+    if (particle) {
+      if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
+        if (util::CooldownReady(&kSim.weapon_cooldown)) {
+          util::CooldownReset(&kSim.weapon_cooldown);
+          ProjectileCreate(particle->position, c->facing, kSim.player_id,
+                           kProjectileLaser);
+        }
       }
-    }
-    if (FLAGGED(c->ability_flags, kCharacterAbilityBoost)) {
-      if (util::CooldownReady(&kSim.boost_cooldown)) {
-        util::CooldownReset(&kSim.boost_cooldown);
-        particle->force += c->ability_dir * 10000.f;
+      if (FLAGGED(c->ability_flags, kCharacterAbilityBoost)) {
+        if (util::CooldownReady(&kSim.boost_cooldown)) {
+          util::CooldownReset(&kSim.boost_cooldown);
+          particle->force += c->ability_dir * 10000.f;
+        }
       }
-    }
-    if (FLAGGED(c->character_flags, kCharacterJump)) {
-      if (particle->on_ground) particle->force.y += kJumpForce;
-    }
-    if (!IsZero(particle->velocity)) {
-      if (particle->velocity.x > 0) c->facing = v2f(1.0f, 0.f);
-      else if (particle->velocity.x < 0) c->facing = v2f(-1.0f, 0.f);
+      if (FLAGGED(c->character_flags, kCharacterJump)) {
+        if (particle->on_ground) particle->force.y += kJumpForce;
+      }
+      if (!IsZero(particle->velocity)) {
+        if (particle->velocity.x > 0) c->facing = v2f(1.0f, 0.f);
+        else if (particle->velocity.x < 0) c->facing = v2f(-1.0f, 0.f);
+      }
     }
   });
 
   __ResolveCollisions();
 
   ProjectileUpdate();
-  AIUpdate();
+  //AIUpdate();
   rgg::CameraSetPositionXY(FindParticle(Player())->position);
 
   // Cleanup entities marked to die at the end of each simulation update

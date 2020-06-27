@@ -20,7 +20,7 @@ BPGetNextId(u32 id)
 }
 
 void
-BPDeleteP2d(Particle2d* p, u32 i)
+BPDeleteP2d(Particle2d* p)
 {
   // If we are deleting the head adjust the head pointer.
   if (p->id == kPhysics.p2d_head_x) {

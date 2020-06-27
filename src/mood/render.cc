@@ -42,19 +42,32 @@ Render()
     rgg::RenderLineRectangle(e->rect, e->color);
   }
   rgg::DebugRenderPrimitives();
-  physics::DebugRender(); 
+  //physics::DebugRender(); 
+
   for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
     physics::Particle2d* p = &physics::kParticle2d[i];
     if (p == FindParticle(Player())) {
       rgg::RenderLineRectangle(p->aabb(), rgg::kGreen);
     } else {
       if (p->ttl != UINT32_MAX) {
-        rgg::RenderRectangle(p->aabb(), rgg::kWhite);
+        if (FLAGGED(p->user_flags, kParticleBlood)) {
+          rgg::RenderRectangle(p->aabb(), rgg::kRed);
+        } else {
+          rgg::RenderRectangle(p->aabb(), rgg::kWhite);
+        }
       } else {
         rgg::RenderLineRectangle(p->aabb(), rgg::kRed);
       }
     }
   }
+
+  FOR_EACH_ENTITY_P(Character, c, p, {
+    if (c == Player()) continue;
+    Rectf aabb = p->aabb();
+    Rectf pb_rect(aabb.x, aabb.Max().y + .5f, aabb.width, 1.f);
+    rgg::RenderProgressBar(pb_rect, 0.f, c->health, c->max_health, rgg::kRed,
+                           rgg::kWhite);
+  });
 }
 
 }

@@ -98,8 +98,6 @@ DebugUI()
   }
 
   mood::EntityViewer(screen);
-
-  physics::DebugUI(screen);
 }
 
 void

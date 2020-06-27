@@ -43,6 +43,9 @@ struct Particle2d {
   // Particles that have matching collision masks will not collide.
   u32 collision_mask = 0;
 
+  // Users of this particle can set flags.
+  u32 user_flags = 0;
+
   Rectf
   aabb() const
   {

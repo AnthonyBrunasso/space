@@ -77,6 +77,19 @@ namespace mood {
     }                                                               \
   }
 
+#define FOR_EACH_ENTITY_P(type, vname, pname, body)                 \
+  {                                                                 \
+    type* vname;                                                    \
+    for (int Idx##type = 0; Idx##type < kUsedEntity; ++Idx##type) { \
+      vname = i2##type(Idx##type);                                  \
+      if (!vname) continue;                                         \
+      physics::Particle2d* pname = FindParticle(vname);             \
+      if (!pname) continue;                                         \
+      body                                                          \
+    }                                                               \
+  }
+
+
 enum EntityType {
   kEntityTypeInvalid = 0,
   kEntityTypeCharacter = 1,
@@ -114,11 +127,16 @@ struct Character {
   ENTITY_DECL = kEntityTypeCharacter;
   v2f facing = {1.f, 0.f};
   u8 character_flags = 0;
-  // Ability state.
+  // Used for when a character executes an ability.
   u8 ability_flags = 0;
   v2f ability_dir = {};
+  // Used to show a flashy trail effect when the player executes a boost.
   u8 trail_effect_ttl = 0;
+  // AI knowledge.
   Blackboard bb;
+  // Character stats.
+  r32 health = 10.f;
+  r32 max_health = 10.f;
 };
 
 enum ProjectileType {

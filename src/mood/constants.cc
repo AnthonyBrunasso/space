@@ -13,4 +13,8 @@ enum CollisionMask {
   kCollisionMaskCharacter = 1,
 };
 
+enum ParticleFlags {
+  kParticleBlood = 0
+};
+
 }

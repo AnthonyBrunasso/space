@@ -53,7 +53,7 @@ AIUpdate()
     if (Length(spawn - player_particle->position) < 10.f) {
       spawn = v2f(math::Random(-100.f, 100.f), 10.f);
     }
-    AICreate(spawn, v2f(5.f, 5.f));
+    AICreate(spawn, v2f(3.5f, 5.0f));
     util::CooldownReset(&kAI.enemy_cooldown);
   }
 

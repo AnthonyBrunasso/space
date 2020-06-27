@@ -38,10 +38,14 @@ SimInitialize()
   particle->damping = 0.005f;
   kSim.player_id = player->id;
 
-  physics::CreateInfinteMassParticle2d(v2f(0.f, -5.f), v2f(500.f, 5.f));
-  physics::CreateInfinteMassParticle2d(v2f(-50.f, 15.f), v2f(30.f, 5.f));
-  physics::CreateInfinteMassParticle2d(v2f(-10.f, 10.f), v2f(10.f, 5.f));
-  physics::CreateInfinteMassParticle2d(v2f(10.f, 25.f), v2f(5.f, 35.f));
+  SBIT(physics::CreateInfinteMassParticle2d(
+           v2f(0.f, -5.f), v2f(500.f, 5.f))->user_flags, kParticleCollider);
+  SBIT(physics::CreateInfinteMassParticle2d(
+           v2f(-50.f, 15.f), v2f(30.f, 5.f))->user_flags, kParticleCollider);
+  SBIT(physics::CreateInfinteMassParticle2d(
+           v2f(-10.f, 10.f), v2f(10.f, 5.f))->user_flags, kParticleCollider);
+  SBIT(physics::CreateInfinteMassParticle2d(
+           v2f(10.f, 25.f), v2f(5.f, 35.f))->user_flags, kParticleCollider);
 
   kSim.boost_cooldown.usec = SECONDS(1.f);
   util::CooldownInitialize(&kSim.boost_cooldown);
@@ -70,14 +74,17 @@ __ProjectileParticleCollision(Projectile* projectile,
   // Spawn effect flying off in opposite direction.
   if (projectile_particle) {
     v2f dir = -math::Normalize(projectile_particle->velocity);
-    physics::Particle2d* ep =
-        physics::CreateParticle2d(projectile_particle->position, v2f(.3f, .3f));
-    // TODO: Somehow cast to the nearest valid position.
-    ep->position += dir * 1.f;
-    ep->collision_mask = kCollisionMaskCharacter;
-    dir = Rotate(dir, math::Random(-1.f, 1.f));
-    ep->force = dir * math::Random(0.f, 5000.f);
-    ep->ttl = 30;
+    for (int i = 0; i < 4; ++i) {
+      physics::Particle2d* ep =
+          physics::CreateParticle2d(projectile_particle->position, v2f(.3f, .3f));
+      // TODO: Somehow cast to the nearest valid position.
+      ep->position += dir * 1.f;
+      ep->collision_mask = kCollisionMaskCharacter;
+      v2f fdir = Rotate(dir, math::Random(-1.f, 1.f));
+      ep->force = fdir * math::Random(1000.f, 5000.f);
+      ep->ttl = 30;
+      SBIT(ep->user_flags, kParticleSpark);
+    }
   }
 }
 
@@ -115,8 +122,7 @@ __ResolveCollisions()
 void
 SimUpdate()
 {
-  FOR_EACH_ENTITY(Character, c, {
-    physics::Particle2d* particle = FindParticle(c);
+  FOR_EACH_ENTITY_P(Character, c, particle, {
     if (particle) {
       if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
         if (util::CooldownReady(&kSim.weapon_cooldown)) {

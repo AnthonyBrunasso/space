@@ -14,7 +14,12 @@ enum CollisionMask {
 };
 
 enum ParticleFlags {
-  kParticleBlood = 0
+  // Blood particles are created when characters explode.
+  kParticleBlood = 0,
+  // Spark particles are created when projectils hit walls.
+  kParticleSpark = 1,
+  // These are the static geometry used for collision in the world.
+  kParticleCollider = 2,
 };
 
 }

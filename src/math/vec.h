@@ -173,6 +173,14 @@ Project(const Vec2<T>& a, const Vec2<T>& onto_b)
   return onto_b * (Dot(a, onto_b) / Dot(onto_b, onto_b));
 }
 
+template <class T>
+Vec2<T>
+Rotate(const Vec2<T>& a, r32 angle)
+{
+  return Vec2<T>(a.x * cos(angle) - a.y * sin(angle),
+                 a.x * sin(angle) + a.y * cos(angle));
+}
+
 template <typename T>
 struct Vec3 {
   Vec3()

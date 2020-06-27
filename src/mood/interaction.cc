@@ -14,7 +14,7 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
           exit(1);
         } break;
         case 'h': {
-          particle->acceleration.x = -150.f;
+          particle->acceleration.x = -kPlayerAcceleration;
         } break;
         case 'j': {
         } break;
@@ -24,7 +24,7 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
           }
         } break;
         case 'l': {
-          particle->acceleration.x = 150.f;
+          particle->acceleration.x = kPlayerAcceleration;
         } break;
       }
     } break;
@@ -76,9 +76,11 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
         normalized_magnitude =
             magnitude / (kMaxControllerMagnitude - kInputDeadzone);
         if (nstick.x > 0.f) {
-          particle->acceleration.x = 150.f * normalized_magnitude;
+          particle->acceleration.x =
+              kPlayerAcceleration * normalized_magnitude;
         } else if (nstick.x < 0.f) {
-          particle->acceleration.x = -150.f * normalized_magnitude;
+          particle->acceleration.x =
+              -kPlayerAcceleration * normalized_magnitude;
         }
       } else {
         magnitude = 0.0;

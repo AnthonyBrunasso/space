@@ -36,6 +36,13 @@ struct Particle2d {
   // Id to entity that contains this particle. Zero if not owned by an entity.
   u32 entity_id = 0;
 
+  // If set to something other than UINT32_MAX will countdown to 0 and delete
+  // itself.
+  u32 ttl = UINT32_MAX;
+
+  // Particles that have matching collision masks will not collide.
+  u32 collision_mask = 0;
+
   Rectf
   aabb() const
   {
@@ -168,12 +175,14 @@ Integrate(r32 dt_sec)
   // Delete any particles that must be deleted for this integration step.
   for (u32 i = 0; i < kUsedParticle2d;) {
     Particle2d* p = &kParticle2d[i];
-    if (!FLAGGED(p->flags, kParticleRemove)) {
-      ++i;
+    if (FLAGGED(p->flags, kParticleRemove) || p->ttl == 0) {
+      BPDeleteP2d(p);
       continue;
     }
-
-    BPDeleteP2d(p);
+    if (p->ttl != UINT32_MAX) {
+      --p->ttl;
+    }
+    ++i;
   }
 
   // Move all particles according to our laws of physics ignoring collisions.
@@ -213,8 +222,13 @@ Integrate(r32 dt_sec)
   for (u32 i = 0; i < kUsedBP2dCollision; ++i) {
     BP2dCollision* c = &kBP2dCollision[i];
 
+    // If either particle completely ignore collision continue.
     if (FLAGGED(c->p1->flags, kParticleIgnoreCollisionResolution)) continue;
     if (FLAGGED(c->p2->flags, kParticleIgnoreCollisionResolution)) continue;
+
+    // If the particles have matching collision masks continue.
+    if (c->p1->collision_mask && c->p2->collision_mask &&
+        c->p1->collision_mask == c->p2->collision_mask) continue;
 
     // Another correction may have moved this collision out of intersection.
     if (!math::IntersectRect(c->p1->aabb(), c->p2->aabb(), &c->intersection)) {

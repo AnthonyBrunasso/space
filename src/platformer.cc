@@ -7,7 +7,7 @@
 #include "renderer/renderer.cc"
 #include "renderer/camera.cc"
 #include "renderer/imui.cc"
-#define PHYSICS_PARTICLE_COUNT 128
+#define PHYSICS_PARTICLE_COUNT 1024
 #include "physics/physics.cc"
 #include "util/cooldown.cc"
 

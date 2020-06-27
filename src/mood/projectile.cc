@@ -27,6 +27,7 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
     } break;
     default: break;
   };
+  dir += v2f(0.f, math::Random(-0.05f, 0.05f));
   projectile->dir = dir;
   projectile->projectile_type = type;
   projectile->updates_to_live = 50;

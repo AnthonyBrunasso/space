@@ -48,7 +48,11 @@ Render()
     if (p == FindParticle(Player())) {
       rgg::RenderLineRectangle(p->aabb(), rgg::kGreen);
     } else {
-      rgg::RenderLineRectangle(p->aabb(), rgg::kRed);
+      if (p->ttl != UINT32_MAX) {
+        rgg::RenderRectangle(p->aabb(), rgg::kWhite);
+      } else {
+        rgg::RenderLineRectangle(p->aabb(), rgg::kRed);
+      }
     }
   }
 }

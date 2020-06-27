@@ -16,6 +16,12 @@ ScaleRange(r32 v, r32 smax, r32 tmax)
   return ((v) * (tmax)) / (smax);
 }
 
+r32
+Random(r32 min, r32 max)
+{
+  return math::ScaleRange((r32)rand() / RAND_MAX, 0.f, 1.f, min, max);
+}
+
 v3f
 Lerp(const v3f& a, const v3f& b, r32 t)
 {

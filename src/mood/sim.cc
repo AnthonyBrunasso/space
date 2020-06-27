@@ -29,6 +29,7 @@ SimInitialize()
 {
   Character* player = UseEntityCharacter(v2f(0.f, 0.f), v2f(5.f, 5.f));
   physics::Particle2d* particle = FindParticle(player);
+  particle->collision_mask = kCollisionMaskCharacter;
   particle->damping = 0.005f;
   kSim.player_id = player->id;
 
@@ -59,6 +60,19 @@ __ProjectileParticleCollision(
     physics::BP2dCollision* c)
 {
   SetDestroyFlag(projectile);
+  physics::Particle2d* projectile_particle = FindParticle(projectile);
+  // Spawn effect flying off in opposite direction.
+  if (projectile_particle) {
+    v2f dir = -math::Normalize(projectile_particle->velocity);
+    physics::Particle2d* ep =
+        physics::CreateParticle2d(projectile_particle->position, v2f(.3f, .3f));
+    // TODO: Somehow cast to the nearest valid position.
+    ep->position += dir * 1.f;
+    ep->collision_mask = kCollisionMaskCharacter;
+    dir = Rotate(dir, math::Random(-1.f, 1.f));
+    ep->force = dir * math::Random(0.f, 5000.f);
+    ep->ttl = 30;
+  }
 }
 
 void
@@ -95,8 +109,6 @@ __ResolveCollisions()
 void
 SimUpdate()
 {
-  physics::Integrate(kFrameDelta);
-
   FOR_EACH_ENTITY(Character, c, {
     physics::Particle2d* particle = FindParticle(c);
     if (particle) {
@@ -112,7 +124,6 @@ SimUpdate()
           util::CooldownReset(&kSim.boost_cooldown);
           particle->force += c->ability_dir * 10000.f;
           c->trail_effect_ttl = 30;
-          //RenderCreateEffect(particle->aabb(), v4f(1.f, 1.f, 1.f, 1.f), 30);
         }
       }
       if (FLAGGED(c->character_flags, kCharacterJump)) {
@@ -137,11 +148,13 @@ SimUpdate()
     }
   });
 
-  __ResolveCollisions();
 
   ProjectileUpdate();
   //AIUpdate();
   rgg::CameraSetPositionXY(FindParticle(Player())->position);
+
+  physics::Integrate(kFrameDelta);
+  __ResolveCollisions();
 
   // Cleanup entities marked to die at the end of each simulation update
   // frame. Particle for physics system will be destroyed at the top of the

@@ -35,6 +35,7 @@ SimInitialize()
   physics::CreateInfinteMassParticle2d(v2f(0.f, -5.f), v2f(500.f, 5.f));
   physics::CreateInfinteMassParticle2d(v2f(-50.f, 15.f), v2f(30.f, 5.f));
   physics::CreateInfinteMassParticle2d(v2f(-10.f, 10.f), v2f(10.f, 5.f));
+  physics::CreateInfinteMassParticle2d(v2f(10.f, 10.f), v2f(5.f, 35.f));
 
   kSim.boost_cooldown.usec = SECONDS(0.75f);
   util::CooldownInitialize(&kSim.boost_cooldown);
@@ -110,6 +111,7 @@ SimUpdate()
         if (util::CooldownReady(&kSim.boost_cooldown)) {
           util::CooldownReset(&kSim.boost_cooldown);
           particle->force += c->ability_dir * 10000.f;
+          c->trail_effect_ttl = 30;
           //RenderCreateEffect(particle->aabb(), v4f(1.f, 1.f, 1.f, 1.f), 30);
         }
       }
@@ -120,6 +122,18 @@ SimUpdate()
         if (particle->velocity.x > 0) c->facing = v2f(1.0f, 0.f);
         else if (particle->velocity.x < 0) c->facing = v2f(-1.0f, 0.f);
       }
+    }
+
+    if (c->trail_effect_ttl > 0) {
+      if (c->trail_effect_ttl % 5 == 0) {
+        Rectf effect_rect(particle->aabb());
+        effect_rect.x += 1.f;
+        effect_rect.y += 1.f;
+        effect_rect.width -= 1.f;
+        effect_rect.height -= 1.f;
+        RenderCreateEffect(effect_rect, v4f(.4f, 1.f, .4f, 0.6f), 15);
+      }
+      --c->trail_effect_ttl;
     }
   });
 

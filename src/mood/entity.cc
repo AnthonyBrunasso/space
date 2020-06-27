@@ -106,6 +106,7 @@ struct Character {
   // Ability state.
   u8 ability_flags = 0;
   v2f ability_dir = {};
+  u8 trail_effect_ttl = 0;
 };
 
 enum ProjectileType {

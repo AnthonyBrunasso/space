@@ -167,7 +167,7 @@ SimUpdate()
             physics::CreateParticle2d(particle->position, v2f(.3f, .3f));
         ep->position += up * 1.f;
         ep->collision_mask = kCollisionMaskCharacter;
-        v2f dir = Rotate(up, math::Random(-1.f, 1.f));
+        v2f dir = Rotate(up, math::Random(-1.3f, 1.3f));
         ep->force = dir * math::Random(1000.f, 7000.f);
         SBIT(ep->user_flags, kParticleBlood);
         ep->ttl = 30;

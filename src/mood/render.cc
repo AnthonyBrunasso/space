@@ -72,8 +72,8 @@ Render()
     if (c == Player()) continue;
     Rectf aabb = p->aabb();
     Rectf pb_rect(aabb.x, aabb.Max().y + .5f, aabb.width, 1.f);
-    rgg::RenderProgressBar(pb_rect, 0.f, c->health, c->max_health, rgg::kRed,
-                           rgg::kWhite);
+    rgg::RenderProgressBar(pb_rect, 0.f, c->health, c->max_health,
+                           v4f(1.f, 0.f, 0.f, .7f), v4f(.8f, .8f, .8f, .5f));
   });
 }
 

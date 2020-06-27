@@ -36,6 +36,15 @@
       k##type[i] = k##type[i + 1];                 \
     }                                              \
     --kUsed##type;                                 \
+  }                                                \
+                                                   \
+  void Erase##type(int idx)                        \
+  {                                                \
+    if (idx >= kMax##type) return;                 \
+    assert(idx < kUsed##type);                     \
+    k##type[idx] = k##type[kUsed##type - 1];       \
+    k##type[kUsed##type - 1] = {};                 \
+    --kUsed##type;                                 \
   }
 
 #define DECLARE_ID_ARRAY(type, max_count)                                 \

@@ -13,6 +13,7 @@
 
 // Gameplay stuff.
 #include "mood/constants.cc"
+#include "mood/render.cc"
 #include "mood/sim.cc"
 #include "mood/interaction.cc"
 
@@ -121,6 +122,8 @@ GameInitialize(const v2f& dims)
 void
 GameUpdate()
 {
+  mood::RenderUpdate();
+
   // Execute game code.
   DebugUI();
   rgg::CameraUpdate();
@@ -132,16 +135,7 @@ GameUpdate()
 void
 GameRender()
 {
-  rgg::DebugRenderPrimitives();
-  physics::DebugRender(); 
-  for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
-    physics::Particle2d* p = &physics::kParticle2d[i];
-    if (p == mood::FindParticle(mood::Player())) {
-      rgg::RenderLineRectangle(p->aabb(), rgg::kGreen);
-    } else {
-      rgg::RenderLineRectangle(p->aabb(), rgg::kRed);
-    }
-  }
+  mood::Render();
   imui::Render(imui::kEveryoneTag);
   window::SwapBuffers();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

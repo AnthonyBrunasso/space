@@ -8,6 +8,8 @@
 
 namespace mood {
 
+void RenderCreateEffect(Rectf rect, v4f color, u32 ttl);
+
 struct Sim {
   u32 player_id; 
   // Cooldown that dictates whether the player can boost.
@@ -31,7 +33,8 @@ SimInitialize()
   kSim.player_id = player->id;
 
   physics::CreateInfinteMassParticle2d(v2f(0.f, -5.f), v2f(500.f, 5.f));
-  physics::CreateInfinteMassParticle2d(v2f(-50.f, 15.f), v2f(10.f, 5.f));
+  physics::CreateInfinteMassParticle2d(v2f(-50.f, 15.f), v2f(30.f, 5.f));
+  physics::CreateInfinteMassParticle2d(v2f(-10.f, 10.f), v2f(10.f, 5.f));
 
   kSim.boost_cooldown.usec = SECONDS(0.75f);
   util::CooldownInitialize(&kSim.boost_cooldown);
@@ -107,6 +110,7 @@ SimUpdate()
         if (util::CooldownReady(&kSim.boost_cooldown)) {
           util::CooldownReset(&kSim.boost_cooldown);
           particle->force += c->ability_dir * 10000.f;
+          //RenderCreateEffect(particle->aabb(), v4f(1.f, 1.f, 1.f, 1.f), 30);
         }
       }
       if (FLAGGED(c->character_flags, kCharacterJump)) {

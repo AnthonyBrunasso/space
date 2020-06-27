@@ -23,6 +23,10 @@ Character* Player() {
   return FindCharacter(kSim.player_id);
 }
 
+physics::Particle2d* PlayerParticle() {
+  return physics::FindParticle2d(FindCharacter(kSim.player_id)->particle_id);
+}
+
 #include "mood/ai.cc"
 
 void

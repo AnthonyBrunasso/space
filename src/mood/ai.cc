@@ -35,8 +35,7 @@ AIBehaviorSimple(Character* c)
 {
   constexpr r32 kSimpleAcceleration = 50.f;
   // Head towards the player I guess?
-  Character* player = Player();
-  physics::Particle2d* player_particle = FindParticle(player);
+  physics::Particle2d* player_particle = PlayerParticle();
   physics::Particle2d* ai_particle = FindParticle(c);
   if (player_particle->position.x > ai_particle->position.x) {
     ai_particle->acceleration.x = kSimpleAcceleration;
@@ -49,8 +48,12 @@ void
 AIUpdate()
 {
   if (util::CooldownReady(&kAI.enemy_cooldown)) {
-
-    AICreate(v2f(math::Random(-100.f, 100.f), 10.f), v2f(5.f, 5.f));
+    physics::Particle2d* player_particle = PlayerParticle();
+    v2f spawn(math::Random(-100.f, 100.f), 10.f);
+    if (Length(spawn - player_particle->position) < 10.f) {
+      spawn = v2f(math::Random(-100.f, 100.f), 10.f);
+    }
+    AICreate(spawn, v2f(5.f, 5.f));
     util::CooldownReset(&kAI.enemy_cooldown);
   }
 

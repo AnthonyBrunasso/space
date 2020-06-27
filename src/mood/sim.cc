@@ -54,10 +54,6 @@ __ProjectileParticleCollision(
     Projectile* projectile, physics::Particle2d* particle,
     physics::BP2dCollision* c)
 {
-  physics::Particle2d* projectile_particle = FindParticle(projectile);
-  if (projectile_particle) {
-    //physics::BPDeleteP2d(projectile_particle);
-  }
   SetDestroyFlag(projectile);
 }
 

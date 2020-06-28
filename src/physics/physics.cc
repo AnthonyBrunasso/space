@@ -61,9 +61,6 @@ struct Particle2d {
   // Users of this particle can set flags.
   u32 user_flags = 0;
 
-  // Set if the particle bounds is represented by a polygon.
-  u32 polygon_id = 0;
-
   Rectf
   aabb() const
   {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstdlib>
 
 #include "common/macro.h"
@@ -51,6 +52,16 @@ struct Rectf {
   Max() const
   {
     return v2f(x + width, y + height);
+  }
+
+  void
+  Polygon(v2f* points, u32 count)
+  {
+    assert(count == 4);
+    points[0] = v2f(x, y);
+    points[1] = v2f(x, y + height);
+    points[2] = v2f(x + width, y + height);
+    points[3] = v2f(x + width, y);
   }
 };
 

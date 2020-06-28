@@ -17,9 +17,10 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
     }
   }
   Projectile* projectile =
-      UseEntityProjectile(start + start_offset, v2f(1.0f, .2f));
+      UseEntityProjectile(start + start_offset, v2f(1.5f, .2f));
   physics::Particle2d* particle = FindParticle(projectile);
   switch (type) {
+    case kProjectileBullet:
     case kProjectileLaser: {
       SBIT(particle->flags, physics::kParticleIgnoreGravity);
       SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
@@ -38,11 +39,17 @@ void
 ProjectileUpdate()
 {
   FOR_EACH_ENTITY(Projectile, p, {
-    // Run projectile updates logic here. 
     physics::Particle2d* particle = FindParticle(p);
     if (particle) {
-      v2f delta = p->dir * 100.f;
-      particle->velocity = delta;
+      switch (p->projectile_type) {
+        case kProjectileLaser: {
+        } break;
+        case kProjectileBullet: {
+          v2f delta = p->dir * 100.f;
+          particle->velocity = delta;
+        } break;
+        default: break;
+      }
     }
 
     --p->updates_to_live;

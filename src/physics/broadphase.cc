@@ -8,7 +8,10 @@ struct BP2dCollision {
   Rectf intersection;
 };
 
-DECLARE_ARRAY(BP2dCollision, PHYSICS_PARTICLE_COUNT);
+// Particles like blood and sparks really blow up collision counts.
+// Consider actually addressing that issue instead of increasing this
+// count by so much.
+DECLARE_ARRAY(BP2dCollision, PHYSICS_PARTICLE_COUNT * 4);
 
 u32
 BPGetNextId(u32 id)

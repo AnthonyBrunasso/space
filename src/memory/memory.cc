@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstring>
+
 namespace memory {
 
 struct Memory {
@@ -10,6 +12,12 @@ struct Memory {
 
 thread_local Memory kMemory;
 
+b8
+IsInitialized()
+{
+  return kMemory.storage != nullptr;
+}
+
 bool
 Initialize(u64 storage_bytes)
 {
@@ -17,7 +25,7 @@ Initialize(u64 storage_bytes)
   kMemory.storage_used = 0;
   kMemory.storage_size = storage_bytes;
   kMemory.storage = (u8*)calloc(storage_bytes, sizeof(u8));
-  return kMemory.storage != nullptr;
+  return IsInitialized();
 }
 
 u8*

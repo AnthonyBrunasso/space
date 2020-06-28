@@ -105,6 +105,8 @@ enum CharacterFlags {
   kCharacterFireWeapon = 0,
   // If set the character will attempt to jump.
   kCharacterJump = 1,
+  // Set if the character is aiming at something.
+  kCharacterAim = 2,
 };
 
 enum CharacterAbilityFlags {
@@ -125,6 +127,7 @@ enum CharacterAIBehavior {
 struct Character {
   ENTITY_DECL = kEntityTypeCharacter;
   v2f facing = {1.f, 0.f};
+  u8 prev_character_flags = 0;
   u8 character_flags = 0;
   // Used for when a character executes an ability.
   u8 ability_flags = 0;
@@ -136,10 +139,15 @@ struct Character {
   // Character stats.
   r32 health = 10.f;
   r32 max_health = 10.f;
+  // Use if character is aiming.
+  v2f aim_dir = {0.f, 1.f};
+  // How much the aim should rotate.
+  r32 aim_rotate_delta = 0.f;
 };
 
 enum ProjectileType {
   kProjectileLaser = 0,
+  kProjectileBullet = 1,
 };
 
 struct Projectile {

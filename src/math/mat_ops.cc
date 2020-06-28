@@ -6,7 +6,6 @@
 
 namespace math
 {
-#define ONE_DEG_IN_RAD (2.0 * PI) / 360.0  // 0.017444444
 
 Mat4f
 Inverse(const Mat4f& m)

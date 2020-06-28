@@ -45,7 +45,13 @@ Render()
   //physics::DebugRender(); 
   FOR_EACH_ENTITY_P(Character, c, p, {
     if (c == Player()) {
-      rgg::RenderRectangle(p->aabb(), rgg::kGreen);
+      Rectf paabb = p->aabb();
+      rgg::RenderRectangle(paabb, rgg::kGreen);
+      if (FLAGGED(c->character_flags, kCharacterAim)) {
+        v2f start = v2f(paabb.Center().x, paabb.Max().y);
+        v2f end = start + c->aim_dir * 100.f;
+        rgg::RenderLine(start, end, v4f(1.f, 0.f, 0.f, 0.5f));
+      }
       continue;
     }
     Rectf aabb = p->aabb();

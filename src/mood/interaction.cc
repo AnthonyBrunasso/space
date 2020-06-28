@@ -2,6 +2,35 @@
 
 namespace mood {
 
+// Turns constroller stick values into a facing direction and magnitude.
+// Returns true if the stick movement is outside of a fixed value
+// "dead zone"
+bool
+__CalculateStickMovement(
+    s16 stick_x, s16 stick_y, v2f* dir, r32* normalized_magnitude)
+{
+  constexpr r32 kInputDeadzone = 4000.f;
+  constexpr r32 kMaxControllerMagnitude = 32767.f;
+  v2f stick(stick_x, stick_y);
+  r32 magnitude = math::Length(stick);
+  *dir = stick / magnitude;
+  *normalized_magnitude = 0;
+  if (magnitude > kInputDeadzone) {
+    if (magnitude > kMaxControllerMagnitude) {
+      magnitude = kMaxControllerMagnitude;
+    }
+    magnitude -= kInputDeadzone;
+    *normalized_magnitude =
+        magnitude / (kMaxControllerMagnitude - kInputDeadzone);
+    
+  } else {
+    magnitude = 0.0;
+    *normalized_magnitude = 0.0;
+    return false;
+  }
+  return true;
+}
+
 void
 ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
 {
@@ -70,39 +99,44 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
       imui::MouseWheel(event.wheel_delta, imui::kEveryoneTag);
     } break;
     case XBOX_CONTROLLER: {
-      // TODO: Calculate controller deadzone with min magnitude.
-      constexpr r32 kInputDeadzone = 4000.f;
-      constexpr r32 kMaxControllerMagnitude = 32767.f;
-      v2f stick(event.controller.lstick_x, event.controller.lstick_y);
-      r32 magnitude = math::Length(stick);
-      v2f nstick = stick / magnitude;
-      r32 normalized_magnitude = 0;
-      if (magnitude > kInputDeadzone) {
-        if (magnitude > kMaxControllerMagnitude) {
-          magnitude = kMaxControllerMagnitude;
+      v2f cdir;
+      r32 cmag;
+      if (__CalculateStickMovement(event.controller.lstick_x,
+                                   event.controller.lstick_y, &cdir, &cmag)) {
+        if (FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_X)) {
+          SBIT(player->ability_flags, kCharacterAbilityBoost);
+          player->ability_dir = cdir;
         }
-        magnitude -= kInputDeadzone;
-        normalized_magnitude =
-            magnitude / (kMaxControllerMagnitude - kInputDeadzone);
-        if (nstick.x > 0.f) {
-          particle->acceleration.x =
-              kPlayerAcceleration * normalized_magnitude;
-        } else if (nstick.x < 0.f) {
-          particle->acceleration.x =
-              -kPlayerAcceleration * normalized_magnitude;
+        if (cdir.x > 0.f) {
+          particle->acceleration.x = kPlayerAcceleration * cmag;
+        } else if (cdir.x < 0.f) {
+          particle->acceleration.x = -kPlayerAcceleration * cmag;
         }
       } else {
-        magnitude = 0.0;
-        normalized_magnitude = 0.0;
         particle->acceleration.x = 0.f;
       }
 
-      if (magnitude > 0.f &&
-          FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_X)) {
-        SBIT(player->ability_flags, kCharacterAbilityBoost);
-        player->ability_dir = nstick;
-      } else {
+      if (!FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_X)) {
         CBIT(player->ability_flags, kCharacterAbilityBoost);
+      }
+
+      if (event.controller.left_trigger) {
+        SBIT(player->character_flags, kCharacterAim);
+      } else {
+        CBIT(player->character_flags, kCharacterAim);
+      }
+
+      if (__CalculateStickMovement(event.controller.rstick_x,
+                                   event.controller.rstick_y, &cdir, &cmag)) {
+        if (FLAGGED(player->character_flags, kCharacterAim)) {
+          if (cdir.x > 0.f) {
+            player->aim_rotate_delta = -cmag;
+          } else if (cdir.x < 0.f) {
+            player->aim_rotate_delta = cmag;
+          }
+        }
+      } else {
+        player->aim_rotate_delta = 0.f;
       }
 
       if (FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_A)) {

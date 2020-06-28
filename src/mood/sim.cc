@@ -91,7 +91,7 @@ __ProjectileParticleCollision(Projectile* projectile,
           physics::CreateParticle2d(projectile_particle->position + dir * 1.f,
                                     v2f(.3f, .3f));
       ep->collision_mask = kCollisionMaskCharacter;
-      v2f fdir = Rotate(dir, math::Random(-1.f, 1.f));
+      v2f fdir = Rotate(dir, math::Random(-45.f, 45.f));
       ep->force = fdir * math::Random(1000.f, 5000.f);
       ep->ttl = 30;
       SBIT(ep->user_flags, kParticleSpark);
@@ -168,7 +168,7 @@ SimUpdate()
         if (util::CooldownReady(&kSim.weapon_cooldown)) {
           util::CooldownReset(&kSim.weapon_cooldown);
           ProjectileCreate(particle->position, c->facing, kSim.player_id,
-                           kProjectileLaser);
+                           kProjectileBullet);
         }
       }
       if (FLAGGED(c->ability_flags, kCharacterAbilityBoost)) {
@@ -201,6 +201,15 @@ SimUpdate()
       --c->trail_effect_ttl;
     }
 
+    if (FLAGGED(c->character_flags, kCharacterAim)) {
+      c->aim_dir = math::Rotate(c->aim_dir, c->aim_rotate_delta);
+    }
+
+    if (!FLAGGED(c->character_flags, kCharacterAim) &&
+        FLAGGED(c->prev_character_flags, kCharacterAim)) {
+      //printf("FIRE!!!!!\n");
+    }
+
     if (c->health <= 0.f) {
       if (c == Player()) {
         return true;
@@ -212,13 +221,15 @@ SimUpdate()
               physics::CreateParticle2d(particle->position + up * 1.f,
                                         v2f(.3f, .3f));
           ep->collision_mask = kCollisionMaskCharacter;
-          v2f dir = Rotate(up, math::Random(-1.3f, 1.3f));
+          v2f dir = Rotate(up, math::Random(-45.f, 45.f));
           ep->force = dir * math::Random(1000.f, 7000.f);
           SBIT(ep->user_flags, kParticleBlood);
           ep->ttl = 30;
         }
       }
     }
+
+    c->prev_character_flags = c->character_flags;
   });
 
   ProjectileUpdate();

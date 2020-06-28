@@ -175,8 +175,9 @@ Project(const Vec2<T>& a, const Vec2<T>& onto_b)
 
 template <class T>
 Vec2<T>
-Rotate(const Vec2<T>& a, r32 angle)
+Rotate(const Vec2<T>& a, r32 angle_degrees)
 {
+  r32 angle = angle_degrees * PI / 180.0f;
   return Vec2<T>(a.x * cos(angle) - a.y * sin(angle),
                  a.x * sin(angle) + a.y * cos(angle));
 }

@@ -7,6 +7,21 @@
 
 namespace physics {
 
+enum ParticleFlags {
+  // Ignores the force of gravity if it's enabled.
+  kParticleIgnoreGravity = 0,
+  // If set the particle will not run its integration step.
+  kParticleFreeze = 1,
+  // If set the particle will be removed at the beginning of the next
+  // integration step.
+  kParticleRemove = 2,
+  // If set on one of the colliding particles NEITHER particle will resolve
+  // collision overlap.
+  kParticleIgnoreCollisionResolution = 3,
+  // If set velocity will not be dampened.
+  kParticleIgnoreDamping = 4,
+};
+
 struct Particle2d {
   u32 id;
   u32 flags = 0;
@@ -46,6 +61,9 @@ struct Particle2d {
   // Users of this particle can set flags.
   u32 user_flags = 0;
 
+  // Set if the particle bounds is represented by a polygon.
+  u32 polygon_id = 0;
+
   Rectf
   aabb() const
   {
@@ -59,7 +77,6 @@ struct Particle2d {
   }
 };
 
-
 struct Physics {
   // Acceleration of gravity.
   r32 gravity = 350.f;
@@ -70,21 +87,6 @@ struct Physics {
 };
 
 static Physics kPhysics;
-
-enum ParticleFlags {
-  // Ignores the force of gravity if it's enabled.
-  kParticleIgnoreGravity = 0,
-  // If set the particle will not run its integration step.
-  kParticleFreeze = 1,
-  // If set the particle will be removed at the beginning of the next
-  // integration step.
-  kParticleRemove = 2,
-  // If set on one of the colliding particles NEITHER particle will resolve
-  // collision overlap.
-  kParticleIgnoreCollisionResolution = 3,
-  // If set velocity will not be dampened.
-  kParticleIgnoreDamping = 4,
-};
 
 DECLARE_HASH_ARRAY(Particle2d, PHYSICS_PARTICLE_COUNT);
 
@@ -280,9 +282,11 @@ DebugUI(v2f screen)
               &enable_physics);
   static const r32 kWidth = 130.f;
   imui::SameLine();
-  imui::Width(80);
-  imui::Text("Collision");
+  imui::Text("Render Collision");
   imui::Checkbox(16.f, 16.f, &kPhysics.debug_render_collision);
+  imui::NewLine();
+  snprintf(kUIBuffer, kUIBufferSize, "%u", kUsedBP2dCollision);
+  imui::Text(kUIBuffer);
   imui::NewLine();
   imui::SameLine();
   imui::Width(80);

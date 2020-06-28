@@ -97,6 +97,8 @@ DebugUI()
     imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
   }
 
+  //physics::DebugUI(screen);
+
   mood::EntityViewer(screen);
 }
 

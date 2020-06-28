@@ -13,44 +13,44 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
         case 27 /* ESC */: {
           exit(1);
         } break;
-        case 32 /* SPACE */: {
+        case 'a': {
           SBIT(player->character_flags, kCharacterFireWeapon);
         } break;
-        case 'j': {
-          SBIT(player->ability_flags, kCharacterAbilityBoost);
-          player->ability_dir = math::Normalize(particle->velocity);
+        case 0 /* ARROW UP */: {
+          SBIT(player->character_flags, kCharacterJump);
         } break;
-        case 'a': {
+        case 3 /* ARROW RIGHT */: {
+          particle->acceleration.x = kPlayerAcceleration;
+        } break;
+        case 1 /* ARROW DOWN */: {
+        } break;
+        case 2 /* ARROW LEFT */: {
           particle->acceleration.x = -kPlayerAcceleration;
         } break;
         case 's': {
-        } break;
-        case 'w': {
-          SBIT(player->character_flags, kCharacterJump);
-        } break;
-        case 'd': {
-          particle->acceleration.x = kPlayerAcceleration;
+          SBIT(player->ability_flags, kCharacterAbilityBoost);
+          player->ability_dir = math::Normalize(particle->velocity);
         } break;
       }
     } break;
     case KEY_UP: {
       switch (event.key) {
-        case 32: {
+        case 'a': {
           CBIT(player->character_flags, kCharacterFireWeapon);
         } break;
-        case 'j': {
-          CBIT(player->ability_flags, kCharacterAbilityBoost);
+        case 0  /* ARROW UP */: {
+          CBIT(player->character_flags, kCharacterJump);
         } break;
-        case 'a': {
+        case 3 /* ARROW RIGHT */: {
+          particle->acceleration.x = 0.f;
+        } break;
+        case 1 /* ARROW DOWN */: {
+        } break;
+        case 2 /* ARROW LEFT */: {
           particle->acceleration.x = 0.f;
         } break;
         case 's': {
-        } break;
-        case 'w': {
-          CBIT(player->character_flags, kCharacterJump);
-        } break;
-        case 'd': {
-          particle->acceleration.x = 0.f;
+          CBIT(player->ability_flags, kCharacterAbilityBoost);
         } break;
       }
     } break;

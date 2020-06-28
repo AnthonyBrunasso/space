@@ -91,8 +91,9 @@ BPUpdateP2d(Particle2d* p)
   // Updates particle position in sorted list if its x is now out of order.
   Particle2d* prev = FindParticle2d(p->prev_p2d_x);
   Particle2d* next = FindParticle2d(p->next_p2d_x);
+  Rectf paabb = p->aabb();
   // Move the particle forward if needed.
-  while (next && p->aabb().Min().x > next->aabb().Min().x) {
+  while (next && paabb.Min().x > next->aabb().Min().x) {
     prev = next;
     next = FindParticle2d(next->next_p2d_x);
   }
@@ -102,7 +103,7 @@ BPUpdateP2d(Particle2d* p)
   prev = FindParticle2d(p->prev_p2d_x);
   next = FindParticle2d(p->next_p2d_x);
   // Move the particle backward if needed.
-  while (prev && p->aabb().Min().x < prev->aabb().Min().x) {
+  while (prev && paabb.Min().x < prev->aabb().Min().x) {
     next = prev;
     prev = FindParticle2d(prev->prev_p2d_x);
   }
@@ -121,7 +122,8 @@ BPInitP2d(Particle2d* particle)
 
   Particle2d* head = FindParticle2d(kPhysics.p2d_head_x);
   if (!head) return;
-  if (particle->aabb().Min().x < head->aabb().Min().x) {
+  Rectf paabb = particle->aabb();
+  if (paabb.Min().x < head->aabb().Min().x) {
     head->prev_p2d_x = particle->id;
     particle->next_p2d_x = head->id;
     kPhysics.p2d_head_x = particle->id;
@@ -136,8 +138,8 @@ BPInitP2d(Particle2d* particle)
       prev->next_p2d_x = particle->id;
       break;
     }
-    if (particle->aabb().Min().x >= prev->aabb().Min().x &&
-        particle->aabb().Min().x <= next->aabb().Min().x) {
+    if (paabb.Min().x >= prev->aabb().Min().x &&
+        paabb.Min().x <= next->aabb().Min().x) {
       particle->prev_p2d_x = prev->id;
       particle->next_p2d_x = next->id;
       next->prev_p2d_x = particle->id;
@@ -163,7 +165,9 @@ BPCalculateCollisions()
       continue;
     }
     Rectf intersection;
-    if (math::IntersectRect(p1->aabb(), p2->aabb(), &intersection)) {
+    Rectf p1aabb = p1->aabb();
+    Rectf p2aabb = p2->aabb();
+    if (math::IntersectRect(p1aabb, p2aabb, &intersection)) {
       BP2dCollision* collision = UseBP2dCollision();
       collision->p1 = p1;
       collision->p2 = p2;
@@ -173,7 +177,7 @@ BPCalculateCollisions()
     }
     // If x axis intersects move p2 forward only, this may be a non
     // intersecting y.
-    if (p2->aabb().Min().x < p1->aabb().Max().x) {
+    if (p2aabb.Min().x < p1aabb.Max().x) {
       p2 = FindParticle2d(p2->next_p2d_x);
     } else {
       p1 = FindParticle2d(p1->next_p2d_x);

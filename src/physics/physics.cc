@@ -161,8 +161,9 @@ __ResolvePositionAndVelocity(
 {
   if (p->inverse_mass < FLT_EPSILON) return;
   if (IsZero(p->velocity)) return;
+  Rectf aabb = p->aabb();
   if (correction.x > 0.f) {
-    if (p->aabb().x < intersection.x) {
+    if (aabb.x < intersection.x) {
       p->position.x -= correction.x;
     } else {
       p->position.x += correction.x;
@@ -172,7 +173,7 @@ __ResolvePositionAndVelocity(
     //p->velocity.x = 0.f;
   }
   if (correction.y > 0.f) {
-    if (p->aabb().y < intersection.y) {
+    if (aabb.y < intersection.y) {
       p->position.y -= correction.y;
     } else {
       p->position.y += correction.y;
@@ -194,8 +195,9 @@ void
 __SetOnWall(Particle2d* p, const Rectf& intersection)
 {
   if (!p->on_wall) {
-    p->on_wall = intersection.x < p->aabb().x ||
-                 intersection.Max().x > p->aabb().Max().x;
+    Rectf aabb = p->aabb();
+    p->on_wall = intersection.x < aabb.x ||
+                 intersection.Max().x > aabb.Max().x;
   }
 }
 

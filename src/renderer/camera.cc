@@ -23,6 +23,7 @@ struct Camera {
   v3f speed;
   v3f lerp_to;
   r32 lerpv = 1.f;
+  bool camera_control = true;
 };
 
 struct CameraState {
@@ -138,6 +139,7 @@ CameraOverhead(const PlatformEvent& event)
   if (!c) return;
   v3f forward = math::Normalize(c->dir.xy());
   v3f right = math::Normalize(math::Cross(forward, c->up));
+  if (!c->camera_control) return;
   switch (event.type) {
     case KEY_DOWN: {
       switch (event.key) {
@@ -167,6 +169,7 @@ CameraBrowser(const PlatformEvent& event)
 {
   Camera* c = CameraGetCurrent();
   if (!c) return;
+  if (!c->camera_control) return;
   switch (event.type) {
     case KEY_DOWN: {
       switch (event.key) {

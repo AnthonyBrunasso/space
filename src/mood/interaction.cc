@@ -13,33 +13,43 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
         case 27 /* ESC */: {
           exit(1);
         } break;
-        case 'h': {
-          particle->acceleration.x = -kPlayerAcceleration;
+        case 32 /* SPACE */: {
+          SBIT(player->character_flags, kCharacterFireWeapon);
         } break;
         case 'j': {
+          SBIT(player->ability_flags, kCharacterAbilityBoost);
+          player->ability_dir = math::Normalize(particle->velocity);
         } break;
-        case 'k': {
-          if (particle->on_ground) {
-            particle->force.y = kJumpForce;
-          }
+        case 'a': {
+          particle->acceleration.x = -kPlayerAcceleration;
         } break;
-        case 'l': {
+        case 's': {
+        } break;
+        case 'w': {
+          SBIT(player->character_flags, kCharacterJump);
+        } break;
+        case 'd': {
           particle->acceleration.x = kPlayerAcceleration;
         } break;
       }
     } break;
     case KEY_UP: {
       switch (event.key) {
-        case 'h': {
-          particle->acceleration.x = 0.f;
+        case 32: {
+          CBIT(player->character_flags, kCharacterFireWeapon);
         } break;
         case 'j': {
-          particle->acceleration.y = 0.f;
+          CBIT(player->ability_flags, kCharacterAbilityBoost);
         } break;
-        case 'k': {
-          particle->acceleration.y = 0.f;
+        case 'a': {
+          particle->acceleration.x = 0.f;
         } break;
-        case 'l': {
+        case 's': {
+        } break;
+        case 'w': {
+          CBIT(player->character_flags, kCharacterJump);
+        } break;
+        case 'd': {
           particle->acceleration.x = 0.f;
         } break;
       }

@@ -2,6 +2,8 @@
 
 #include "vec.h"
 
+#include <cstdlib>
+
 namespace math {
 
 r32

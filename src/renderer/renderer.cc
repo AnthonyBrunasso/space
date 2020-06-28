@@ -486,7 +486,7 @@ RenderRectangle(const Rectf& rect, const v4f& color)
 }
 
 void
-RenderLineRectangle(const Rectf& rect, r32 z, const v4f& color)
+RenderLineRectangle(const Rectf& rect, r32 z, r32 rotate, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   // Texture state has quad with length 1 geometry. This makes scaling simpler
@@ -495,6 +495,9 @@ RenderLineRectangle(const Rectf& rect, r32 z, const v4f& color)
   v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, z);
   v3f scale(rect.width, rect.height, 1.f);
   Mat4f model = math::Model(pos, scale);
+  if (rotate != 0.f) {
+    model = model * math::RotationZ(rotate);
+  }
   Mat4f matrix = kObserver.projection * kObserver.view * model;
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
@@ -506,7 +509,7 @@ RenderLineRectangle(const Rectf& rect, r32 z, const v4f& color)
 void
 RenderLineRectangle(const Rectf& rect, const v4f& color)
 {
-  RenderLineRectangle(rect, 0.f, color);
+  RenderLineRectangle(rect, 0.f, 0.f, color);
 }
 
 void
@@ -789,7 +792,7 @@ RenderProgressBar(const Rectf& rect, r32 z, r32 current_progress,
                   r32 max_progress, const v4f& fill_color,
                   const v4f& outline_color)
 {
-  RenderLineRectangle(rect, z, outline_color);
+  RenderLineRectangle(rect, z, 0.f, outline_color);
   if (current_progress > FLT_EPSILON) {
     Rectf fill_rect(
         rect.x, rect.y,

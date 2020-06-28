@@ -67,6 +67,13 @@ struct Rectf {
 
 namespace math
 {
+
+Rectf
+MakeRect(v2f min, v2f max)
+{
+  return Rectf(min.x, min.y, max.x - min.x, max.y - min.y);
+}
+
 void
 PrintRect(const Rectf& rect)
 {

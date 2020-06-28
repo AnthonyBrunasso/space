@@ -389,7 +389,7 @@ Render(u32 tag)
     rgg::RenderRectangle(pane->rect, pane->options.color);
     rgg::RenderRectangle(pane->header_rect, kPaneHeaderColor);
     rgg::RenderLineRectangle(
-        pane->rect, 0.f, v4f(0.2f, 0.2f, 0.2f, 0.7f));
+        pane->rect, v4f(0.2f, 0.2f, 0.2f, 0.7f));
     if (FLAGGED(pane->flags, kPaneHasScroll) &&
         !FLAGGED(pane->flags, kPaneHidden)) {
       if (FLAGGED(pane->flags, kPaneIsScrolling)) {
@@ -418,7 +418,7 @@ Render(u32 tag)
   for (int i = 0; i < kUsedCheckbox[tag]; ++i) {
     Checkbox* cb = &kCheckbox[tag][i];
     SetScissorWithPane(*cb->pane, dims, false);
-    rgg::RenderLineRectangle(cb->rect, 0.f, kCheckboxColor);
+    rgg::RenderLineRectangle(cb->rect, kCheckboxColor);
     if (cb->checked) {
       Rectf crect(cb->rect);
       crect.width /= 1.25f;

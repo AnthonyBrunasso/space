@@ -61,10 +61,31 @@ struct Particle2d {
   // Users of this particle can set flags.
   u32 user_flags = 0;
 
+  // If set will rotate the particle - the aabb() will then take into
+  // consideration the particles rotated min / max points. Unit in degrees.
+  r32 rotation = 0.f;
+
   Rectf
   aabb() const
   {
-    return Rectf(position - dims / 2.f, dims);
+    Rectf r(position - dims / 2.f, dims);
+    if (rotation != 0.f) {
+      v2f sides[4];
+      sides[0] = math::Rotate(r.Min() - position, rotation);
+      sides[1] = math::Rotate(v2f(r.x, r.y + r.width) - position, rotation);
+      sides[2] = math::Rotate(r.Max() - position, rotation);
+      sides[3] = math::Rotate(v2f(r.x + r.width, r.y) - position, rotation);
+      v2f min(FLT_MAX, FLT_MAX);
+      v2f max(FLT_MIN, FLT_MIN);
+      for (s32 i = 0; i < 4; ++i) {
+        if (sides[i].x < min.x) min.x = sides[i].x;
+        if (sides[i].x > max.x) max.x = sides[i].x;
+        if (sides[i].y < min.y) min.y = sides[i].y;
+        if (sides[i].y > max.y) max.y = sides[i].y;
+      }
+      return math::MakeRect(position + min, position + max);
+    }
+    return r;
   }
 
   r32
@@ -266,6 +287,20 @@ Integrate(r32 dt_sec)
 }
 
 void
+SetRotation(Particle2d* p, r32 rotation)
+{
+  p->rotation = rotation;
+  BPUpdateP2d(p);
+}
+
+void
+Rotate(Particle2d* p, r32 delta)
+{
+  if (delta == 0.f) return;
+  SetRotation(p, p->rotation + delta);
+}
+
+void
 DebugUI(v2f screen)
 {
   static const u32 kUIBufferSize = 64;
@@ -372,6 +407,12 @@ DebugUI(v2f screen)
     imui::Text("Acceleration");
     snprintf(kUIBuffer, kUIBufferSize, "%.3f,%.3f", p->acceleration.x,
              p->acceleration.y);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(kWidth);
+    imui::Text("Rotation");
+    snprintf(kUIBuffer, kUIBufferSize, "%.3f", p->rotation);
     imui::Text(kUIBuffer);
     imui::NewLine();
     imui::SameLine();

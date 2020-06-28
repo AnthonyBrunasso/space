@@ -113,15 +113,14 @@ enum CharacterAbilityFlags {
 };
 
 enum CharacterBbEntry {
-  kAIBbType = 0,
+  kAIBbType = 0, // Stores value of CharacterAIBehavior.
 };
 
 enum CharacterAIBehavior {
   kBehaviorNull = 0,   // Blackboard entries can't be 0.
   kBehaviorSimple = 1,
+  kBehaviorSimpleFlying = 2,
 };
-
-u32 Behavior(CharacterAIBehavior behavior) { return (u32)behavior; }
 
 struct Character {
   ENTITY_DECL = kEntityTypeCharacter;
@@ -133,7 +132,7 @@ struct Character {
   // Used to show a flashy trail effect when the player executes a boost.
   u8 trail_effect_ttl = 0;
   // AI knowledge.
-  Blackboard bb;
+  Blackboard bb;  // TODO: Consider making a map of these...
   // Character stats.
   r32 health = 10.f;
   r32 max_health = 10.f;

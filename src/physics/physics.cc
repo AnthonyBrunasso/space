@@ -13,9 +13,9 @@ struct Particle2d {
   // NOTE: This should really not be modified outside of Integrate. If it is
   // do it knowing that collisions will only take place after position updates
   // therefore one could see particle penetration for a frame before resolution
-  v2f position;
-  v2f velocity;
-  v2f acceleration;
+  v2f position = {};
+  v2f velocity = {};
+  v2f acceleration = {};
   // Inverse mass of this particle. Inverse infinite mass can be reprented
   // with a value of 0 and since 0 mass objects have no physical
   // representation.

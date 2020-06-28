@@ -43,39 +43,45 @@ Render()
   }
   rgg::DebugRenderPrimitives();
   //physics::DebugRender(); 
-
-  for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
-    physics::Particle2d* p = &physics::kParticle2d[i];
-    Entity* e = FindEntity(p->entity_id);
-    if (p == FindParticle(Player())) {
-      rgg::RenderLineRectangle(p->aabb(), rgg::kGreen);
-    } else {
-      if (p->user_flags) {
-        if (FLAGGED(p->user_flags, kParticleBlood)) {
-          rgg::RenderRectangle(p->aabb(), rgg::kRed);
-        } else if (FLAGGED(p->user_flags, kParticleSpark)) {
-          rgg::RenderRectangle(p->aabb(), v4f(.9f, .88f, .1f, 1.f));
-        } else if (FLAGGED(p->user_flags, kParticleCollider)) {
-          rgg::RenderRectangle(p->aabb(), v4f(.5f, .5f, .5f, 1.f));
-        }
-      } else if (e && e->type == kEntityTypeProjectile) {
-        rgg::RenderRectangle(p->aabb(), rgg::kWhite);
-      } else if (e && e->type == kEntityTypeCharacter) {
-        rgg::RenderRectangle(p->aabb(), v4f(1.f, 0.f, 0.f, .8f));
-      } else {
-        rgg::RenderLineRectangle(p->aabb(), v4f(.5f, 0.f, .75f, 1.f));
-      }
-    }
-  }
-
   FOR_EACH_ENTITY_P(Character, c, p, {
-    if (c == Player()) continue;
+    if (c == Player()) {
+      rgg::RenderRectangle(p->aabb(), rgg::kGreen);
+      continue;
+    }
     Rectf aabb = p->aabb();
     Rectf pb_rect(aabb.x, aabb.Max().y + .5f, aabb.width, 1.f);
     rgg::RenderProgressBar(pb_rect, 0.f, c->health, c->max_health,
                            v4f(1.f, 0.f, 0.f, .7f), v4f(.8f, .8f, .8f, .5f));
+    const u32* behavior = nullptr;
+    if (BB_GET(c->bb, kAIBbType, behavior)) {
+      switch (*behavior) {
+        case kBehaviorSimple: {
+          rgg::RenderRectangle(p->aabb(), v4f(1.f, 0.f, 0.f, .8f));
+        } break;
+        case kBehaviorSimpleFlying: {
+          rgg::RenderCircle(
+              p->position, p->aabb().width / 2.f, v4f(1.f, 0.f, 0.f, .7f));
+        } break;
+      }
+    }
   });
 
+  for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
+    physics::Particle2d* p = &physics::kParticle2d[i];
+    Entity* e = FindEntity(p->entity_id);
+    if (p->user_flags) {
+      if (FLAGGED(p->user_flags, kParticleBlood)) {
+        rgg::RenderRectangle(p->aabb(), rgg::kRed);
+      } else if (FLAGGED(p->user_flags, kParticleSpark)) {
+        rgg::RenderRectangle(p->aabb(), v4f(.9f, .88f, .1f, 1.f));
+      } else if (FLAGGED(p->user_flags, kParticleCollider)) {
+        rgg::RenderRectangle(p->aabb(), v4f(.5f, .5f, .5f, 1.f));
+      }
+    } else if (e && e->type == kEntityTypeProjectile) {
+      rgg::RenderRectangle(p->aabb(), rgg::kWhite);
+    }
+  }
+  
   // Render the players health...
   auto dims = window::GetWindowSize();
   rgg::ModifyObserver mod(math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f),

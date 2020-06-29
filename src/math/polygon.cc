@@ -50,7 +50,6 @@ IntersectPolygon(const Polygon<N1>& p1, const Polygon<N2>& p2,
       }
     }
   }
-
   v2f p2_center = p2.Center();
   for (u32 i = 0; i < p2.size(); ++i) {
     v2f diff = p2.Vertex(i) - p2_center;
@@ -68,7 +67,6 @@ IntersectPolygon(const Polygon<N1>& p1, const Polygon<N2>& p2,
       }
     }
   }
-
   return false;
 }
 

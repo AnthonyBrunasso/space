@@ -192,8 +192,16 @@ BPCalculateCollisions()
         Rectf p2rect(p2->position - p2->dims / 2.f, p2->dims);
         v2f collision_start;
         v2f collision_end;
+#if 0
+        math::Polygon<4> t1 = p1rect.Rotate(-p1->rotation);
+        math::Polygon<4> t2 = p2rect.Rotate(-p2->rotation);
+        for (s32 i = 0; i < t1.size(); ++i) {
+          rgg::DebugPushPoint(t1.Vertex(i), .2f, rgg::kWhite);
+          rgg::DebugPushPoint(t2.Vertex(i), .2f, rgg::kWhite);
+        }
+#endif
         if (!math::IntersectPolygon(
-              p1rect.Rotate(p1->rotation), p2rect.Rotate(p2->rotation),
+              p1rect.Rotate(-p1->rotation), p2rect.Rotate(-p2->rotation),
               &collision_start, &collision_end)) {
           p2 = FindParticle2d(p2->next_p2d_x);
           continue;

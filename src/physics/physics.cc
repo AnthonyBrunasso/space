@@ -160,7 +160,7 @@ __ResolvePositionAndVelocity(Particle2d* p, v2f correction)
 {
   if (p->inverse_mass < FLT_EPSILON) return;
   if (IsZero(p->velocity)) return;
-  p->position -= correction;
+  p->position -= (correction * 1.01f);
   p->velocity = {};
   BPUpdateP2d(p);
 }
@@ -300,8 +300,10 @@ Integrate(r32 dt_sec)
         __SetOnWall(c->p2, c->rect_intersection);
       } break;
       case kCollisionTypePolygon: {
-        //__ResolvePositionAndVelocity(c->p1, c->polygon_intersection);
-        //__ResolvePositionAndVelocity(c->p2, c->polygon_intersection);
+        v2f delta =
+            c->polygon_intersection.end - c->polygon_intersection.start;
+        //__ResolvePositionAndVelocity(c->p1, delta);
+        //__ResolvePositionAndVelocity(c->p2, delta);
         // TODO: OnGround / OnWall
       } break;
       default: break;

@@ -138,7 +138,7 @@ LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
   // Get the image_spec. This has overall image details.
   TgaImageSpec* image_spec = (TgaImageSpec*)(&buffer[sizeof(TgaHeader)]);
 
-#if 0
+#if 1
   printf("TGA file: %s header\n", file);
   printf("header->id_length: %i\n", header->id_length);
   printf("header->color_map_type: %i\n", header->color_map_type);
@@ -164,7 +164,7 @@ LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
     fclose(fptr);
     return false;
   }
-
+#if 1
   if (format == GL_RGB || format == GL_RGBA) {
     s32 stride = image_spec->pixel_depth / 8;
     u32 image_bytes_size =
@@ -176,6 +176,7 @@ LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
       image_bytes[i + 2] = t;
     }
   }
+#endif
 
   *texture = CreateTexture2D(format, image_spec->image_width,
                              image_spec->image_height, texture_info,

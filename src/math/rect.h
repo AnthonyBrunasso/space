@@ -4,6 +4,7 @@
 #include <cstdlib>
 
 #include "common/macro.h"
+#include "math/polygon.cc"
 
 #include "vec.h"
 #include "util.cc"

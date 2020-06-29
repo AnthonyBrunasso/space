@@ -38,7 +38,8 @@ FileTGACallback(const char* filename)
     Texture* texture = FindOrUseTexture(filename, len);
     if (!texture->texture.IsValid()) {
       rgg::TextureInfo info;
-      if (strcmp(filename, "asset/adventurer.tga") == 0) {
+      if (strcmp(filename, "asset/adventurer.tga") == 0 ||
+          strcmp(filename, "asset/treeRGB.tga") == 0) {
         info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
         info.mag_filter = GL_NEAREST;
       }
@@ -207,7 +208,7 @@ main(s32 argc, char** argv)
         rgg::RenderTexture(
             *kCurrentTexture,
             animation::Update(kCurrentSprite),
-            Rectf(0, 0, 50, 37));
+            Rectf(0, 0, kCurrentSprite->width, kCurrentSprite->height));
       }
     }
 

@@ -7,6 +7,11 @@ enum CollisionType {
   kCollisionTypePolygon = 1,
 };
 
+struct PolygonIntersection {
+  v2f start;
+  v2f end;
+};
+
 struct BP2dCollision {
   BP2dCollision() :
     p1(nullptr), p2(nullptr), type(kCollisionTypeRect), rect_intersection() {}
@@ -15,7 +20,7 @@ struct BP2dCollision {
   CollisionType type;
   union { 
     Rectf rect_intersection;
-    v2f polygon_intersection;
+    PolygonIntersection polygon_intersection;
   };
 };
 
@@ -176,7 +181,6 @@ BPCalculateCollisions()
       continue;
     }
     Rectf rect_intersection;
-    v2f polygon_intersection;
     Rectf p1aabb = p1->aabb();
     Rectf p2aabb = p2->aabb();
     if (math::IntersectRect(p1aabb, p2aabb, &rect_intersection)) {
@@ -186,9 +190,11 @@ BPCalculateCollisions()
       if (p1->rotation != 0.f || p2->rotation != 0.f) {
         Rectf p1rect(p1->position - p1->dims / 2.f, p1->dims);
         Rectf p2rect(p2->position - p2->dims / 2.f, p2->dims);
+        v2f collision_start;
+        v2f collision_end;
         if (!math::IntersectPolygon(
               p1rect.Rotate(p1->rotation), p2rect.Rotate(p2->rotation),
-              &polygon_intersection)) {
+              &collision_start, &collision_end)) {
           p2 = FindParticle2d(p2->next_p2d_x);
           continue;
         }
@@ -196,7 +202,8 @@ BPCalculateCollisions()
         collision->p1 = p1;
         collision->p2 = p2;
         collision->type = kCollisionTypePolygon;
-        collision->polygon_intersection = polygon_intersection;
+        collision->polygon_intersection.start = collision_start;
+        collision->polygon_intersection.end = collision_end;
         p2 = FindParticle2d(p2->next_p2d_x);
         continue;
       } else {

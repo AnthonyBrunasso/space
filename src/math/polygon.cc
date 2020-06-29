@@ -29,7 +29,8 @@ struct Polygon {
 
 template <u32 N1, u32 N2>
 bool
-IntersectPolygon(const Polygon<N1>& p1, const Polygon<N2>& p2, v2f* intersection)
+IntersectPolygon(const Polygon<N1>& p1, const Polygon<N2>& p2,
+                 v2f* collision_start, v2f* collision_end)
 {
   // Check of line segments from p1 center intersect with edges of p2.
   v2f p1_center = p1.Center();
@@ -43,7 +44,8 @@ IntersectPolygon(const Polygon<N1>& p1, const Polygon<N2>& p2, v2f* intersection
       v2f position;
       if (math::IntersectLineSegment(
             p1_center, p1_end, p2_start, p2_end, &time, &position)) {
-        *intersection = p1_end - position;
+        *collision_start = position;
+        *collision_end = p1_end;
         return true;
       }
     }
@@ -60,7 +62,8 @@ IntersectPolygon(const Polygon<N1>& p1, const Polygon<N2>& p2, v2f* intersection
       v2f position;
       if (math::IntersectLineSegment(
             p2_center, p2_end, p1_start, p1_end, &time, &position)) {
-        *intersection = p1_end - position;
+        *collision_start = position;
+        *collision_end = p2_end;
         return true;
       }
     }

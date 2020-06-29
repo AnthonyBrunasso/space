@@ -2,10 +2,10 @@
 
 #include "constants.h"
 #include "util.cc"
-#include "polygon.cc"
-#include "rect.h"
 #include "vec.h"
 #include "intersection.cc"
+#include "polygon.cc"
+#include "rect.h"
 #include "mat_ops.cc"
 #include "stats.cc"
 #include "cube.h"

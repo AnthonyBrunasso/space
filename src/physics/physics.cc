@@ -161,7 +161,7 @@ __ResolvePositionAndVelocity(Particle2d* p, v2f correction)
   if (p->inverse_mass < FLT_EPSILON) return;
   if (IsZero(p->velocity)) return;
   p->position -= correction;
-  p->velocity.y = 0.f;
+  p->velocity = {};
   BPUpdateP2d(p);
 }
 
@@ -548,6 +548,9 @@ DebugRender()
           rgg::RenderLineRectangle(c->rect_intersection, rgg::kWhite);
         } break;
         case kCollisionTypePolygon: {
+          rgg::RenderLine(
+              c->polygon_intersection.start, c->polygon_intersection.end,
+              rgg::kWhite);
         } break;
         default: break;
       }

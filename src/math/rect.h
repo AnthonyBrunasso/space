@@ -54,14 +54,31 @@ struct Rectf {
     return v2f(x + width, y + height);
   }
 
-  void
-  Polygon(v2f* points, u32 count)
+  math::Polygon<4>
+  Polygon()
   {
-    assert(count == 4);
-    points[0] = v2f(x, y);
-    points[1] = v2f(x, y + height);
-    points[2] = v2f(x + width, y + height);
-    points[3] = v2f(x + width, y);
+    math::Polygon<4> poly;
+    poly.vertex[0] = v2f(x, y);
+    poly.vertex[1] = v2f(x, y + height);
+    poly.vertex[2] = v2f(x + width, y + height);
+    poly.vertex[3] = v2f(x + width, y);
+    return poly;
+  }
+
+  math::Polygon<4>
+  Rotate(r32 rotation)
+  {
+    math::Polygon<4> poly;
+    v2f center = Center();
+    poly.vertex[0] = math::Rotate(Min() - center, rotation);
+    poly.vertex[1] = math::Rotate(v2f(x, y + width) - center, rotation);
+    poly.vertex[2] = math::Rotate(Max() - center, rotation);
+    poly.vertex[3] = math::Rotate(v2f(x + width, y) - center, rotation);
+    poly.vertex[0] += center;
+    poly.vertex[1] += center;
+    poly.vertex[2] += center;
+    poly.vertex[3] += center;
+    return poly;
   }
 };
 

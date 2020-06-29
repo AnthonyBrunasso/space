@@ -2,10 +2,21 @@
 
 // Implement sweep and prune against 2d particles.
 
+enum CollisionType {
+  kCollisionTypeRect = 0,
+  kCollisionTypePolygon = 1,
+};
+
 struct BP2dCollision {
+  BP2dCollision() :
+    p1(nullptr), p2(nullptr), type(kCollisionTypeRect), rect_intersection() {}
   Particle2d* p1;
   Particle2d* p2;
-  Rectf intersection;
+  CollisionType type;
+  union { 
+    Rectf rect_intersection;
+    v2f polygon_intersection;
+  };
 };
 
 // Particles like blood and sparks really blow up collision counts.
@@ -164,16 +175,39 @@ BPCalculateCollisions()
       p2 = FindParticle2d(p1->next_p2d_x);
       continue;
     }
-    Rectf intersection;
+    Rectf rect_intersection;
+    v2f polygon_intersection;
     Rectf p1aabb = p1->aabb();
     Rectf p2aabb = p2->aabb();
-    if (math::IntersectRect(p1aabb, p2aabb, &intersection)) {
-      BP2dCollision* collision = UseBP2dCollision();
-      collision->p1 = p1;
-      collision->p2 = p2;
-      collision->intersection = intersection;
-      p2 = FindParticle2d(p2->next_p2d_x);
-      continue;
+    if (math::IntersectRect(p1aabb, p2aabb, &rect_intersection)) {
+      // If there is rotation turn the rect into a polygon and use polygon
+      // intersection.
+      // TODO: Maybe someday allow arbitrary polygons.
+      if (p1->rotation != 0.f || p2->rotation != 0.f) {
+        Rectf p1rect(p1->position - p1->dims / 2.f, p1->dims);
+        Rectf p2rect(p2->position - p2->dims / 2.f, p2->dims);
+        if (!math::IntersectPolygon(
+              p1rect.Rotate(p1->rotation), p2rect.Rotate(p2->rotation),
+              &polygon_intersection)) {
+          p2 = FindParticle2d(p2->next_p2d_x);
+          continue;
+        }
+        BP2dCollision* collision = UseBP2dCollision();
+        collision->p1 = p1;
+        collision->p2 = p2;
+        collision->type = kCollisionTypePolygon;
+        collision->polygon_intersection = polygon_intersection;
+        p2 = FindParticle2d(p2->next_p2d_x);
+        continue;
+      } else {
+        BP2dCollision* collision = UseBP2dCollision();
+        collision->p1 = p1;
+        collision->p2 = p2;
+        collision->type = kCollisionTypeRect;
+        collision->rect_intersection = rect_intersection;
+        p2 = FindParticle2d(p2->next_p2d_x);
+        continue;
+      }
     }
     // If x axis intersects move p2 forward only, this may be a non
     // intersecting y.

@@ -70,8 +70,8 @@ DoIntersect(const v2f& p1, const v2f& q1, const v2f& p2, const v2f& q2)
 
 // pg 152. Real-Time Collision Detection by Christer Ericson
 b8
-LineSegmentsIntersect(const v2f& a_start, const v2f& a_end, const v2f& b_start,
-                      const v2f& b_end, r32* time, v2f* position)
+IntersectLineSegment(const v2f& a_start, const v2f& a_end, const v2f& b_start,
+                     const v2f& b_end, r32* time, v2f* position)
 {
   r32 a1 = Signed2DTriArea(a_start, a_end, b_end);
   r32 a2 = Signed2DTriArea(a_start, a_end, b_start);

@@ -156,6 +156,16 @@ DeleteParticle2d(u32 id)
 }
 
 void
+__ResolvePositionAndVelocity(Particle2d* p, v2f correction)
+{
+  if (p->inverse_mass < FLT_EPSILON) return;
+  if (IsZero(p->velocity)) return;
+  p->position -= correction;
+  p->velocity.y = 0.f;
+  BPUpdateP2d(p);
+}
+
+void
 __ResolvePositionAndVelocity(
     Particle2d* p, v2f correction, const Rectf& intersection)
 {
@@ -264,27 +274,38 @@ Integrate(r32 dt_sec)
     if (c->p1->collision_mask && c->p2->collision_mask &&
         c->p1->collision_mask == c->p2->collision_mask) continue;
 
-    // Another correction may have moved this collision out of intersection.
-    if (!math::IntersectRect(c->p1->aabb(), c->p2->aabb(), &c->intersection)) {
-      continue;
+    switch (c->type) {
+      case kCollisionTypeRect: {
+        // Another correction may have moved this collision out of intersection.
+        if (!math::IntersectRect(c->p1->aabb(), c->p2->aabb(),
+                                 &c->rect_intersection)) {
+          continue;
+        }
+
+        // Use min axis of intersection to correct collisions.
+        v2f correction;
+        if (c->rect_intersection.width < c->rect_intersection.height) {
+          correction = v2f(c->rect_intersection.width, 0.f);
+        } else {
+          correction = v2f(0.f, c->rect_intersection.height);
+        }
+
+        __ResolvePositionAndVelocity(c->p1, correction, c->rect_intersection);
+        __ResolvePositionAndVelocity(c->p2, correction, c->rect_intersection);
+
+        __SetOnGround(c->p1, c->rect_intersection);
+        __SetOnGround(c->p2, c->rect_intersection);
+
+        __SetOnWall(c->p1, c->rect_intersection);
+        __SetOnWall(c->p2, c->rect_intersection);
+      } break;
+      case kCollisionTypePolygon: {
+        //__ResolvePositionAndVelocity(c->p1, c->polygon_intersection);
+        //__ResolvePositionAndVelocity(c->p2, c->polygon_intersection);
+        // TODO: OnGround / OnWall
+      } break;
+      default: break;
     }
-
-    // Use min axis of intersection to correct collisions.
-    v2f correction;
-    if (c->intersection.width < c->intersection.height) {
-      correction = v2f(c->intersection.width, 0.f);
-    } else {
-      correction = v2f(0.f, c->intersection.height);
-    }
-
-    __ResolvePositionAndVelocity(c->p1, correction, c->intersection);
-    __ResolvePositionAndVelocity(c->p2, correction, c->intersection);
-
-    __SetOnGround(c->p1, c->intersection);
-    __SetOnGround(c->p2, c->intersection);
-
-    __SetOnWall(c->p1, c->intersection);
-    __SetOnWall(c->p2, c->intersection);
   }
 }
 
@@ -522,7 +543,14 @@ DebugRender()
   if (kPhysics.debug_render_collision) {
     for (u32 i = 0; i < kUsedBP2dCollision; ++i) {
       BP2dCollision* c = &kBP2dCollision[i];
-      rgg::RenderLineRectangle(c->intersection, rgg::kWhite);
+      switch (c->type) {
+        case kCollisionTypeRect: {
+          rgg::RenderLineRectangle(c->rect_intersection, rgg::kWhite);
+        } break;
+        case kCollisionTypePolygon: {
+        } break;
+        default: break;
+      }
     }
   }
 }

@@ -133,12 +133,7 @@ GameUpdate()
 void
 GameRender()
 {
-  if (kRenderCollision) {
-    for (u32 i = 0; i < physics::kUsedBP2dCollision; ++i) {
-      physics::BP2dCollision* c = &physics::kBP2dCollision[i];
-      rgg::RenderLineRectangle(c->intersection, rgg::kWhite);
-    }
-  }
+  physics::DebugRender();
   rgg::DebugRenderPrimitives();
   for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
     physics::Particle2d* p = &physics::kParticle2d[i];

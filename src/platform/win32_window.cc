@@ -324,7 +324,7 @@ SetupWindow(HINSTANCE inst, const char* name, const CreateInfo& create_info)
     screen_settings.dmPelsWidth = create_info.window_width;
     screen_settings.dmPelsHeight = create_info.window_height;
     screen_settings.dmBitsPerPel = 32;
-    screen_settings.dmFields = DM_BITSPERPEL| DM_PELSWIDTH| DM_PELSHEIGHT;
+    screen_settings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
     ChangeDisplaySettings(&screen_settings, CDS_FULLSCREEN);
     window_extended_style |= WS_EX_TOPMOST;
   } else {

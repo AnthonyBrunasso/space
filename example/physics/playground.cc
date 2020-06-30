@@ -44,6 +44,8 @@ static r32 kJumpForce = 10000.f;
 
 static b8 kRenderCollision = true;
 
+static rgg::Mesh kMesh;
+
 void
 DebugUI()
 {

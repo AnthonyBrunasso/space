@@ -13,10 +13,6 @@ namespace rgg {
 
 #define DEBUGOBJ 0
 
-// TODO: Pretty good use case here for some sort of dynamic allocation.
-// Artists can construct assets with many materials which may require
-// a high upper bound for some meshes yet a very low one for simple
-// meshes.
 constexpr u32 kMaxMaterial = 16;
 constexpr u32 kMaxVertPair = 32;
 
@@ -111,6 +107,55 @@ LoadMTL(const char* filename, Material* material, u32* material_count)
            cmat->ks.x, cmat->ks.y, cmat->ks.z);
   }
 #endif
+  return true;
+}
+
+bool
+SetupMesh(Mesh* mesh, r32* verts, u32 verts_count, r32* norms, u32 norms_count)
+{
+  mesh->vert_count = verts_count / 3;
+  mesh->norm_count = norms_count / 3;
+
+  GLuint points_vbo = 0;
+  glGenBuffers(1, &points_vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, points_vbo);
+  glBufferData(GL_ARRAY_BUFFER, verts_count * sizeof(GLfloat),
+               &verts[0], GL_STATIC_DRAW);
+
+  if (!points_vbo) {
+    return false;
+  }
+
+  GLuint normals_vbo = 0;
+  glGenBuffers(1, &normals_vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, normals_vbo);
+  glBufferData(GL_ARRAY_BUFFER, norms_count * sizeof(GLfloat),
+               &norms[0], GL_STATIC_DRAW);
+  
+  if (!normals_vbo) {
+    return false;
+  }
+
+  GLuint vao = 0;
+  glGenVertexArrays(1, &vao);
+  glBindVertexArray(vao);
+
+  if (!vao) {
+    return false;
+  }
+
+  glEnableVertexAttribArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, points_vbo);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+  glEnableVertexAttribArray(1);
+  glBindBuffer(GL_ARRAY_BUFFER, normals_vbo);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+  mesh->vert_vbo = points_vbo;
+  mesh->norm_vbo = normals_vbo;
+  mesh->vao = vao;
+
   return true;
 }
 
@@ -217,56 +262,13 @@ LoadOBJ(const char* filename, Mesh* mesh)
       }
     }
   } 
-
-  mesh->vert_count = verts_count / 3;
-  mesh->norm_count = norms_count / 3;
+   
+  if (!SetupMesh(mesh, verts, verts_count, norms, norms_count)) {
+    fclose(f);
+    FREE_MEM();
+    return false;
+  }
   
-  GLuint points_vbo = 0;
-  glGenBuffers(1, &points_vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, points_vbo);
-  glBufferData(GL_ARRAY_BUFFER, verts_count * sizeof(GLfloat),
-               &verts[0], GL_STATIC_DRAW);
-
-  if (!points_vbo) {
-    FREE_MEM();
-    fclose(f);
-    return false;
-  }
-
-  GLuint normals_vbo = 0;
-  glGenBuffers(1, &normals_vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, normals_vbo);
-  glBufferData(GL_ARRAY_BUFFER, norms_count * sizeof(GLfloat),
-               &norms[0], GL_STATIC_DRAW);
-  
-  if (!normals_vbo) {
-    FREE_MEM();
-    fclose(f);
-    return false;
-  }
-
-  GLuint vao = 0;
-  glGenVertexArrays(1, &vao);
-  glBindVertexArray(vao);
-
-  if (!vao) {
-    FREE_MEM();
-    fclose(f);
-    return false;
-  }
-
-  glEnableVertexAttribArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, points_vbo);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-
-  glEnableVertexAttribArray(1);
-  glBindBuffer(GL_ARRAY_BUFFER, normals_vbo);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-
-  mesh->vert_vbo = points_vbo;
-  mesh->norm_vbo = normals_vbo;
-  mesh->vao = vao;
-
 #if DEBUGOBJ
   printf("Loaded Mesh vert count %i verts vbo %i norms vbo %i vao %i \n",
          mesh->vert_count, mesh->vert_vbo, mesh->norm_vbo, mesh->vao);

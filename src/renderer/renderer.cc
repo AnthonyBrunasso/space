@@ -485,9 +485,17 @@ RenderRectangle(const Rectf& rect, const v4f& color)
   RenderRectangle(rect, 0.f, color);
 }
 
+void RenderLine(const v3f& start, const v3f& end, const v4f& color);
+
 void
 RenderLineRectangle(const Rectf& rect, r32 z, r32 rotate, const v4f& color)
 {
+  math::Polygon<4> p = rect.Rotate(rotate);
+  RenderLine(p.Vertex(0), p.Vertex(1), color);
+  RenderLine(p.Vertex(1), p.Vertex(2), color);
+  RenderLine(p.Vertex(2), p.Vertex(3), color);
+  RenderLine(p.Vertex(3), p.Vertex(0), color);
+#if 0
   glUseProgram(kRGG.geometry_program.reference);
   // Texture state has quad with length 1 geometry. This makes scaling simpler
   // as we can use the width / height directly in scale matrix.
@@ -504,6 +512,7 @@ RenderLineRectangle(const Rectf& rect, r32 z, r32 rotate, const v4f& color)
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
                      &matrix.data_[0]);
   glDrawArrays(GL_LINE_LOOP, 0, 4);
+#endif
 }
 
 void

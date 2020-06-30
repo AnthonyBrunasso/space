@@ -201,7 +201,7 @@ BPCalculateCollisions()
         }
 #endif
         if (!math::IntersectPolygon(
-              p1rect.Rotate(-p1->rotation), p2rect.Rotate(-p2->rotation),
+              p1rect.Rotate(p1->rotation), p2rect.Rotate(p2->rotation),
               &collision_start, &collision_end)) {
           p2 = FindParticle2d(p2->next_p2d_x);
           continue;

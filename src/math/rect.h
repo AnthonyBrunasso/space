@@ -56,7 +56,7 @@ struct Rectf {
   }
 
   math::Polygon<4>
-  Polygon()
+  Polygon() const
   {
     math::Polygon<4> poly;
     poly.vertex[0] = v2f(x, y);
@@ -67,12 +67,12 @@ struct Rectf {
   }
 
   math::Polygon<4>
-  Rotate(r32 rotation)
+  Rotate(r32 rotation) const
   {
     math::Polygon<4> poly;
     v2f center = Center();
     poly.vertex[0] = math::Rotate(Min() - center, rotation);
-    poly.vertex[1] = math::Rotate(v2f(x, y + width) - center, rotation);
+    poly.vertex[1] = math::Rotate(v2f(x, y + height) - center, rotation);
     poly.vertex[2] = math::Rotate(Max() - center, rotation);
     poly.vertex[3] = math::Rotate(v2f(x + width, y) - center, rotation);
     poly.vertex[0] += center;

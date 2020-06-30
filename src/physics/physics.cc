@@ -79,7 +79,7 @@ struct Particle2d {
     if (rotation != 0.f) {
       v2f sides[4];
       sides[0] = math::Rotate(r.Min() - position, rotation);
-      sides[1] = math::Rotate(v2f(r.x, r.y + r.width) - position, rotation);
+      sides[1] = math::Rotate(v2f(r.x, r.y + r.height) - position, rotation);
       sides[2] = math::Rotate(r.Max() - position, rotation);
       sides[3] = math::Rotate(v2f(r.x + r.width, r.y) - position, rotation);
       v2f min(FLT_MAX, FLT_MAX);

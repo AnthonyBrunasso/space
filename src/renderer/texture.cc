@@ -10,6 +10,8 @@ struct Texture {
 
 struct TextureState {
   GLuint vao_reference;
+  GLuint vbo_reference;
+  GLuint vao_reference_static;
   GLuint program;
   GLuint texture_uniform;
   GLuint matrix_uniform;
@@ -61,7 +63,10 @@ SetupTexture()
     0.5f,  0.5f, 0.0f, // TR
   };
 
-  kTextureState.vao_reference = gl::CreateGeometryVAO(18, quad);
+  kTextureState.vao_reference =
+      gl::CreateGeometryVAO(18, quad, &kTextureState.vbo_reference);
+  u32 vbo;
+  kTextureState.vao_reference_static = gl::CreateGeometryVAO(18, quad, &vbo);
   glEnableVertexAttribArray(1);
   glGenBuffers(1, &kTextureState.uv_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, kTextureState.uv_vbo);
@@ -222,7 +227,7 @@ RenderTexture(const Texture& texture, const Rectf& src,
 {
   glUseProgram(kTextureState.program);
   glBindTexture(GL_TEXTURE_2D, texture.reference);
-  glBindVertexArray(kTextureState.vao_reference);
+  glBindVertexArray(kTextureState.vao_reference_static);
   UV uv[6];
   // Match uv coordinates to quad coords.
   r32 start_x = src.x / texture.width;

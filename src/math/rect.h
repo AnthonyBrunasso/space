@@ -69,6 +69,8 @@ struct Rectf {
   math::Polygon<4>
   Rotate(r32 rotation) const
   {
+    // Avoid cos / sin.
+    if (rotation == 0.f) return Polygon();
     math::Polygon<4> poly;
     v2f center = Center();
     r32 angle = rotation * PI / 180.0f;

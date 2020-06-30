@@ -72,6 +72,7 @@ struct RGG {
 
   // References to vertex data on GPU.
   GLuint triangle_vao_reference;
+  // TODO: Delete this. Use GL_DYANMIC_DRAW
   GLuint rectangle_vao_reference;
   GLuint line_vao_reference;
   GLuint line_vbo_reference;
@@ -352,7 +353,8 @@ Initialize()
   r32 m = kRGG.meter_size;
   GLfloat tri[9] = {0.0f, m / 2.f,  0.f,      m / 2.f, -m / 2.f,
                     0.f,  -m / 2.f, -m / 2.f, 0.f};
-  kRGG.triangle_vao_reference = gl::CreateGeometryVAO(9, tri);
+  GLuint vbo;
+  kRGG.triangle_vao_reference = gl::CreateGeometryVAO(9, tri, &vbo);
 
   // Rectangle. Notice it's a square. Scale to make rectangly.
   // clang-format off
@@ -366,7 +368,7 @@ Initialize()
       m / 2.f, -m / 2.f, 0.f
   };
   // clang-format on
-  kRGG.rectangle_vao_reference = gl::CreateGeometryVAO(18, square);
+  kRGG.rectangle_vao_reference = gl::CreateGeometryVAO(18, square, &vbo);
 
   // Don't use CreateGeometryVAO here because the vbo reference is used by
   // RenderLine to feed line endpoints directly to GPU.
@@ -407,7 +409,8 @@ RenderTag
 CreateRenderable(int vert_count, GLfloat* verts, GLenum mode)
 {
   RenderTag tag = {};
-  tag.vao_reference = gl::CreateGeometryVAO(vert_count * 3, verts);
+  GLuint vbo;
+  tag.vao_reference = gl::CreateGeometryVAO(vert_count * 3, verts, &vbo);
   tag.vert_count = vert_count;
   tag.mode = mode;
   return tag;
@@ -468,17 +471,22 @@ RenderRectangle(const Rectf& rect, r32 z, r32 rotation, const v4f& color)
   // Texture state has quad with length 1 geometry. This makes scaling simpler
   // as we can use the width / height directly in scale matrix.
   glBindVertexArray(kTextureState.vao_reference);
-  v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, z);
-  v3f scale(rect.width, rect.height, 1.f);
-  Mat4f model = math::Model(pos, scale);
-  if (rotation != 0.f) {
-    model = model * math::RotationZ(rotation);
-  }
-  Mat4f matrix = kObserver.projection * kObserver.view * model;
+  Mat4f view_projection = kObserver.projection * kObserver.view;
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
-                     &matrix.data_[0]);
+                     &view_projection.data_[0]);
+  math::Polygon<4> p = rect.Rotate(rotation);
+  r32 verts[18] = {
+    p.vertex[0].x, p.vertex[0].y, z,
+    p.vertex[1].x, p.vertex[1].y, z,
+    p.vertex[2].x, p.vertex[2].y, z,
+    p.vertex[0].x, p.vertex[0].y, z,
+    p.vertex[2].x, p.vertex[2].y, z,
+    p.vertex[3].x, p.vertex[3].y, z,
+  };
+  glBindBuffer(GL_ARRAY_BUFFER, kTextureState.vbo_reference);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_DYNAMIC_DRAW);
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -493,29 +501,25 @@ void RenderLine(const v3f& start, const v3f& end, const v4f& color);
 void
 RenderLineRectangle(const Rectf& rect, r32 z, r32 rotate, const v4f& color)
 {
-  math::Polygon<4> p = rect.Rotate(rotate);
-  RenderLine(p.Vertex(0), p.Vertex(1), color);
-  RenderLine(p.Vertex(1), p.Vertex(2), color);
-  RenderLine(p.Vertex(2), p.Vertex(3), color);
-  RenderLine(p.Vertex(3), p.Vertex(0), color);
-#if 0
   glUseProgram(kRGG.geometry_program.reference);
   // Texture state has quad with length 1 geometry. This makes scaling simpler
   // as we can use the width / height directly in scale matrix.
   glBindVertexArray(kTextureState.vao_reference);
-  v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, z);
-  v3f scale(rect.width, rect.height, 1.f);
-  Mat4f model = math::Model(pos, scale);
-  if (rotate != 0.f) {
-    model = model * math::RotationZ(rotate);
-  }
-  Mat4f matrix = kObserver.projection * kObserver.view * model;
+  Mat4f view_projection = kObserver.projection * kObserver.view;
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
-                     &matrix.data_[0]);
+                     &view_projection.data_[0]);
+  math::Polygon<4> p = rect.Rotate(rotate);
+  r32 verts[12] = {
+    p.vertex[0].x, p.vertex[0].y, z,
+    p.vertex[1].x, p.vertex[1].y, z,
+    p.vertex[2].x, p.vertex[2].y, z,
+    p.vertex[3].x, p.vertex[3].y, z,
+  };
+  glBindBuffer(GL_ARRAY_BUFFER, kTextureState.vbo_reference);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_DYNAMIC_DRAW);
   glDrawArrays(GL_LINE_LOOP, 0, 4);
-#endif
 }
 
 void
@@ -529,7 +533,7 @@ RenderSmoothRectangle(const Rectf& rect, r32 smoothing_radius,
                       const v4f& color)
 {
   glUseProgram(kRGG.smooth_rectangle_program.reference);
-  glBindVertexArray(kTextureState.vao_reference);
+  glBindVertexArray(kTextureState.vao_reference_static);
   v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, 0.0f);
   v3f scale(rect.width, rect.height, 1.f);
   Mat4f model = math::Model(pos, scale);
@@ -550,7 +554,7 @@ RenderCircle(const v3f& position, r32 inner_radius, r32 outer_radius,
              const v4f& color)
 {
   glUseProgram(kRGG.circle_program.reference);
-  glBindVertexArray(kTextureState.vao_reference);
+  glBindVertexArray(kTextureState.vao_reference_static);
   // Translate and rotate the circle appropriately.
   Mat4f model =
       math::Model(position, v3f(outer_radius * 2.f, outer_radius * 2.f, 0.0f));

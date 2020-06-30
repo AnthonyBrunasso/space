@@ -9,6 +9,6 @@ namespace gl
 const char* GLTypeToString(int type);
 
 // Creates a vbo for a vert list and binds / returns a vao.
-unsigned int CreateGeometryVAO(int len, float* verts);
+unsigned int CreateGeometryVAO(int len, float* verts, GLuint* points_vbo);
 
 }  // namespace gl

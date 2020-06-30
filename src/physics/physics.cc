@@ -78,10 +78,15 @@ struct Particle2d {
     Rectf r = Rect();
     if (rotation != 0.f) {
       v2f sides[4];
-      sides[0] = math::Rotate(r.Min() - position, rotation);
-      sides[1] = math::Rotate(v2f(r.x, r.y + r.height) - position, rotation);
-      sides[2] = math::Rotate(r.Max() - position, rotation);
-      sides[3] = math::Rotate(v2f(r.x + r.width, r.y) - position, rotation);
+      r32 angle = rotation * PI / 180.0f;
+      r32 cos_a = cos(angle);
+      r32 sin_a = sin(angle);
+      sides[0] = math::Rotate(r.Min() - position, cos_a, sin_a);
+      sides[1] = math::Rotate(
+          v2f(r.x, r.y + r.height) - position, cos_a, sin_a);
+      sides[2] = math::Rotate(r.Max() - position, cos_a, sin_a);
+      sides[3] = math::Rotate(
+          v2f(r.x + r.width, r.y) - position, cos_a, sin_a);
       v2f min(FLT_MAX, FLT_MAX);
       v2f max(FLT_MIN, FLT_MIN);
       for (s32 i = 0; i < 4; ++i) {

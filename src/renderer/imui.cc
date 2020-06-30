@@ -425,14 +425,14 @@ Render(u32 tag)
       crect.height /= 1.25f;
       crect.x  += (cb->rect.width - crect.width) / 2.f;
       crect.y  += (cb->rect.height - crect.height) / 2.f;
-      rgg::RenderRectangle(crect, 0.f, kCheckboxCheckedColor);
+      rgg::RenderRectangle(crect, kCheckboxCheckedColor);
     } else if (cb->is_highlighted) {
       Rectf crect(cb->rect);
       crect.width /= 1.25f;
       crect.height /= 1.25f;
       crect.x  += (cb->rect.width - crect.width) / 2.f;
       crect.y  += (cb->rect.height - crect.height) / 2.f;
-      rgg::RenderRectangle(crect, 0.f, kCheckboxHighlightedColor);
+      rgg::RenderRectangle(crect, kCheckboxHighlightedColor);
     }
   }
 

@@ -462,7 +462,7 @@ RenderRectangle(const v3f& position, const v3f& scale,
 }
 
 void
-RenderRectangle(const Rectf& rect, r32 z, const v4f& color)
+RenderRectangle(const Rectf& rect, r32 z, r32 rotation, const v4f& color)
 {
   glUseProgram(kRGG.geometry_program.reference);
   // Texture state has quad with length 1 geometry. This makes scaling simpler
@@ -471,6 +471,9 @@ RenderRectangle(const Rectf& rect, r32 z, const v4f& color)
   v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, z);
   v3f scale(rect.width, rect.height, 1.f);
   Mat4f model = math::Model(pos, scale);
+  if (rotation != 0.f) {
+    model = model * math::RotationZ(rotation);
+  }
   Mat4f matrix = kObserver.projection * kObserver.view * model;
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
@@ -482,7 +485,7 @@ RenderRectangle(const Rectf& rect, r32 z, const v4f& color)
 void
 RenderRectangle(const Rectf& rect, const v4f& color)
 {
-  RenderRectangle(rect, 0.f, color);
+  RenderRectangle(rect, 0.f, 0.f, color);
 }
 
 void RenderLine(const v3f& start, const v3f& end, const v4f& color);
@@ -808,7 +811,7 @@ RenderProgressBar(const Rectf& rect, r32 z, r32 current_progress,
         rect.width * fmodf(current_progress, max_progress) / max_progress,
         rect.height);
     if (current_progress == max_progress) fill_rect.width = rect.width;
-    RenderRectangle(fill_rect, z, fill_color);
+    RenderRectangle(fill_rect, z, 0.f, fill_color);
   }
 }
 

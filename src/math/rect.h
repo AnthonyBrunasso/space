@@ -71,10 +71,13 @@ struct Rectf {
   {
     math::Polygon<4> poly;
     v2f center = Center();
-    poly.vertex[0] = math::Rotate(Min() - center, rotation);
-    poly.vertex[1] = math::Rotate(v2f(x, y + height) - center, rotation);
-    poly.vertex[2] = math::Rotate(Max() - center, rotation);
-    poly.vertex[3] = math::Rotate(v2f(x + width, y) - center, rotation);
+    r32 angle = rotation * PI / 180.0f;
+    r32 cos_a = cos(angle);
+    r32 sin_a = sin(angle);
+    poly.vertex[0] = math::Rotate(Min() - center, cos_a, sin_a);
+    poly.vertex[1] = math::Rotate(v2f(x, y + height) - center, cos_a, sin_a);
+    poly.vertex[2] = math::Rotate(Max() - center, cos_a, sin_a);
+    poly.vertex[3] = math::Rotate(v2f(x + width, y) - center, cos_a, sin_a);
     poly.vertex[0] += center;
     poly.vertex[1] += center;
     poly.vertex[2] += center;

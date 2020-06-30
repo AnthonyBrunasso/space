@@ -22,6 +22,8 @@ enum ParticleFlags {
   kParticleSpark = 1,
   // These are the static geometry used for collision in the world.
   kParticleCollider = 2,
+  // These are particles that I simply want to render for testing.
+  kParticleTest = 3,
 };
 
 }

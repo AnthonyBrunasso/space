@@ -65,10 +65,17 @@ struct Particle2d {
   // consideration the particles rotated min / max points. Unit in degrees.
   r32 rotation = 0.f;
 
+  // Returns the rect of the particle ignoring relevant details like rotation!
+  Rectf
+  Rect() const
+  {
+    return Rectf(position - dims / 2.f, dims);
+  }
+
   Rectf
   aabb() const
   {
-    Rectf r(position - dims / 2.f, dims);
+    Rectf r = Rect();
     if (rotation != 0.f) {
       v2f sides[4];
       sides[0] = math::Rotate(r.Min() - position, rotation);

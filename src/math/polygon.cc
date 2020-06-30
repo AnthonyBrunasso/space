@@ -27,6 +27,11 @@ struct Polygon {
   v2f vertex[N];
 };
 
+// TODO: This is really not a good intersection test for resolving collision.
+// There are lots of cases where the collision_start / collision_end points
+// don't give a reasonable correction vector. Most the cases are due to deeper
+// primite penetration, though, so there may be no need to fix. Just keeping
+// a note here for myself.
 template <u32 N1, u32 N2>
 bool
 IntersectPolygon(const Polygon<N1>& p1, const Polygon<N2>& p2,

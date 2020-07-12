@@ -650,6 +650,12 @@ GetWindowSize()
 }
 
 v2f
+GetPrimaryMonitorSize()
+{
+  return v2f(GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+}
+
+v2f
 GetCursorPosition()
 {
   POINT cursor;

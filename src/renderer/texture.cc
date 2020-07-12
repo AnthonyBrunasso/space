@@ -107,6 +107,10 @@ Texture CreateTexture2D(GLenum format, uint64_t width, uint64_t height,
 b8
 LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
 {
+  // Texture already loaded.
+  if (texture->IsValid()) {
+    return true;
+  }
 #pragma pack(push, 1)
   struct TgaImageSpec {
     u16 x_origin;

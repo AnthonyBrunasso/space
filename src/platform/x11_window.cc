@@ -301,6 +301,13 @@ GetWindowSize()
 }
 
 v2f
+GetPrimaryMonitorSize()
+{
+  // TODO:
+  return {};
+}
+
+v2f
 GetCursorPosition()
 {
   return v2f(mouse_x, mouse_y);

@@ -279,6 +279,13 @@ GetWindowSize()
 }
 
 v2f
+GetPrimaryMonitorSize()
+{
+  // TODO:
+  return {};
+}
+
+v2f
 GetCursorPosition()
 {
   NSPoint pos;

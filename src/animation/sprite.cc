@@ -38,6 +38,8 @@ struct Sprite {
 b8
 LoadAnimation(const char* filename, Sprite* sprite)
 {
+  // Sprite already loaded.
+  if (sprite->IsValid()) return true;
   FILE* f = fopen(filename, "rb");
   if (!f) return false;
   *sprite = {};

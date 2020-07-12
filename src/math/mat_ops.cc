@@ -201,7 +201,7 @@ Perspective(r32 fov_degrees, r32 aspect, r32 znear, r32 zfar)
 }
 
 Mat4f
-Ortho(r32 right, r32 left, r32 top, r32 bottom, r32 far_clip, r32 near_clip)
+Ortho(r32 right, r32 left, r32 top, r32 bottom, r32 near_clip, r32 far_clip)
 {
   // Goal with this matrix is to scale a point, in likely screen space relative
   // to the cameras to GL space or the unit cube.
@@ -214,16 +214,16 @@ Ortho(r32 right, r32 left, r32 top, r32 bottom, r32 far_clip, r32 near_clip)
   h = h == 0.f ? 1.f : h;
   r32 d = far_clip - near_clip;
   d = d == 0.f ? 1.f : d;
-  return Mat4f(2.f / w, 0.f    , 0.f    , 0.f,
-               0.f    , 2.f / h, 0.f    , 0.f,
-               0.f    , 0.f    , 2.f / d, -1.f,
-               0.f    , 0.f    , 0.f    , 1.f);
+  return Mat4f(2.f / w, 0.f    , 0.f     , 0.f,
+               0.f    , 2.f / h, 0.f     , 0.f,
+               0.f    , 0.f    , -2.f / d, 0.f,
+               0.f    , 0.f    , 0.f     , 1.f);
 }
 
 // This function orients origin to bottom left of screen. Useful for UI so
 // points can be specified in actual screen space.
 Mat4f
-Ortho2(r32 right, r32 left, r32 top, r32 bottom, r32 far_clip, r32 near_clip)
+Ortho2(r32 right, r32 left, r32 top, r32 bottom, r32 near_clip, r32 far_clip)
 {
   r32 w = right - left;
   w = w == 0.f ? 1.f : w;

@@ -187,6 +187,13 @@ struct Window {
 
 static Window kWindow;
 
+HMONITOR
+GetPrimaryMonitorHandle()
+{
+  POINT pt_zero = {};
+  return MonitorFromPoint(pt_zero, MONITOR_DEFAULTTOPRIMARY);
+}
+
 void
 HandleKeyEvent(WPARAM wparam, b8 is_down, PlatformEvent* event)
 {
@@ -641,7 +648,6 @@ GetWindowSize()
   GetClientRect(kWindow.hwnd, &rect);
   return v2f((r32)rect.right - rect.left, (r32)rect.bottom - rect.top);
 }
-
 
 v2f
 GetCursorPosition()

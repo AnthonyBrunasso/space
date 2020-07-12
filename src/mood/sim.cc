@@ -41,7 +41,7 @@ SimInitialize()
   kSim.player_id = player->id;
 
   SBIT(physics::CreateInfinteMassParticle2d(
-           v2f(0.f, -5.f), v2f(500.f, 5.f))->user_flags, kParticleCollider);
+           v2f(0.f, -5.f), v2f(1910.f, 5.f))->user_flags, kParticleCollider);
   SBIT(physics::CreateInfinteMassParticle2d(
            v2f(-50.f, 15.f), v2f(30.f, 5.f))->user_flags, kParticleCollider);
   SBIT(physics::CreateInfinteMassParticle2d(

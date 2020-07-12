@@ -119,9 +119,9 @@ Render()
           rgg::RenderTexture(
               kRender.snail_texture,
               animation::Update(&kRender.snail_sprite),
-              //Rectf(paabb.x, paabb.y, kRender.snail_sprite.width,
-              //      kRender.snail_sprite.height));
-              taabb);
+              Rectf(paabb.x, paabb.y, kRender.snail_sprite.width,
+                    kRender.snail_sprite.height));
+              //taabb);
         } break;
         case kBehaviorSimpleFlying: {
           rgg::RenderCircle(

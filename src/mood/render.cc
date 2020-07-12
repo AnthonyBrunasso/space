@@ -1,5 +1,7 @@
 #pragma once
 
+#include "animation/sprite.cc"
+#include "renderer/texture.cc"
 #include "mood/sim.cc"
 
 namespace mood {
@@ -11,6 +13,33 @@ struct Effect {
 };
 
 DECLARE_ARRAY(Effect, 64);
+
+struct Render {
+  rgg::Texture snail_texture;
+  animation::Sprite snail_sprite;
+};
+
+static Render kRender;
+
+void
+RenderInitialize()
+{
+  rgg::TextureInfo info;
+  info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
+  info.mag_filter = GL_NEAREST;
+  if (!rgg::LoadTGA("asset/snail.tga", info, &kRender.snail_texture)) {
+    printf("Could not load snail texture...\n");
+  }
+
+  if (!animation::LoadAnimation("asset/snail.anim", &kRender.snail_sprite)) {
+    printf("Could not load snail animation...\n");
+  } else {
+    kRender.snail_sprite.last_update = 0;
+    kRender.snail_sprite.label_idx = 0;
+    kRender.snail_sprite.label_coord_idx = 0;
+  }
+
+}
 
 void
 RenderUpdate()
@@ -42,6 +71,26 @@ Render()
     rgg::RenderLineRectangle(e->rect, e->color);
   }
   rgg::DebugRenderPrimitives();
+
+  for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
+    physics::Particle2d* p = &physics::kParticle2d[i];
+    Entity* e = FindEntity(p->entity_id);
+    if (p->user_flags) {
+      if (FLAGGED(p->user_flags, kParticleBlood)) {
+        rgg::RenderRectangle(p->aabb(), rgg::kRed);
+      } else if (FLAGGED(p->user_flags, kParticleSpark)) {
+        rgg::RenderRectangle(p->aabb(), v4f(.9f, .88f, .1f, 1.f));
+      } else if (FLAGGED(p->user_flags, kParticleCollider)) {
+        rgg::RenderRectangle(p->aabb(), v4f(.5f, .5f, .5f, 1.f));
+      } else if (FLAGGED(p->user_flags, kParticleTest)) {
+        rgg::RenderLineRectangle(
+            p->Rect(), 0.f, 0.f, v4f(1.f, 0.5f, 0.2f, 1.f));
+      }
+    } else if (e && e->type == kEntityTypeProjectile) {
+      rgg::RenderRectangle(p->aabb(), rgg::kWhite);
+    }
+  }
+
   //physics::DebugRender(); 
   FOR_EACH_ENTITY_P(Character, c, p, {
     if (c == Player()) {
@@ -62,7 +111,17 @@ Render()
     if (BB_GET(c->bb, kAIBbType, behavior)) {
       switch (*behavior) {
         case kBehaviorSimple: {
-          rgg::RenderRectangle(p->aabb(), v4f(1.f, 0.f, 0.f, .8f));
+          Rectf paabb = p->aabb();
+          Rectf taabb =
+              Rectf(paabb.x, paabb.y, paabb.width * 2.5f, paabb.height * 2.5f);
+          // TODO: How should I handle this?
+          taabb.x -= 2.5f; taabb.y -= 4.3f;
+          rgg::RenderTexture(
+              kRender.snail_texture,
+              animation::Update(&kRender.snail_sprite),
+              //Rectf(paabb.x, paabb.y, kRender.snail_sprite.width,
+              //      kRender.snail_sprite.height));
+              taabb);
         } break;
         case kBehaviorSimpleFlying: {
           rgg::RenderCircle(
@@ -72,24 +131,7 @@ Render()
     }
   });
 
-  for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
-    physics::Particle2d* p = &physics::kParticle2d[i];
-    Entity* e = FindEntity(p->entity_id);
-    if (p->user_flags) {
-      if (FLAGGED(p->user_flags, kParticleBlood)) {
-        rgg::RenderRectangle(p->aabb(), rgg::kRed);
-      } else if (FLAGGED(p->user_flags, kParticleSpark)) {
-        rgg::RenderRectangle(p->aabb(), v4f(.9f, .88f, .1f, 1.f));
-      } else if (FLAGGED(p->user_flags, kParticleCollider)) {
-        rgg::RenderRectangle(p->aabb(), v4f(.5f, .5f, .5f, 1.f));
-      } else if (FLAGGED(p->user_flags, kParticleTest)) {
-        rgg::RenderLineRectangle(
-            p->Rect(), 0.f, 0.f, v4f(1.f, 0.5f, 0.2f, 1.f));
-      }
-    } else if (e && e->type == kEntityTypeProjectile) {
-      rgg::RenderRectangle(p->aabb(), rgg::kWhite);
-    }
-  }
+  
   
   // Render the players health...
   auto dims = window::GetWindowSize();

@@ -38,11 +38,16 @@ FileTGACallback(const char* filename)
     Texture* texture = FindOrUseTexture(filename, len);
     if (!texture->texture.IsValid()) {
       rgg::TextureInfo info;
+      info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
+      info.mag_filter = GL_NEAREST;
+#if 0
       if (strcmp(filename, "asset/adventurer.tga") == 0 ||
-          strcmp(filename, "asset/treeRGB.tga") == 0) {
+          strcmp(filename, "asset/tree.tga") == 0 || 
+          strcmp(filename, "asset/snail.tga") == 0) {
         info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
         info.mag_filter = GL_NEAREST;
       }
+#endif
       if (!rgg::LoadTGA(filename, info, &texture->texture)) {
         printf("Invalid texture %s\n", filename);
       }
@@ -196,6 +201,7 @@ main(s32 argc, char** argv)
     imui::MousePosition(cursor, 0);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(.2f, .2f, .23f, 1.f);
 
     RenderAxis();
     if (kCurrentTexture && kCurrentTexture->IsValid()) {

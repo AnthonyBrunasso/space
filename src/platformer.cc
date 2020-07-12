@@ -118,6 +118,7 @@ GameInitialize(const v2f& dims)
   rgg::CameraInit(camera);
 
   mood::SimInitialize();
+  mood::RenderInitialize();
 }
 
 bool
@@ -134,10 +135,11 @@ GameUpdate()
 void
 GameRender()
 {
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClearColor(.1f, .1f, .13f, 1.f);
   mood::Render();
   imui::Render(imui::kEveryoneTag);
   window::SwapBuffers();
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 s32
@@ -184,7 +186,6 @@ main(s32 argc, char** argv)
   // If vsync is enabled, force the clock_init to align with clock_sync
   // TODO: We should also enforce framerate is equal to refresh rate
   window::SwapBuffers();
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   while (1) {
     platform::ClockStart(&kGameState.game_clock);

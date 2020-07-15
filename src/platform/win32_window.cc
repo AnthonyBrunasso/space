@@ -81,6 +81,8 @@ typedef void glUniform1f_Func(GLint, GLfloat);
 glUniform1f_Func* glUniform1f;
 typedef void glGenerateMipmap_Func(GLenum);
 glGenerateMipmap_Func* glGenerateMipmap;
+typedef void glBlendFuncSeparate_Func(GLenum, GLenum, GLenum, GLenum);
+glBlendFuncSeparate_Func* glBlendFuncSeparate;
 
 // GL defines.
 #define GL_ARRAY_BUFFER                   0x8892
@@ -543,6 +545,7 @@ SetupGLFunctions() {
   glDrawBuffers = (glDrawBuffers_Func*)GetGLFunction("glDrawBuffers");
   glUniform1f = (glUniform1f_Func*)GetGLFunction("glUniform1f");
   glGenerateMipmap = (glGenerateMipmap_Func*)GetGLFunction("glGenerateMipmap");
+  glBlendFuncSeparate = (glBlendFuncSeparate_Func*)GetGLFunction("glBlendFuncSeparate");
 }
 
 void

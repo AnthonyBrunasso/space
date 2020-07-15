@@ -34,20 +34,21 @@ physics::Particle2d* PlayerParticle() {
 void
 SimInitialize()
 {
-  Character* player = UseEntityCharacter(v2f(0.f, 0.f), v2f(5.f, 5.f));
+  Character* player =
+      UseEntityCharacter(v2f(0.f, 60.f), v2f(kPlayerWidth, kPlayerHeight));
   physics::Particle2d* particle = FindParticle(player);
   particle->collision_mask = kCollisionMaskCharacter;
   particle->damping = 0.005f;
   kSim.player_id = player->id;
 
   SBIT(physics::CreateInfinteMassParticle2d(
-           v2f(0.f, -5.f), v2f(1910.f, 5.f))->user_flags, kParticleCollider);
-  SBIT(physics::CreateInfinteMassParticle2d(
-           v2f(-50.f, 15.f), v2f(30.f, 5.f))->user_flags, kParticleCollider);
-  SBIT(physics::CreateInfinteMassParticle2d(
-           v2f(-10.f, 10.f), v2f(10.f, 5.f))->user_flags, kParticleCollider);
-  SBIT(physics::CreateInfinteMassParticle2d(
-           v2f(10.f, 25.f), v2f(5.f, 35.f))->user_flags, kParticleCollider);
+           v2f(0.f, 0.f), v2f(1910.f, kPlayerHeight))->user_flags, kParticleCollider);
+  //SBIT(physics::CreateInfinteMassParticle2d(
+  //         v2f(-50.f, 15.f), v2f(30.f, 5.f))->user_flags, kParticleCollider);
+  //SBIT(physics::CreateInfinteMassParticle2d(
+  //         v2f(-10.f, 10.f), v2f(10.f, 5.f))->user_flags, kParticleCollider);
+  //SBIT(physics::CreateInfinteMassParticle2d(
+  //         v2f(10.f, 25.f), v2f(5.f, 35.f))->user_flags, kParticleCollider);
 
   kSim.boost_cooldown.usec = SECONDS(1.f);
   util::CooldownInitialize(&kSim.boost_cooldown);
@@ -89,11 +90,11 @@ __ProjectileParticleCollision(Projectile* projectile,
     for (int i = 0; i < 4; ++i) {
       physics::Particle2d* ep =
           physics::CreateParticle2d(projectile_particle->position + dir * 1.f,
-                                    v2f(.3f, .3f));
+                                    v2f(kParticleWidth, kParticleHeight));
       ep->collision_mask = kCollisionMaskCharacter;
       v2f fdir = Rotate(dir, math::Random(-45.f, 45.f));
       ep->force = fdir * math::Random(1000.f, 5000.f);
-      ep->ttl = 30;
+      ep->ttl = kParticleTTL;
       SBIT(ep->user_flags, kParticleSpark);
     }
   }
@@ -176,7 +177,7 @@ SimUpdate()
           util::CooldownReset(&kSim.boost_cooldown);
           // Boosting make player invulnerable briefly.
           util::CooldownReset(&kSim.player_invulnerable);
-          particle->force += c->ability_dir * 10000.f;
+          particle->force += c->ability_dir * kPlayerBoostForce;
           c->trail_effect_ttl = 30;
         }
       }
@@ -225,12 +226,12 @@ SimUpdate()
         for (int i = 0; i < 30; ++i) {
           physics::Particle2d* ep =
               physics::CreateParticle2d(particle->position + up * 1.f,
-                                        v2f(.3f, .3f));
+                                        v2f(kParticleWidth, kParticleHeight));
           ep->collision_mask = kCollisionMaskCharacter;
-          v2f dir = Rotate(up, math::Random(-45.f, 45.f));
-          ep->force = dir * math::Random(1000.f, 7000.f);
+          v2f dir = Rotate(up, math::Random(-55.f, 55.f));
+          ep->force = dir * math::Random(10000.f, 30000.f);
           SBIT(ep->user_flags, kParticleBlood);
-          ep->ttl = 30;
+          ep->ttl = kParticleTTL;
         }
       }
     }
@@ -240,7 +241,8 @@ SimUpdate()
 
   ProjectileUpdate();
   AIUpdate();
-  rgg::CameraSetPositionXY(FindParticle(Player())->position);
+  rgg::CameraSetPositionXY(FindParticle(Player())->position +
+                           v2f(0.f, kCameraYOffset));
 
   physics::Integrate(kFrameDelta);
   __ResolveCollisions();

@@ -143,6 +143,8 @@ struct Character {
   v2f aim_dir = {0.f, 1.f};
   // How much the aim should rotate.
   r32 aim_rotate_delta = 0.f;
+  // Which frame of the animation this character is on.
+  u32 anim_frame = 0;
 };
 
 enum ProjectileType {
@@ -158,6 +160,7 @@ struct Projectile {
   uint64_t updates_to_live = 0;
   // Entity that fired the projectile.
   u32 from_entity = 0;
+  r32 speed = 500.f;
 };
 
 union Entity {

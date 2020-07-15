@@ -43,7 +43,7 @@ AIInitialize()
 void
 AIBehaviorSimple(Character* c)
 {
-  constexpr r32 kSimpleAcceleration = 50.f;
+  constexpr r32 kSimpleAcceleration = 150.f;
   // Head towards the player I guess?
   physics::Particle2d* player_particle = PlayerParticle();
   physics::Particle2d* ai_particle = FindParticle(c);
@@ -57,7 +57,7 @@ AIBehaviorSimple(Character* c)
 void
 AIBehaviorFlying(Character* c)
 {
-  constexpr r32 kSimpleAcceleration = 50.f;
+  constexpr r32 kSimpleAcceleration = 150.f;
   // Head towards the player I guess?
   physics::Particle2d* player_particle = PlayerParticle();
   physics::Particle2d* ai_particle = FindParticle(c);
@@ -75,20 +75,20 @@ AIUpdate()
 
     v2f spawn = {};
     CharacterAIBehavior behavior;
-    if (kAISpawnNum % 2) { 
-      spawn = v2f(math::Random(-100.f, 100.f), 10.f);
+    //if (kAISpawnNum % 2) { 
+      spawn = v2f(math::Random(-1000.f, 1000.f), 70.f);
       while (Length(spawn - player_particle->position) < 10.f) {
-        spawn = v2f(math::Random(-100.f, 100.f), 10.f);
+        spawn = v2f(math::Random(-1000.f, 1000.f), 70.f);
       }
       behavior = kBehaviorSimple;
-    } else {
-      spawn = v2f(math::Random(-100.f, 100.f), math::Random(40.f, 100.f));
-      while (Length(spawn - player_particle->position) < 10.f) {
-        spawn = v2f(math::Random(-100.f, 100.f), math::Random(40.f, 100.f));
-      }
-      behavior = kBehaviorSimpleFlying;
-    }
-    AICreate(spawn, v2f(3.5f, 5.0f), behavior);
+    //} else {
+    //  spawn = v2f(math::Random(-100.f, 100.f), math::Random(40.f, 100.f));
+    //  while (Length(spawn - player_particle->position) < 10.f) {
+    //    spawn = v2f(math::Random(-100.f, 100.f), math::Random(40.f, 100.f));
+    //  }
+    //  behavior = kBehaviorSimpleFlying;
+    //}
+    AICreate(spawn, v2f(kEnemySnailWidth, kEnemySnailHeight), behavior);
     util::CooldownReset(&kAI.enemy_cooldown);
     ++kAISpawnNum;
   }

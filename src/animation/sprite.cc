@@ -104,18 +104,24 @@ SetLabel(const char* label, Sprite* sprite, bool mirror = false)
 }
 
 Rectf
-Update(Sprite* sprite)
+Update(Sprite* sprite, u32* anim_frame)
 {
   sprite->last_update++;
   Label* l = &sprite->label[sprite->label_idx];
   if (sprite->last_update > l->frame_count) {
-    sprite->label_coord_idx += 1;
-    if (sprite->label_coord_idx >= l->coord_size) sprite->label_coord_idx = 0;
+    *anim_frame += 1;
+    if (*anim_frame >= l->coord_size) *anim_frame = 0;
     sprite->last_update = 0;
   }
-  v2i c = l->coord[sprite->label_coord_idx];
+  v2i c = l->coord[*anim_frame];
   return Rectf(sprite->width * c.y, sprite->height * c.x,
                sprite->width, sprite->height);
+}
+
+Rectf
+Update(Sprite* sprite)
+{
+  return Update(sprite, &sprite->label_coord_idx);
 }
 
 }

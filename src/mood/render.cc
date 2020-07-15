@@ -104,7 +104,9 @@ Render()
       continue;
     }
     Rectf aabb = p->aabb();
-    Rectf pb_rect(aabb.x, aabb.Max().y + .5f, aabb.width, 1.f);
+    r32 r_width = aabb.width * kEnemyHealthWidthPercent;
+    Rectf pb_rect(aabb.x, aabb.Max().y + .5f,
+                  r_width, kEnemyHealthHeight);
     rgg::RenderProgressBar(pb_rect, 0.f, c->health, c->max_health,
                            v4f(1.f, 0.f, 0.f, .7f), v4f(.8f, .8f, .8f, .5f));
     const u32* behavior = nullptr;
@@ -112,16 +114,14 @@ Render()
       switch (*behavior) {
         case kBehaviorSimple: {
           Rectf paabb = p->aabb();
-          Rectf taabb =
-              Rectf(paabb.x, paabb.y, paabb.width * 2.5f, paabb.height * 2.5f);
           // TODO: How should I handle this?
-          taabb.x -= 2.5f; taabb.y -= 4.3f;
+          bool mirror = p->velocity.x >= 0.f ? true : false;
           rgg::RenderTexture(
               kRender.snail_texture,
-              animation::Update(&kRender.snail_sprite),
-              Rectf(paabb.x, paabb.y, kRender.snail_sprite.width,
-                    kRender.snail_sprite.height));
-              //taabb);
+              animation::Update(&kRender.snail_sprite, &c->anim_frame),
+              Rectf(paabb.x - 8.f, paabb.y - 17.f,
+                    kRender.snail_sprite.width,
+                    kRender.snail_sprite.height), mirror);
         } break;
         case kBehaviorSimpleFlying: {
           rgg::RenderCircle(

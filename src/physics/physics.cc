@@ -109,7 +109,7 @@ struct Particle2d {
 
 struct Physics {
   // Acceleration of gravity.
-  r32 gravity = 350.f;
+  r32 gravity = 1350.f;
   // Linked list in sorted order on x / y axis for collision checks.
   u32 p2d_head_x = kInvalidId;
   // If using DebugUI will render rectangles where collisions occur.

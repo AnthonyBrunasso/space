@@ -9,15 +9,15 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
 {
   Entity* entity_creator = FindEntity(from_entity);
   v2f start_offset = {};
+  physics::Particle2d* particle_creator = nullptr;
   if (entity_creator) {
-    physics::Particle2d* particle_creator =
-        physics::FindParticle2d(entity_creator->particle_id);
+    particle_creator = physics::FindParticle2d(entity_creator->particle_id);
     if (particle_creator) {
       start_offset.x += (particle_creator->dims.x / 2.f) * dir.x;
     }
   }
   Projectile* projectile =
-      UseEntityProjectile(start + start_offset, v2f(1.5f, .2f));
+      UseEntityProjectile(start + start_offset, v2f(10.5f, 1.2f));
   physics::Particle2d* particle = FindParticle(projectile);
   switch (type) {
     case kProjectileBullet:
@@ -33,6 +33,7 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
   projectile->projectile_type = type;
   projectile->updates_to_live = 50;
   projectile->from_entity = from_entity;
+  projectile->speed = kProjectileSpeed;
 }
 
 void
@@ -45,7 +46,7 @@ ProjectileUpdate()
         case kProjectileLaser: {
         } break;
         case kProjectileBullet: {
-          v2f delta = p->dir * 100.f;
+          v2f delta = p->dir * p->speed;
           particle->velocity = delta;
         } break;
         default: break;

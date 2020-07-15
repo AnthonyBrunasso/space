@@ -3,10 +3,32 @@
 namespace mood {
 
 constexpr r32 kFrameDelta  = 0.016666f;
-constexpr r32 kJumpForce = 12000.f;
-constexpr r32 kPlayerAcceleration = 200.f;
+
+// Player constants.
+constexpr r32 kJumpForce = 60000.f;
+constexpr r32 kPlayerAcceleration = 1500.f;
 constexpr r32 kPlayerHealthBarWidth = 400.f;
 constexpr r32 kPlayerHealthBarHeight = 20.f;
+constexpr r32 kPlayerWidth = 24.f;
+constexpr r32 kPlayerHeight = 24.f;
+constexpr r32 kPlayerBoostForce = 25000.f;
+
+// Projectile constants.
+constexpr r32 kProjectileSpeed = 700.f;
+
+// Enemy constants.
+constexpr r32 kEnemyHealthHeight = 5.f;
+constexpr r32 kEnemyHealthWidthPercent = 1.f;
+constexpr r32 kEnemySnailWidth = 28.f;
+constexpr r32 kEnemySnailHeight = 28.f;
+
+// Particle constants.
+constexpr r32 kParticleWidth = 1.f;
+constexpr r32 kParticleHeight = 1.f;
+constexpr r32 kParticleTTL = 50;
+
+// Camera constants.
+constexpr r32 kCameraYOffset = 30.f;
 
 enum CollisionMask {
   // Collide with everything.

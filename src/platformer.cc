@@ -106,10 +106,10 @@ void
 GameInitialize(const v2f& dims)
 {
   rgg::GetObserver()->projection =
-    math::Ortho(dims.x, 0.f, dims.y, 0.f, 0.f, 0.f);
+    math::Perspective(64.f, dims.x / dims.y, 1.f, 1000.f);
 
   rgg::Camera camera;
-  camera.position = v3f(0.f, 1.f, 0.f);
+  camera.position = v3f(0.f, 1.f, 400.f);
   camera.dir = v3f(0.f, 0.f, -1.f);
   camera.up = v3f(0.f, 1.f, 0.f);
   camera.mode = rgg::kCameraBrowser;

@@ -97,7 +97,39 @@ Texture CreateTexture2D(GLenum format, uint64_t width, uint64_t height,
     GL_UNSIGNED_BYTE,
     data
   );
-  glGenerateMipmap(GL_TEXTURE_2D);
+  if (texture_info.mag_filter == GL_LINEAR_MIPMAP_LINEAR ||
+      texture_info.mag_filter == GL_NEAREST_MIPMAP_NEAREST ||
+      texture_info.min_filter == GL_LINEAR_MIPMAP_LINEAR ||
+      texture_info.min_filter == GL_NEAREST_MIPMAP_NEAREST) {
+    glGenerateMipmap(GL_TEXTURE_2D);
+  }
+  texture.width = width;
+  texture.height = height;
+  texture.format = format;
+  return texture;
+}
+
+Texture CreateEmptyTexture2D(GLenum format, uint64_t width, uint64_t height) {
+  Texture texture = {};
+  glGenTextures(1, &texture.reference);
+  glBindTexture(GL_TEXTURE_2D, texture.reference);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+  glTexImage2D(
+    GL_TEXTURE_2D,
+    0,
+    format,
+    width,
+    height,
+    0,
+    format,
+    GL_UNSIGNED_BYTE,
+    nullptr
+  );
   texture.width = width;
   texture.height = height;
   texture.format = format;

@@ -7,7 +7,7 @@
 
 namespace mood {
 
-void RenderCreateEffect(Rectf rect, v4f color, u32 ttl);
+void RenderCreateEffect(Rectf rect, v4f color, u32 ttl, r32 rotate_delta);
 
 struct Sim {
   u32 player_id; 
@@ -197,7 +197,8 @@ SimUpdate()
         effect_rect.y += 1.f;
         effect_rect.width -= 1.f;
         effect_rect.height -= 1.f;
-        RenderCreateEffect(effect_rect, v4f(.4f, 1.f, .4f, 0.6f), 15);
+        RenderCreateEffect(
+            effect_rect, v4f(.4f, 1.f, .4f, 0.6f), 25, math::Random(1.f, 10.f));
       }
       --c->trail_effect_ttl;
     }

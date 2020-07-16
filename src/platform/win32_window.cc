@@ -459,7 +459,7 @@ InitOpenGL(HDC real_dc)
       WGL_DEPTH_BITS_ARB,     24,
       WGL_STENCIL_BITS_ARB,    8,
       WGL_SAMPLE_BUFFERS_ARB,  1, // Number of buffers (must be 1 at time of writing)
-      WGL_SAMPLES_ARB,         4, // Number of samples
+      WGL_SAMPLES_ARB,         0, // Number of samples
       0
   };
 

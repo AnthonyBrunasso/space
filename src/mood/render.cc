@@ -10,6 +10,8 @@ struct Effect {
   Rectf rect;
   v4f color = { 0.f, 0.f, 0.f, 1.f };
   u32 ttl = 0;
+  r32 rotate = 0.f;
+  r32 rotate_delta = 0.f;
 };
 
 DECLARE_ARRAY(Effect, 64);
@@ -25,7 +27,7 @@ void
 RenderInitialize()
 {
   rgg::TextureInfo info;
-  info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
+  info.min_filter = GL_NEAREST;
   info.mag_filter = GL_NEAREST;
   if (!rgg::LoadTGA("asset/snail.tga", info, &kRender.snail_texture)) {
     printf("Could not load snail texture...\n");
@@ -46,6 +48,7 @@ RenderUpdate()
 {
   for (u32 i = 0; i < kUsedEffect;) {
     --kEffect[i].ttl;
+    kEffect[i].rotate += kEffect[i].rotate_delta;
     if (!kEffect[i].ttl) {
       EraseEffect(i);
       continue;
@@ -55,12 +58,13 @@ RenderUpdate()
 }
 
 void
-RenderCreateEffect(Rectf rect, v4f color, u32 ttl)
+RenderCreateEffect(Rectf rect, v4f color, u32 ttl, r32 rotate_delta)
 {
   Effect* e = UseEffect();
   e->rect = rect;
   e->color = color;
   e->ttl = ttl;
+  e->rotate_delta = rotate_delta;
 }
 
 void
@@ -68,7 +72,7 @@ Render()
 {
   for (u32 i = 0; i < kUsedEffect; ++i) {
     Effect* e = &kEffect[i];
-    rgg::RenderLineRectangle(e->rect, e->color);
+    rgg::RenderLineRectangle(e->rect, 0.f, e->rotate, e->color);
   }
   rgg::DebugRenderPrimitives();
 
@@ -105,7 +109,7 @@ Render()
     }
     Rectf aabb = p->aabb();
     r32 r_width = aabb.width * kEnemyHealthWidthPercent;
-    Rectf pb_rect(aabb.x, aabb.Max().y + .5f,
+    Rectf pb_rect(aabb.x, aabb.Max().y + 1.f,
                   r_width, kEnemyHealthHeight);
     rgg::RenderProgressBar(pb_rect, 0.f, c->health, c->max_health,
                            v4f(1.f, 0.f, 0.f, .7f), v4f(.8f, .8f, .8f, .5f));
@@ -130,17 +134,16 @@ Render()
       }
     }
   });
-
-  
   
   // Render the players health...
   auto dims = window::GetWindowSize();
-  rgg::ModifyObserver mod(math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f),
-                          math::Identity());
+  rgg::ModifyObserver mod(
+      math::Ortho2(kRenderTargetWidth, 0.0f, kRenderTargetHeight,
+                   0.0f, 0.0f, 0.0f), math::Identity());
   Character* c = Player();
   rgg::RenderProgressBar(
-      Rectf(dims.x / 2.f - kPlayerHealthBarWidth / 2.f,
-            50.f, kPlayerHealthBarWidth, kPlayerHealthBarHeight),
+      Rectf(kRenderTargetWidth / 2.f - kPlayerHealthBarWidth / 2.f,
+            kRenderTargetHeight - 20.f, kPlayerHealthBarWidth, kPlayerHealthBarHeight),
       0.f, c->health, c->max_health, rgg::kRed, rgg::kWhite);
 }
 

@@ -106,16 +106,17 @@ void
 GameInitialize(const v2f& dims)
 {
   rgg::GetObserver()->projection =
-    math::Perspective(64.f, dims.x / dims.y, 1.f, 1000.f);
+    //math::Perspective(64.f, dims.x / dims.y, 1.f, 1000.f);
+    math::Ortho(dims.x, 0.f, dims.y, 0.f, -1.f, 1.f);
 
   rgg::Camera camera;
-  camera.position = v3f(0.f, 1.f, 400.f);
+  camera.position = v3f(0.f, 1.f, .5f);
   camera.dir = v3f(0.f, 0.f, -1.f);
   camera.up = v3f(0.f, 1.f, 0.f);
   camera.mode = rgg::kCameraBrowser;
-  camera.speed = v3f(5.f, 5.f, 5.f);
+  camera.speed = v3f(5.f, 5.f, .01f);
   camera.viewport = dims;
-  camera.camera_control = false;
+  //camera.camera_control = false;
   rgg::CameraInit(camera);
 
   mood::SimInitialize();
@@ -134,11 +135,35 @@ GameUpdate()
 }
 
 void
-GameRender()
+GameRender(v2f dims)
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glClearColor(.1f, .1f, .13f, 1.f);
-  mood::Render();
+  static rgg::Texture render_target =
+      rgg::CreateEmptyTexture2D(GL_RGB, mood::kRenderTargetWidth,
+                                mood::kRenderTargetHeight);
+  {
+    rgg::Camera* c = rgg::CameraGetCurrent();
+    rgg::ModifyObserver mod(
+      math::Ortho(mood::kRenderTargetWidth, 0.f,
+                  mood::kRenderTargetHeight, 0.f, -1.f, 1.f),
+      math::LookAt(c->position, c->position + v3f(0.f, 0.f, -1.f),
+                   v3f(0.f, -1.f, 0.f)));
+    rgg::BeginRenderTo(render_target);
+    glClear(GL_COLOR_BUFFER_BIT);
+    mood::Render();
+    rgg::EndRenderTo();
+  }
+
+  rgg::GetObserver()->view =
+    math::LookAt(v3f(0.f, 0.f, .5f), v3f(0.f, 0.f, 0.f), v3f(0.f, 1.f, 0.f));
+
+  rgg::RenderTexture(
+      render_target,
+      Rectf(0.f, 0.f, mood::kRenderTargetWidth, mood::kRenderTargetHeight),
+      Rectf(-mood::kScreenWidth / 2.f, -mood::kScreenHeight / 2.f,
+            mood::kScreenWidth, mood::kScreenHeight), true);
+
   imui::Render(imui::kEveryoneTag);
   window::SwapBuffers();
 }
@@ -209,9 +234,9 @@ main(s32 argc, char** argv)
       mood::SimReset();
       GameInitialize(dims);
     } else {
-      GameRender();  
+      GameRender(dims);  
     }
-    
+
     const u64 elapsed_usec = platform::ClockEnd(&kGameState.game_clock);
     StatsAdd(elapsed_usec, &kGameStats);
 

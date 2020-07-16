@@ -808,7 +808,6 @@ RenderProgressBar(const Rectf& rect, r32 z, r32 current_progress,
                   r32 max_progress, const v4f& fill_color,
                   const v4f& outline_color)
 {
-  RenderLineRectangle(rect, z, 0.f, outline_color);
   if (current_progress > FLT_EPSILON) {
     Rectf fill_rect(
         rect.x, rect.y,
@@ -817,6 +816,7 @@ RenderProgressBar(const Rectf& rect, r32 z, r32 current_progress,
     if (current_progress == max_progress) fill_rect.width = rect.width;
     RenderRectangle(fill_rect, z, 0.f, fill_color);
   }
+  RenderLineRectangle(rect, z, 0.f, outline_color);
 }
 
 void

@@ -3,7 +3,7 @@
 #include <cassert>
 #include <cstdint>
 
-constexpr u32 kMaxHashKeyLength = 32;
+constexpr u32 kMaxHashKeyLength = 64;
 
 struct HashMapStrEntry {
   char str[kMaxHashKeyLength];

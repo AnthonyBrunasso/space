@@ -182,6 +182,13 @@ struct Checkbox {
   Pane* pane;
 };
 
+struct Texture {
+  Rectf rect;
+  Rectf subrect;
+  rgg::Texture texture;
+  Pane* pane;
+};
+
 // imui metadata.
 
 struct MouseDown {
@@ -248,6 +255,7 @@ DECLARE_2D_ARRAY(Text, kMaxTags, 128);
 DECLARE_2D_ARRAY(Line, kMaxTags, 32);
 DECLARE_2D_ARRAY(Button, kMaxTags, 32);
 DECLARE_2D_ARRAY(ButtonCircle, kMaxTags, 16);
+DECLARE_2D_ARRAY(Texture, kMaxTags, 32);
 DECLARE_2D_ARRAY(Checkbox, kMaxTags, 16);
 DECLARE_2D_ARRAY(MouseDown, kMaxTags, 8);
 DECLARE_2D_ARRAY(MouseUp, kMaxTags, 8);
@@ -283,6 +291,7 @@ ResetAll()
   memset(kUsedText, 0, sizeof(kUsedText));
   memset(kUsedButton, 0, sizeof(kUsedButton));
   memset(kUsedButtonCircle, 0, sizeof(kUsedButton));
+  memset(kUsedTexture, 0, sizeof(kUsedTexture));
   memset(kUsedCheckbox, 0, sizeof(kUsedCheckbox));
   memset(kUsedMouseDown, 0, sizeof(kUsedMouseDown));
   memset(kUsedMouseUp, 0, sizeof(kUsedMouseUp));
@@ -304,6 +313,7 @@ ResetTag(u32 tag)
   kUsedText[tag] = 0;
   kUsedButton[tag] = 0;
   kUsedButtonCircle[tag] = 0;
+  kUsedTexture[tag] = 0;
   kUsedCheckbox[tag] = 0;
   kUsedMouseDown[tag] = 0;
   kUsedMouseUp[tag] = 0;
@@ -413,6 +423,12 @@ Render(u32 tag)
     SetScissorWithPane(*button->pane, dims,
                        button->options.ignore_scissor_test);
     rgg::RenderCircle(button->position, button->radius, button->color);
+  }
+
+  for (int i = 0; i < kUsedTexture[tag]; ++i) {
+    Texture* texture = &kTexture[tag][i];
+    SetScissorWithPane(*texture->pane, dims, false);
+    rgg::RenderTexture(texture->texture, texture->subrect, texture->rect);
   }
 
   for (int i = 0; i < kUsedCheckbox[tag]; ++i) {
@@ -764,6 +780,29 @@ Button(r32 width, r32 height, const v4f& color)
   button->color = color;
   button->pane = kIMUI.begin_mode.pane;
   return IMUI_RESULT(button->rect);
+}
+
+Result
+Texture(r32 width, r32 height, const rgg::Texture& copy_texture, Rectf subrect)
+{
+  // Call Begin() before imui elements.
+  assert(kIMUI.begin_mode.set);
+  u32 tag = kIMUI.begin_mode.tag;
+  Result result;
+  IF_HIDDEN(return result);
+  b8 in_pane = false;
+  Rectf rect = UpdatePane(width, height, &in_pane);
+  if (!in_pane) return result;
+  struct Texture* texture = UseTexture(tag);
+  if (!texture) {
+    imui_errno = 3;
+    return result;
+  }
+  texture->rect = rect;
+  texture->texture = copy_texture;
+  texture->subrect = subrect;
+  texture->pane = kIMUI.begin_mode.pane;
+  return IMUI_RESULT(texture->rect);
 }
 
 Result

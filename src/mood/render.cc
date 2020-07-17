@@ -19,6 +19,9 @@ DECLARE_ARRAY(Effect, 64);
 struct Render {
   rgg::Texture snail_texture;
   animation::Sprite snail_sprite;
+
+  rgg::Texture character_texture;
+  animation::Sprite character_sprite;
 };
 
 static Render kRender;
@@ -39,6 +42,18 @@ RenderInitialize()
     kRender.snail_sprite.last_update = 0;
     kRender.snail_sprite.label_idx = 0;
     kRender.snail_sprite.label_coord_idx = 0;
+  }
+
+  if (!rgg::LoadTGA("asset/test_character.tga", info, &kRender.character_texture)) {
+    printf("Could not load snail texture...\n");
+  }
+
+  if (!animation::LoadAnimation("asset/test_character.anim", &kRender.character_sprite)) {
+    printf("Could not load snail animation...\n");
+  } else {
+    kRender.character_sprite.last_update = 0;
+    kRender.character_sprite.label_idx = 0;
+    kRender.character_sprite.label_coord_idx = 0;
   }
 
 }
@@ -74,7 +89,7 @@ Render()
     Effect* e = &kEffect[i];
     rgg::RenderLineRectangle(e->rect, 0.f, e->rotate, e->color);
   }
-  rgg::DebugRenderPrimitives();
+  rgg::DebugRenderWorldPrimitives();
 
   for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
     physics::Particle2d* p = &physics::kParticle2d[i];
@@ -99,7 +114,22 @@ Render()
   FOR_EACH_ENTITY_P(Character, c, p, {
     if (c == Player()) {
       Rectf paabb = p->aabb();
-      rgg::RenderRectangle(paabb, rgg::kGreen);
+      //rgg::RenderRectangle(paabb, rgg::kGreen);
+      bool mirror = p->velocity.x >= 0.f ? false : true;
+      if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
+        animation::SetLabel("shoot", &kRender.character_sprite);
+      } else if (fabs(p->velocity.x) < 10.0f) {
+        animation::SetLabel("stand", &kRender.character_sprite);
+      } else {
+        animation::SetLabel("walk", &kRender.character_sprite);
+      }
+      rgg::RenderTexture(
+            kRender.character_texture,
+            animation::Update(&kRender.character_sprite, &c->anim_frame),
+            Rectf(paabb.x - 8.f, paabb.y - 9.f,
+                  kRender.character_sprite.width,
+                  kRender.character_sprite.height), mirror);
+
       if (FLAGGED(c->character_flags, kCharacterAim)) {
         v2f start = v2f(paabb.Center().x, paabb.Max().y);
         v2f end = start + c->aim_dir * 100.f;

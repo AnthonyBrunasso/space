@@ -53,7 +53,7 @@ SimInitialize()
   kSim.boost_cooldown.usec = SECONDS(1.f);
   util::CooldownInitialize(&kSim.boost_cooldown);
 
-  kSim.weapon_cooldown.usec = SECONDS(0.15f);
+  kSim.weapon_cooldown.usec = SECONDS(0.75f);
   util::CooldownInitialize(&kSim.weapon_cooldown);
 
   kSim.player_invulnerable.usec = SECONDS(0.5f);
@@ -168,7 +168,7 @@ SimUpdate()
       if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
         if (util::CooldownReady(&kSim.weapon_cooldown)) {
           util::CooldownReset(&kSim.weapon_cooldown);
-          ProjectileCreate(particle->position, c->facing, kSim.player_id,
+          ProjectileCreate(particle->position + v2f(0.f, 8.f), c->facing, kSim.player_id,
                            kProjectileBullet);
         }
       }
@@ -183,10 +183,6 @@ SimUpdate()
       }
       if (FLAGGED(c->character_flags, kCharacterJump)) {
         if (particle->on_ground) particle->force.y += kJumpForce;
-      }
-      if (!IsZero(particle->velocity)) {
-        if (particle->velocity.x > 0) c->facing = v2f(1.0f, 0.f);
-        else if (particle->velocity.x < 0) c->facing = v2f(-1.0f, 0.f);
       }
     }
 
@@ -209,13 +205,13 @@ SimUpdate()
 
     if (!FLAGGED(c->character_flags, kCharacterAim) &&
         FLAGGED(c->prev_character_flags, kCharacterAim)) {
-        physics::Particle2d* test = physics::CreateParticle2d(
-            particle->position + v2f(0.f, 2.f), v2f(100.f, 10.f));
-        test->ttl = 50;
-        physics::Rotate(test, 45.f);
-        SBIT(test->flags, physics::kParticleIgnoreCollisionResolution);
-        SBIT(test->flags, physics::kParticleIgnoreGravity);
-        SBIT(test->user_flags, kParticleTest);
+      physics::Particle2d* test = physics::CreateParticle2d(
+          particle->position + v2f(0.f, 2.f), v2f(100.f, 10.f));
+      test->ttl = 50;
+      physics::Rotate(test, 45.f);
+      SBIT(test->flags, physics::kParticleIgnoreCollisionResolution);
+      SBIT(test->flags, physics::kParticleIgnoreGravity);
+      SBIT(test->user_flags, kParticleTest);
     }
 
     if (c->health <= 0.f) {
@@ -236,6 +232,9 @@ SimUpdate()
         }
       }
     }
+
+    if (particle->velocity.x > 0.f) c->facing.x = 1.f;
+    if (particle->velocity.x < 0.f) c->facing.x = -1.f;
 
     c->prev_character_flags = c->character_flags;
   });

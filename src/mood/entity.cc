@@ -107,6 +107,8 @@ enum CharacterFlags {
   kCharacterJump = 1,
   // Set if the character is aiming at something.
   kCharacterAim = 2,
+  // Set for the frame the player fired their weapon.
+  kCharacterWeaponFired = 3,
 };
 
 enum CharacterAbilityFlags {

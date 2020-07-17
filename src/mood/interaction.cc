@@ -2,6 +2,13 @@
 
 namespace mood {
 
+struct Interaction {
+  rgg::Texture terrain_texture;
+  animation::Sprite terrain_sprite;
+};
+
+static Interaction kInteraction;
+
 // Turns constroller stick values into a facing direction and magnitude.
 // Returns true if the stick movement is outside of a fixed value
 // "dead zone"
@@ -29,6 +36,26 @@ __CalculateStickMovement(
     return false;
   }
   return true;
+}
+
+void
+InteractionInitialize()
+{
+  rgg::TextureInfo info;
+  info.min_filter = GL_NEAREST;
+  info.mag_filter = GL_NEAREST;
+  if (!rgg::LoadTGA("asset/firsttry-Sheet.tga", info,
+                    &kInteraction.terrain_texture)) {
+    printf("Could not load firsttry-sheet.tga texture...\n");
+  }
+
+  if (!animation::LoadAnimation("asset/sheet.anim", &kInteraction.terrain_sprite)) {
+    printf("Could not load sheet animation...\n");
+  } else {
+    kInteraction.terrain_sprite.last_update = 0;
+    kInteraction.terrain_sprite.label_idx = 0;
+    kInteraction.terrain_sprite.label_coord_idx = 0;
+  }
 }
 
 void
@@ -180,7 +207,22 @@ EntityViewer(v2f screen)
     snprintf(kUIBuffer, sizeof(kUIBuffer), "dims %.2f %.2f", p->dims.x,
              p->dims.y);
     imui::Text(kUIBuffer);
-  };
+  }
+  imui::End();
+}
+
+void
+MapEditor(v2f screen)
+{
+  static char kUIBuffer[64];
+  static b8 enable = false;
+  static v2f pos(screen.x - 615, screen.y);
+  imui::PaneOptions options;
+  options.width = options.max_width = 315.f;
+  imui::Begin("Map Editor", imui::kEveryoneTag, options, &pos, &enable);
+  animation::SetLabel("grass_left", &kInteraction.terrain_sprite);
+  imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
+                animation::Rect(&kInteraction.terrain_sprite));
   imui::End();
 }
 

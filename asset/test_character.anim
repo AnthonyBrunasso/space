@@ -1,0 +1,22 @@
+t asset/test_character.tga
+w 48
+h 48
+l walk
+c 3 0
+c 3 1
+c 3 2
+c 3 3
+c 3 4
+c 3 5
+c 3 6
+c 3 7
+f 5
+l shoot
+c 5 0
+c 5 1
+c 5 2
+c 5 3
+c 5 4
+f 8
+l stand
+c 7 0

@@ -82,7 +82,7 @@ UI()
     static b8 dir_enable = true;
     static v2f dir_pos(1500.f, screen.y - 200.f);
     imui::PaneOptions options;
-    options.max_width = 315.f;
+    options.max_width = 615.f;
     imui::Begin("Textures", 0, options, &dir_pos, &dir_enable);
     imui::Space(imui::kVertical, 3.f);
     imui::Text("Textures");
@@ -145,14 +145,14 @@ main(s32 argc, char** argv)
 
   v2f size = window::GetWindowSize();
   auto* o = rgg::GetObserver();
-  o->projection = math::Ortho(size.x, 0.f, size.y, 0.f, -100.f, 100.f);
+  o->projection = rgg::DefaultPerspective(size);
 
   rgg::Camera camera;
-  camera.position = v3f(0.f, 1.f, 1.f);
+  camera.position = v3f(0.f, 1.f, 400.f);
   camera.dir = v3f(0.f, 0.f, -1.f);
   camera.up = v3f(0.f, 1.f, 0.f);
   camera.mode = rgg::kCameraBrowser;
-  camera.speed = v3f(5.f, 5.f, 0.1f);
+  camera.speed = v3f(5.f, 5.f, 10.f);
   rgg::CameraInit(camera);
   
   b8 mouse_down = false;

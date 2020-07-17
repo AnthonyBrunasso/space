@@ -98,8 +98,8 @@ DebugUI()
   }
 
   //physics::DebugUI(screen);
-
   mood::EntityViewer(screen);
+  mood::MapEditor(screen);
 }
 
 void
@@ -121,6 +121,7 @@ GameInitialize(const v2f& dims)
 
   mood::SimInitialize();
   mood::RenderInitialize();
+  mood::InteractionInitialize();
 }
 
 bool
@@ -163,6 +164,8 @@ GameRender(v2f dims)
       Rectf(0.f, 0.f, mood::kRenderTargetWidth, mood::kRenderTargetHeight),
       Rectf(-mood::kScreenWidth / 2.f, -mood::kScreenHeight / 2.f,
             mood::kScreenWidth, mood::kScreenHeight), true);
+
+  rgg::DebugRenderUIPrimitives();
 
   imui::Render(imui::kEveryoneTag);
   window::SwapBuffers();

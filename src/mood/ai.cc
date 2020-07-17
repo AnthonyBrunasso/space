@@ -43,7 +43,7 @@ AIInitialize()
 void
 AIBehaviorSimple(Character* c)
 {
-  constexpr r32 kSimpleAcceleration = 150.f;
+  constexpr r32 kSimpleAcceleration = 350.f;
   // Head towards the player I guess?
   physics::Particle2d* player_particle = PlayerParticle();
   physics::Particle2d* ai_particle = FindParticle(c);
@@ -57,7 +57,7 @@ AIBehaviorSimple(Character* c)
 void
 AIBehaviorFlying(Character* c)
 {
-  constexpr r32 kSimpleAcceleration = 150.f;
+  constexpr r32 kSimpleAcceleration = 350.f;
   // Head towards the player I guess?
   physics::Particle2d* player_particle = PlayerParticle();
   physics::Particle2d* ai_particle = FindParticle(c);

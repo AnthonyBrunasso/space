@@ -94,6 +94,7 @@ SetLabel(const char* label, Sprite* sprite, bool mirror = false)
   for (s32 i = 0; i < sprite->label_size; ++i) {
     Label* l = &sprite->label[i];
     if (strcmp(l->name, label) == 0) {
+      if (sprite->label_idx == i) return;
       sprite->last_update = 0;
       sprite->label_idx = i;
       sprite->label_coord_idx = 0;
@@ -122,6 +123,16 @@ Rectf
 Update(Sprite* sprite)
 {
   return Update(sprite, &sprite->label_coord_idx);
+}
+
+Rectf
+Rect(Sprite* sprite)
+{
+  Label* l = &sprite->label[sprite->label_idx];
+  v2i c = l->coord[sprite->label_coord_idx];
+  return Rectf(sprite->width * c.y, sprite->height * c.x,
+               sprite->width, sprite->height);
+
 }
 
 }

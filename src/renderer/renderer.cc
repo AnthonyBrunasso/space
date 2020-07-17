@@ -337,8 +337,8 @@ Initialize()
   const GLubyte* version = glGetString(GL_VERSION);
   printf("Renderer: %s Version: %s\n", renderer, version);
 
-  //glEnable(GL_DEPTH_TEST);
-  //glDepthFunc(GL_LESS);
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_SCISSOR_TEST);
@@ -820,7 +820,7 @@ RenderProgressBar(const Rectf& rect, r32 z, r32 current_progress,
 }
 
 void
-DebugRenderPrimitives()
+DebugRenderWorldPrimitives()
 {
   // Perspetive / world debugging.
   for (s32 i = 0; i < kUsedDebugSphere; ++i) {
@@ -849,7 +849,11 @@ DebugRenderPrimitives()
     //printf("...\n");
     rgg::RenderLineRectangle(rect->rect, rect->color);
   }
+}
 
+void
+DebugRenderUIPrimitives()
+{
   glDisable(GL_DEPTH_TEST);
   glBlendFunc(GL_ONE, GL_ZERO);
   // Orthographic / UI debugging
@@ -869,6 +873,14 @@ DebugRenderPrimitives()
     rgg::RenderLineRectangle(rect->rect, rect->color);
   }
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_DEPTH_TEST);
+}
+
+void
+DebugRenderPrimitives()
+{
+  DebugRenderWorldPrimitives();
+  DebugRenderUIPrimitives();
 }
 
 void

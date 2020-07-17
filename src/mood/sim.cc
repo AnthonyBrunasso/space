@@ -53,7 +53,7 @@ SimInitialize()
   kSim.boost_cooldown.usec = SECONDS(1.f);
   util::CooldownInitialize(&kSim.boost_cooldown);
 
-  kSim.weapon_cooldown.usec = SECONDS(0.75f);
+  kSim.weapon_cooldown.usec = SECONDS(0.15f);
   util::CooldownInitialize(&kSim.weapon_cooldown);
 
   kSim.player_invulnerable.usec = SECONDS(0.5f);
@@ -168,7 +168,7 @@ SimUpdate()
       if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
         if (util::CooldownReady(&kSim.weapon_cooldown)) {
           util::CooldownReset(&kSim.weapon_cooldown);
-          ProjectileCreate(particle->position + v2f(0.f, 8.f), c->facing, kSim.player_id,
+          ProjectileCreate(particle->position + v2f(0.f, 0.f), c->facing, kSim.player_id,
                            kProjectileBullet);
         }
       }

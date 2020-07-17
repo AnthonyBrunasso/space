@@ -10,7 +10,7 @@ constexpr r32 kPlayerAcceleration = 1000.f;
 constexpr r32 kPlayerHealthBarWidth = 100.f;
 constexpr r32 kPlayerHealthBarHeight = 5.f;
 constexpr r32 kPlayerWidth = 24.f;
-constexpr r32 kPlayerHeight = 24.f;
+constexpr r32 kPlayerHeight = 44.f;
 constexpr r32 kPlayerBoostForce = 25000.f;
 
 // Projectile constants.

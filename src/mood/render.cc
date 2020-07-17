@@ -14,7 +14,14 @@ struct Effect {
   r32 rotate_delta = 0.f;
 };
 
+struct Texture {
+  rgg::Texture texture;
+  Rectf rect;
+  Rectf subrect;
+};
+
 DECLARE_ARRAY(Effect, 64);
+DECLARE_ARRAY(Texture, 256);
 
 struct Render {
   rgg::Texture snail_texture;
@@ -25,6 +32,8 @@ struct Render {
 };
 
 static Render kRender;
+
+static b8 kRenderAabb = false;
 
 void
 RenderInitialize()
@@ -44,12 +53,12 @@ RenderInitialize()
     kRender.snail_sprite.label_coord_idx = 0;
   }
 
-  if (!rgg::LoadTGA("asset/test_character.tga", info, &kRender.character_texture)) {
-    printf("Could not load snail texture...\n");
+  if (!rgg::LoadTGA("asset/main_character.tga", info, &kRender.character_texture)) {
+    printf("Could not load main character texture...\n");
   }
 
-  if (!animation::LoadAnimation("asset/test_character.anim", &kRender.character_sprite)) {
-    printf("Could not load snail animation...\n");
+  if (!animation::LoadAnimation("asset/main_character.anim", &kRender.character_sprite)) {
+    printf("Could not load main character animation...\n");
   } else {
     kRender.character_sprite.last_update = 0;
     kRender.character_sprite.label_idx = 0;
@@ -80,6 +89,15 @@ RenderCreateEffect(Rectf rect, v4f color, u32 ttl, r32 rotate_delta)
   e->color = color;
   e->ttl = ttl;
   e->rotate_delta = rotate_delta;
+}
+
+void
+RenderCreateTexture(Rectf rect, const rgg::Texture& copy_texture, Rectf subrect)
+{
+  Texture* t = UseTexture();
+  t->rect = rect;
+  t->texture = copy_texture;
+  t->subrect = subrect;
 }
 
 void
@@ -115,21 +133,15 @@ Render()
     if (c == Player()) {
       Rectf paabb = p->aabb();
       //rgg::RenderRectangle(paabb, rgg::kGreen);
-      bool mirror = p->velocity.x >= 0.f ? false : true;
-      if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
-        animation::SetLabel("shoot", &kRender.character_sprite);
-      } else if (fabs(p->velocity.x) < 10.0f) {
-        animation::SetLabel("stand", &kRender.character_sprite);
-      } else {
-        animation::SetLabel("walk", &kRender.character_sprite);
-      }
+      bool mirror = p->velocity.x >= 0.f ? true : false;
+      animation::SetLabel("idle", &kRender.character_sprite);
       rgg::RenderTexture(
             kRender.character_texture,
             animation::Update(&kRender.character_sprite, &c->anim_frame),
-            Rectf(paabb.x - 8.f, paabb.y - 9.f,
+            Rectf(paabb.x - 14.f, paabb.y - 1.f,
                   kRender.character_sprite.width,
                   kRender.character_sprite.height), mirror);
-
+      if (kRenderAabb) rgg::RenderLineRectangle(paabb, rgg::kRed);
       if (FLAGGED(c->character_flags, kCharacterAim)) {
         v2f start = v2f(paabb.Center().x, paabb.Max().y);
         v2f end = start + c->aim_dir * 100.f;
@@ -156,6 +168,7 @@ Render()
               Rectf(paabb.x - 8.f, paabb.y - 17.f,
                     kRender.snail_sprite.width,
                     kRender.snail_sprite.height), mirror);
+          if (kRenderAabb) rgg::RenderLineRectangle(paabb, rgg::kRed);
         } break;
         case kBehaviorSimpleFlying: {
           rgg::RenderCircle(

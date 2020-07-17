@@ -223,9 +223,16 @@ MapEditor(v2f screen)
   options.width = options.max_width = 315.f;
   imui::Begin("Map Editor", imui::kEveryoneTag, options, &pos, &enable);
   imui::SameLine();
+  imui::Width(160.f);
   imui::Text("Freeze game");
   imui::Space(imui::kHorizontal, 5.f);
   imui::Checkbox(16.f, 16.f, &kFreezeGame);
+  imui::NewLine();
+  imui::SameLine();
+  imui::Width(160.f);
+  imui::Text("Render AABB");
+  imui::Space(imui::kHorizontal, 5.f);
+  imui::Checkbox(16.f, 16.f, &kRenderAabb);
   imui::NewLine();
   imui::HorizontalLine(v4f(1.f, 1.f, 1.f, .5f));
   imui::Text("Tiles");
@@ -242,6 +249,10 @@ MapEditor(v2f screen)
   imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
                 animation::Rect(&kInteraction.terrain_sprite));
   imui::NewLine();
+  imui::Space(imui::kVertical, 5.f);
+  animation::SetLabel("brick", &kInteraction.terrain_sprite);
+  imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
+                animation::Rect(&kInteraction.terrain_sprite));
   imui::End();
 }
 

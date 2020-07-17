@@ -1,0 +1,7 @@
+t asset/main_character.tga
+w 49
+h 48
+l idle
+c 0 0
+c 0 1
+f 27

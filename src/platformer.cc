@@ -132,7 +132,8 @@ GameUpdate()
   DebugUI();
   rgg::CameraUpdate();
   rgg::GetObserver()->view = rgg::CameraView();
-  return mood::SimUpdate();
+  if (mood::kFreezeGame) return false;
+  else return mood::SimUpdate();
 }
 
 void

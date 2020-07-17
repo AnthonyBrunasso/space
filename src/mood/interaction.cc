@@ -9,6 +9,8 @@ struct Interaction {
 
 static Interaction kInteraction;
 
+static b8 kFreezeGame = false;
+
 // Turns constroller stick values into a facing direction and magnitude.
 // Returns true if the stick movement is outside of a fixed value
 // "dead zone"
@@ -220,9 +222,26 @@ MapEditor(v2f screen)
   imui::PaneOptions options;
   options.width = options.max_width = 315.f;
   imui::Begin("Map Editor", imui::kEveryoneTag, options, &pos, &enable);
+  imui::SameLine();
+  imui::Text("Freeze game");
+  imui::Space(imui::kHorizontal, 5.f);
+  imui::Checkbox(16.f, 16.f, &kFreezeGame);
+  imui::NewLine();
+  imui::HorizontalLine(v4f(1.f, 1.f, 1.f, .5f));
+  imui::Text("Tiles");
+  imui::SameLine();
   animation::SetLabel("grass_left", &kInteraction.terrain_sprite);
   imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
                 animation::Rect(&kInteraction.terrain_sprite));
+  imui::Space(imui::kHorizontal, 5.f);
+  animation::SetLabel("grass_middle", &kInteraction.terrain_sprite);
+  imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
+                animation::Rect(&kInteraction.terrain_sprite));
+  imui::Space(imui::kHorizontal, 5.f);
+  animation::SetLabel("grass_right", &kInteraction.terrain_sprite);
+  imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
+                animation::Rect(&kInteraction.terrain_sprite));
+  imui::NewLine();
   imui::End();
 }
 

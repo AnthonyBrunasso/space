@@ -2,9 +2,21 @@
 
 namespace mood {
 
+enum SelectionType {
+  kNone,
+  kTile
+};
+
+struct Selection {
+  SelectionType type = kNone;
+  rgg::Texture texture;
+  Rectf subrect;
+};
+
 struct Interaction {
   rgg::Texture terrain_texture;
   animation::Sprite terrain_sprite;
+  Selection selection;
 };
 
 static Interaction kInteraction;
@@ -114,12 +126,23 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
     } break;
     case MOUSE_DOWN: {
       imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
-      if (!imui::MouseInUI(cursor, imui::kEveryoneTag)) {
-        physics::Particle2d* p = physics::CreateParticle2d(
-            rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy(),
-            v2f(5.f, 5.f));
-        p->inverse_mass = 0.f;
+      PIXEL_ART_OBSERVER();
+      v2f clickpos = rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy();
+      if (kInteraction.selection.type == kTile) {
+        RenderCreateTexture(
+          Rectf(clickpos, v2f(kInteraction.selection.subrect.width,
+                              kInteraction.selection.subrect.height)), 
+          kInteraction.selection.texture, kInteraction.selection.subrect);
       }
+      //v2f clickpos = rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy();
+      //printf("clickpos %.2f %.2f\n", clickpos.x, clickpos.y);
+      //rgg::DebugPushPoint(clickpos, 1.f, rgg::kRed);
+      //if (!imui::MouseInUI(cursor, imui::kEveryoneTag)) {
+      //  physics::Particle2d* p = physics::CreateParticle2d(
+      //      rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy(),
+      //      v2f(5.f, 5.f));
+      //  p->inverse_mass = 0.f;
+      //}
     } break;
     case MOUSE_UP: {
       imui::MouseUp(event.position, event.button, imui::kEveryoneTag);
@@ -224,13 +247,19 @@ MapEditor(v2f screen)
   imui::Begin("Map Editor", imui::kEveryoneTag, options, &pos, &enable);
   imui::SameLine();
   imui::Width(160.f);
-  imui::Text("Freeze game");
+  imui::TextOptions toptions;
+  toptions.highlight_color = rgg::kRed;
+  if (imui::Text("Freeze game", toptions).clicked) {
+    kFreezeGame = !kFreezeGame;
+  }
   imui::Space(imui::kHorizontal, 5.f);
   imui::Checkbox(16.f, 16.f, &kFreezeGame);
   imui::NewLine();
   imui::SameLine();
   imui::Width(160.f);
-  imui::Text("Render AABB");
+  if (imui::Text("Render AABB", toptions).clicked) {
+    kRenderAabb = !kRenderAabb;
+  }
   imui::Space(imui::kHorizontal, 5.f);
   imui::Checkbox(16.f, 16.f, &kRenderAabb);
   imui::NewLine();
@@ -238,21 +267,42 @@ MapEditor(v2f screen)
   imui::Text("Tiles");
   imui::SameLine();
   animation::SetLabel("grass_left", &kInteraction.terrain_sprite);
-  imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
-                animation::Rect(&kInteraction.terrain_sprite));
+  if (imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
+                    animation::Rect(&kInteraction.terrain_sprite)).clicked) {
+    kInteraction.selection.type = kTile;
+    kInteraction.selection.texture = kInteraction.terrain_texture;
+    kInteraction.selection.subrect =
+        animation::Rect(&kInteraction.terrain_sprite);
+  }
   imui::Space(imui::kHorizontal, 5.f);
   animation::SetLabel("grass_middle", &kInteraction.terrain_sprite);
-  imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
-                animation::Rect(&kInteraction.terrain_sprite));
+  if (imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
+                    animation::Rect(&kInteraction.terrain_sprite)).clicked) {
+    kInteraction.selection.type = kTile;
+    kInteraction.selection.texture = kInteraction.terrain_texture;
+    kInteraction.selection.subrect =
+        animation::Rect(&kInteraction.terrain_sprite);
+  }
+
   imui::Space(imui::kHorizontal, 5.f);
   animation::SetLabel("grass_right", &kInteraction.terrain_sprite);
-  imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
-                animation::Rect(&kInteraction.terrain_sprite));
+  if (imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
+                    animation::Rect(&kInteraction.terrain_sprite)).clicked) {
+    kInteraction.selection.type = kTile;
+    kInteraction.selection.texture = kInteraction.terrain_texture;
+    kInteraction.selection.subrect =
+        animation::Rect(&kInteraction.terrain_sprite);
+  }
   imui::NewLine();
   imui::Space(imui::kVertical, 5.f);
   animation::SetLabel("brick", &kInteraction.terrain_sprite);
-  imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
-                animation::Rect(&kInteraction.terrain_sprite));
+  if (imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
+                    animation::Rect(&kInteraction.terrain_sprite)).clicked) {
+    kInteraction.selection.type = kTile;
+    kInteraction.selection.texture = kInteraction.terrain_texture;
+    kInteraction.selection.subrect =
+        animation::Rect(&kInteraction.terrain_sprite);
+  }
   imui::End();
 }
 

@@ -35,6 +35,14 @@ static Render kRender;
 
 static b8 kRenderAabb = false;
 
+#define PIXEL_ART_OBSERVER()                                       \
+  rgg::Camera* c = rgg::CameraGetCurrent();                        \
+  rgg::ModifyObserver mod(                                         \
+      math::Ortho(mood::kRenderTargetWidth, 0.f,                   \
+                  mood::kRenderTargetHeight, 0.f, -1.f, 1.f),      \
+      math::LookAt(c->position, c->position + v3f(0.f, 0.f, -1.f), \
+                   v3f(0.f, -1.f, 0.f)));
+
 void
 RenderInitialize()
 {
@@ -103,6 +111,9 @@ RenderCreateTexture(Rectf rect, const rgg::Texture& copy_texture, Rectf subrect)
 void
 Render()
 {
+  v2f clickpos = rgg::CameraRayFromMouseToWorld(
+      window::GetCursorPosition(), 0.f).xy();
+  rgg::DebugPushPoint(clickpos, 2.f, rgg::kRed);
   for (u32 i = 0; i < kUsedEffect; ++i) {
     Effect* e = &kEffect[i];
     rgg::RenderLineRectangle(e->rect, 0.f, e->rotate, e->color);
@@ -133,12 +144,14 @@ Render()
     if (c == Player()) {
       Rectf paabb = p->aabb();
       //rgg::RenderRectangle(paabb, rgg::kGreen);
-      bool mirror = p->velocity.x >= 0.f ? true : false;
-      animation::SetLabel("idle", &kRender.character_sprite);
+      bool mirror = p->velocity.x >= 0.f ? false : true;
+      if (fabs(p->velocity.x) > 10.f) {
+        animation::SetLabel("walk", &kRender.character_sprite);
+      } else animation::SetLabel("idle", &kRender.character_sprite);
       rgg::RenderTexture(
             kRender.character_texture,
             animation::Update(&kRender.character_sprite, &c->anim_frame),
-            Rectf(paabb.x - 14.f, paabb.y - 1.f,
+            Rectf(paabb.x - 4.f, paabb.y - 1.f,
                   kRender.character_sprite.width,
                   kRender.character_sprite.height), mirror);
       if (kRenderAabb) rgg::RenderLineRectangle(paabb, rgg::kRed);
@@ -177,6 +190,11 @@ Render()
       }
     }
   });
+
+  for (u32 i = 0; i < kUsedTexture; ++i) {
+    Texture* t = &kTexture[i];
+    rgg::RenderTexture(t->texture, t->subrect, t->rect);
+  }
   
   // Render the players health...
   auto dims = window::GetWindowSize();

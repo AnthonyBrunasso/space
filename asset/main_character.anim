@@ -1,7 +1,14 @@
 t asset/main_character.tga
-w 49
+w 32
 h 48
 l idle
 c 0 0
-c 0 1
+c 1 0
 f 27
+l walk
+c 0 1
+c 1 1
+c 2 1
+c 3 1
+c 4 1
+f 8

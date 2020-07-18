@@ -36,6 +36,10 @@ constexpr r32 kRenderTargetHeight = 360;
 constexpr r32 kScreenWidth = 1920;
 constexpr r32 kScreenHeight = 1080;
 
+// Tilemap constants.
+constexpr r32 kTileWidth = 16.f;
+constexpr r32 kTileHeight = 16.f;
+
 enum CollisionMask {
   // Collide with everything.
   kCollisionMaskNone = 0,

@@ -354,6 +354,7 @@ RenderShip(uint64_t ship_index)
   if (kRenderGrid) {
     const v2f grid_dims(kTileWidth, kTileHeight);
     v4f colors[] = {
+
         v4f(0.207f, 0.317f, 0.360f, 0.60f),
         v4f(0.050f, 0.215f, 0.050f, 0.45f),
     };

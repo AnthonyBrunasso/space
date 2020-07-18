@@ -34,6 +34,7 @@ struct Render {
 static Render kRender;
 
 static b8 kRenderAabb = false;
+static b8 kRenderGrid = false;
 
 #define PIXEL_ART_OBSERVER()                                       \
   rgg::Camera* c = rgg::CameraGetCurrent();                        \
@@ -194,6 +195,20 @@ Render()
   for (u32 i = 0; i < kUsedTexture; ++i) {
     Texture* t = &kTexture[i];
     rgg::RenderTexture(t->texture, t->subrect, t->rect);
+  }
+
+  if (kRenderGrid) {
+    v4f colors[] = {
+        v4f(0.207f, 0.317f, 0.360f, 0.60f),
+        v4f(0.050f, 0.215f, 0.050f, 0.45f),
+    };
+    r32 total_width = kRenderTargetWidth * 4.f;
+    r32 total_height = kRenderTargetHeight * 4.f;
+    rgg::RenderGrid(
+        v2f(kTileWidth, kTileHeight),
+        Rectf(-total_width / 2.f, -total_height / 2.f,
+              total_width, total_height),
+        ARRAY_LENGTH(colors), colors);
   }
   
   // Render the players health...

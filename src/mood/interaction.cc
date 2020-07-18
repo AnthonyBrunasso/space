@@ -263,6 +263,14 @@ MapEditor(v2f screen)
   imui::Space(imui::kHorizontal, 5.f);
   imui::Checkbox(16.f, 16.f, &kRenderAabb);
   imui::NewLine();
+  imui::SameLine();
+  imui::Width(160.f);
+  if (imui::Text("Render Grid", toptions).clicked) {
+    kRenderGrid = !kRenderGrid;
+  }
+  imui::Space(imui::kHorizontal, 5.f);
+  imui::Checkbox(16.f, 16.f, &kRenderGrid);
+  imui::NewLine();
   imui::HorizontalLine(v4f(1.f, 1.f, 1.f, .5f));
   imui::Text("Tiles");
   imui::SameLine();

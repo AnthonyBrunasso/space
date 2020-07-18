@@ -3,12 +3,13 @@
 namespace mood {
 
 enum SelectionType {
-  kNone,
-  kTile
+  kSelectionNone,
+  kSelectionTile,
+  kSelectionCollisionGeometry,
 };
 
 struct Selection {
-  SelectionType type = kNone;
+  SelectionType type = kSelectionNone;
   rgg::Texture texture;
   Rectf subrect;
 };
@@ -126,17 +127,22 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
     } break;
     case MOUSE_DOWN: {
       imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
+      if (imui::MouseInUI(imui::kEveryoneTag)) break;
       PIXEL_ART_OBSERVER();
       v2f clickpos = rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy();
       v2i pos = WorldToTile(clickpos);
       pos.x *= kTileWidth;
       pos.y *= kTileHeight;
-      if (kInteraction.selection.type == kTile &&
-          !imui::MouseInUI(imui::kEveryoneTag)) {
+      v2f posf = to_v2f(pos);
+      if (kInteraction.selection.type == kSelectionTile) {
         RenderCreateTexture(
-          Rectf(to_v2f(pos), v2f(kInteraction.selection.subrect.width,
-                                 kInteraction.selection.subrect.height)), 
+          Rectf(posf, v2f(kInteraction.selection.subrect.width,
+                          kInteraction.selection.subrect.height)), 
           kInteraction.selection.texture, kInteraction.selection.subrect);
+      } else if (kInteraction.selection.type == kSelectionCollisionGeometry) {
+        SBIT(physics::CreateInfinteMassParticle2d(
+           posf + v2f(kTileWidth / 2.f, kTileHeight / 2.f),
+           v2f(kTileWidth, kTileHeight))->user_flags, kParticleCollider);
       }
     } break;
     case MOUSE_UP: {
@@ -272,7 +278,7 @@ MapEditor(v2f screen)
   animation::SetLabel("grass_left", &kInteraction.terrain_sprite);
   if (imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
                     animation::Rect(&kInteraction.terrain_sprite)).clicked) {
-    kInteraction.selection.type = kTile;
+    kInteraction.selection.type = kSelectionTile;
     kInteraction.selection.texture = kInteraction.terrain_texture;
     kInteraction.selection.subrect =
         animation::Rect(&kInteraction.terrain_sprite);
@@ -281,7 +287,7 @@ MapEditor(v2f screen)
   animation::SetLabel("grass_middle", &kInteraction.terrain_sprite);
   if (imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
                     animation::Rect(&kInteraction.terrain_sprite)).clicked) {
-    kInteraction.selection.type = kTile;
+    kInteraction.selection.type = kSelectionTile;
     kInteraction.selection.texture = kInteraction.terrain_texture;
     kInteraction.selection.subrect =
         animation::Rect(&kInteraction.terrain_sprite);
@@ -291,7 +297,7 @@ MapEditor(v2f screen)
   animation::SetLabel("grass_right", &kInteraction.terrain_sprite);
   if (imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
                     animation::Rect(&kInteraction.terrain_sprite)).clicked) {
-    kInteraction.selection.type = kTile;
+    kInteraction.selection.type = kSelectionTile;
     kInteraction.selection.texture = kInteraction.terrain_texture;
     kInteraction.selection.subrect =
         animation::Rect(&kInteraction.terrain_sprite);
@@ -301,10 +307,16 @@ MapEditor(v2f screen)
   animation::SetLabel("brick", &kInteraction.terrain_sprite);
   if (imui::Texture(32.f, 32.f, kInteraction.terrain_texture,
                     animation::Rect(&kInteraction.terrain_sprite)).clicked) {
-    kInteraction.selection.type = kTile;
+    kInteraction.selection.type = kSelectionTile;
     kInteraction.selection.texture = kInteraction.terrain_texture;
     kInteraction.selection.subrect =
         animation::Rect(&kInteraction.terrain_sprite);
+  }
+  imui::NewLine();
+  imui::HorizontalLine(v4f(1.f, 1.f, 1.f, .5f));
+  imui::Text("Collision Geometry");
+  if (imui::Button(32.f, 32.f, rgg::kRed).clicked) {
+    kInteraction.selection.type = kSelectionCollisionGeometry;
   }
   imui::End();
 }

@@ -415,7 +415,7 @@ Render(u32 tag)
   for (int i = 0; i < kUsedButton[tag]; ++i) {
     Button* button = &kButton[tag][i];
     SetScissorWithPane(*button->pane, dims, false);
-    rgg::RenderButton("test", button->rect, button->color);
+    rgg::RenderLineRectangle(button->rect, button->color);
   }
 
   for (int i = 0; i < kUsedButtonCircle[tag]; ++i) {

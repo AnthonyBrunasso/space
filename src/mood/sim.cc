@@ -42,13 +42,8 @@ SimInitialize()
   kSim.player_id = player->id;
 
   SBIT(physics::CreateInfinteMassParticle2d(
-           v2f(0.f, 0.f), v2f(1910.f, kPlayerHeight))->user_flags, kParticleCollider);
-  //SBIT(physics::CreateInfinteMassParticle2d(
-  //         v2f(-50.f, 15.f), v2f(30.f, 5.f))->user_flags, kParticleCollider);
-  //SBIT(physics::CreateInfinteMassParticle2d(
-  //         v2f(-10.f, 10.f), v2f(10.f, 5.f))->user_flags, kParticleCollider);
-  //SBIT(physics::CreateInfinteMassParticle2d(
-  //         v2f(10.f, 25.f), v2f(5.f, 35.f))->user_flags, kParticleCollider);
+          v2f(0.f, -kTileHeight / 2.f), v2f(1920, kTileHeight))->user_flags,
+          kParticleCollider);
 
   kSim.boost_cooldown.usec = SECONDS(1.f);
   util::CooldownInitialize(&kSim.boost_cooldown);

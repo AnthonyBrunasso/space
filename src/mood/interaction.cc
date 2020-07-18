@@ -128,21 +128,16 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
       imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
       PIXEL_ART_OBSERVER();
       v2f clickpos = rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy();
-      if (kInteraction.selection.type == kTile) {
+      v2i pos = WorldToTile(clickpos);
+      pos.x *= kTileWidth;
+      pos.y *= kTileHeight;
+      if (kInteraction.selection.type == kTile &&
+          !imui::MouseInUI(imui::kEveryoneTag)) {
         RenderCreateTexture(
-          Rectf(clickpos, v2f(kInteraction.selection.subrect.width,
-                              kInteraction.selection.subrect.height)), 
+          Rectf(to_v2f(pos), v2f(kInteraction.selection.subrect.width,
+                                 kInteraction.selection.subrect.height)), 
           kInteraction.selection.texture, kInteraction.selection.subrect);
       }
-      //v2f clickpos = rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy();
-      //printf("clickpos %.2f %.2f\n", clickpos.x, clickpos.y);
-      //rgg::DebugPushPoint(clickpos, 1.f, rgg::kRed);
-      //if (!imui::MouseInUI(cursor, imui::kEveryoneTag)) {
-      //  physics::Particle2d* p = physics::CreateParticle2d(
-      //      rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy(),
-      //      v2f(5.f, 5.f));
-      //  p->inverse_mass = 0.f;
-      //}
     } break;
     case MOUSE_UP: {
       imui::MouseUp(event.position, event.button, imui::kEveryoneTag);

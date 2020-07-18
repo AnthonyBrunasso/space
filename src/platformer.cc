@@ -13,6 +13,7 @@
 
 // Gameplay stuff.
 #include "mood/constants.cc"
+#include "mood/util.cc"
 #include "mood/render.cc"
 #include "mood/sim.cc"
 #include "mood/interaction.cc"

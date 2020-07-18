@@ -127,7 +127,8 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
     } break;
     case MOUSE_DOWN: {
       imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
-      if (imui::MouseInUI(imui::kEveryoneTag)) break;
+      if (kInteraction.selection.type == kSelectionNone ||
+          imui::MouseInUI(imui::kEveryoneTag)) break;
       PIXEL_ART_OBSERVER();
       v2f clickpos = rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy();
       v2i pos = WorldToTile(clickpos);

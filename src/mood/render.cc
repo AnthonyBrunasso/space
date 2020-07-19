@@ -25,11 +25,8 @@ DECLARE_ARRAY(Effect, 64);
 DECLARE_ARRAY(Texture, 256);
 
 struct Render {
-  u32 snail_texture_id;
-  animation::Sprite snail_sprite;
-
-  u32 character_texture_id;
-  animation::Sprite character_sprite;
+  u32 snail_id;
+  u32 character_id;
 };
 
 static Render kRender;
@@ -54,25 +51,13 @@ RenderInitialize()
   rgg::TextureInfo info;
   info.min_filter = GL_NEAREST;
   info.mag_filter = GL_NEAREST;
-  kRender.snail_texture_id = rgg::LoadTexture("asset/snail.tga", info);
-
-  if (!animation::LoadAnimation("asset/snail.anim", &kRender.snail_sprite)) {
-    printf("Could not load snail animation...\n");
-  } else {
-    kRender.snail_sprite.last_update = 0;
-    kRender.snail_sprite.label_idx = 0;
-    kRender.snail_sprite.label_coord_idx = 0;
-  }
-
-  kRender.character_texture_id  = rgg::LoadTexture("asset/main_character.tga", info);
-  if (!animation::LoadAnimation("asset/main_character.anim", &kRender.character_sprite)) {
-    printf("Could not load main character animation...\n");
-  } else {
-    kRender.character_sprite.last_update = 0;
-    kRender.character_sprite.label_idx = 0;
-    kRender.character_sprite.label_coord_idx = 0;
-  }
-
+  kRender.snail_id =
+      rgg::LoadTextureAndSprite("asset/snail.tga", "asset/snail.anim", info);
+  assert(kRender.snail_id);
+  kRender.character_id  =
+      rgg::LoadTextureAndSprite("asset/main_character.tga", "asset/main_character.anim",
+                                info);
+  assert(kRender.character_id);
 }
 
 void
@@ -150,22 +135,22 @@ Render()
       rgg::RenderRectangle(p->aabb(), rgg::kWhite);
     }
   }
-
+  animation::Sprite* character_sprite = rgg::GetSprite(kRender.character_id);
+  animation::Sprite* snail_sprite = rgg::GetSprite(kRender.snail_id);
   //physics::DebugRender(); 
   FOR_EACH_ENTITY_P(Character, c, p, {
     if (c == Player()) {
       Rectf paabb = p->aabb();
-      //rgg::RenderRectangle(paabb, rgg::kGreen);
       bool mirror = c->facing.x >= 0.f ? false : true;
       if (fabs(p->velocity.x) > 10.f) {
-        animation::SetLabel("walk", &kRender.character_sprite);
-      } else animation::SetLabel("idle", &kRender.character_sprite);
+        animation::SetLabel("walk", character_sprite);
+      } else animation::SetLabel("idle", character_sprite);
       rgg::RenderTexture(
-            kRender.character_texture_id,
-            animation::Update(&kRender.character_sprite, &c->anim_frame),
+            kRender.character_id,
+            animation::Update(character_sprite, &c->anim_frame),
             Rectf(paabb.x - 4.f, paabb.y - 1.f,
-                  kRender.character_sprite.width,
-                  kRender.character_sprite.height), mirror);
+                  character_sprite->width,
+                  character_sprite->height), mirror);
       if (kRenderAabb) rgg::RenderLineRectangle(paabb, rgg::kRed);
       if (FLAGGED(c->character_flags, kCharacterAim)) {
         v2f start = v2f(paabb.Center().x, paabb.Max().y);
@@ -188,11 +173,11 @@ Render()
           // TODO: How should I handle this?
           bool mirror = p->velocity.x >= 0.f ? true : false;
           rgg::RenderTexture(
-              kRender.snail_texture_id,
-              animation::Update(&kRender.snail_sprite, &c->anim_frame),
+              kRender.snail_id,
+              animation::Update(snail_sprite, &c->anim_frame),
               Rectf(paabb.x - 8.f, paabb.y - 17.f,
-                    kRender.snail_sprite.width,
-                    kRender.snail_sprite.height), mirror);
+                    snail_sprite->width,
+                    snail_sprite->height), mirror);
           if (kRenderAabb) rgg::RenderLineRectangle(paabb, rgg::kRed);
         } break;
         case kBehaviorSimpleFlying: {

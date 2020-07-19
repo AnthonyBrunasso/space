@@ -4,6 +4,7 @@
 #include "mesh.cc"
 #include "shader.h"
 
+#include "animation/sprite.cc"
 #include "asset/cube.cc"
 #include "asset/cone.cc"
 #include "asset/sphere.cc"

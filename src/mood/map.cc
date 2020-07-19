@@ -58,8 +58,17 @@ MapLoadFrom(const char* name)
       v2f pos;
       fscanf(f, "%s %s %f %f\n",
              &texture_name, &label_name, &pos.x, &pos.y);
-      //printf("Create %s %s at %.2f %.2f\n",
-      //        texture_name, label_name, pos.x, pos.y);
+      animation::Sprite* sprite;
+      u32 id;
+      sprite = rgg::GetSprite(texture_name, &id);
+      if (!sprite) {
+        printf("Unable to load sprite for %s\n", texture_name);
+        continue;
+      }
+      animation::SetLabel(label_name, sprite);
+      RenderCreateTexture(
+          id, Rectf(pos.x, pos.y, sprite->width, sprite->height),
+          animation::Rect(sprite), label_name);
     }
   }
   fclose(f);

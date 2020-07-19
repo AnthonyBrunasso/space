@@ -62,10 +62,11 @@ GetSprite(u32 id)
 }
 
 animation::Sprite*
-GetSprite(const char* file)
+GetSprite(const char* file, u32* id = nullptr)
 {
   TextureFileToId* file_to_id = FindTextureFileToId(file, strlen(file));
   if (!file_to_id) return nullptr;
+  if (id) *id = file_to_id->id;
   return GetSprite(file_to_id->id);
 }
 
@@ -80,10 +81,12 @@ GetTextureAndSprite(u32 id, Texture* texture, animation::Sprite* sprite)
 }
 
 bool
-GetTextureAndSprite(const char* file, Texture* texture, animation::Sprite* sprite)
+GetTextureAndSprite(const char* file, Texture* texture, animation::Sprite* sprite,
+                    u32* id = nullptr)
 {
   TextureFileToId* file_to_id = FindTextureFileToId(file, strlen(file));
   if (!file_to_id) return false;
+  if (id) *id = file_to_id->id;
   return GetTextureAndSprite(file_to_id->id, texture, sprite);
 }
 

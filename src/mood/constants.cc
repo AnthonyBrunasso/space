@@ -13,6 +13,7 @@ constexpr r32 kPlayerWidth = 24.f;
 constexpr r32 kPlayerHeight = 44.f;
 constexpr r32 kPlayerBoostForce = 25000.f;
 constexpr r32 kAimAngleClamp = 70.f;
+constexpr r32 kAimSensitivity = 3.f;
 
 // Projectile constants.
 constexpr r32 kProjectileSpeed = 700.f;
@@ -32,8 +33,8 @@ constexpr r32 kParticleTTL = 50;
 constexpr r32 kCameraYOffset = 30.f;
 
 // Render target constants.
-constexpr r32 kRenderTargetWidth = 640;
-constexpr r32 kRenderTargetHeight = 360;
+constexpr r32 kRenderTargetWidth = 800;
+constexpr r32 kRenderTargetHeight = 400;
 constexpr r32 kScreenWidth = 1920;
 constexpr r32 kScreenHeight = 1080;
 

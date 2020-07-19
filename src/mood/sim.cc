@@ -93,8 +93,8 @@ __ProjectileParticleCollision(Projectile* projectile,
           physics::CreateParticle2d(projectile_particle->position + dir * 1.f,
                                     v2f(kParticleWidth, kParticleHeight));
       ep->collision_mask = kCollisionMaskCharacter;
-      v2f fdir = Rotate(dir, math::Random(-45.f, 45.f));
-      ep->force = fdir * math::Random(1000.f, 5000.f);
+      v2f fdir = Rotate(dir, math::Random(-25.f, 25.f));
+      ep->force = fdir * math::Random(3000.f, 15000.f);
       ep->ttl = kParticleTTL;
       SBIT(ep->user_flags, kParticleSpark);
     }
@@ -202,6 +202,25 @@ SimUpdate()
 
     c->aim_dir =
         math::Normalize(math::Rotate(c->aim_dir, c->aim_rotate_delta));
+
+    if (c == Player()) {
+      Character* player = c;
+      if (player->facing.x > 0.f) {
+        r32 angle = atan2(player->aim_dir.y, player->aim_dir.x) * 180.f / PI;
+        if (angle > kAimAngleClamp || angle < -kAimAngleClamp) {
+          angle = CLAMPF(angle, -kAimAngleClamp, kAimAngleClamp);
+          player->aim_dir = math::Rotate(v2f(1.f, 0.f), angle);
+        } 
+      } else if (player->facing.x < 0.f) {
+        r32 angle = math::Atan2(player->aim_dir.y, player->aim_dir.x);
+        r32 low = 180.f - kAimAngleClamp;
+        r32 high = 180.f + kAimAngleClamp;
+        if (angle > kAimAngleClamp || angle < -kAimAngleClamp) {
+          angle = CLAMPF(angle, low, high);
+          player->aim_dir = math::Rotate(v2f(1.f, 0.f), angle);
+        }
+      }
+    }
 
     //if (!FLAGGED(c->character_flags, kCharacterAim) &&
     //    FLAGGED(c->prev_character_flags, kCharacterAim)) {

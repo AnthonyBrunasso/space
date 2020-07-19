@@ -180,22 +180,12 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
 
       if (__CalculateStickMovement(event.controller.rstick_x,
                                    event.controller.rstick_y, &cdir, &cmag)) {
-        player->aim_dir = math::Lerp(player->aim_dir, cdir, 0.05f);
-        if (player->facing.x > 0.f) {
-          r32 angle = atan2(player->aim_dir.y, player->aim_dir.x) * 180.f / PI;
-          if (angle > kAimAngleClamp || angle < -kAimAngleClamp) {
-            angle = CLAMPF(angle, -kAimAngleClamp, kAimAngleClamp);
-            player->aim_dir = math::Rotate(v2f(1.f, 0.f), angle);
-          } 
-        } else if (player->facing.x < 0.f) {
-          r32 angle = math::Atan2(player->aim_dir.y, player->aim_dir.x);
-          r32 low = 180.f - kAimAngleClamp;
-          r32 high = 180.f + kAimAngleClamp;
-          if (angle > kAimAngleClamp || angle < -kAimAngleClamp) {
-            angle = CLAMPF(angle, low, high);
-            player->aim_dir = math::Rotate(v2f(1.f, 0.f), angle);
-          }
+        if (cdir.y > 0.f) {
+          player->aim_rotate_delta = cmag * kAimSensitivity;
+        } else if (cdir.y < 0.f) {
+          player->aim_rotate_delta = -cmag * kAimSensitivity;
         }
+        if (player->facing.x < 0.f) player->aim_rotate_delta *= -1.f;
       } else {
         player->aim_rotate_delta = 0.f;
       }

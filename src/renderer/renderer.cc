@@ -122,6 +122,7 @@ static Observer kObserver;
 static RGG kRGG;
 
 #include "texture.cc"
+#include "texture_cache.cc"
 #include "ui.cc"
 
 Mat4f

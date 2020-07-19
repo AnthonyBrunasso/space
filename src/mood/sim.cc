@@ -230,6 +230,11 @@ SimUpdate()
 
     if (particle->velocity.x > 0.f) c->facing.x = 1.f;
     if (particle->velocity.x < 0.f) c->facing.x = -1.f;
+    // Particles on the ground with no acceleration should stop immediately.
+    // Without this stuff feels kinda floaty.
+    if (particle->on_ground && particle->acceleration.x == 0.f) {
+      particle->velocity.x = 0.f;
+    }
 
     c->prev_character_flags = c->character_flags;
   });

@@ -16,6 +16,7 @@
 #include "mood/util.cc"
 #include "mood/render.cc"
 #include "mood/sim.cc"
+#include "mood/map.cc"
 #include "mood/interaction.cc"
 
 #define WIN_ATTACH_DEBUGGER 0

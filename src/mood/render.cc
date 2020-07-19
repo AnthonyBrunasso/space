@@ -15,19 +15,20 @@ struct Effect {
 };
 
 struct Texture {
-  rgg::Texture texture;
+  u32 texture_id;
   Rectf rect;
   Rectf subrect;
+  SPRITE_LABEL(label_name);
 };
 
 DECLARE_ARRAY(Effect, 64);
 DECLARE_ARRAY(Texture, 256);
 
 struct Render {
-  rgg::Texture snail_texture;
+  u32 snail_texture_id;
   animation::Sprite snail_sprite;
 
-  rgg::Texture character_texture;
+  u32 character_texture_id;
   animation::Sprite character_sprite;
 };
 
@@ -50,9 +51,7 @@ RenderInitialize()
   rgg::TextureInfo info;
   info.min_filter = GL_NEAREST;
   info.mag_filter = GL_NEAREST;
-  if (!rgg::LoadTGA("asset/snail.tga", info, &kRender.snail_texture)) {
-    printf("Could not load snail texture...\n");
-  }
+  kRender.snail_texture_id = rgg::LoadTexture("asset/snail.tga", info);
 
   if (!animation::LoadAnimation("asset/snail.anim", &kRender.snail_sprite)) {
     printf("Could not load snail animation...\n");
@@ -62,10 +61,7 @@ RenderInitialize()
     kRender.snail_sprite.label_coord_idx = 0;
   }
 
-  if (!rgg::LoadTGA("asset/main_character.tga", info, &kRender.character_texture)) {
-    printf("Could not load main character texture...\n");
-  }
-
+  kRender.character_texture_id  = rgg::LoadTexture("asset/main_character.tga", info);
   if (!animation::LoadAnimation("asset/main_character.anim", &kRender.character_sprite)) {
     printf("Could not load main character animation...\n");
   } else {
@@ -101,12 +97,13 @@ RenderCreateEffect(Rectf rect, v4f color, u32 ttl, r32 rotate_delta)
 }
 
 void
-RenderCreateTexture(Rectf rect, const rgg::Texture& copy_texture, Rectf subrect)
+RenderCreateTexture(u32 id, Rectf rect, Rectf subrect, char* label_name)
 {
   Texture* t = UseTexture();
+  t->texture_id = id;
   t->rect = rect;
-  t->texture = copy_texture;
   t->subrect = subrect;
+  strcpy(t->label_name, label_name);
 }
 
 void
@@ -156,12 +153,12 @@ Render()
     if (c == Player()) {
       Rectf paabb = p->aabb();
       //rgg::RenderRectangle(paabb, rgg::kGreen);
-      bool mirror = p->velocity.x >= 0.f ? false : true;
+      bool mirror = c->facing.x >= 0.f ? false : true;
       if (fabs(p->velocity.x) > 10.f) {
         animation::SetLabel("walk", &kRender.character_sprite);
       } else animation::SetLabel("idle", &kRender.character_sprite);
       rgg::RenderTexture(
-            kRender.character_texture,
+            kRender.character_texture_id,
             animation::Update(&kRender.character_sprite, &c->anim_frame),
             Rectf(paabb.x - 4.f, paabb.y - 1.f,
                   kRender.character_sprite.width,
@@ -188,7 +185,7 @@ Render()
           // TODO: How should I handle this?
           bool mirror = p->velocity.x >= 0.f ? true : false;
           rgg::RenderTexture(
-              kRender.snail_texture,
+              kRender.snail_texture_id,
               animation::Update(&kRender.snail_sprite, &c->anim_frame),
               Rectf(paabb.x - 8.f, paabb.y - 17.f,
                     kRender.snail_sprite.width,
@@ -205,7 +202,7 @@ Render()
 
   for (u32 i = 0; i < kUsedTexture; ++i) {
     Texture* t = &kTexture[i];
-    rgg::RenderTexture(t->texture, t->subrect, t->rect);
+    rgg::RenderTexture(t->texture_id, t->subrect, t->rect);
   }
 
   if (kRenderGrid) {

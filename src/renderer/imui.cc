@@ -185,7 +185,7 @@ struct Checkbox {
 struct Texture {
   Rectf rect;
   Rectf subrect;
-  rgg::Texture texture;
+  u32 texture_id;
   Pane* pane;
 };
 
@@ -428,7 +428,7 @@ Render(u32 tag)
   for (int i = 0; i < kUsedTexture[tag]; ++i) {
     Texture* texture = &kTexture[tag][i];
     SetScissorWithPane(*texture->pane, dims, false);
-    rgg::RenderTexture(texture->texture, texture->subrect, texture->rect);
+    rgg::RenderTexture(texture->texture_id, texture->subrect, texture->rect);
   }
 
   for (int i = 0; i < kUsedCheckbox[tag]; ++i) {
@@ -783,7 +783,7 @@ Button(r32 width, r32 height, const v4f& color)
 }
 
 Result
-Texture(r32 width, r32 height, const rgg::Texture& copy_texture, Rectf subrect)
+Texture(r32 width, r32 height, u32 texture_id, Rectf subrect)
 {
   // Call Begin() before imui elements.
   assert(kIMUI.begin_mode.set);
@@ -798,8 +798,8 @@ Texture(r32 width, r32 height, const rgg::Texture& copy_texture, Rectf subrect)
     imui_errno = 3;
     return result;
   }
+  texture->texture_id = texture_id;
   texture->rect = rect;
-  texture->texture = copy_texture;
   texture->subrect = subrect;
   texture->pane = kIMUI.begin_mode.pane;
   return IMUI_RESULT(texture->rect);

@@ -105,10 +105,8 @@ enum CharacterFlags {
   kCharacterFireWeapon = 0,
   // If set the character will attempt to jump.
   kCharacterJump = 1,
-  // Set if the character is aiming at something.
-  kCharacterAim = 2,
   // Set for the frame the player fired their weapon.
-  kCharacterWeaponFired = 3,
+  kCharacterWeaponFired = 2,
 };
 
 enum CharacterAbilityFlags {
@@ -142,7 +140,7 @@ struct Character {
   r32 health = 10.f;
   r32 max_health = 10.f;
   // Use if character is aiming.
-  v2f aim_dir = {0.f, 1.f};
+  v2f aim_dir = {1.f, 0.f};
   // How much the aim should rotate.
   r32 aim_rotate_delta = 0.f;
   // Which frame of the animation this character is on.

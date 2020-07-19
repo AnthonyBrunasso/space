@@ -13,12 +13,14 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
   if (entity_creator) {
     particle_creator = physics::FindParticle2d(entity_creator->particle_id);
     if (particle_creator) {
-      start_offset.x += (particle_creator->dims.x / 2.f) * dir.x;
+      //start_offset.x += (particle_creator->dims.x / 2.f) * dir.x;
     }
   }
   Projectile* projectile =
       UseEntityProjectile(start + start_offset, v2f(10.5f, 1.2f));
   physics::Particle2d* particle = FindParticle(projectile);
+  r32 angle = atan2(dir.y, dir.x) * 180.f / PI;
+  particle->rotation = angle;
   switch (type) {
     case kProjectileBullet:
     case kProjectileLaser: {

@@ -36,7 +36,7 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
 void
 AIInitialize()
 {
-  kAI.enemy_cooldown.usec = SECONDS(3.f);
+  kAI.enemy_cooldown.usec = SECONDS(3.5f);
   util::CooldownInitialize(&kAI.enemy_cooldown);
 }
 
@@ -75,20 +75,21 @@ AIUpdate()
 
     v2f spawn = {};
     CharacterAIBehavior behavior;
-    //if (kAISpawnNum % 2) { 
+    if (kAISpawnNum % 2) { 
       spawn = v2f(math::Random(-1000.f, 1000.f), 70.f);
       while (Length(spawn - player_particle->position) < 10.f) {
         spawn = v2f(math::Random(-1000.f, 1000.f), 70.f);
       }
       behavior = kBehaviorSimple;
-    //} else {
-    //  spawn = v2f(math::Random(-100.f, 100.f), math::Random(40.f, 100.f));
-    //  while (Length(spawn - player_particle->position) < 10.f) {
-    //    spawn = v2f(math::Random(-100.f, 100.f), math::Random(40.f, 100.f));
-    //  }
-    //  behavior = kBehaviorSimpleFlying;
-    //}
-    AICreate(spawn, v2f(kEnemySnailWidth, kEnemySnailHeight), behavior);
+      AICreate(spawn, v2f(kEnemySnailWidth, kEnemySnailHeight), behavior);
+    } else {
+      spawn = v2f(math::Random(-100.f, 100.f), math::Random(140.f, 1000.f));
+      while (Length(spawn - player_particle->position) < 10.f) {
+        spawn = v2f(math::Random(-100.f, 100.f), math::Random(140.f, 1000.f));
+      }
+      behavior = kBehaviorSimpleFlying;
+      AICreate(spawn, v2f(15.f, 15.f), behavior);
+    }
     util::CooldownReset(&kAI.enemy_cooldown);
     ++kAISpawnNum;
   }

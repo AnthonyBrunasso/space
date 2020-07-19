@@ -27,6 +27,13 @@ MapSave(const char* name)
     fprintf(f, "t %s %s %.2f %.2f\n",
             rgg_texture->file, t->label_name, t->rect.x, t->rect.y);
   }
+  for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
+    physics::Particle2d* p = &physics::kParticle2d[i];
+    if (FLAGGED(p->user_flags, kParticleCollider)) {
+      fprintf(f, "g %.2f %2f %.2f %.2f\n",
+              p->position.x, p->position.y, p->dims.x, p->dims.y);
+    }
+  }
   fclose(f);
 }
 
@@ -69,6 +76,12 @@ MapLoadFrom(const char* name)
       RenderCreateTexture(
           id, Rectf(pos.x, pos.y, sprite->width, sprite->height),
           animation::Rect(sprite), label_name);
+    } else if (strcmp(line, "g") == 0) {
+      v2f pos;
+      v2f dims;
+      fscanf(f, "%f %f %f %f\n", &pos.x, &pos.y, &dims.x, &dims.y);
+      SBIT(physics::CreateInfinteMassParticle2d(pos, dims)->user_flags,
+           kParticleCollider);
     }
   }
   fclose(f);

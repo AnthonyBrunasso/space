@@ -22,7 +22,7 @@ struct Sim {
 static Sim kSim;
 
 static b8 kReloadGame = false;
-static char kReloadFrom[64];
+static char kReloadFrom[64] = "asset/test.map";
 
 Character* Player() {
   return FindCharacter(kSim.player_id);
@@ -61,7 +61,6 @@ SimInitialize()
 
   // After initialization game is reloaded.
   kReloadGame = false;
-
 }
 
 void
@@ -170,8 +169,8 @@ SimUpdate()
       if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
         if (util::CooldownReady(&kSim.weapon_cooldown)) {
           util::CooldownReset(&kSim.weapon_cooldown);
-          ProjectileCreate(particle->position + v2f(0.f, 0.f), c->facing, kSim.player_id,
-                           kProjectileBullet);
+          ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
+                           kSim.player_id, kProjectileBullet);
         }
       }
       if (FLAGGED(c->ability_flags, kCharacterAbilityBoost)) {
@@ -201,20 +200,19 @@ SimUpdate()
       --c->trail_effect_ttl;
     }
 
-    if (FLAGGED(c->character_flags, kCharacterAim)) {
-      c->aim_dir = math::Rotate(c->aim_dir, c->aim_rotate_delta);
-    }
+    c->aim_dir =
+        math::Normalize(math::Rotate(c->aim_dir, c->aim_rotate_delta));
 
-    if (!FLAGGED(c->character_flags, kCharacterAim) &&
-        FLAGGED(c->prev_character_flags, kCharacterAim)) {
-      physics::Particle2d* test = physics::CreateParticle2d(
-          particle->position + v2f(0.f, 2.f), v2f(100.f, 10.f));
-      test->ttl = 50;
-      physics::Rotate(test, 45.f);
-      SBIT(test->flags, physics::kParticleIgnoreCollisionResolution);
-      SBIT(test->flags, physics::kParticleIgnoreGravity);
-      SBIT(test->user_flags, kParticleTest);
-    }
+    //if (!FLAGGED(c->character_flags, kCharacterAim) &&
+    //    FLAGGED(c->prev_character_flags, kCharacterAim)) {
+    //  physics::Particle2d* test = physics::CreateParticle2d(
+    //      particle->position + v2f(0.f, 2.f), v2f(100.f, 10.f));
+    //  test->ttl = 50;
+    //  physics::Rotate(test, 45.f);
+    //  SBIT(test->flags, physics::kParticleIgnoreCollisionResolution);
+    //  SBIT(test->flags, physics::kParticleIgnoreGravity);
+    //  SBIT(test->user_flags, kParticleTest);
+    //}
 
     if (c->health <= 0.f) {
       if (c == Player()) {
@@ -235,8 +233,14 @@ SimUpdate()
       }
     }
 
-    if (particle->velocity.x > 0.f) c->facing.x = 1.f;
-    if (particle->velocity.x < 0.f) c->facing.x = -1.f;
+    if (particle->velocity.x > 0.f) {
+      c->facing.x = 1.f;
+      c->aim_dir.x = fabs(c->aim_dir.x);
+    }
+    if (particle->velocity.x < 0.f) {
+      c->facing.x = -1.f;
+      c->aim_dir.x = -1.f * fabs(c->aim_dir.x);
+    }
     // Particles on the ground with no acceleration should stop immediately.
     // Without this stuff feels kinda floaty.
     if (particle->on_ground && particle->acceleration.x == 0.f) {

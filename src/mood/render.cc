@@ -132,7 +132,7 @@ Render()
             p->Rect(), 0.f, 0.f, v4f(1.f, 0.5f, 0.2f, 1.f));
       }
     } else if (e && e->type == kEntityTypeProjectile) {
-      rgg::RenderRectangle(p->aabb(), rgg::kWhite);
+        rgg::RenderRectangle(p->Rect(), 0.f, p->rotation, rgg::kWhite);
     }
   }
   animation::Sprite* character_sprite = rgg::GetSprite(kRender.character_id);
@@ -145,6 +145,8 @@ Render()
       if (fabs(p->velocity.x) > 10.f) {
         animation::SetLabel("walk", character_sprite);
       } else animation::SetLabel("idle", character_sprite);
+      v2f end = p->position + c->aim_dir * 100.f;
+      rgg::RenderLine(p->position, end, v4f(1.f, 0.f, 0.f, 0.25f));
       rgg::RenderTexture(
             kRender.character_id,
             animation::Update(character_sprite, &c->anim_frame),
@@ -152,11 +154,6 @@ Render()
                   character_sprite->width,
                   character_sprite->height), mirror);
       if (kRenderAabb) rgg::RenderLineRectangle(paabb, rgg::kRed);
-      if (FLAGGED(c->character_flags, kCharacterAim)) {
-        v2f start = v2f(paabb.Center().x, paabb.Max().y);
-        v2f end = start + c->aim_dir * 100.f;
-        rgg::RenderLine(start, end, v4f(1.f, 0.f, 0.f, 0.5f));
-      }
       continue;
     }
     Rectf aabb = p->aabb();
@@ -182,7 +179,7 @@ Render()
         } break;
         case kBehaviorSimpleFlying: {
           rgg::RenderCircle(
-              p->position, p->aabb().width / 2.f, v4f(1.f, 0.f, 0.f, .7f));
+              p->position, p->aabb().width / 2.f, v4f(1.f, 0.f, 0.f, 1.f));
         } break;
       }
     }

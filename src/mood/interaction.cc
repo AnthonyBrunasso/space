@@ -55,6 +55,18 @@ __CalculateStickMovement(
 }
 
 void
+__FileMapCallback(const char* filename)
+{
+  if (strcmp(filesystem::GetFilenameExtension(filename), "map") != 0) return;
+  imui::TextOptions toptions;
+  toptions.highlight_color = rgg::kRed;
+  if (imui::Text(filename, toptions).clicked) {
+    printf("Load Map %s\n", filename);
+    MapReload(filename);
+  }
+}
+
+void
 InteractionInitialize()
 {
   rgg::TextureInfo info;
@@ -265,6 +277,7 @@ MapEditor(v2f screen)
   imui::Space(imui::kHorizontal, 5.f);
   imui::Checkbox(16.f, 16.f, &kRenderAabb);
   imui::NewLine();
+  imui::Space(imui::kHorizontal, 5.f);
   imui::SameLine();
   imui::Width(160.f);
   if (imui::Text("Render Grid", toptions).clicked) {
@@ -273,8 +286,9 @@ MapEditor(v2f screen)
   imui::Space(imui::kHorizontal, 5.f);
   imui::Checkbox(16.f, 16.f, &kRenderGrid);
   imui::NewLine();
-  imui::HorizontalLine(v4f(1.f, 1.f, 1.f, .5f));
-  imui::Text("Tiles");
+  imui::HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
+  imui::Space(imui::kHorizontal, 5.f);
+  imui::Text("Items");
   imui::SameLine();
   animation::SetLabel("grass_left", &kInteraction.terrain_sprite);
   if (imui::Texture(32.f, 32.f, kInteraction.terrain_texture_id,
@@ -318,14 +332,24 @@ MapEditor(v2f screen)
     strcpy(kInteraction.selection.label_name, "brick");
   }
   imui::NewLine();
-  imui::HorizontalLine(v4f(1.f, 1.f, 1.f, .5f));
-  imui::Text("Collision Geometry");
+  imui::Space(imui::kVertical, 5.f);
   if (imui::Button(32.f, 32.f, rgg::kRed).clicked) {
     kInteraction.selection.type = kSelectionCollisionGeometry;
   }
-  imui::HorizontalLine(v4f(1.f, 1.f, 1.f, .5f));
+  imui::Space(imui::kHorizontal, 5.f);
+  imui::HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
+  imui::Space(imui::kVertical, 5.f);
   if (imui::Text("Save Map", toptions).clicked) {
     MapSave("asset/test.map");
+  }
+  static b8 show_load_maps = false;
+  if (imui::Text("Load Map", toptions).clicked) {
+    show_load_maps = !show_load_maps;
+  }
+  if (show_load_maps) {
+    imui::Indent(1);
+    filesystem::WalkDirectory("asset/", __FileMapCallback);
+    imui::Indent(0);
   }
   imui::End();
 }

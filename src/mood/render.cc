@@ -48,6 +48,9 @@ static b8 kRenderGrid = false;
 void
 RenderInitialize()
 {
+  kUsedTexture = 0;
+  kUsedEffect = 0;
+
   rgg::TextureInfo info;
   info.min_filter = GL_NEAREST;
   info.mag_filter = GL_NEAREST;

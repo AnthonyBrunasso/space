@@ -17,14 +17,52 @@ namespace mood {
 void
 MapSave(const char* name)
 {
-  printf("Saving map %s\n", name);
+  printf("Saving Map To %s\n", name);
   FILE* f = fopen(name, "w+");
   if (!f) return;
   fprintf(f, "%s\n", name);
   for (s32 i = 0; i < kUsedTexture; ++i) {
     Texture* t = &kTexture[i];
-    //fprintf(f, "t %s %s %i %i\n", t->texture
+    rgg::Texture* rgg_texture = rgg::GetTexture(t->texture_id);
+    fprintf(f, "t %s %s %.2f %.2f\n",
+            rgg_texture->file, t->label_name, t->rect.x, t->rect.y);
   }
+  fclose(f);
+}
+
+void
+MapReload(const char* name)
+{
+  kReloadGame = true;
+  strcpy(kReloadFrom, name);
+}
+
+void
+MapLoadFrom(const char* name)
+{
+  printf("Loading Map From %s\n", kReloadFrom);
+  FILE* f = fopen(name, "rb");
+  if (!f) {
+    printf("Unable to load map %s\n", name);
+    return;
+  }
+  char line[32];
+  fscanf(f, "%s\n", &line);
+  printf("Map Name: %s\n", line);
+  while (1) {
+    int res = fscanf(f, "%s", line);
+    if (res == EOF) break;
+    if (strcmp(line, "t") == 0) {
+      char texture_name[64];
+      SPRITE_LABEL(label_name);
+      v2f pos;
+      fscanf(f, "%s %s %f %f\n",
+             &texture_name, &label_name, &pos.x, &pos.y);
+      //printf("Create %s %s at %.2f %.2f\n",
+      //        texture_name, label_name, pos.x, pos.y);
+    }
+  }
+  fclose(f);
 }
 
 }

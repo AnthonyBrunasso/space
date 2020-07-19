@@ -21,6 +21,9 @@ struct Sim {
 
 static Sim kSim;
 
+static b8 kReloadGame = false;
+static char kReloadFrom[64];
+
 Character* Player() {
   return FindCharacter(kSim.player_id);
 }
@@ -55,6 +58,10 @@ SimInitialize()
   util::CooldownInitialize(&kSim.player_invulnerable);
   
   AIInitialize();
+
+  // After initialization game is reloaded.
+  kReloadGame = false;
+
 }
 
 void

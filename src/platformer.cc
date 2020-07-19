@@ -124,6 +124,10 @@ GameInitialize(const v2f& dims)
   mood::SimInitialize();
   mood::RenderInitialize();
   mood::InteractionInitialize();
+
+  if (strlen(mood::kReloadFrom) > 0) {
+    mood::MapLoadFrom(mood::kReloadFrom);
+  }
 }
 
 bool
@@ -134,6 +138,7 @@ GameUpdate()
   DebugUI();
   rgg::CameraUpdate();
   rgg::GetObserver()->view = rgg::CameraView();
+  if (mood::kReloadGame) return true;
   if (mood::kFreezeGame) return false;
   else return mood::SimUpdate();
 }

@@ -8,7 +8,7 @@ namespace animation
 static constexpr u32 kMaxLabelSize = 16;
 static constexpr u32 kMaxCoordSize = 16;
 
-#define SPRITE_LABEL(name) char name[8];
+#define SPRITE_LABEL(name) char name[32];
 
 struct Label {
   SPRITE_LABEL(name);

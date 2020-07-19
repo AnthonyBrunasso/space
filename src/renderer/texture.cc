@@ -1,6 +1,7 @@
 #pragma once
 
 struct Texture {
+  char file[64];
   GLuint reference = 0;
   r32 width = 0.f;
   r32 height = 0.f;
@@ -205,7 +206,6 @@ LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
     fclose(fptr);
     return false;
   }
-#if 1
   if (format == GL_RGB || format == GL_RGBA) {
     s32 stride = image_spec->pixel_depth / 8;
     u32 image_bytes_size =
@@ -217,16 +217,12 @@ LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
       image_bytes[i + 2] = t;
     }
   }
-#endif
 
   *texture = CreateTexture2D(format, image_spec->image_width,
                              image_spec->image_height, texture_info,
                              image_bytes);
 
-  printf("Loaded texture %s\n", file);
-  printf("size: %.0fx%.0f\n", texture->width, texture->height);
-  printf("format: %s\n", gl::GLEnumToString(texture->format));
-  printf("glreference: %i\n", texture->reference);
+  strcpy(texture->file, file);
 
   // Free buffer used to read in file.
   memory::PopBytes(file_length);

@@ -20,6 +20,8 @@ enum ParticleFlags {
   kParticleIgnoreCollisionResolution = 3,
   // If set velocity will not be dampened.
   kParticleIgnoreDamping = 4,
+  // If set particle will resolve the collision as if it's a stair.
+  kParticleResolveCollisionStair = 5,
 };
 
 struct Particle2d {
@@ -299,6 +301,12 @@ Integrate(r32 dt_sec)
         if (c->rect_intersection.width < c->rect_intersection.height) {
           correction = v2f(c->rect_intersection.width, 0.f);
         } else {
+          correction = v2f(0.f, c->rect_intersection.height);
+        }
+
+        // Force collision to be on y-axis.
+        if (FLAGGED(c->p1->flags, kParticleResolveCollisionStair) ||
+            FLAGGED(c->p2->flags, kParticleResolveCollisionStair)) {
           correction = v2f(0.f, c->rect_intersection.height);
         }
 

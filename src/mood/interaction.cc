@@ -173,9 +173,13 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
           Rectf(posf, v2f(subrect.width, subrect.height)), 
           subrect, kInteraction.selection.label_name);
       } else if (kInteraction.selection.type == kSelectionCollisionGeometry) {
-        SBIT(physics::CreateInfinteMassParticle2d(
+        physics::Particle2d* p = physics::CreateInfinteMassParticle2d(
            posf + v2f(subrect.width / 2.f, subrect.height / 2.f),
-           v2f(subrect.width, subrect.height))->user_flags, kParticleCollider);
+           v2f(subrect.width, subrect.height));
+        SBIT(p->user_flags, kParticleCollider);
+        if (subrect.height <= kTileHeight / 2.f) {
+          SBIT(p->flags, physics::kParticleResolveCollisionStair);
+        }
       }
     } break;
     case MOUSE_UP: {

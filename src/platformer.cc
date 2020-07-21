@@ -116,7 +116,7 @@ GameInitialize(const v2f& dims)
   camera.dir = v3f(0.f, 0.f, -1.f);
   camera.up = v3f(0.f, 1.f, 0.f);
   camera.mode = rgg::kCameraBrowser;
-  camera.speed = v3f(5.f, 5.f, .01f);
+  camera.speed = v3f(5.f, 5.f, 0.0f);
   camera.viewport = dims;
   //camera.camera_control = false;
   rgg::CameraInit(camera);

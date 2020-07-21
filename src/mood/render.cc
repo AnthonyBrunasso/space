@@ -6,6 +6,10 @@
 
 namespace mood {
 
+// defined in interaction.cc
+b8 IsInEditMode(u32* type);
+void GetTileEditInfo(v2f* pos, u32* texture_id, Rectf* texture_subrect);
+
 struct Effect {
   Rectf rect;
   v4f color = { 0.f, 0.f, 0.f, 1.f };
@@ -150,7 +154,7 @@ Render()
       rgg::RenderTexture(
             kRender.character_id,
             animation::Update(character_sprite, &c->anim_frame),
-            Rectf(paabb.x - 4.f, paabb.y - 1.f,
+            Rectf(paabb.x - 12.f, paabb.y,
                   character_sprite->width,
                   character_sprite->height), mirror);
       if (kRenderAabb) rgg::RenderLineRectangle(paabb, rgg::kRed);
@@ -202,6 +206,26 @@ Render()
         Rectf(-total_width / 2.f, -total_height / 2.f,
               total_width, total_height),
         ARRAY_LENGTH(colors), colors);
+  }
+
+  u32 type;
+  if (IsInEditMode(&type)) {
+    v2f pos;
+    u32 texture_id;
+    Rectf texture_subrect;
+    GetTileEditInfo(&pos, &texture_id, &texture_subrect);
+    switch (type) {
+      case 1: {
+        rgg::RenderTexture(
+            texture_id, texture_subrect,
+            Rectf(pos, v2f(texture_subrect.width, texture_subrect.height)));
+      } break;
+      case 2: {
+        rgg::RenderLineRectangle(
+            Rectf(pos, v2f(texture_subrect.width, texture_subrect.height)),
+            rgg::kRed);
+      } break;
+    }
   }
   
   // Render the players health...

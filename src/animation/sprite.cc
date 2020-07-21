@@ -91,16 +91,22 @@ LoadAnimation(const char* filename, Sprite* sprite)
 }
 
 void
+SetLabel(u32 idx, Sprite* sprite, bool mirror = false)
+{
+  sprite->last_update = 0;
+  sprite->label_idx = idx;
+  sprite->label_coord_idx = 0;
+  sprite->mirror = mirror;
+}
+
+void
 SetLabel(const char* label, Sprite* sprite, bool mirror = false)
 {
   for (s32 i = 0; i < sprite->label_size; ++i) {
     Label* l = &sprite->label[i];
     if (strcmp(l->name, label) == 0) {
       if (sprite->label_idx == i) return;
-      sprite->last_update = 0;
-      sprite->label_idx = i;
-      sprite->label_coord_idx = 0;
-      sprite->mirror = mirror;
+      SetLabel(i, sprite, mirror);
       return;
     }
   }
@@ -135,6 +141,13 @@ Rect(Sprite* sprite)
   return Rectf(sprite->width * c.y, sprite->height * c.x,
                sprite->width, sprite->height);
 
+}
+
+const char*
+LabelName(Sprite* sprite)
+{
+  Label* l = &sprite->label[sprite->label_idx];
+  return l->name;
 }
 
 }

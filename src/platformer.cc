@@ -20,6 +20,7 @@
 #include "mood/interaction.cc"
 
 #define WIN_ATTACH_DEBUGGER 0
+#define DEBUG_PHYSICS 1
 
 struct State {
   // Game and render updates per second
@@ -102,6 +103,9 @@ DebugUI()
   //physics::DebugUI(screen);
   mood::EntityViewer(screen);
   mood::MapEditor(screen);
+#ifdef DEBUG_PHYSICS
+  physics::DebugUI(screen);
+#endif
 }
 
 void
@@ -156,6 +160,9 @@ GameRender(v2f dims)
     rgg::BeginRenderTo(render_target);
     glClear(GL_COLOR_BUFFER_BIT);
     mood::Render();
+#ifdef DEBUG_PHYSICS
+  physics::DebugRender();
+#endif
     rgg::EndRenderTo();
   }
 

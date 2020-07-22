@@ -25,7 +25,6 @@ struct Interaction {
 
 static Interaction kInteraction;
 
-static b8 kFreezeGame = false;
 
 b8
 IsInEditMode(u32* type)
@@ -234,6 +233,12 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
       } else {
         CBIT(player->character_flags, kCharacterFireWeapon);
       }
+
+      if (event.controller.left_trigger) {
+        SBIT(player->character_flags, kCharacterFireSecondary);
+      } else {
+        CBIT(player->character_flags, kCharacterFireSecondary);
+      }
     } break;
     default: break;
   }
@@ -304,6 +309,14 @@ MapEditor(v2f screen)
   }
   imui::Space(imui::kHorizontal, 5.f);
   imui::Checkbox(16.f, 16.f, &kRenderGrid);
+  imui::NewLine();
+  imui::SameLine();
+  imui::Width(160.f);
+  if (imui::Text("Enemies Enabled", toptions).clicked) {
+    kEnableEnemies = !kEnableEnemies;
+  }
+  imui::Space(imui::kHorizontal, 5.f);
+  imui::Checkbox(16.f, 16.f, &kEnableEnemies);
   imui::NewLine();
   imui::HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
   imui::Space(imui::kHorizontal, 5.f);

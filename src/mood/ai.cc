@@ -69,8 +69,9 @@ AIBehaviorFlying(Character* c)
 void
 AIUpdate()
 {
-  if (util::CooldownReady(&kAI.enemy_cooldown)) {
+  if (!kEnableEnemies) return;
 
+  if (util::CooldownReady(&kAI.enemy_cooldown)) {
     physics::Particle2d* player_particle = PlayerParticle();
 
     v2f spawn = {};

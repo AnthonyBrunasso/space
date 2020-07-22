@@ -17,6 +17,7 @@ constexpr r32 kAimSensitivity = 3.f;
 
 // Projectile constants.
 constexpr r32 kProjectileSpeed = 700.f;
+constexpr r32 kGrenadeSpeed = 700.f;
 
 // Enemy constants.
 constexpr r32 kEnemyHealthHeight = 5.f;

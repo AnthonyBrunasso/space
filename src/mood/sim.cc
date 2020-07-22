@@ -23,6 +23,8 @@ static Sim kSim;
 
 static b8 kReloadGame = false;
 static char kReloadFrom[64] = "asset/test.map";
+static b8 kFreezeGame = false;
+static b8 kEnableEnemies = true;
 
 Character* Player() {
   return FindCharacter(kSim.player_id);
@@ -171,6 +173,13 @@ SimUpdate()
           util::CooldownReset(&kSim.weapon_cooldown);
           ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
                            kSim.player_id, kProjectileBullet);
+        }
+      }
+      if (FLAGGED(c->character_flags, kCharacterFireSecondary)) {
+        if (util::CooldownReady(&kSim.weapon_cooldown)) {
+          util::CooldownReset(&kSim.weapon_cooldown);
+          ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
+                           kSim.player_id, kProjectileGrenade);
         }
       }
       if (FLAGGED(c->ability_flags, kCharacterAbilityBoost)) {

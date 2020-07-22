@@ -9,33 +9,45 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
 {
   Entity* entity_creator = FindEntity(from_entity);
   v2f start_offset = {};
-  physics::Particle2d* particle_creator = nullptr;
-  if (entity_creator) {
-    particle_creator = physics::FindParticle2d(entity_creator->particle_id);
-    if (particle_creator) {
-      //start_offset.x += (particle_creator->dims.x / 2.f) * dir.x;
-    }
-  }
-  Projectile* projectile =
-      UseEntityProjectile(start + start_offset, v2f(10.5f, 1.2f));
-  physics::Particle2d* particle = FindParticle(projectile);
   r32 angle = atan2(dir.y, dir.x) * 180.f / PI;
-  particle->rotation = angle;
+  v2f size;
+  Projectile* projectile = nullptr;
+  physics::Particle2d* particle = nullptr;
   switch (type) {
     case kProjectileBullet:
     case kProjectileLaser: {
+      projectile = UseEntityProjectile(start, v2f(10.5f, 1.2f));
+      particle = FindParticle(projectile);
+      particle->rotation = angle;
       SBIT(particle->flags, physics::kParticleIgnoreGravity);
       SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
       SBIT(particle->flags, physics::kParticleIgnoreDamping);
+      projectile->updates_to_live = 50;
+      projectile->speed = kProjectileSpeed;
+    } break;
+    case kProjectileGrenade: {
+      physics::Particle2d* particle_creator =
+          physics::FindParticle2d(entity_creator->particle_id);
+      v2f start_offset = {};
+      if (particle_creator) {
+        start_offset = v2f((particle_creator->dims.x / 2.f) * dir.x, 0.f);
+      }
+      projectile = UseEntityProjectile(start + start_offset, v2f(4.f, 4.f));
+      particle = FindParticle(projectile);
+      //particle->force = dir * 50000.f;
+      particle->rotation = 0.f;
+      SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
+      SBIT(particle->flags, physics::kParticleIgnoreDamping);
+      projectile->updates_to_live = 300;
+      projectile->speed = kGrenadeSpeed;
     } break;
     default: break;
   };
+  if (!projectile) return;
   dir += v2f(0.f, math::Random(-0.05f, 0.05f));
   projectile->dir = dir;
   projectile->projectile_type = type;
-  projectile->updates_to_live = 50;
   projectile->from_entity = from_entity;
-  projectile->speed = kProjectileSpeed;
 }
 
 void
@@ -50,6 +62,11 @@ ProjectileUpdate()
         case kProjectileBullet: {
           v2f delta = p->dir * p->speed;
           particle->velocity = delta;
+        } break;
+        case kProjectileGrenade: {
+          v2f delta = p->dir * p->speed;
+          particle->velocity = delta;
+          particle->velocity.y -= physics::kPhysics.gravity * kFrameDelta;
         } break;
         default: break;
       }

@@ -1,4 +1,3 @@
-
 Tasks -
 
   [] Gravity controlled projectiles - grenades and such.
@@ -6,3 +5,10 @@ Tasks -
   [] Stair collision geometry.
   [] Unit spawners.
   [] Save particle bitmask to collision geometry.
+
+Ideas -
+
+  1. Perhaps would be cool if secondary fire was also some sort of terrain
+     traversing helper. So unlocking new guns would also unlock new areas
+     of the map. Like a could could have a grapling hook, teleport with
+     projectile, etc.

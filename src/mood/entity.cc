@@ -107,6 +107,8 @@ enum CharacterFlags {
   kCharacterJump = 1,
   // Set for the frame the player fired their weapon.
   kCharacterWeaponFired = 2,
+  // If set the character will attempt to fire their secondary weapon.
+  kCharacterFireSecondary = 3,
 };
 
 enum CharacterAbilityFlags {
@@ -150,6 +152,7 @@ struct Character {
 enum ProjectileType {
   kProjectileLaser = 0,
   kProjectileBullet = 1,
+  kProjectileGrenade = 2,
 };
 
 struct Projectile {

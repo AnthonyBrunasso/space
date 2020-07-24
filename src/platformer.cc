@@ -194,6 +194,8 @@ main(s32 argc, char** argv)
     return 1;
   }
 
+  kGameState.window_create_info.window_width = mood::kScreenWidth;
+  kGameState.window_create_info.window_height = mood::kScreenHeight;
   if (!window::Create("Game", kGameState.window_create_info)) {
     return 1;
   }

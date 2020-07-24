@@ -35,9 +35,14 @@ constexpr r32 kCameraYOffset = 30.f;
 
 // Render target constants.
 constexpr r32 kRenderTargetWidth = 800;
-constexpr r32 kRenderTargetHeight = 400;
+constexpr r32 kRenderTargetHeight = 450;
+#ifdef __APPLE__
+constexpr r32 kScreenWidth = 1440;
+constexpr r32 kScreenHeight = 810;
+#else
 constexpr r32 kScreenWidth = 1920;
 constexpr r32 kScreenHeight = 1080;
+#endif
 
 // Tilemap constants.
 constexpr r32 kTileWidth = 16.f;

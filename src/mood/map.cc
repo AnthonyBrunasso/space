@@ -11,7 +11,7 @@ namespace mood {
 // <map_name>
 // t <texture_name> <label_name> <pos>
 // ...
-// g <pos> <dims>
+// g <pos> <dims> <flags> <user_flags>
 // ...
 
 void
@@ -30,8 +30,9 @@ MapSave(const char* name)
   for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
     physics::Particle2d* p = &physics::kParticle2d[i];
     if (FLAGGED(p->user_flags, kParticleCollider)) {
-      fprintf(f, "g %.2f %2f %.2f %.2f\n",
-              p->position.x, p->position.y, p->dims.x, p->dims.y);
+      fprintf(f, "g %.2f %2f %.2f %.2f %.2f %u %u\n",
+              p->position.x, p->position.y, p->dims.x, p->dims.y,
+              p->inverse_mass, p->flags, p->user_flags);
     }
   }
   fclose(f);
@@ -79,9 +80,15 @@ MapLoadFrom(const char* name)
     } else if (strcmp(line, "g") == 0) {
       v2f pos;
       v2f dims;
-      fscanf(f, "%f %f %f %f\n", &pos.x, &pos.y, &dims.x, &dims.y);
-      SBIT(physics::CreateInfinteMassParticle2d(pos, dims)->user_flags,
-           kParticleCollider);
+      r32 inv_mass = 0.f;
+      u32 flags;
+      u32 user_flags;
+      fscanf(f, "%f %f %f %f %f %u %u\n", &pos.x, &pos.y, &dims.x, &dims.y,
+             &inv_mass, &flags, &user_flags);
+      physics::Particle2d* p = physics::CreateParticle2d(pos, dims);
+      p->inverse_mass = inv_mass;
+      p->flags = flags;
+      p->user_flags = user_flags;
     }
   }
   fclose(f);

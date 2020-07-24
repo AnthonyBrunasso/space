@@ -200,7 +200,6 @@ CameraBrowser(const PlatformEvent& event)
     } break;
     case MOUSE_WHEEL: {
       c->position += (c->dir * event.wheel_delta * c->speed.z);
-      printf("%.2f\n", c->position.z);
     } break;
     default: break;
   }

@@ -131,9 +131,6 @@ Render()
         rgg::RenderRectangle(p->aabb(), v4f(.9f, .88f, .1f, 1.f));
       } else if (FLAGGED(p->user_flags, kParticleCollider)) {
         if (kRenderAabb) rgg::RenderLineRectangle(p->aabb(), rgg::kRed);
-      } else if (FLAGGED(p->user_flags, kParticleTest)) {
-        rgg::RenderLineRectangle(
-            p->Rect(), 0.f, 0.f, v4f(1.f, 0.5f, 0.2f, 1.f));
       }
     } else if (e && e->type == kEntityTypeProjectile) {
         rgg::RenderRectangle(p->Rect(), 0.f, p->rotation, rgg::kWhite);

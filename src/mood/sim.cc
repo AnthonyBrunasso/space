@@ -46,10 +46,6 @@ SimInitialize()
   particle->damping = 0.005f;
   kSim.player_id = player->id;
 
-  SBIT(physics::CreateInfinteMassParticle2d(
-          v2f(0.f, -kTileHeight / 2.f), v2f(1920, kTileHeight))->user_flags,
-          kParticleCollider);
-
   kSim.boost_cooldown.usec = SECONDS(1.f);
   util::CooldownInitialize(&kSim.boost_cooldown);
 
@@ -230,17 +226,6 @@ SimUpdate()
         }
       }
     }
-
-    //if (!FLAGGED(c->character_flags, kCharacterAim) &&
-    //    FLAGGED(c->prev_character_flags, kCharacterAim)) {
-    //  physics::Particle2d* test = physics::CreateParticle2d(
-    //      particle->position + v2f(0.f, 2.f), v2f(100.f, 10.f));
-    //  test->ttl = 50;
-    //  physics::Rotate(test, 45.f);
-    //  SBIT(test->flags, physics::kParticleIgnoreCollisionResolution);
-    //  SBIT(test->flags, physics::kParticleIgnoreGravity);
-    //  SBIT(test->user_flags, kParticleTest);
-    //}
 
     if (c->health <= 0.f) {
       if (c == Player()) {

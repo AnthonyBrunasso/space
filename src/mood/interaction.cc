@@ -14,7 +14,8 @@ struct Selection {
   u32 texture_id;
   Rectf subrect;
   SPRITE_LABEL(label_name);
-  bool scroll = false;
+  bool tile_offset = false;
+  physics::Particle2d* last_particle = nullptr;
 };
 
 struct Interaction {
@@ -24,7 +25,6 @@ struct Interaction {
 };
 
 static Interaction kInteraction;
-
 
 b8
 IsInEditMode(u32* type)
@@ -42,7 +42,7 @@ GetTileEditInfo(v2f* pos, u32* texture_id, Rectf* texture_subrect)
   v2i cpos = WorldToTile(clickpos);
   cpos.x *= kTileWidth;
   cpos.y *= kTileHeight;
-  if (kInteraction.selection.scroll) {
+  if (kInteraction.selection.tile_offset) {
     cpos.y += kTileHeight / 2.f;
   }
   v2f posf = to_v2f(cpos);
@@ -117,6 +117,42 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
         case 27 /* ESC */: {
           exit(1);
         } break;
+        case '0': {
+          if (kInteraction.selection.last_particle) {
+            kInteraction.selection.last_particle->dims.x += kTileHeight / 2.f;
+            kInteraction.selection.last_particle->position.x +=
+                kTileHeight / 4.f;
+            physics::BPUpdateP2d(kInteraction.selection.last_particle);
+          }
+        } break;
+        case '9': {
+          if (kInteraction.selection.last_particle) {
+            kInteraction.selection.last_particle->dims.x -= kTileHeight / 2.f;
+            kInteraction.selection.last_particle->position.x -=
+                kTileHeight / 4.f;
+            physics::BPUpdateP2d(kInteraction.selection.last_particle);
+          }
+        } break;
+        case 43 /* Plus */: {
+          if (kInteraction.selection.last_particle) {
+            kInteraction.selection.last_particle->dims.y += kTileHeight / 2.f;
+            kInteraction.selection.last_particle->position.y +=
+                kTileHeight / 4.f;
+            physics::BPUpdateP2d(kInteraction.selection.last_particle);
+          }
+        } break;
+        case 45 /* Minus */: {
+          if (kInteraction.selection.last_particle) {
+            kInteraction.selection.last_particle->dims.y -= kTileHeight / 2.f;
+            kInteraction.selection.last_particle->position.y -=
+                kTileHeight / 4.f;
+            physics::BPUpdateP2d(kInteraction.selection.last_particle);
+          }
+        } break;
+        case '1': {
+          kInteraction.selection.tile_offset =
+              !kInteraction.selection.tile_offset;
+        } break;
         case 'a': {
           SBIT(player->character_flags, kCharacterFireWeapon);
         } break;
@@ -179,6 +215,7 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
         if (subrect.height <= kTileHeight / 2.f) {
           SBIT(p->flags, physics::kParticleResolveCollisionStair);
         }
+        kInteraction.selection.last_particle = p;
       }
     } break;
     case MOUSE_UP: {
@@ -186,7 +223,7 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
     } break;
     case MOUSE_WHEEL: {
       imui::MouseWheel(event.wheel_delta, imui::kEveryoneTag);
-      kInteraction.selection.scroll = !kInteraction.selection.scroll;
+      kInteraction.selection.tile_offset = !kInteraction.selection.tile_offset;
     } break;
     case XBOX_CONTROLLER: {
       v2f cdir;

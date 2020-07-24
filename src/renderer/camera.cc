@@ -83,6 +83,17 @@ CameraSetPositionXY(const v2f& position)
   c->position.y = position.y;
 }
 
+void
+CameraLerpToPositionXY(const v2f& position, r32 t)
+{
+  Camera* c = CameraGetCurrent();
+  if (!c) return;
+  v2f pos = c->position.xy();
+  v2f lpos = math::Lerp(pos, position, t);
+  c->position.x = lpos.x;
+  c->position.y = lpos.y;
+}
+
 v3f
 CameraPosition()
 {

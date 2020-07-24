@@ -346,17 +346,15 @@ Rotate(Particle2d* p, r32 delta)
 }
 
 void
-DebugUI(v2f screen)
+DebugUI(v2f screen, b8* enable)
 {
   static const u32 kUIBufferSize = 64;
   static char kUIBuffer[kUIBufferSize];
-  static b8 enable_physics = true;
-  static v2f physics_pos(0.f, screen.y - 300.f);
+  static v2f physics_pos(500.f, screen.y);
   imui::PaneOptions options;
   options.width = options.max_width = 365.f;
   options.max_height = 500.f;
-  imui::Begin("Physics", imui::kEveryoneTag, options, &physics_pos,
-              &enable_physics);
+  imui::Begin("Physics", imui::kEveryoneTag, options, &physics_pos, enable);
   static const r32 kWidth = 130.f;
   imui::SameLine();
   imui::Text("Render Collision");

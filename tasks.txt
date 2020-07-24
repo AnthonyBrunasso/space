@@ -2,7 +2,7 @@ Tasks -
 
   [] Gravity controlled projectiles - grenades and such.
   [] A level.
-  [] Stair collision geometry.
+  [x] Stair collision geometry.
   [] Unit spawners.
   [] Save particle bitmask to collision geometry.
 

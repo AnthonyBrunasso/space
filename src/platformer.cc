@@ -104,7 +104,8 @@ DebugUI()
   mood::EntityViewer(screen);
   mood::MapEditor(screen);
 #ifdef DEBUG_PHYSICS
-  physics::DebugUI(screen);
+  static b8 enable = false;
+  physics::DebugUI(screen, &enable);
 #endif
 }
 

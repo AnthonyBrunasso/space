@@ -24,7 +24,7 @@ static Sim kSim;
 static b8 kReloadGame = false;
 static char kReloadFrom[64] = "asset/test.map";
 static b8 kFreezeGame = false;
-static b8 kEnableEnemies = true;
+static b8 kEnableEnemies = false;
 
 Character* Player() {
   return FindCharacter(kSim.player_id);
@@ -280,8 +280,8 @@ SimUpdate()
 
   ProjectileUpdate();
   AIUpdate();
-  rgg::CameraSetPositionXY(FindParticle(Player())->position +
-                           v2f(0.f, kCameraYOffset));
+  rgg::CameraLerpToPositionXY(FindParticle(Player())->position +
+                              v2f(0.f, kCameraYOffset), .1f);
 
   physics::Integrate(kFrameDelta);
   __ResolveCollisions();

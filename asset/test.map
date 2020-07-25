@@ -35,12 +35,30 @@ t asset/wall_tiles.tga wall_double_one 240.00 72.00
 t asset/wall_tiles.tga wall_double_two 240.00 80.00
 t asset/wall_tiles.tga wall_single_one 240.00 96.00
 t asset/wall_tiles.tga wall_single_three 240.00 112.00
-t asset/tiles.tga middle_stone 0.00 88.00
 t asset/tiles.tga middle_stone 16.00 88.00
 t asset/tiles.tga middle_stone 32.00 88.00
-t asset/tiles.tga right_stone 48.00 88.00
-t asset/tiles.tga left_stone -16.00 88.00
-g 0.00 -8.000000 1920.00 16.00 0.00 0 4
+t asset/tiles.tga middle_stone 192.00 64.00
+t asset/tiles.tga right_stone 208.00 64.00
+t asset/tiles.tga left_stone 176.00 64.00
+t asset/tiles.tga left_stone 0.00 88.00
+t asset/tiles.tga middle_stone 48.00 88.00
+t asset/tiles.tga right_stone 64.00 88.00
+t asset/wall_tiles.tga wall_single_three -80.00 128.00
+t asset/wall_tiles.tga wall_double_two -80.00 112.00
+t asset/wall_tiles.tga wall_single_one -96.00 128.00
+t asset/wall_tiles.tga wall_double_two -96.00 112.00
+t asset/tiles.tga middle_stone -112.00 128.00
+t asset/tiles.tga middle_stone -128.00 128.00
+t asset/tiles.tga middle_stone -144.00 128.00
+t asset/tiles.tga middle_stone -160.00 128.00
+t asset/tiles.tga middle_stone -176.00 128.00
+t asset/tiles.tga middle_stone -208.00 128.00
+t asset/tiles.tga middle_stone -192.00 128.00
+t asset/tiles.tga middle_stone -224.00 128.00
+t asset/tiles.tga middle_stone -240.00 128.00
+t asset/tiles.tga middle_stone -256.00 128.00
+t asset/tiles.tga middle_stone -272.00 128.00
+g 16.00 -8.000000 160.00 16.00 0.00 0 4
 g 104.00 3.500000 16.00 7.00 0.00 32 4
 g 136.00 19.500000 16.00 7.00 0.00 32 4
 g 152.00 27.500000 16.00 7.00 0.00 32 4
@@ -55,8 +73,12 @@ g 216.00 24.000000 16.00 16.00 0.00 0 4
 g 232.00 24.000000 16.00 16.00 0.00 0 4
 g -56.00 68.000000 16.00 136.00 0.00 0 4
 g 248.00 76.000000 16.00 104.00 0.00 0 4
-g 56.00 92.500000 16.00 9.00 0.00 0 4
+g 200.00 68.500000 16.00 9.00 0.00 0 4
 g 40.00 92.500000 16.00 9.00 0.00 0 4
 g 24.00 92.500000 16.00 9.00 0.00 0 4
 g 8.00 92.500000 16.00 9.00 0.00 0 4
-g -8.00 92.500000 16.00 9.00 0.00 0 4
+g 216.00 68.500000 16.00 9.00 0.00 0 4
+g 184.00 68.500000 16.00 9.00 0.00 0 4
+g 56.00 92.500000 16.00 9.00 0.00 0 4
+g 72.00 92.500000 16.00 9.00 0.00 0 4
+g -172.00 128.000000 200.00 16.00 0.00 0 4

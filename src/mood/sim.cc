@@ -286,6 +286,11 @@ SimUpdate()
     ++i;
   }
 
+  // TODO: Not entirely sure why this is needed. Without this - sometimes
+  // physics geometry can get into an invalid state where things tunnel
+  // through. *shrug*
+  physics::BPUpdateAll();
+
   return false;
 }
 

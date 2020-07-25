@@ -5,6 +5,8 @@
 #include "math/rect.h"
 #include "renderer/imui.cc"
 
+#include "util/scoped_expression.cc"
+
 namespace physics {
 
 enum ParticleFlags {
@@ -176,7 +178,6 @@ __ResolvePositionAndVelocity(Particle2d* p, v2f correction)
   if (IsZero(p->velocity)) return;
   p->position -= (correction * 1.01f);
   p->velocity = {};
-  BPUpdateP2d(p);
 }
 
 void
@@ -280,6 +281,11 @@ Integrate(r32 dt_sec)
   for (u32 i = 0; i < kUsedBP2dCollision; ++i) {
     BP2dCollision* c = &kBP2dCollision[i];
 
+    util::ScopedExpression expr([c]() {
+      BPUpdateP2d(c->p1);
+      BPUpdateP2d(c->p2);
+    });
+
     // If either particle completely ignore collision continue.
     if (FLAGGED(c->p1->flags, kParticleIgnoreCollisionResolution)) continue;
     if (FLAGGED(c->p2->flags, kParticleIgnoreCollisionResolution)) continue;
@@ -343,6 +349,14 @@ Rotate(Particle2d* p, r32 delta)
 {
   if (delta == 0.f) return;
   SetRotation(p, p->rotation + delta);
+}
+
+void
+BPUpdateAll()
+{
+  for (u32 i = 0; i < kUsedParticle2d; ++i) {
+    BPUpdateP2d(&kParticle2d[i]);
+  }
 }
 
 void

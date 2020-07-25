@@ -1,0 +1,155 @@
+src/mood\entity.cc:27:    e->particle_id = p->id;                         \
+src/mood\entity.cc:28:    p->entity_id = e->id;                           \
+src/mood\interaction.cc:226:            SBIT(p->user_flags, kParticleCollider);
+src/mood\interaction.cc:228:              SBIT(p->flags, physics::kParticleResolveCollisionStair);
+src/mood\interaction.cc:248:          if (math::PointInRect(clickpos, p->aabb())) {
+src/mood\interaction.cc:334:    snprintf(kUIBuffer, sizeof(kUIBuffer), "Particle %u", p->id);
+src/mood\interaction.cc:337:    snprintf(kUIBuffer, sizeof(kUIBuffer), "pos %.2f %.2f", p->position.x,
+src/mood\interaction.cc:338:             p->position.y);
+src/mood\interaction.cc:340:    snprintf(kUIBuffer, sizeof(kUIBuffer), "dims %.2f %.2f", p->dims.x,
+src/mood\interaction.cc:341:             p->dims.y);
+src/mood\map.cc:32:    if (FLAGGED(p->user_flags, kParticleCollider)) {
+src/mood\map.cc:34:              p->position.x, p->position.y, p->dims.x, p->dims.y,
+src/mood\map.cc:35:              p->inverse_mass, p->flags, p->user_flags);
+src/mood\map.cc:89:      p->inverse_mass = inv_mass;
+src/mood\map.cc:90:      p->flags = flags;
+src/mood\map.cc:91:      p->user_flags = user_flags;
+src/mood\projectile.cc:59:      switch (p->projectile_type) {
+src/mood\projectile.cc:63:          v2f delta = p->dir * p->speed;
+src/mood\projectile.cc:67:          v2f delta = p->dir * p->speed;
+src/mood\projectile.cc:75:    --p->updates_to_live;
+src/mood\projectile.cc:76:    if (!p->updates_to_live) {
+src/mood\render.cc:138:    Entity* e = FindEntity(p->entity_id);
+src/mood\render.cc:139:    if (p->user_flags) {
+src/mood\render.cc:140:      if (FLAGGED(p->user_flags, kParticleBlood)) {
+src/mood\render.cc:141:        rgg::RenderRectangle(p->aabb(), rgg::kRed);
+src/mood\render.cc:142:      } else if (FLAGGED(p->user_flags, kParticleSpark)) {
+src/mood\render.cc:143:        rgg::RenderRectangle(p->aabb(), v4f(.9f, .88f, .1f, 1.f));
+src/mood\render.cc:144:      } else if (FLAGGED(p->user_flags, kParticleCollider)) {
+src/mood\render.cc:145:        if (kRenderAabb) rgg::RenderLineRectangle(p->aabb(), rgg::kRed);
+src/mood\render.cc:148:        rgg::RenderRectangle(p->Rect(), 0.f, p->rotation, rgg::kWhite);
+src/mood\render.cc:156:      Rectf paabb = p->aabb();
+src/mood\render.cc:158:      if (fabs(p->velocity.x) > 10.f) {
+src/mood\render.cc:161:      v2f end = p->position + c->aim_dir * 100.f;
+src/mood\render.cc:162:      rgg::RenderLine(p->position, end, v4f(1.f, 0.f, 0.f, 0.25f));
+src/mood\render.cc:172:    Rectf aabb = p->aabb();
+src/mood\render.cc:182:          Rectf paabb = p->aabb();
+src/mood\render.cc:184:          bool mirror = p->velocity.x >= 0.f ? true : false;
+src/mood\render.cc:195:              p->position, p->aabb().width / 2.f, v4f(1.f, 0.f, 0.f, 1.f));
+src/mood\sim.cc:93:      ep->collision_mask = kCollisionMaskCharacter;
+src/mood\sim.cc:95:      ep->force = fdir * math::Random(3000.f, 15000.f);
+src/mood\sim.cc:96:      ep->ttl = kParticleTTL;
+src/mood\sim.cc:97:      SBIT(ep->user_flags, kParticleSpark);
+src/mood\sim.cc:240:          ep->collision_mask = kCollisionMaskCharacter;
+src/mood\sim.cc:242:          ep->force = dir * math::Random(10000.f, 30000.f);
+src/mood\sim.cc:243:          SBIT(ep->user_flags, kParticleBlood);
+src/mood\sim.cc:244:          ep->ttl = kParticleTTL;
+src/physics\broadphase.cc:38:  return p->next_p2d_x;
+src/physics\broadphase.cc:45:  if (p->id == kPhysics.p2d_head_x) {
+src/physics\broadphase.cc:50:  Particle2d* nextx = FindParticle2d(p->next_p2d_x);
+src/physics\broadphase.cc:51:  Particle2d* prevx = FindParticle2d(p->prev_p2d_x);
+src/physics\broadphase.cc:64:  SwapParticle2d(p->id, kParticle2d[kUsedParticle2d - 1].id);
+src/physics\broadphase.cc:78:  if (p->id == kPhysics.p2d_head_x) {
+src/physics\broadphase.cc:79:    kPhysics.p2d_head_x = BPGetNextId(p->id);
+src/physics\broadphase.cc:84:  if (p->aabb().Min().x < head->aabb().Min().x) {
+src/physics\broadphase.cc:85:    kPhysics.p2d_head_x = p->id;
+src/physics\broadphase.cc:88:  Particle2d* particle_prev = FindParticle2d(p->prev_p2d_x);
+src/physics\broadphase.cc:89:  if (particle_prev) particle_prev->next_p2d_x = p->next_p2d_x;
+src/physics\broadphase.cc:90:  Particle2d* particle_next = FindParticle2d(p->next_p2d_x);
+src/physics\broadphase.cc:91:  if (particle_next) particle_next->prev_p2d_x = p->prev_p2d_x;
+src/physics\broadphase.cc:92:  if (prev) prev->next_p2d_x = p->id;
+src/physics\broadphase.cc:93:  if (next) next->prev_p2d_x = p->id;
+src/physics\broadphase.cc:94:  if (next) p->next_p2d_x = next->id;
+src/physics\broadphase.cc:95:  if (prev) p->prev_p2d_x = prev->id;
+src/physics\broadphase.cc:108:  Particle2d* prev = FindParticle2d(p->prev_p2d_x);
+src/physics\broadphase.cc:109:  Particle2d* next = FindParticle2d(p->next_p2d_x);
+src/physics\broadphase.cc:110:  Rectf paabb = p->aabb();
+src/physics\broadphase.cc:116:  if (next && next->id != p->next_p2d_x) {
+src/physics\broadphase.cc:119:  prev = FindParticle2d(p->prev_p2d_x);
+src/physics\broadphase.cc:120:  next = FindParticle2d(p->next_p2d_x);
+src/physics\broadphase.cc:126:  if (prev && prev->id != p->prev_p2d_x) {
+src/physics\physics.cc:164:  SBIT(p->flags, physics::kParticleRemove);
+src/physics\physics.cc:177:  if (p->inverse_mass < FLT_EPSILON) return;
+src/physics\physics.cc:178:  if (IsZero(p->velocity)) return;
+src/physics\physics.cc:179:  p->position -= (correction * 1.01f);
+src/physics\physics.cc:180:  p->velocity = {};
+src/physics\physics.cc:187:  if (p->inverse_mass < FLT_EPSILON) return;
+src/physics\physics.cc:188:  if (IsZero(p->velocity)) return;
+src/physics\physics.cc:189:  Rectf aabb = p->aabb();
+src/physics\physics.cc:192:      p->position.x -= correction.x;
+src/physics\physics.cc:194:      p->position.x += correction.x;
+src/physics\physics.cc:198:    //p->velocity.x = 0.f;
+src/physics\physics.cc:202:      p->position.y -= correction.y;
+src/physics\physics.cc:204:      p->position.y += correction.y;
+src/physics\physics.cc:206:    p->velocity.y = 0.f;
+src/physics\physics.cc:214:  if (!p->on_ground) {
+src/physics\physics.cc:215:    p->on_ground = intersection.y < p->aabb().y;
+src/physics\physics.cc:222:  if (!p->on_wall) {
+src/physics\physics.cc:223:    Rectf aabb = p->aabb();
+src/physics\physics.cc:224:    p->on_wall = intersection.x < aabb.x ||
+src/physics\physics.cc:237:    if (FLAGGED(p->flags, kParticleRemove) || p->ttl == 0) {
+src/physics\physics.cc:241:    if (p->ttl != UINT32_MAX) {
+src/physics\physics.cc:242:      --p->ttl;
+src/physics\physics.cc:250:    if (FLAGGED(p->flags, kParticleFreeze)) continue;
+src/physics\physics.cc:252:    if (p->inverse_mass <= 0.f) continue;
+src/physics\physics.cc:255:    p->on_ground = false;
+src/physics\physics.cc:256:    p->on_wall = false;
+src/physics\physics.cc:259:    v2f acc = p->acceleration;
+src/physics\physics.cc:260:    p->acceleration += p->force * p->inverse_mass;
+src/physics\physics.cc:261:    if (!FLAGGED(p->flags, kParticleIgnoreGravity)) {
+src/physics\physics.cc:262:      p->acceleration -= v2f(0.f, kPhysics.gravity);
+src/physics\physics.cc:264:    p->velocity += p->acceleration * dt_sec;
+src/physics\physics.cc:265:    p->position += p->velocity * dt_sec;
+src/physics\physics.cc:266:    if (!FLAGGED(p->flags, kParticleIgnoreDamping)) {
+src/physics\physics.cc:267:      p->velocity *= pow(p->damping, dt_sec);
+src/physics\physics.cc:271:    p->acceleration = acc;
+src/physics\physics.cc:273:    p->force = {};
+src/physics\physics.cc:343:  p->rotation = rotation;
+src/physics\physics.cc:351:  SetRotation(p, p->rotation + delta);
+src/physics\physics.cc:399:      rgg::DebugPushRect(p->aabb(), rgg::kGreen);
+src/physics\physics.cc:400:      if (p->next_p2d_x) {
+src/physics\physics.cc:402:            FindParticle2d(p->next_p2d_x)->aabb(), rgg::kBlue);
+src/physics\physics.cc:404:      if (p->prev_p2d_x) {
+src/physics\physics.cc:406:            FindParticle2d(p->prev_p2d_x)->aabb(), rgg::kPurple);
+src/physics\physics.cc:409:    snprintf(kUIBuffer, kUIBufferSize, "%u", p->id);
+src/physics\physics.cc:419:    snprintf(kUIBuffer, kUIBufferSize, "%u", p->next_p2d_x);
+src/physics\physics.cc:425:    snprintf(kUIBuffer, kUIBufferSize, "%u", p->prev_p2d_x);
+src/physics\physics.cc:431:    snprintf(kUIBuffer, kUIBufferSize, "%i", p->on_ground);
+src/physics\physics.cc:437:    snprintf(kUIBuffer, kUIBufferSize, "%i", p->on_wall);
+src/physics\physics.cc:443:    snprintf(kUIBuffer, kUIBufferSize, "%.3f,%.3f", p->position.x,
+src/physics\physics.cc:444:             p->position.y);
+src/physics\physics.cc:450:    snprintf(kUIBuffer, kUIBufferSize, "%.3f,%.3f", p->velocity.x,
+src/physics\physics.cc:451:             p->velocity.y);
+src/physics\physics.cc:457:    snprintf(kUIBuffer, kUIBufferSize, "%.3f,%.3f", p->acceleration.x,
+src/physics\physics.cc:458:             p->acceleration.y);
+src/physics\physics.cc:464:    snprintf(kUIBuffer, kUIBufferSize, "%.3f", p->rotation);
+src/physics\physics.cc:470:    snprintf(kUIBuffer, kUIBufferSize, "%.3f", p->inverse_mass);
+src/physics\physics.cc:474:      p->inverse_mass -= .1f;
+src/physics\physics.cc:478:      p->inverse_mass += .1f;
+src/physics\physics.cc:484:    snprintf(kUIBuffer, kUIBufferSize, "%.3f", p->damping);
+src/physics\physics.cc:488:      p->damping -= .01f;
+src/physics\physics.cc:492:      p->damping += .01f;
+src/physics\physics.cc:494:    p->damping = CLAMPF(p->damping, 0.f, 1.0f);
+src/physics\physics.cc:499:    snprintf(kUIBuffer, kUIBufferSize, "%.3f", p->dims.x);
+src/physics\physics.cc:503:      p->dims.x -= 1.f;
+src/physics\physics.cc:507:      p->dims.x += 1.f;
+src/physics\physics.cc:510:      p->dims.x -= 10.f;
+src/physics\physics.cc:514:      p->dims.x += 10.f;
+src/physics\physics.cc:520:    snprintf(kUIBuffer, kUIBufferSize, "%.3f", p->dims.y);
+src/physics\physics.cc:524:      p->dims.y -= 1.f;
+src/physics\physics.cc:528:      p->dims.y += 1.f;
+src/physics\physics.cc:531:      p->dims.y -= 10.f;
+src/physics\physics.cc:535:      p->dims.y += 10.f;
+src/physics\physics.cc:541:    b8 set = FLAGGED(p->flags, kParticleFreeze);
+src/physics\physics.cc:544:      SBIT(p->flags, kParticleFreeze);
+src/physics\physics.cc:546:      CBIT(p->flags, kParticleFreeze);
+src/physics\physics.cc:552:    set = FLAGGED(p->flags, kParticleIgnoreGravity);
+src/physics\physics.cc:555:      SBIT(p->flags, kParticleIgnoreGravity);
+src/physics\physics.cc:557:      CBIT(p->flags, kParticleIgnoreGravity);
+src/renderer\imui.cc:366:    if (math::PointInRect(mp->pos, rect)) return true;
+src/renderer\imui.cc:507:    if (math::PointInRect(mp->pos, rect)) return true;
+src/renderer\imui.cc:529:    if (math::PointInCircle(mp->pos, center, radius)) return true;
+src/renderer\imui.cc:1125:    if (MouseInUI(mp->pos, tag)) return true;
+src/renderer\imui.cc:1194:  mp->pos = pos;
+src/renderer\mesh.cc:281:      printf("    first %u count %u\n", vp->first, vp->count);
+src/renderer\renderer.cc:715:        glDrawArrays(GL_TRIANGLES, vp->first, vp->count);

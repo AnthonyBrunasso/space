@@ -162,7 +162,7 @@ GameRender(v2f dims)
     glClear(GL_COLOR_BUFFER_BIT);
     mood::Render();
 #if DEBUG_PHYSICS
-  physics::DebugRender();
+    physics::DebugRender();
 #endif
     rgg::EndRenderTo();
   }

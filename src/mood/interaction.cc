@@ -107,7 +107,6 @@ InteractionInitialize()
   kInteraction.tiles_id = rgg::LoadTextureAndSprite(
       "asset/tiles.tga", "asset/tiles.anim", info);
   assert(kInteraction.tiles_id);
-
   kInteraction.wall_tiles_id = rgg::LoadTextureAndSprite(
       "asset/wall_tiles.tga", "asset/wall_tiles.anim", info);
   assert(kInteraction.wall_tiles_id);
@@ -142,6 +141,7 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
           }
         } break;
         case 43 /* Plus */: {
+          printf("...\n");
           if (kInteraction.selection.last_particle) {
             kInteraction.selection.last_particle->dims.y += kTileHeight / 2.f;
             kInteraction.selection.last_particle->position.y +=
@@ -337,7 +337,9 @@ MapEditor(v2f screen)
   imui::PaneOptions options;
   options.width = options.max_width = 315.f;
   imui::Begin("Map Editor", imui::kEveryoneTag, options, &pos, &enable);
-  if (!enable) kInteraction.selection.type = kSelectionNone;
+  if (!enable) {
+    kInteraction.selection.type = kSelectionNone;
+  }
   imui::SameLine();
   imui::Width(160.f);
   imui::TextOptions toptions;
@@ -406,6 +408,7 @@ MapEditor(v2f screen)
     imui::Space(imui::kHorizontal, 5.f);
   }
   imui::NewLine();
+  imui::Space(imui::kVertical, 5.f);
   imui::SameLine();
   animation::Sprite* wall_tiles_sprite =
       rgg::GetSprite(kInteraction.wall_tiles_id);

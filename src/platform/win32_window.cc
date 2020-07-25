@@ -202,6 +202,14 @@ HandleKeyEvent(WPARAM wparam, b8 is_down, PlatformEvent* event)
   event->type = is_down == kTrue ? KEY_DOWN : KEY_UP;
   if (wparam >= 'A' && wparam <= 'Z') event->key = wparam + 32;
   else event->key = wparam;
+  switch (wparam) {
+    case VK_OEM_PLUS: {
+      event->key = 43;
+    } break;
+    case VK_OEM_MINUS: {
+      event->key = 45;
+    } break;
+  }
 }
 
 void

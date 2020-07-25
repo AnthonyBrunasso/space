@@ -196,8 +196,8 @@ Render()
         v4f(0.207f, 0.317f, 0.360f, 0.60f),
         v4f(0.050f, 0.215f, 0.050f, 0.45f),
     };
-    r32 total_width = kRenderTargetWidth * 4.f;
-    r32 total_height = kRenderTargetHeight * 4.f;
+    r32 total_width = kTileWidth * 1000.f;
+    r32 total_height = kTileHeight * 1000.f;
     rgg::RenderGrid(
         v2f(kTileWidth, kTileHeight),
         Rectf(-total_width / 2.f, -total_height / 2.f,

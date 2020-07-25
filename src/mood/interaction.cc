@@ -7,6 +7,7 @@ enum SelectionType {
   // If these numbers change change render.cc call to IsInEditMode.
   kSelectionTile = 1,
   kSelectionCollisionGeometry = 2,
+  kSelectionEnemy = 3,
 };
 
 struct Selection {
@@ -16,6 +17,7 @@ struct Selection {
   SPRITE_LABEL(label_name);
   bool tile_offset = false;
   physics::Particle2d* last_particle = nullptr;
+  CharacterAIBehavior ai_behavior;
 };
 
 struct Interaction {
@@ -208,20 +210,30 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
       u32 texture_id;
       Rectf subrect;
       GetTileEditInfo(&posf, &texture_id, &subrect);
-      if (kInteraction.selection.type == kSelectionTile) {
-        RenderCreateTexture(
-          texture_id,
-          Rectf(posf, v2f(subrect.width, subrect.height)), 
-          subrect, kInteraction.selection.label_name);
-      } else if (kInteraction.selection.type == kSelectionCollisionGeometry) {
-        physics::Particle2d* p = physics::CreateInfinteMassParticle2d(
-           posf + v2f(subrect.width / 2.f, subrect.height / 2.f),
-           v2f(subrect.width, subrect.height));
-        SBIT(p->user_flags, kParticleCollider);
-        if (subrect.height <= kTileHeight / 2.f) {
-          SBIT(p->flags, physics::kParticleResolveCollisionStair);
-        }
-        kInteraction.selection.last_particle = p;
+      switch (kInteraction.selection.type) {
+        case kSelectionTile: {
+          RenderCreateTexture(
+              texture_id,
+              Rectf(posf, v2f(subrect.width, subrect.height)), 
+              subrect, kInteraction.selection.label_name);
+        } break;
+        case kSelectionCollisionGeometry: {
+          physics::Particle2d* p = physics::CreateInfinteMassParticle2d(
+              posf + v2f(subrect.width / 2.f, subrect.height / 2.f),
+              v2f(subrect.width, subrect.height));
+          SBIT(p->user_flags, kParticleCollider);
+          if (subrect.height <= kTileHeight / 2.f) {
+            SBIT(p->flags, physics::kParticleResolveCollisionStair);
+          }
+          kInteraction.selection.last_particle = p;
+        } break;
+        case kSelectionEnemy: {
+          AICreate(posf + v2f(kEnemySnailWidth, kEnemySnailHeight),
+                   v2f(kEnemySnailWidth, kEnemySnailHeight),
+                   kInteraction.selection.ai_behavior);
+        } break;
+
+        default: break;
       }
     } break;
     case MOUSE_UP: {
@@ -410,7 +422,14 @@ MapEditor(v2f screen)
     imui::Space(imui::kHorizontal, 5.f);
   }
   imui::NewLine();
-
+  animation::Sprite* snail_sprite = rgg::GetSprite(kRender.snail_id);
+  if (imui::Texture(32.f, 32.f, kRender.snail_id,
+                    animation::Rect(snail_sprite)).clicked) {
+    kInteraction.selection.type = kSelectionEnemy;
+    kInteraction.selection.ai_behavior = kBehaviorSimple;
+    kInteraction.selection.texture_id = kRender.snail_id;
+    kInteraction.selection.subrect = animation::Rect(snail_sprite);
+  }
   imui::Space(imui::kVertical, 5.f);
   if (imui::Button(32.f, 32.f, rgg::kRed).clicked) {
     kInteraction.selection.type = kSelectionCollisionGeometry;

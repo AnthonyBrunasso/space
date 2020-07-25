@@ -212,6 +212,7 @@ Render()
     Rectf texture_subrect;
     GetTileEditInfo(&pos, &texture_id, &texture_subrect);
     switch (type) {
+      case 3:
       case 1: {
         rgg::RenderTexture(
             texture_id, texture_subrect,

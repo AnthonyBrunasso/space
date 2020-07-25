@@ -21,6 +21,7 @@ struct Selection {
 struct Interaction {
   u32 terrain_id;
   u32 tiles_id;
+  u32 wall_tiles_id;
   Selection selection;
 };
 
@@ -104,6 +105,11 @@ InteractionInitialize()
   kInteraction.tiles_id = rgg::LoadTextureAndSprite(
       "asset/tiles.tga", "asset/tiles.anim", info);
   assert(kInteraction.tiles_id);
+
+  kInteraction.wall_tiles_id = rgg::LoadTextureAndSprite(
+      "asset/wall_tiles.tga", "asset/wall_tiles.anim", info);
+  assert(kInteraction.wall_tiles_id);
+
 }
 
 void
@@ -388,6 +394,23 @@ MapEditor(v2f screen)
     imui::Space(imui::kHorizontal, 5.f);
   }
   imui::NewLine();
+  imui::SameLine();
+  animation::Sprite* wall_tiles_sprite =
+      rgg::GetSprite(kInteraction.wall_tiles_id);
+  for (int i = 0; i < wall_tiles_sprite->label_size; ++i) {
+    animation::SetLabel(i, wall_tiles_sprite);
+    if (imui::Texture(32.f, 32.f, kInteraction.wall_tiles_id,
+                      animation::Rect(wall_tiles_sprite)).clicked) {
+      kInteraction.selection.type = kSelectionTile;
+      kInteraction.selection.texture_id = kInteraction.wall_tiles_id;
+      kInteraction.selection.subrect = animation::Rect(wall_tiles_sprite);
+      strcpy(kInteraction.selection.label_name,
+             animation::LabelName(wall_tiles_sprite));
+    }
+    imui::Space(imui::kHorizontal, 5.f);
+  }
+  imui::NewLine();
+
   imui::Space(imui::kVertical, 5.f);
   if (imui::Button(32.f, 32.f, rgg::kRed).clicked) {
     kInteraction.selection.type = kSelectionCollisionGeometry;

@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include "intersection.cc"
+
 namespace math {
 
 template <u32 N>

@@ -203,37 +203,53 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
       }
     } break;
     case MOUSE_DOWN: {
-      imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
-      if (kInteraction.selection.type == kSelectionNone ||
-          imui::MouseInUI(imui::kEveryoneTag)) break;
-      v2f posf;
-      u32 texture_id;
-      Rectf subrect;
-      GetTileEditInfo(&posf, &texture_id, &subrect);
-      switch (kInteraction.selection.type) {
-        case kSelectionTile: {
-          RenderCreateTexture(
-              texture_id,
-              Rectf(posf, v2f(subrect.width, subrect.height)), 
-              subrect, kInteraction.selection.label_name);
-        } break;
-        case kSelectionCollisionGeometry: {
-          physics::Particle2d* p = physics::CreateInfinteMassParticle2d(
-              posf + v2f(subrect.width / 2.f, subrect.height / 2.f),
-              v2f(subrect.width, subrect.height));
-          SBIT(p->user_flags, kParticleCollider);
-          if (subrect.height <= kTileHeight / 2.f) {
-            SBIT(p->flags, physics::kParticleResolveCollisionStair);
-          }
-          kInteraction.selection.last_particle = p;
-        } break;
-        case kSelectionEnemy: {
-          AICreate(posf + v2f(kEnemySnailWidth, kEnemySnailHeight),
-                   v2f(kEnemySnailWidth, kEnemySnailHeight),
-                   kInteraction.selection.ai_behavior);
-        } break;
+      if (event.button == BUTTON_LEFT) {
+        imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
+        v2f posf;
+        u32 texture_id;
+        Rectf subrect;
+        GetTileEditInfo(&posf, &texture_id, &subrect);
 
-        default: break;
+        if (kInteraction.selection.type == kSelectionNone ||
+            imui::MouseInUI(imui::kEveryoneTag)) break;
+        switch (kInteraction.selection.type) {
+          case kSelectionTile: {
+            RenderCreateTexture(
+                texture_id,
+                Rectf(posf, v2f(subrect.width, subrect.height)), 
+                subrect, kInteraction.selection.label_name);
+          } break;
+          case kSelectionCollisionGeometry: {
+            physics::Particle2d* p = physics::CreateInfinteMassParticle2d(
+                posf + v2f(subrect.width / 2.f, subrect.height / 2.f),
+                v2f(subrect.width, subrect.height));
+            SBIT(p->user_flags, kParticleCollider);
+            if (subrect.height <= kTileHeight / 2.f) {
+              SBIT(p->flags, physics::kParticleResolveCollisionStair);
+            }
+            kInteraction.selection.last_particle = p;
+          } break;
+          case kSelectionEnemy: {
+            AICreate(posf + v2f(kEnemySnailWidth, kEnemySnailHeight),
+                     v2f(kEnemySnailWidth, kEnemySnailHeight),
+                     kInteraction.selection.ai_behavior);
+          } break;
+          default: break;
+        }
+      } else if (event.button == BUTTON_RIGHT) {
+        PIXEL_ART_OBSERVER();
+        v2f clickpos = rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy();
+        RenderDeleteTexture(clickpos);
+      } else if (event.button == BUTTON_MIDDLE) {
+        PIXEL_ART_OBSERVER();
+        v2f clickpos = rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy();
+        for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
+          physics::Particle2d* p = &physics::kParticle2d[i];
+          if (math::PointInRect(clickpos, p->aabb())) {
+            DeleteParticle2d(p);
+            break;
+          }
+        }
       }
     } break;
     case MOUSE_UP: {
@@ -462,6 +478,10 @@ MapEditor(v2f screen)
     imui::Indent(1);
     filesystem::WalkDirectory("asset/", __FileMapCallback);
     imui::Indent(0);
+  }
+  if (imui::Text("Clear Map", toptions).clicked) {
+    kReloadGame = true;
+    strcpy(kReloadFrom, "");
   }
   imui::End();
 }

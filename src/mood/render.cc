@@ -99,6 +99,18 @@ RenderCreateTexture(u32 id, Rectf rect, Rectf subrect, char* label_name)
 }
 
 void
+RenderDeleteTexture(v2f pos)
+{
+  for (u32 i = 0; i < kUsedTexture;) {
+    if (math::PointInRect(pos, kTexture[i].rect)) {
+      CompressTexture(i);
+      break;
+    }
+    ++i;
+  }
+}
+
+void
 Render()
 {
   //v2f clickpos = rgg::CameraRayFromMouseToWorld(

@@ -193,14 +193,10 @@ SimUpdate()
     }
 
     if (c->trail_effect_ttl > 0) {
-      if (c->trail_effect_ttl % 5 == 0) {
-        Rectf effect_rect(particle->aabb());
-        effect_rect.x += 1.f;
-        effect_rect.y += 1.f;
-        effect_rect.width -= 1.f;
-        effect_rect.height -= 1.f;
+      if (c->trail_effect_ttl % 2 == 0) {
+        Rectf effect_rect(particle->position, v2f(10.f, 10.f));
         RenderCreateEffect(
-            effect_rect, v4f(.4f, 1.f, .4f, 0.6f), 25, math::Random(1.f, 10.f));
+            effect_rect, v4f(.4f, 1.f, .4f, 0.3f), 25, math::Random(1.f, 10.f));
       }
       --c->trail_effect_ttl;
     }

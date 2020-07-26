@@ -5,7 +5,7 @@ namespace mood {
 constexpr r32 kFrameDelta  = 0.016666f;
 
 // Player constants.
-constexpr r32 kJumpForce = 40000.f;
+constexpr r32 kJumpForce = 50000.f;
 constexpr r32 kPlayerAcceleration = 1000.f;
 constexpr r32 kPlayerHealthBarWidth = 100.f;
 constexpr r32 kPlayerHealthBarHeight = 5.f;

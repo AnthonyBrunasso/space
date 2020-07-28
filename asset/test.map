@@ -12,72 +12,64 @@ t asset/tiles.tga middle_stone 144.00 64.00
 t asset/tiles.tga left_stone 128.00 64.00
 t asset/tiles.tga middle_stone 160.00 64.00
 t asset/tiles.tga right_stone 176.00 64.00
-t asset/tiles.tga middle_stone 48.00 128.00
-t asset/tiles.tga middle_stone 32.00 128.00
-t asset/tiles.tga middle_stone 16.00 128.00
-t asset/tiles.tga step_stone 0.00 136.00
-t asset/tiles.tga step_stone -16.00 144.00
-t asset/tiles.tga step_stone -32.00 152.00
-t asset/wall_tiles.tga wall_single_three -64.00 -8.00
-t asset/wall_tiles.tga wall_double_two -64.00 8.00
-t asset/wall_tiles.tga wall_single_three -80.00 -8.00
-t asset/wall_tiles.tga wall_single_three -80.00 8.00
-t asset/wall_tiles.tga wall_double_two -80.00 24.00
-t asset/wall_tiles.tga wall_double_two -64.00 24.00
-t asset/wall_tiles.tga wall_single_one -80.00 40.00
-t asset/wall_tiles.tga wall_single_one -64.00 40.00
+t asset/tiles.tga middle_stone -64.00 -8.00
+t asset/wall_tiles.tga wall_double_one -80.00 -16.00
+t asset/wall_tiles.tga wall_single_three -80.00 0.00
+t asset/wall_tiles.tga wall_single_one -80.00 16.00
+t asset/wall_tiles.tga middle_wall_contrast -96.00 -16.00
+t asset/wall_tiles.tga middle_wall_contrast -96.00 0.00
+t asset/wall_tiles.tga middle_wall_contrast -96.00 16.00
+t asset/wall_tiles.tga middle_wall_contrast -96.00 32.00
+t asset/wall_tiles.tga top_wall_contrast -96.00 48.00
+t asset/wall_tiles.tga wall_double_one -96.00 56.00
+t asset/wall_tiles.tga wall_double_two -96.00 72.00
+t asset/wall_tiles.tga wall_double_two -96.00 88.00
+t asset/wall_tiles.tga wall_single_one -96.00 104.00
+t asset/wall_tiles.tga wall_double_one -80.00 24.00
+t asset/wall_tiles.tga wall_double_two -80.00 40.00
 t asset/wall_tiles.tga wall_single_one -80.00 56.00
-t asset/wall_tiles.tga wall_double_one -64.00 56.00
-t asset/wall_tiles.tga wall_double_one -80.00 72.00
-t asset/wall_tiles.tga wall_double_one -80.00 16.00
-t asset/wall_tiles.tga wall_double_one -64.00 80.00
-t asset/wall_tiles.tga wall_double_one -64.00 64.00
+t asset/wall_tiles.tga wall_double_two -80.00 72.00
 t asset/wall_tiles.tga wall_double_one -80.00 88.00
-t asset/wall_tiles.tga wall_double_two -64.00 96.00
 t asset/wall_tiles.tga wall_double_two -80.00 104.00
-t asset/wall_tiles.tga wall_double_two -64.00 112.00
-t asset/wall_tiles.tga wall_double_two -48.00 120.00
-t asset/wall_tiles.tga wall_double_two -32.00 120.00
-t asset/wall_tiles.tga wall_double_two -32.00 136.00
-t asset/wall_tiles.tga wall_double_two -16.00 128.00
-t asset/wall_tiles.tga wall_double_two -80.00 120.00
-t asset/wall_tiles.tga wall_double_two -64.00 128.00
-t asset/wall_tiles.tga wall_single_one -48.00 128.00
-t asset/wall_tiles.tga wall_single_one -80.00 128.00
-t asset/tiles.tga middle_stone -48.00 144.00
-t asset/tiles.tga middle_stone -64.00 144.00
-t asset/tiles.tga middle_stone -80.00 144.00
-t asset/tiles.tga middle_stone -96.00 144.00
-t asset/tiles.tga middle_stone -112.00 144.00
-t asset/tiles.tga middle_stone -128.00 144.00
-t asset/tiles.tga middle_stone -160.00 144.00
-t asset/tiles.tga middle_stone -144.00 144.00
-t asset/tiles.tga middle_stone -176.00 144.00
-g 16.00 -8.000000 160.00 16.00 0.00 0 4
+t asset/wall_tiles.tga middle_wall_contrast -96.00 112.00
+t asset/wall_tiles.tga middle_wall_contrast -96.00 128.00
+t asset/wall_tiles.tga middle_wall_contrast -96.00 144.00
+t asset/wall_tiles.tga top_wall_contrast -96.00 160.00
+t asset/wall_tiles.tga wall_double_one -96.00 168.00
+t asset/wall_tiles.tga wall_double_two -96.00 184.00
+t asset/wall_tiles.tga top_wall_contrast -80.00 112.00
+t asset/wall_tiles.tga middle_wall_contrast -80.00 120.00
+t asset/wall_tiles.tga middle_wall_contrast -80.00 136.00
+t asset/wall_tiles.tga middle_wall_contrast -80.00 152.00
+t asset/wall_tiles.tga wall_single_one -80.00 168.00
+t asset/wall_tiles.tga wall_double_two -80.00 184.00
+t asset/tiles.tga middle_stone 96.00 -8.00
+t asset/tiles.tga middle_stone 112.00 -8.00
+t asset/tiles.tga middle_stone 128.00 -8.00
+t asset/tiles.tga middle_stone 144.00 -8.00
+t asset/tiles.tga middle_stone 160.00 -8.00
+t asset/tiles.tga middle_stone 176.00 -8.00
+t asset/tiles.tga middle_stone 192.00 -8.00
+t asset/tiles.tga middle_stone 208.00 -8.00
+t asset/tiles.tga middle_stone 224.00 -8.00
+t asset/tiles.tga middle_stone 240.00 -8.00
+t asset/tiles.tga middle_stone 256.00 -8.00
+t asset/tiles.tga middle_stone 272.00 -8.00
+t asset/tiles.tga middle_stone 288.00 -8.00
+t asset/tiles.tga middle_stone 304.00 -8.00
+t asset/tiles.tga middle_stone 320.00 -8.00
+t asset/tiles.tga middle_stone 336.00 -8.00
+t asset/tiles.tga middle_stone 352.00 -8.00
+t asset/tiles.tga middle_stone 304.00 120.00
+t asset/tiles.tga middle_stone 320.00 120.00
+t asset/tiles.tga middle_stone 336.00 120.00
+t asset/tiles.tga middle_stone 352.00 120.00
+t asset/tiles.tga left_stone 288.00 120.00
+t asset/tiles.tga right_stone 368.00 120.00
+g 148.00 -8.000000 424.00 16.00 0.00 0 4
 g 136.00 68.500000 16.00 9.00 0.00 0 4
 g 152.00 68.500000 16.00 9.00 0.00 0 4
 g 168.00 68.500000 16.00 9.00 0.00 0 4
 g 184.00 68.500000 16.00 9.00 0.00 0 4
-g 56.00 132.500000 16.00 9.00 0.00 0 4
-g 40.00 132.500000 16.00 9.00 0.00 0 4
-g 24.00 132.500000 16.00 9.00 0.00 0 4
-g 8.00 139.500000 16.00 7.00 0.00 32 4
-g -8.00 147.500000 16.00 7.00 0.00 32 4
-g -24.00 155.500000 16.00 7.00 0.00 32 4
-g 8.00 132.500000 16.00 9.00 0.00 0 4
-g -8.00 136.000000 16.00 16.00 0.00 0 4
-g -24.00 144.000000 16.00 16.00 0.00 0 4
-g -64.00 60.000000 32.00 152.00 0.00 0 4
-g -40.00 136.000000 16.00 16.00 0.00 0 4
-g -40.00 128.000000 16.00 16.00 0.00 0 4
-g -24.00 144.000000 16.00 16.00 0.00 0 4
-g -24.00 128.000000 16.00 16.00 0.00 0 4
-g -72.00 144.000000 16.00 16.00 0.00 0 4
-g -56.00 144.000000 16.00 16.00 0.00 0 4
-g -40.00 144.000000 16.00 16.00 0.00 0 4
-g -88.00 144.000000 16.00 16.00 0.00 0 4
-g -104.00 144.000000 16.00 16.00 0.00 0 4
-g -120.00 144.000000 16.00 16.00 0.00 0 4
-g -136.00 144.000000 16.00 16.00 0.00 0 4
-g -152.00 144.000000 16.00 16.00 0.00 0 4
-g -168.00 144.000000 16.00 16.00 0.00 0 4
+g -80.00 92.000000 32.00 216.00 0.00 0 4
+g 336.00 124.500000 96.00 9.00 0.00 0 4

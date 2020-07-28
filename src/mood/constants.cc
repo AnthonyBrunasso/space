@@ -24,6 +24,7 @@ constexpr r32 kEnemyHealthHeight = 5.f;
 constexpr r32 kEnemyHealthWidthPercent = 1.f;
 constexpr r32 kEnemySnailWidth = 28.f;
 constexpr r32 kEnemySnailHeight = 28.f;
+constexpr r32 kEnemyAcceleration = 350.f;
 
 // Particle constants.
 constexpr r32 kParticleWidth = 1.5f;

@@ -118,6 +118,7 @@ enum CharacterAbilityFlags {
 
 enum CharacterBbEntry {
   kAIBbType = 0, // Stores value of CharacterAIBehavior.
+  kAIBbPatrol = 1,
 };
 
 enum CharacterAIBehavior {

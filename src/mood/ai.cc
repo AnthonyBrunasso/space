@@ -3,14 +3,13 @@
 #include "mood/entity.cc"
 #include "physics/physics.cc"
 
-struct AI {
-  // Cooldown for when to spawn an enemy.
-  util::Cooldown enemy_cooldown;
-};
-
-static AI kAI;
-
 static u32 kAISpawnNum;
+
+struct Patrol {
+  // Left and right endpoints of patrol on x axis.
+  r32 left_x;
+  r32 right_x;
+};
 
 void
 AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
@@ -31,69 +30,65 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
     };
     BB_SET(ai_character->bb, kAIBbType, behavior);
   }
+
+  Patrol patrol;
+  patrol.left_x = pos.x - 50.f;
+  patrol.right_x = pos.x + 50.f;
+  BB_SET(ai_character->bb, kAIBbPatrol, patrol);
 }
 
 void
 AIInitialize()
 {
-  kAI.enemy_cooldown.usec = SECONDS(3.5f);
-  util::CooldownInitialize(&kAI.enemy_cooldown);
+}
+
+void
+AIBehaviorPatrol(Character* c)
+{
+  const Patrol* patrol;
+  if (!BB_GET(c->bb, kAIBbPatrol, patrol)) return;
+  physics::Particle2d* ai_particle = FindParticle(c);
+  if (ai_particle->velocity.x <= FLT_EPSILON) {
+    ai_particle->acceleration.x = -kEnemyAcceleration;
+  }
+  if (ai_particle->position.x <= patrol->left_x) {
+    ai_particle->acceleration.x = kEnemyAcceleration;
+  }
+
+  if (ai_particle->position.x >= patrol->right_x) {
+    ai_particle->acceleration.x = -kEnemyAcceleration;
+  }
 }
 
 void
 AIBehaviorSimple(Character* c)
 {
-  constexpr r32 kSimpleAcceleration = 350.f;
+  AIBehaviorPatrol(c);
   // Head towards the player I guess?
-  physics::Particle2d* player_particle = PlayerParticle();
-  physics::Particle2d* ai_particle = FindParticle(c);
-  if (player_particle->position.x > ai_particle->position.x) {
-    ai_particle->acceleration.x = kSimpleAcceleration;
-  } else {
-    ai_particle->acceleration.x = -kSimpleAcceleration;
-  }
+  //physics::Particle2d* player_particle = PlayerParticle();
+  //physics::Particle2d* ai_particle = FindParticle(c);
+  //if (player_particle->position.x > ai_particle->position.x) {
+  //  ai_particle->acceleration.x = kEnemyAcceleration;
+  //} else {
+  //  ai_particle->acceleration.x = -kEnemyAcceleration;
+  //}
 }
 
 void
 AIBehaviorFlying(Character* c)
 {
-  constexpr r32 kSimpleAcceleration = 350.f;
   // Head towards the player I guess?
   physics::Particle2d* player_particle = PlayerParticle();
   physics::Particle2d* ai_particle = FindParticle(c);
   ai_particle->acceleration =
     math::Normalize(player_particle->position - ai_particle->position) *
-        kSimpleAcceleration;
+        kEnemyAcceleration;
 }
 
 void
 AIUpdate()
 {
   if (!kEnableEnemies) return;
-
-  if (util::CooldownReady(&kAI.enemy_cooldown)) {
-    physics::Particle2d* player_particle = PlayerParticle();
-
-    v2f spawn = {};
-    CharacterAIBehavior behavior;
-    if (kAISpawnNum % 2) { 
-      spawn = v2f(math::Random(-1000.f, 1000.f), 70.f);
-      while (Length(spawn - player_particle->position) < 10.f) {
-        spawn = v2f(math::Random(-1000.f, 1000.f), 70.f);
-      }
-      behavior = kBehaviorSimple;
-      AICreate(spawn, v2f(kEnemySnailWidth, kEnemySnailHeight), behavior);
-    } else {
-      spawn = v2f(math::Random(-100.f, 100.f), math::Random(140.f, 1000.f));
-      while (Length(spawn - player_particle->position) < 10.f) {
-        spawn = v2f(math::Random(-100.f, 100.f), math::Random(140.f, 1000.f));
-      }
-      behavior = kBehaviorSimpleFlying;
-      AICreate(spawn, v2f(15.f, 15.f), behavior);
-    }
-    util::CooldownReset(&kAI.enemy_cooldown);
-    ++kAISpawnNum;
-  }
 
   FOR_EACH_ENTITY(Character, c, {
     const u32* behavior;

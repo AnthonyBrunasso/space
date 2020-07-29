@@ -94,6 +94,7 @@ enum EntityType {
   kEntityTypeInvalid = 0,
   kEntityTypeCharacter = 1,
   kEntityTypeProjectile = 2,
+  kEntityTypeSpawner = 3,
 };
 
 enum EntityFlags {
@@ -167,12 +168,28 @@ struct Projectile {
   r32 speed = 500.f;
 };
 
+enum SpawnerType {
+  kSpawnerNone = 0,
+  kSpawnerPlayer = 1,
+  kSpawnerSnail = 2,
+};
+
+struct Spawner {
+  ENTITY_DECL = kEntityTypeSpawner;
+  SpawnerType spawner_type = kSpawnerNone;
+  // How many times the spawner should spawn the given character.
+  u32 spawn_to_count = 1;
+  // How many times the spawner has spawned the given character.
+  u32 spawn_count = 0;
+};
+
 union Entity {
   struct {
     ENTITY_DECL;
   };
   Character character;
   Projectile projectile;
+  Spawner spawner;
 
   Entity() : type(kEntityTypeInvalid) {}
 };
@@ -181,5 +198,6 @@ DECLARE_HASH_ARRAY(Entity, 256);
 
 DECLARE_ENTITY(Character, kEntityTypeCharacter);
 DECLARE_ENTITY(Projectile, kEntityTypeProjectile);
+DECLARE_ENTITY(Spawner, kEntityTypeSpawner);
 
 }

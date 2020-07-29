@@ -7,7 +7,7 @@ enum SelectionType {
   // If these numbers change change render.cc call to IsInEditMode.
   kSelectionTile = 1,
   kSelectionCollisionGeometry = 2,
-  kSelectionEnemy = 3,
+  kSelectionSpawner = 3,
 };
 
 struct Selection {
@@ -17,7 +17,7 @@ struct Selection {
   SPRITE_LABEL(label_name);
   bool tile_offset = false;
   physics::Particle2d* last_particle = nullptr;
-  CharacterAIBehavior ai_behavior;
+  SpawnerType spawner_type = kSpawnerNone;
 };
 
 struct Interaction {
@@ -117,7 +117,10 @@ void
 ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
 {
   Character* player = Player();
-  physics::Particle2d* particle = FindParticle(player);
+  physics::Particle2d* player_particle = nullptr;
+  if (player) {
+    player_particle = FindParticle(player);
+  }
   switch(event.type) {
     case KEY_DOWN: {
       switch (event.key) {
@@ -162,43 +165,63 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
               !kInteraction.selection.tile_offset;
         } break;
         case 'a': {
-          SBIT(player->character_flags, kCharacterFireWeapon);
+          if (player) {
+            SBIT(player->character_flags, kCharacterFireWeapon);
+          }
         } break;
         case 0 /* ARROW UP */: {
-          SBIT(player->character_flags, kCharacterJump);
+          if (player) {
+            SBIT(player->character_flags, kCharacterJump);
+          }
         } break;
         case 3 /* ARROW RIGHT */: {
-          particle->acceleration.x = kPlayerAcceleration;
+          if (player_particle) {
+            player_particle->acceleration.x = kPlayerAcceleration;
+          }
         } break;
         case 1 /* ARROW DOWN */: {
         } break;
         case 2 /* ARROW LEFT */: {
-          particle->acceleration.x = -kPlayerAcceleration;
+          if (player_particle) {
+            player_particle->acceleration.x = -kPlayerAcceleration;
+          }
         } break;
         case 's': {
-          SBIT(player->ability_flags, kCharacterAbilityBoost);
-          player->ability_dir = math::Normalize(particle->velocity);
+          if (player) {
+            SBIT(player->ability_flags, kCharacterAbilityBoost);
+            player->ability_dir = math::Normalize(player_particle->velocity);
+          }
         } break;
       }
     } break;
     case KEY_UP: {
       switch (event.key) {
         case 'a': {
-          CBIT(player->character_flags, kCharacterFireWeapon);
+          if (player) {
+            CBIT(player->character_flags, kCharacterFireWeapon);
+          }
         } break;
         case 0  /* ARROW UP */: {
-          CBIT(player->character_flags, kCharacterJump);
+          if (player) {
+            CBIT(player->character_flags, kCharacterJump);
+          }
         } break;
         case 3 /* ARROW RIGHT */: {
-          particle->acceleration.x = 0.f;
+          if (player) {
+            player_particle->acceleration.x = 0.f;
+          }
         } break;
         case 1 /* ARROW DOWN */: {
         } break;
         case 2 /* ARROW LEFT */: {
-          particle->acceleration.x = 0.f;
+          if (player) {
+            player_particle->acceleration.x = 0.f;
+          }
         } break;
         case 's': {
-          CBIT(player->ability_flags, kCharacterAbilityBoost);
+          if (player) {
+            CBIT(player->ability_flags, kCharacterAbilityBoost);
+          }
         } break;
       }
     } break;
@@ -229,10 +252,9 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
             }
             kInteraction.selection.last_particle = p;
           } break;
-          case kSelectionEnemy: {
-            AICreate(posf + v2f(kEnemySnailWidth, kEnemySnailHeight),
-                     v2f(kEnemySnailWidth, kEnemySnailHeight),
-                     kInteraction.selection.ai_behavior);
+          case kSelectionSpawner: {
+            SpawnerCreate(posf + v2f(kTileWidth, kTileHeight) / 2.f,
+                          kInteraction.selection.spawner_type);
           } break;
           default: break;
         }
@@ -250,6 +272,11 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
             break;
           }
         }
+        FOR_EACH_ENTITY_P(Spawner, s, p, {
+          if (math::PointInRect(clickpos, p->aabb())) {
+            SetDestroyFlag(s);
+          }
+        });
       }
     } break;
     case MOUSE_UP: {
@@ -260,6 +287,7 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
       kInteraction.selection.tile_offset = !kInteraction.selection.tile_offset;
     } break;
     case XBOX_CONTROLLER: {
+      if (!player) break;
       v2f cdir;
       r32 cmag;
       if (__CalculateStickMovement(event.controller.lstick_x,
@@ -269,12 +297,12 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
           player->ability_dir = cdir;
         }
         if (cdir.x > 0.f) {
-          particle->acceleration.x = kPlayerAcceleration * cmag;
+          player_particle->acceleration.x = kPlayerAcceleration * cmag;
         } else if (cdir.x < 0.f) {
-          particle->acceleration.x = -kPlayerAcceleration * cmag;
+          player_particle->acceleration.x = -kPlayerAcceleration * cmag;
         }
       } else {
-        particle->acceleration.x = 0.f;
+        player_particle->acceleration.x = 0.f;
       }
 
       if (!FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_X)) {
@@ -353,8 +381,14 @@ MapEditor(v2f screen)
   imui::PaneOptions options;
   options.width = options.max_width = 315.f;
   imui::Begin("Map Editor", imui::kEveryoneTag, options, &pos, &enable);
+  if (enable) {
+    kRenderSpawner = true;
+    kRenderAabb = true;
+  }
   if (!enable) {
     kInteraction.selection.type = kSelectionNone;
+    kRenderSpawner = false;
+    kRenderAabb = false;
   }
   imui::SameLine();
   imui::Width(160.f);
@@ -366,15 +400,6 @@ MapEditor(v2f screen)
   imui::Space(imui::kHorizontal, 5.f);
   imui::Checkbox(16.f, 16.f, &kFreezeGame);
   imui::NewLine();
-  imui::SameLine();
-  imui::Width(160.f);
-  if (imui::Text("Render AABB", toptions).clicked) {
-    kRenderAabb = !kRenderAabb;
-  }
-  imui::Space(imui::kHorizontal, 5.f);
-  imui::Checkbox(16.f, 16.f, &kRenderAabb);
-  imui::NewLine();
-  imui::Space(imui::kHorizontal, 5.f);
   imui::SameLine();
   imui::Width(160.f);
   if (imui::Text("Render Grid", toptions).clicked) {
@@ -444,10 +469,10 @@ MapEditor(v2f screen)
   animation::Sprite* snail_sprite = rgg::GetSprite(kRender.snail_id);
   if (imui::Texture(32.f, 32.f, kRender.snail_id,
                     animation::Rect(snail_sprite)).clicked) {
-    kInteraction.selection.type = kSelectionEnemy;
-    kInteraction.selection.ai_behavior = kBehaviorSimple;
+    kInteraction.selection.type = kSelectionSpawner;
     kInteraction.selection.texture_id = kRender.snail_id;
     kInteraction.selection.subrect = animation::Rect(snail_sprite);
+    kInteraction.selection.spawner_type = kSpawnerSnail;
   }
   imui::Space(imui::kVertical, 5.f);
   if (imui::Button(32.f, 32.f, rgg::kRed).clicked) {

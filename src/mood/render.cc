@@ -36,6 +36,7 @@ struct Render {
 static Render kRender;
 
 static b8 kRenderAabb = false;
+static b8 kRenderSpawner = false;
 static b8 kRenderGrid = false;
 
 #define PIXEL_ART_OBSERVER()                                       \
@@ -143,6 +144,8 @@ Render()
         rgg::RenderRectangle(p->aabb(), v4f(.9f, .88f, .1f, 1.f));
       } else if (FLAGGED(p->user_flags, kParticleCollider)) {
         if (kRenderAabb) rgg::RenderLineRectangle(p->aabb(), rgg::kRed);
+      } else if (FLAGGED(p->user_flags, kParticleSpawner)) {
+        if (kRenderSpawner) rgg::RenderLineRectangle(p->aabb(), rgg::kPurple);
       }
     } else if (e && e->type == kEntityTypeProjectile) {
         rgg::RenderRectangle(p->Rect(), 0.f, p->rotation, rgg::kWhite);
@@ -244,10 +247,13 @@ Render()
       math::Ortho2(kRenderTargetWidth, 0.0f, kRenderTargetHeight,
                    0.0f, 0.0f, 0.0f), math::Identity());
   Character* c = Player();
-  rgg::RenderProgressBar(
-      Rectf(kRenderTargetWidth / 2.f - kPlayerHealthBarWidth / 2.f,
-            kRenderTargetHeight - 20.f, kPlayerHealthBarWidth, kPlayerHealthBarHeight),
-      0.f, c->health, c->max_health, rgg::kRed, rgg::kWhite);
+  if (c) {
+    rgg::RenderProgressBar(
+        Rectf(kRenderTargetWidth / 2.f - kPlayerHealthBarWidth / 2.f,
+              kRenderTargetHeight - 20.f, kPlayerHealthBarWidth,
+              kPlayerHealthBarHeight),
+        0.f, c->health, c->max_health, rgg::kRed, rgg::kWhite);
+  }
 }
 
 }

@@ -63,6 +63,8 @@ enum ParticleFlags {
   kParticleSpark = 1,
   // These are the static geometry used for collision in the world.
   kParticleCollider = 2,
+  // The particle is a spawner of stuff'n'things!!!!!
+  kParticleSpawner = 3,
 };
 
 }

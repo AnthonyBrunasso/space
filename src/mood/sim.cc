@@ -10,7 +10,7 @@ namespace mood {
 void RenderCreateEffect(Rectf rect, v4f color, u32 ttl, r32 rotate_delta);
 
 struct Sim {
-  u32 player_id; 
+  u32 player_id = 0; 
   // Cooldown that dictates whether the player can boost.
   util::Cooldown boost_cooldown;
   // Cooldown that lets player fire weapon.
@@ -27,6 +27,7 @@ static b8 kFreezeGame = false;
 static b8 kEnableEnemies = true;
 
 Character* Player() {
+  if (!kSim.player_id) return nullptr;
   return FindCharacter(kSim.player_id);
 }
 
@@ -39,12 +40,12 @@ physics::Particle2d* PlayerParticle() {
 void
 SimInitialize()
 {
-  Character* player =
-      UseEntityCharacter(v2f(0.f, 60.f), v2f(kPlayerWidth, kPlayerHeight));
-  physics::Particle2d* particle = FindParticle(player);
-  particle->collision_mask = kCollisionMaskCharacter;
-  particle->damping = 0.005f;
-  kSim.player_id = player->id;
+  //Character* player =
+  //    UseEntityCharacter(v2f(0.f, 60.f), v2f(kPlayerWidth, kPlayerHeight));
+  //physics::Particle2d* particle = FindParticle(player);
+  //particle->collision_mask = kCollisionMaskCharacter;
+  //particle->damping = 0.005f;
+  //kSim.player_id = player->id;
 
   kSim.boost_cooldown.usec = SECONDS(1.f);
   util::CooldownInitialize(&kSim.boost_cooldown);
@@ -261,8 +262,10 @@ SimUpdate()
 
   ProjectileUpdate();
   AIUpdate();
-  rgg::CameraLerpToPositionXY(FindParticle(Player())->position +
-                              v2f(0.f, kCameraYOffset), .1f);
+  if (Player()) {
+    rgg::CameraLerpToPositionXY(FindParticle(Player())->position +
+                                v2f(0.f, kCameraYOffset), .1f);
+  }
 
   physics::Integrate(kFrameDelta);
   __ResolveCollisions();

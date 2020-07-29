@@ -121,10 +121,8 @@ RenderText(const char* msg, v2f pos, r32 scale, const v4f& color)
   glBindVertexArray(font.vao);
   glBindTexture(GL_TEXTURE_2D, font.texture.reference);
 
-  auto sz = window::GetWindowSize();
-  Mat4f projection = math::Ortho2(
-      sz.x, 0.f, sz.y, 0.f, /* 2d so leave near/far 0*/ 0.f, 0.f);
-  glUniformMatrix4fv(font.matrix_uniform, 1, GL_FALSE, &projection.data_[0]);
+  Mat4f matrix = kObserver.projection * kObserver.view;
+  glUniformMatrix4fv(font.matrix_uniform, 1, GL_FALSE, &matrix.data_[0]);
   glUniform4f(font.color_uniform, color.x, color.y, color.z, color.w);
 
 #if 0

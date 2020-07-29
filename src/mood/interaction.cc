@@ -466,6 +466,16 @@ MapEditor(v2f screen)
     imui::Space(imui::kHorizontal, 5.f);
   }
   imui::NewLine();
+  imui::SameLine();
+  animation::Sprite* character_sprite = rgg::GetSprite(kRender.character_id);
+  if (imui::Texture(32.f, 32.f, kRender.character_id,
+                    animation::Rect(character_sprite)).clicked) {
+    kInteraction.selection.type = kSelectionSpawner;
+    kInteraction.selection.texture_id = kRender.character_id;
+    kInteraction.selection.subrect = animation::Rect(character_sprite);
+    kInteraction.selection.spawner_type = kSpawnerPlayer;
+  }
+  imui::Space(imui::kHorizontal, 5.f);
   animation::Sprite* snail_sprite = rgg::GetSprite(kRender.snail_id);
   if (imui::Texture(32.f, 32.f, kRender.snail_id,
                     animation::Rect(snail_sprite)).clicked) {
@@ -474,6 +484,7 @@ MapEditor(v2f screen)
     kInteraction.selection.subrect = animation::Rect(snail_sprite);
     kInteraction.selection.spawner_type = kSpawnerSnail;
   }
+  imui::NewLine();
   imui::Space(imui::kVertical, 5.f);
   if (imui::Button(32.f, 32.f, rgg::kRed).clicked) {
     kInteraction.selection.type = kSelectionCollisionGeometry;

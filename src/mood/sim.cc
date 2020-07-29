@@ -8,6 +8,7 @@
 namespace mood {
 
 void RenderCreateEffect(Rectf rect, v4f color, u32 ttl, r32 rotate_delta);
+void SpawnerUpdate();  // Defined in spawner.cc
 
 struct Sim {
   u32 player_id = 0; 
@@ -260,8 +261,10 @@ SimUpdate()
     c->prev_character_flags = c->character_flags;
   });
 
+  SpawnerUpdate();
   ProjectileUpdate();
   AIUpdate();
+
   if (Player()) {
     rgg::CameraLerpToPositionXY(FindParticle(Player())->position +
                                 v2f(0.f, kCameraYOffset), .1f);

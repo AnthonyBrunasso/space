@@ -2,6 +2,16 @@
 
 namespace mood {
 
+const char*
+SpawnerName(SpawnerType type)
+{
+  switch (type) {
+    case kSpawnerPlayer: return "player";
+    case kSpawnerSnail: return "snail";
+    default: return "unknown";
+  }
+}
+
 void
 SpawnerCreate(v2f pos, SpawnerType type)
 {
@@ -29,8 +39,19 @@ SpawnerUpdate()
     if (s->spawn_count < s->spawn_to_count) {
       switch (s->spawner_type) {
         case kSpawnerPlayer: {
+          if (!Player()) {
+            Character* player =
+                UseEntityCharacter(p->position,
+                                   v2f(kPlayerWidth, kPlayerHeight));
+            physics::Particle2d* particle = FindParticle(player);
+            particle->collision_mask = kCollisionMaskCharacter;
+            particle->damping = 0.005f;
+            kSim.player_id = player->id;
+          }
         } break;
         case kSpawnerSnail: {
+          AICreate(p->position, v2f(kEnemySnailWidth, kEnemySnailHeight),
+                   kBehaviorSimple);
         } break;
         default: {
           printf("%s Unknown spawner type.", __FUNCTION__);

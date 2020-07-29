@@ -65,11 +65,14 @@ t asset/tiles.tga middle_stone 320.00 120.00
 t asset/tiles.tga middle_stone 336.00 120.00
 t asset/tiles.tga middle_stone 352.00 120.00
 t asset/tiles.tga left_stone 288.00 120.00
-t asset/tiles.tga right_stone 368.00 120.00
+t asset/tiles.tga middle_stone 368.00 120.00
+t asset/tiles.tga right_stone 384.00 120.00
 g 148.00 -8.000000 424.00 16.00 0.00 0 4
 g 136.00 68.500000 16.00 9.00 0.00 0 4
 g 152.00 68.500000 16.00 9.00 0.00 0 4
 g 168.00 68.500000 16.00 9.00 0.00 0 4
 g 184.00 68.500000 16.00 9.00 0.00 0 4
 g -80.00 92.000000 32.00 216.00 0.00 0 4
-g 336.00 124.500000 96.00 9.00 0.00 0 4
+g 344.00 124.500000 112.00 9.00 0.00 0 4
+s 56.00 24.00 1
+s 344.00 152.00 2

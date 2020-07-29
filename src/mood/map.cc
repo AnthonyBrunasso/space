@@ -35,6 +35,10 @@ MapSave(const char* name)
               p->inverse_mass, p->flags, p->user_flags);
     }
   }
+  FOR_EACH_ENTITY_P(Spawner, s, p, {
+    fprintf(f, "s %.2f %.2f %u\n", p->position.x, p->position.y,
+            s->spawner_type);
+  });
   fclose(f);
 }
 
@@ -89,7 +93,13 @@ MapLoadFrom(const char* name)
       p->inverse_mass = inv_mass;
       p->flags = flags;
       p->user_flags = user_flags;
+    } else if (strcmp(line, "s") == 0) {
+      v2f pos;
+      SpawnerType type;
+      fscanf(f, "%f %f %u\n", &pos.x, &pos.y, &type);
+      SpawnerCreate(pos, type);
     }
+
   }
   fclose(f);
 }

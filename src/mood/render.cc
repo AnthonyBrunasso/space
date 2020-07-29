@@ -9,6 +9,7 @@ namespace mood {
 // defined in interaction.cc
 b8 IsInEditMode(u32* type);
 void GetTileEditInfo(v2f* pos, u32* texture_id, Rectf* texture_subrect);
+const char* SpawnerName(SpawnerType type);
 
 struct Effect {
   Rectf rect;
@@ -145,7 +146,12 @@ Render()
       } else if (FLAGGED(p->user_flags, kParticleCollider)) {
         if (kRenderAabb) rgg::RenderLineRectangle(p->aabb(), rgg::kRed);
       } else if (FLAGGED(p->user_flags, kParticleSpawner)) {
-        if (kRenderSpawner) rgg::RenderLineRectangle(p->aabb(), rgg::kPurple);
+        if (kRenderSpawner) {
+          rgg::RenderLineRectangle(p->aabb(), rgg::kPurple);
+          Spawner* spawner = FindSpawner(p->entity_id);
+          rgg::RenderText(SpawnerName(spawner->spawner_type),
+                          p->position - p->dims / 2.f, .5f, rgg::kWhite);
+        }
       }
     } else if (e && e->type == kEntityTypeProjectile) {
         rgg::RenderRectangle(p->Rect(), 0.f, p->rotation, rgg::kWhite);

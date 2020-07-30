@@ -19,6 +19,15 @@ struct Effect {
   r32 rotate_delta = 0.f;
 };
 
+// Renders a pixely looking line that grows from start to end over ttl.
+struct PixelLine {
+  v2f start;
+  v2f end;
+  v4f color = { 0.f, 0.f, 1.f, 1.f };
+  u32 ttl = 0;
+  u32 ttl_start = 0;
+};
+
 struct Texture {
   u32 texture_id;
   Rectf rect;
@@ -27,6 +36,7 @@ struct Texture {
 };
 
 DECLARE_ARRAY(Effect, 64);
+DECLARE_ARRAY(PixelLine, 64);
 DECLARE_ARRAY(Texture, 256);
 
 struct Render {
@@ -53,6 +63,7 @@ RenderInitialize()
 {
   kUsedTexture = 0;
   kUsedEffect = 0;
+  kUsedPixelLine = 0;
 
   rgg::TextureInfo info;
   info.min_filter = GL_NEAREST;
@@ -78,6 +89,15 @@ RenderUpdate()
     }
     ++i;
   }
+
+  for (u32 i = 0; i < kUsedPixelLine;) {
+    --kPixelLine[i].ttl;
+    if (!kPixelLine[i].ttl) {
+      ErasePixelLine(i);
+      continue;
+    }
+    ++i;
+  }
 }
 
 void
@@ -88,6 +108,17 @@ RenderCreateEffect(Rectf rect, v4f color, u32 ttl, r32 rotate_delta)
   e->color = color;
   e->ttl = ttl;
   e->rotate_delta = rotate_delta;
+}
+
+void
+RenderCreatePixelLine(v2f start, v2f end, v4f color, u32 ttl)
+{
+  PixelLine* pl = UsePixelLine();
+  pl->start = start;
+  pl->end = end;
+  pl->color = color;
+  pl->ttl = ttl;
+  pl->ttl_start = ttl;
 }
 
 void
@@ -133,6 +164,14 @@ Render()
     Effect* e = &kEffect[i];
     rgg::RenderLineRectangle(e->rect, 0.f, e->rotate, e->color);
   }
+
+  for (u32 i = 0; i < kUsedPixelLine; ++i) {
+    PixelLine* pl = &kPixelLine[i];
+    v2f start = pl->start;
+    //v2f end = math::Lerp(start, pl->end, 1.f - (r32)pl->ttl_start / pl->ttl);
+    rgg::RenderLine(start, pl->end, pl->color);
+  }
+
   rgg::DebugRenderWorldPrimitives();
 
   for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
@@ -153,7 +192,7 @@ Render()
                           p->position - p->dims / 2.f, .5f, rgg::kWhite);
         }
       } else if (FLAGGED(p->user_flags, kParticleBoost)) {
-        rgg::RenderLineRectangle(p->aabb(), rgg::kPurple);
+        if (kRenderAabb) rgg::RenderLineRectangle(p->aabb(), rgg::kPurple);
       }
     } else if (e && e->type == kEntityTypeProjectile) {
         rgg::RenderRectangle(p->Rect(), 0.f, p->rotation, rgg::kWhite);

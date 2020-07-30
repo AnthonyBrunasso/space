@@ -9,6 +9,7 @@ namespace mood {
 
 void RenderCreateEffect(Rectf rect, v4f color, u32 ttl, r32 rotate_delta);
 void SpawnerUpdate();  // Defined in spawner.cc
+void ObstacleUpdate();  // Defined in obstacle.cc
 
 struct Sim {
   u32 player_id = 0; 
@@ -18,6 +19,8 @@ struct Sim {
   util::Cooldown weapon_cooldown;
   // Cooldown that makes player invulnerable.
   util::Cooldown player_invulnerable;
+  // Frame - incremented when SimUpdate is called.
+  u64 frame = 0;
 };
 
 static Sim kSim;
@@ -188,6 +191,7 @@ __ResolveCollisions()
 bool
 SimUpdate()
 {
+  ++kSim.frame;
   FOR_EACH_ENTITY_P(Character, c, particle, {
     if (particle) {
       if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
@@ -285,6 +289,7 @@ SimUpdate()
     c->prev_character_flags = c->character_flags;
   });
 
+  ObstacleUpdate();
   SpawnerUpdate();
   ProjectileUpdate();
   AIUpdate();

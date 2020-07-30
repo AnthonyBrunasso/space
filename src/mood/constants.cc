@@ -34,6 +34,9 @@ constexpr r32 kParticleTTL = 50;
 // Camera constants.
 constexpr r32 kCameraYOffset = 30.f;
 
+// Obstacle constants.
+constexpr r32 kObstacleBoostForce = 10000.f;
+
 // Render target constants.
 constexpr r32 kRenderTargetWidth = 800;
 constexpr r32 kRenderTargetHeight = 450;
@@ -65,6 +68,8 @@ enum ParticleFlags {
   kParticleCollider = 2,
   // The particle is a spawner of stuff'n'things!!!!!
   kParticleSpawner = 3,
+  // The particle boosts the player if they intersect with it.
+  kParticleBoost = 4,
 };
 
 }

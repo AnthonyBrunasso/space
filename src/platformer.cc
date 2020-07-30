@@ -17,6 +17,7 @@
 #include "mood/render.cc"
 #include "mood/sim.cc"
 #include "mood/spawner.cc"
+#include "mood/obstacle.cc"
 #include "mood/map.cc"
 #include "mood/interaction.cc"
 

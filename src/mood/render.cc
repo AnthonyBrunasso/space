@@ -152,6 +152,8 @@ Render()
           rgg::RenderText(SpawnerName(spawner->spawner_type),
                           p->position - p->dims / 2.f, .5f, rgg::kWhite);
         }
+      } else if (FLAGGED(p->user_flags, kParticleBoost)) {
+        rgg::RenderLineRectangle(p->aabb(), rgg::kPurple);
       }
     } else if (e && e->type == kEntityTypeProjectile) {
         rgg::RenderRectangle(p->Rect(), 0.f, p->rotation, rgg::kWhite);

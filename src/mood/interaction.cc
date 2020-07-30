@@ -8,6 +8,7 @@ enum SelectionType {
   kSelectionTile = 1,
   kSelectionCollisionGeometry = 2,
   kSelectionSpawner = 3,
+  kSelectionObstacle = 4,
 };
 
 struct Selection {
@@ -18,6 +19,7 @@ struct Selection {
   bool tile_offset = false;
   physics::Particle2d* last_particle = nullptr;
   SpawnerType spawner_type = kSpawnerNone;
+  ObstacleType obstacle_type = kObstacleNone;
 };
 
 struct Interaction {
@@ -144,7 +146,6 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
           }
         } break;
         case 43 /* Plus */: {
-          printf("...\n");
           if (kInteraction.selection.last_particle) {
             kInteraction.selection.last_particle->dims.y += kTileHeight / 2.f;
             kInteraction.selection.last_particle->position.y +=
@@ -255,6 +256,11 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
           case kSelectionSpawner: {
             SpawnerCreate(posf + v2f(kTileWidth, kTileHeight) / 2.f,
                           kInteraction.selection.spawner_type);
+          } break;
+          case kSelectionObstacle: {
+            Obstacle* o =
+                ObstacleCreate(posf, kInteraction.selection.obstacle_type);
+            kInteraction.selection.last_particle = FindParticle(o);
           } break;
           default: break;
         }
@@ -386,7 +392,7 @@ MapEditor(v2f screen)
     kRenderAabb = true;
   }
   if (!enable) {
-    kInteraction.selection.type = kSelectionNone;
+    kInteraction.selection = {};
     kRenderSpawner = false;
     kRenderAabb = false;
   }
@@ -500,7 +506,15 @@ MapEditor(v2f screen)
     kInteraction.selection.type = kSelectionCollisionGeometry;
     kInteraction.selection.subrect = Rectf(0.f, 0.f, 16.f, 7.f);
   }
-  imui::Space(imui::kHorizontal, 5.f);
+  imui::Space(imui::kVertical, 5.f);
+  imui::HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
+  imui::Text("Obstacles");
+  imui::Indent(2);
+  if (imui::Text("Boost", toptions).clicked) {
+    kInteraction.selection.type = kSelectionObstacle;
+    kInteraction.selection.obstacle_type = kObstacleBoost;
+  }
+  imui::Indent(0);
   imui::HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
   imui::Space(imui::kVertical, 5.f);
   if (imui::Text("Save Map", toptions).clicked) {

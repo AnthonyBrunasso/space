@@ -95,6 +95,7 @@ enum EntityType {
   kEntityTypeCharacter = 1,
   kEntityTypeProjectile = 2,
   kEntityTypeSpawner = 3,
+  kEntityTypeObstacle = 4,
 };
 
 enum EntityFlags {
@@ -183,6 +184,17 @@ struct Spawner {
   u32 spawn_count = 0;
 };
 
+enum ObstacleType {
+  kObstacleNone = 0,
+  // Player will boost up if standing on a boost.
+  kObstacleBoost = 1,
+};
+
+struct Obstacle {
+  ENTITY_DECL = kEntityTypeObstacle;
+  ObstacleType obstacle_type = kObstacleNone;
+};
+
 union Entity {
   struct {
     ENTITY_DECL;
@@ -190,14 +202,16 @@ union Entity {
   Character character;
   Projectile projectile;
   Spawner spawner;
+  Obstacle obstacle;
 
   Entity() : type(kEntityTypeInvalid) {}
 };
 
-DECLARE_HASH_ARRAY(Entity, 256);
+DECLARE_HASH_ARRAY(Entity, 512);
 
 DECLARE_ENTITY(Character, kEntityTypeCharacter);
 DECLARE_ENTITY(Projectile, kEntityTypeProjectile);
 DECLARE_ENTITY(Spawner, kEntityTypeSpawner);
+DECLARE_ENTITY(Obstacle, kEntityTypeObstacle);
 
 }

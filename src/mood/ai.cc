@@ -48,8 +48,13 @@ AIBehaviorPatrol(Character* c)
   const Patrol* patrol;
   if (!BB_GET(c->bb, kAIBbPatrol, patrol)) return;
   physics::Particle2d* ai_particle = FindParticle(c);
-  if (ai_particle->velocity.x <= FLT_EPSILON) {
-    ai_particle->acceleration.x = -kEnemyAcceleration;
+  if (fabs(ai_particle->velocity.x) <= FLT_EPSILON) {
+    r32 r = math::Random(0.f, 1.f);
+    if (r < 0.5f) {
+      ai_particle->acceleration.x = -kEnemyAcceleration;
+    } else {
+      ai_particle->acceleration.x = kEnemyAcceleration;
+    }
   }
   if (ai_particle->position.x <= patrol->left_x) {
     ai_particle->acceleration.x = kEnemyAcceleration;

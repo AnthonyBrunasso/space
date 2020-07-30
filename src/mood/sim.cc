@@ -111,6 +111,15 @@ __PlayerCharacterCollision(Character* player, Character* character)
 }
 
 void
+__PlayerObstacleCollision(Character* player, Obstacle* obstacle)
+{
+  if (obstacle->obstacle_type == kObstacleBoost) {
+    physics::Particle2d* p = FindParticle(player);
+    p->force.y = kObstacleBoostForce;
+  }
+}
+
+void
 __ResolveCollisions()
 {
   for (u32 i = 0; i < physics::kUsedBP2dCollision; ++i) {
@@ -155,6 +164,21 @@ __ResolveCollisions()
       }
       if (projectile && particle && particle->inverse_mass == 0.f) {
         __ProjectileParticleCollision(projectile, particle, c);
+        continue;
+      }
+    }
+    {
+      Character* player = FindCharacter(c->p1->entity_id);
+      Obstacle* obstacle = FindObstacle(c->p2->entity_id);
+      if (player && obstacle) {
+        __PlayerObstacleCollision(player, obstacle);
+        continue;
+      }
+
+      obstacle = FindObstacle(c->p1->entity_id);
+      player = FindCharacter(c->p2->entity_id);
+      if (player && obstacle) {
+        __PlayerObstacleCollision(player, obstacle);
         continue;
       }
     }

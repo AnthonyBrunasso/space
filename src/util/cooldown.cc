@@ -33,4 +33,40 @@ CooldownReady(Cooldown* cooldown)
   return platform::ClockDeltaUsec(cooldown->clock) > cooldown->usec;
 }
 
+struct FrameCooldown {
+  // Number of frames allowed before FrameCooldownReady returns true.
+  u64 frame = 0;
+  u64 frame_start = 0;
+  b8 overwrite_ready = false;
+};
+
+static u64 kFrameNum = 0;
+
+void
+FrameCooldownUpdate()
+{
+  ++kFrameNum;
+}
+
+void
+FrameCooldownReset(FrameCooldown* cooldown)
+{
+  cooldown->frame_start = kFrameNum;
+  cooldown->overwrite_ready = false;
+}
+
+void
+FrameCooldownInitialize(FrameCooldown* cooldown)
+{
+  FrameCooldownReset(cooldown);
+  cooldown->overwrite_ready = true;
+}
+
+bool
+FrameCooldownReady(FrameCooldown* cooldown)
+{
+  if (cooldown->overwrite_ready) return true;
+  return kFrameNum - cooldown->frame_start > cooldown->frame;
+}
+
 }

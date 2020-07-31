@@ -147,7 +147,11 @@ GameUpdate()
   rgg::GetObserver()->view = rgg::CameraView();
   if (mood::kReloadGame) return true;
   if (mood::kFreezeGame) return false;
-  else return mood::SimUpdate();
+  else {
+    // Allows FrameCooldown to work based on # of sim updates.
+    util::FrameCooldownUpdate();
+    return mood::SimUpdate();
+  }
 }
 
 void

@@ -14,11 +14,11 @@ void ObstacleUpdate();  // Defined in obstacle.cc
 struct Sim {
   u32 player_id = 0; 
   // Cooldown that dictates whether the player can boost.
-  util::Cooldown boost_cooldown;
+  util::FrameCooldown boost_cooldown;
   // Cooldown that lets player fire weapon.
-  util::Cooldown weapon_cooldown;
+  util::FrameCooldown weapon_cooldown;
   // Cooldown that makes player invulnerable.
-  util::Cooldown player_invulnerable;
+  util::FrameCooldown player_invulnerable;
   // Frame - incremented when SimUpdate is called.
   u64 frame = 0;
 };
@@ -51,14 +51,14 @@ SimInitialize()
   //particle->damping = 0.005f;
   //kSim.player_id = player->id;
 
-  kSim.boost_cooldown.usec = SECONDS(1.f);
-  util::CooldownInitialize(&kSim.boost_cooldown);
+  kSim.boost_cooldown.frame = 60;
+  util::FrameCooldownInitialize(&kSim.boost_cooldown);
 
-  kSim.weapon_cooldown.usec = SECONDS(0.15f);
-  util::CooldownInitialize(&kSim.weapon_cooldown);
+  kSim.weapon_cooldown.frame = 10;
+  util::FrameCooldownInitialize(&kSim.weapon_cooldown);
 
-  kSim.player_invulnerable.usec = SECONDS(0.5f);
-  util::CooldownInitialize(&kSim.player_invulnerable);
+  kSim.player_invulnerable.frame = 20;
+  util::FrameCooldownInitialize(&kSim.player_invulnerable);
   
   AIInitialize();
 
@@ -107,9 +107,9 @@ __ProjectileParticleCollision(Projectile* projectile,
 void
 __PlayerCharacterCollision(Character* player, Character* character)
 {
-  if (util::CooldownReady(&kSim.player_invulnerable)) {
+  if (util::FrameCooldownReady(&kSim.player_invulnerable)) {
     player->health -= 1.f;
-    util::CooldownReset(&kSim.player_invulnerable);
+    util::FrameCooldownReset(&kSim.player_invulnerable);
   }
 }
 
@@ -212,24 +212,24 @@ SimUpdate()
       }
 
       if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
-        if (util::CooldownReady(&kSim.weapon_cooldown)) {
-          util::CooldownReset(&kSim.weapon_cooldown);
+        if (util::FrameCooldownReady(&kSim.weapon_cooldown)) {
+          util::FrameCooldownReset(&kSim.weapon_cooldown);
           ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
                            kSim.player_id, kProjectileBullet);
         }
       }
       if (FLAGGED(c->character_flags, kCharacterFireSecondary)) {
-        if (util::CooldownReady(&kSim.weapon_cooldown)) {
-          util::CooldownReset(&kSim.weapon_cooldown);
+        if (util::FrameCooldownReady(&kSim.weapon_cooldown)) {
+          util::FrameCooldownReset(&kSim.weapon_cooldown);
           ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
                            kSim.player_id, kProjectileGrenade);
         }
       }
       if (FLAGGED(c->ability_flags, kCharacterAbilityBoost)) {
-        if (util::CooldownReady(&kSim.boost_cooldown)) {
-          util::CooldownReset(&kSim.boost_cooldown);
+        if (util::FrameCooldownReady(&kSim.boost_cooldown)) {
+          util::FrameCooldownReset(&kSim.boost_cooldown);
           // Boosting make player invulnerable briefly.
-          util::CooldownReset(&kSim.player_invulnerable);
+          util::FrameCooldownReset(&kSim.player_invulnerable);
           particle->velocity = {};
           particle->acceleration = {};
           particle->force += c->facing * kPlayerBoostForce;

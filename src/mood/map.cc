@@ -39,6 +39,11 @@ MapSave(const char* name)
     fprintf(f, "s %.2f %.2f %u\n", p->position.x, p->position.y,
             s->spawner_type);
   });
+  FOR_EACH_ENTITY_P(Obstacle, o, p, {
+    fprintf(f, "o %.2f %.2f %.2f %.2f %u\n",
+            p->position.x, p->position.y, p->dims.x, p->dims.y,
+            o->obstacle_type);
+  });
   fclose(f);
 }
 
@@ -98,8 +103,12 @@ MapLoadFrom(const char* name)
       SpawnerType type;
       fscanf(f, "%f %f %u\n", &pos.x, &pos.y, &type);
       SpawnerCreate(pos, type);
+    } else if (strcmp(line, "o") == 0) {
+      v2f pos, dims;
+      ObstacleType type;
+      fscanf(f, "%f %f %f %f %u\n", &pos.x, &pos.y, &dims.x, &dims.y, &type);
+      ObstacleCreate(pos, dims, type);
     }
-
   }
   fclose(f);
 }

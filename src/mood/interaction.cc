@@ -258,8 +258,8 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
                           kInteraction.selection.spawner_type);
           } break;
           case kSelectionObstacle: {
-            Obstacle* o =
-                ObstacleCreate(posf, kInteraction.selection.obstacle_type);
+            Obstacle* o = ObstacleCreate(
+                posf, v2f(5.f, 5.f), kInteraction.selection.obstacle_type);
             kInteraction.selection.last_particle = FindParticle(o);
           } break;
           default: break;
@@ -271,14 +271,23 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
       } else if (event.button == BUTTON_MIDDLE) {
         PIXEL_ART_OBSERVER();
         v2f clickpos = rgg::CameraRayFromMouseToWorld(cursor, 0.f).xy();
+        // Try to delete a collider.
         for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
           physics::Particle2d* p = &physics::kParticle2d[i];
+          if (!FLAGGED(p->user_flags, kParticleCollider)) continue;
           if (math::PointInRect(clickpos, p->aabb())) {
             DeleteParticle2d(p);
             break;
           }
         }
+        // Try to delete a spawner.
         FOR_EACH_ENTITY_P(Spawner, s, p, {
+          if (math::PointInRect(clickpos, p->aabb())) {
+            SetDestroyFlag(s);
+          }
+        });
+        // Try to delete a obstacle.
+        FOR_EACH_ENTITY_P(Obstacle, s, p, {
           if (math::PointInRect(clickpos, p->aabb())) {
             SetDestroyFlag(s);
           }

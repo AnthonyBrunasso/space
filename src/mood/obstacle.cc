@@ -3,12 +3,12 @@
 namespace mood {
 
 Obstacle*
-ObstacleCreate(v2f pos, ObstacleType type)
+ObstacleCreate(v2f pos, v2f dims, ObstacleType type)
 {
   Obstacle* obstacle = nullptr;
   switch (type) {
     case kObstacleBoost: {
-      obstacle = UseEntityObstacle(pos, v2f(5.f, 5.f));
+      obstacle = UseEntityObstacle(pos, dims);
       obstacle->obstacle_type = type;
       physics::Particle2d* p = FindParticle(obstacle);
       SBIT(p->flags, physics::kParticleIgnoreGravity);

@@ -34,6 +34,7 @@ struct Particle2d {
   // therefore one could see particle penetration for a frame before resolution
   v2f position = {};
   v2f velocity = {};
+  v2f pre_integration_position = {};
   v2f acceleration = {};
   // Inverse mass of this particle. Inverse infinite mass can be reprented
   // with a value of 0 and since 0 mass objects have no physical
@@ -193,9 +194,15 @@ __ResolvePositionAndVelocity(
     } else {
       p->position.x += correction.x;
     }
-    // Don't zero out x velocity. This would cause the particle to stutter
-    // when walking over multiple blocks.
-    //p->velocity.x = 0.f;
+    // INFO(anthony): This allows velocity to remain unchanged if a horizontal
+    // resolution takes palce for a single frame - like walking up a stair
+    // or falling off a ledge. It will not allow velocity to remain increasing
+    // or unchanged if the particle gets stuck up against a wall for multiple
+    // frames. That way the particle won't launch forward while it accumulates
+    // velocity stuck up against a wall.
+    if (p->position.x == p->pre_integration_position.x) {
+      p->velocity.x = 0.f;
+    }
   }
   if (correction.y > 0.f) {
     if (aabb.y < intersection.y) {
@@ -261,6 +268,7 @@ Integrate(r32 dt_sec)
     if (!FLAGGED(p->flags, kParticleIgnoreGravity)) {
       p->acceleration -= v2f(0.f, kPhysics.gravity);
     }
+    p->pre_integration_position = p->position;
     p->velocity += p->acceleration * dt_sec;
     p->position += p->velocity * dt_sec;
     if (!FLAGGED(p->flags, kParticleIgnoreDamping)) {

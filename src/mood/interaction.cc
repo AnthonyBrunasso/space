@@ -380,6 +380,12 @@ EntityViewer(v2f screen)
     snprintf(kUIBuffer, sizeof(kUIBuffer), "pos %.2f %.2f", p->position.x,
              p->position.y);
     imui::Text(kUIBuffer);
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "vel %.2f %.2f", p->velocity.x,
+             p->velocity.y);
+    imui::Text(kUIBuffer);
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "acc %.2f %.2f", p->acceleration.x,
+             p->acceleration.y);
+    imui::Text(kUIBuffer);
     snprintf(kUIBuffer, sizeof(kUIBuffer), "dims %.2f %.2f", p->dims.x,
              p->dims.y);
     imui::Text(kUIBuffer);

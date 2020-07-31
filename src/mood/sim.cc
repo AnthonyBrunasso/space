@@ -193,7 +193,24 @@ SimUpdate()
 {
   ++kSim.frame;
   FOR_EACH_ENTITY_P(Character, c, particle, {
+    // Move character.
     if (particle) {
+      if (FLAGGED(c->character_flags, kCharacterMove)) {
+        if (c->move_dir.x > 0.f) {
+          particle->acceleration.x = (c->move_acceleration * c->move_multiplier);
+        } else if (c->move_dir.x < 0.f) {
+          particle->acceleration.x =
+              -(c->move_acceleration * c->move_multiplier);
+        }
+      }
+
+      // Instantly stop any horizontal acceleration the frame the character
+      // stops moving.
+      if (FLAGGED(c->prev_character_flags, kCharacterMove) &&
+          !FLAGGED(c->character_flags, kCharacterMove)) {
+        particle->acceleration.x = 0.f;
+      }
+
       if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
         if (util::CooldownReady(&kSim.weapon_cooldown)) {
           util::CooldownReset(&kSim.weapon_cooldown);
@@ -213,8 +230,11 @@ SimUpdate()
           util::CooldownReset(&kSim.boost_cooldown);
           // Boosting make player invulnerable briefly.
           util::CooldownReset(&kSim.player_invulnerable);
-          particle->force += c->ability_dir * kPlayerBoostForce;
-          c->trail_effect_ttl = 30;
+          particle->velocity = {};
+          particle->acceleration = {};
+          particle->force += c->facing * kPlayerBoostForce;
+          particle->disable_gravity_ttl = 10;
+          c->trail_effect_ttl = 10;
         }
       }
       if (FLAGGED(c->character_flags, kCharacterJump)) {

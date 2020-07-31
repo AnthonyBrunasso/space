@@ -111,6 +111,8 @@ enum CharacterFlags {
   kCharacterWeaponFired = 2,
   // If set the character will attempt to fire their secondary weapon.
   kCharacterFireSecondary = 3,
+  // Set if the character should be moving.
+  kCharacterMove = 4,
 };
 
 enum CharacterAbilityFlags {
@@ -136,7 +138,6 @@ struct Character {
   u8 character_flags = 0;
   // Used for when a character executes an ability.
   u8 ability_flags = 0;
-  v2f ability_dir = {};
   // Used to show a flashy trail effect when the player executes a boost.
   u8 trail_effect_ttl = 0;
   // AI knowledge.
@@ -150,6 +151,12 @@ struct Character {
   r32 aim_rotate_delta = 0.f;
   // Which frame of the animation this character is on.
   u32 anim_frame = 0;
+  // Direction of character movement.
+  v2f move_dir = {};
+  // Multiplied by character move acceleration.
+  r32 move_multiplier = 0.f;
+  // Speed at which the character should move.
+  r32 move_acceleration = kPlayerAcceleration;
 };
 
 enum ProjectileType {

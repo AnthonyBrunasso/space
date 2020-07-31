@@ -190,7 +190,6 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
         case 's': {
           if (player) {
             SBIT(player->ability_flags, kCharacterAbilityBoost);
-            player->ability_dir = math::Normalize(player_particle->velocity);
           }
         } break;
       }
@@ -309,15 +308,13 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
                                    event.controller.lstick_y, &cdir, &cmag)) {
         if (FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_X)) {
           SBIT(player->ability_flags, kCharacterAbilityBoost);
-          player->ability_dir = cdir;
         }
-        if (cdir.x > 0.f) {
-          player_particle->acceleration.x = kPlayerAcceleration * cmag;
-        } else if (cdir.x < 0.f) {
-          player_particle->acceleration.x = -kPlayerAcceleration * cmag;
-        }
+
+        SBIT(player->character_flags, kCharacterMove);
+        player->move_dir = cdir;
+        player->move_multiplier = cmag;
       } else {
-        player_particle->acceleration.x = 0.f;
+        CBIT(player->character_flags, kCharacterMove);
       }
 
       if (!FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_X)) {

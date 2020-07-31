@@ -70,6 +70,9 @@ struct Particle2d {
   // consideration the particles rotated min / max points. Unit in degrees.
   r32 rotation = 0.f;
 
+  // If non-zero will countdown to zero while ignoring gravity.
+  u32 disable_gravity_ttl = 0;
+
   // Returns the rect of the particle ignoring relevant details like rotation!
   Rectf
   Rect() const
@@ -265,7 +268,8 @@ Integrate(r32 dt_sec)
     // a = F * (1 / m)
     v2f acc = p->acceleration;
     p->acceleration += p->force * p->inverse_mass;
-    if (!FLAGGED(p->flags, kParticleIgnoreGravity)) {
+    if (!FLAGGED(p->flags, kParticleIgnoreGravity) &&
+        !p->disable_gravity_ttl) {
       p->acceleration -= v2f(0.f, kPhysics.gravity);
     }
     p->pre_integration_position = p->position;
@@ -279,6 +283,10 @@ Integrate(r32 dt_sec)
     p->acceleration = acc;
     // Force applied over a single integration step then reset.
     p->force = {};
+
+    if (p->disable_gravity_ttl) {
+      --p->disable_gravity_ttl;
+    }
 
     BPUpdateP2d(p);
   }

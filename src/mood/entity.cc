@@ -142,8 +142,8 @@ struct Character {
   u8 ability_flags = 0;
   // Used to show a flashy trail effect when the player executes a boost.
   u8 trail_effect_ttl = 0;
-  // AI knowledge.
-  Blackboard bb;  // TODO: Consider making a map of these...
+  // AI knowledge. Set to 0 for non AI controlled characters.
+  u32 blackboard_id = 0;
   // Character stats.
   r32 health = 10.f;
   r32 max_health = 10.f;

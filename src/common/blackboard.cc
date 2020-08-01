@@ -4,8 +4,9 @@
 #include <cstdint>
 #include <cstring>
 
-static constexpr s32 kMaxBlackboardItems = 16;
-static constexpr s32 kMaxBlackboardValueSize = 64;
+constexpr s32 kMaxBlackboardItems = 16;
+constexpr s32 kMaxBlackboardValueSize = 64;
+constexpr u32 kMaxBlackboardCount = 64;
 
 static u8 kEmptyValue[kMaxBlackboardValueSize];
 
@@ -42,12 +43,17 @@ struct Blackboard {
     memcpy(&value[idx], &kEmptyValue, kMaxBlackboardValueSize);
   }
 
+  
+
   u8 value[kMaxBlackboardItems][kMaxBlackboardValueSize];
+  u32 id = 0;
 };
 
+DECLARE_HASH_ARRAY(Blackboard, 64);
+
 #define BB_SET(bb, idx, val) \
-  bb.Set(idx, reinterpret_cast<const u8*>(&val), sizeof(val))
+  (bb == nullptr ? false : bb->Set(idx, reinterpret_cast<const u8*>(&val), sizeof(val)))
 #define BB_GET(bb, idx, ptr) \
-  bb.Get(idx, reinterpret_cast<const u8**>(&ptr))
-#define BB_EXI(bb, idx) bb.Exists(idx)
-#define BB_REM(bb, idx) bb.Remove(idx)
+  (bb == nullptr ? false : bb->Get(idx, reinterpret_cast<const u8**>(&ptr)))
+#define BB_EXI(bb, idx) (bb == nullptr ? false : bb->Exists(idx))
+#define BB_REM(bb, idx) bb->Remove(idx)

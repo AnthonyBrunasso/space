@@ -238,7 +238,7 @@ Render()
     rgg::RenderProgressBar(pb_rect, 0.f, c->health, c->max_health,
                            v4f(1.f, 0.f, 0.f, .7f), v4f(.8f, .8f, .8f, .5f));
     const u32* behavior = nullptr;
-    if (BB_GET(c->bb, kAIBbType, behavior)) {
+    if (BB_GET(bb(c), kAIBbType, behavior)) {
       switch (*behavior) {
         case kBehaviorSimple: {
           Rectf paabb = p->aabb();

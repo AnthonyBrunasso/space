@@ -5,6 +5,13 @@
 
 static u32 kAISpawnNum;
 
+template <typename T>
+Blackboard*
+bb(const T* t) {
+  if (!t->blackboard_id) return nullptr;
+  return FindBlackboard(t->blackboard_id);
+}
+
 struct Patrol {
   // Left and right endpoints of patrol on x axis.
   r32 left_x;
@@ -28,13 +35,13 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
       } break;
       default: break;
     };
-    BB_SET(ai_character->bb, kAIBbType, behavior);
+    BB_SET(bb(ai_character), kAIBbType, behavior);
   }
 
   Patrol patrol;
   patrol.left_x = pos.x - 50.f;
   patrol.right_x = pos.x + 50.f;
-  BB_SET(ai_character->bb, kAIBbPatrol, patrol);
+  BB_SET(bb(ai_character), kAIBbPatrol, patrol);
 }
 
 void
@@ -46,7 +53,7 @@ void
 AIBehaviorPatrol(Character* c)
 {
   const Patrol* patrol;
-  if (!BB_GET(c->bb, kAIBbPatrol, patrol)) return;
+  if (!BB_GET(bb(c), kAIBbPatrol, patrol)) return;
   physics::Particle2d* ai_particle = FindParticle(c);
   if (fabs(ai_particle->velocity.x) <= FLT_EPSILON) {
     r32 r = math::Random(0.f, 1.f);
@@ -97,7 +104,7 @@ AIUpdate()
 
   FOR_EACH_ENTITY(Character, c, {
     const u32* behavior;
-    if (!BB_GET(c->bb,  kAIBbType, behavior)) continue;
+    if (!BB_GET(bb(c),  kAIBbType, behavior)) continue;
     switch (*behavior) {
       case kBehaviorSimple: {
         AIBehaviorSimple(c);

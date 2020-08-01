@@ -225,7 +225,7 @@ Render()
       rgg::RenderTexture(
             kRender.character_id,
             animation::Update(character_sprite, &c->anim_frame),
-            Rectf(paabb.x - 12.f, paabb.y,
+            Rectf(paabb.x - 18.f, paabb.y,
                   character_sprite->width,
                   character_sprite->height), mirror);
       if (kRenderAabb) rgg::RenderLineRectangle(paabb, rgg::kRed);

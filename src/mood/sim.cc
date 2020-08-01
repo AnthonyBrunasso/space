@@ -28,17 +28,8 @@ static b8 kEnableEnemies = true;
 void
 SimInitialize()
 {
-  //Character* player =
-  //    UseEntityCharacter(v2f(0.f, 60.f), v2f(kPlayerWidth, kPlayerHeight));
-  //physics::Particle2d* particle = FindParticle(player);
-  //particle->collision_mask = kCollisionMaskCharacter;
-  //particle->damping = 0.005f;
-  //kSim.player_id = player->id;
-
   CharacterInitialize();
-  
   AIInitialize();
-
   // After initialization game is reloaded.
   kReloadGame = false;
 }

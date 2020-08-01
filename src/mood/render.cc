@@ -158,20 +158,6 @@ RenderDeleteTexture(v2f pos)
 void
 Render()
 {
-  //v2f clickpos = rgg::CameraRayFromMouseToWorld(
-  //    window::GetCursorPosition(), 0.f).xy();
-  //rgg::DebugPushPoint(clickpos, 2.f, rgg::kRed);
-  //v2i tile = WorldToTile(clickpos);
-  //printf("(%.2f %.2f) to (%i %i)\n", clickpos.x, clickpos.y, tile.x, tile.y);
-  // 66 -> 64
-  // 66 - 66 % 32
-  //s32 x = (s32)((s32)clickpos.x / (s32)kTileWidth) * (s32)kTileWidth;
-  //s32 y = (s32)((s32)clickpos.y / (s32)kTileHeight) * (s32)kTileHeight;
-  //rgg::DebugPushRect(Rectf(v2f(x, y), v2f(16.f, 16.f)), rgg::kRed);
-  //rgg::DebugPushRect(
-  //    Rectf(v2f(clickpos.x - ((s32)clickpos.x % (s32)kTileWidth),
-  //              clickpos.y - ((s32)clickpos.y % (s32)kTileHeight)),
-  //          kTileWidth, kTileHeight), rgg::kRed);
   for (u32 i = 0; i < kUsedEffect; ++i) {
     Effect* e = &kEffect[i];
     rgg::RenderLineRectangle(e->rect, 0.f, e->rotate, e->color);

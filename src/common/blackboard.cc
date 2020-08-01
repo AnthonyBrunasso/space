@@ -43,8 +43,6 @@ struct Blackboard {
     memcpy(&value[idx], &kEmptyValue, kMaxBlackboardValueSize);
   }
 
-  
-
   u8 value[kMaxBlackboardItems][kMaxBlackboardValueSize];
   u32 id = 0;
 };

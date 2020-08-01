@@ -5,9 +5,16 @@
 
 static u32 kAISpawnNum;
 
+struct AI {
+  util::FrameCooldown spawn_cooldown;
+};
+
+static AI kAI;
+
 template <typename T>
 Blackboard*
-bb(const T* t) {
+bb(const T* t)
+{
   if (!t->blackboard_id) return nullptr;
   return FindBlackboard(t->blackboard_id);
 }
@@ -22,6 +29,7 @@ void
 AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
 {
   Character* ai_character = UseEntityCharacter(pos, dims);
+  ai_character->blackboard_id = UseBlackboard()->id;
   physics::Particle2d* ai_particle = FindParticle(ai_character);
   if (ai_particle) {
     ai_particle->collision_mask = kCollisionMaskCharacter;
@@ -47,6 +55,8 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
 void
 AIInitialize()
 {
+  kAI.spawn_cooldown.frame = 300;
+  util::FrameCooldownInitialize(&kAI.spawn_cooldown);
 }
 
 void
@@ -117,4 +127,9 @@ AIUpdate()
       } break;
     }
   });
+
+  if (util::FrameCooldownReady(&kAI.spawn_cooldown)) {
+    util::FrameCooldownReset(&kAI.spawn_cooldown);
+    printf("Spawn enemy..\n");
+  }
 }

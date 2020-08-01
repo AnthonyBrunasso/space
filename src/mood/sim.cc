@@ -182,10 +182,15 @@ SimUpdate()
   for (u32 i = 0; i < kUsedEntity;) {
     Entity* entity = &kEntity[i];
     if (FLAGGED(entity->flags, kEntityDestroy)) {
-      SwapEntity(entity->id, kEntity[kUsedEntity - 1].id);
-      // Entity array swapped so the entity to delete is now the final.
-      physics::DeleteParticle2d(kEntity[kUsedEntity - 1].particle_id);
-      ClearEntity(kEntity[kUsedEntity - 1].id);
+      // AI characters are unique in that they require their blackboards
+      // deleted.
+      Character* c = FindCharacter(entity->id);
+      if (c && c->blackboard_id) {
+        Blackboard* b = bb(c);
+        SwapAndClearBlackboard(b->id);
+      }
+      physics::DeleteParticle2d(entity->particle_id);
+      SwapAndClearEntity(entity->id);
       continue;
     }
     ++i;

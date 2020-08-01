@@ -100,6 +100,12 @@ struct HashEntry {
     entry2->array_idx = tarr;                                                 \
   }                                                                           \
                                                                               \
+  void SwapAndClear##type(u32 id)                                             \
+  {                                                                           \
+    Swap##type(id, k##type[kUsed##type - 1].id);                              \
+    Clear##type(id);                                                          \
+  }                                                                           \
+                                                                              \
   void Reset##type()                                                          \
   {                                                                           \
     for (u32 i = 0; i < kMax##type; ++i) {                                    \

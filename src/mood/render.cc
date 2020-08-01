@@ -42,6 +42,9 @@ DECLARE_ARRAY(Texture, 256);
 struct Render {
   u32 snail_id;
   u32 character_id;
+  u32 terrain_id;
+  u32 tiles_id;
+  u32 wall_tiles_id;
 };
 
 static Render kRender;
@@ -75,6 +78,15 @@ RenderInitialize()
       rgg::LoadTextureAndSprite("asset/main_character.tga", "asset/main_character.anim",
                                 info);
   assert(kRender.character_id);
+  kRender.terrain_id = rgg::LoadTextureAndSprite(
+      "asset/firsttry-Sheet.tga", "asset/sheet.anim", info);
+  assert(kRender.terrain_id);
+  kRender.tiles_id = rgg::LoadTextureAndSprite(
+      "asset/tiles.tga", "asset/tiles.anim", info);
+  assert(kRender.tiles_id);
+  kRender.wall_tiles_id = rgg::LoadTextureAndSprite(
+      "asset/wall_tiles.tga", "asset/wall_tiles.anim", info);
+  assert(kRender.wall_tiles_id);
 }
 
 void

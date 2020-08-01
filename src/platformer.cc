@@ -15,6 +15,7 @@
 #include "mood/constants.cc"
 #include "mood/util.cc"
 #include "mood/render.cc"
+#include "mood/character.cc"
 #include "mood/sim.cc"
 #include "mood/spawner.cc"
 #include "mood/obstacle.cc"

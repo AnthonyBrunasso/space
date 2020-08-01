@@ -118,6 +118,8 @@ enum CharacterFlags {
 enum CharacterAbilityFlags {
   // If set the character will boost in the direction of its velocity.
   kCharacterAbilityBoost = 0,
+  // Set if the player is allowed to double jump.
+  kCharacterCanDoubleJump = 1,
 };
 
 enum CharacterBbEntry {
@@ -157,6 +159,8 @@ struct Character {
   r32 move_multiplier = 0.f;
   // Speed at which the character should move.
   r32 move_acceleration = kPlayerAcceleration;
+  // How long the character must wait before they can perform a double jump.
+  util::FrameCooldown double_jump_cooldown;
 };
 
 enum ProjectileType {

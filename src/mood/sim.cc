@@ -2,23 +2,16 @@
 
 #include "mood/entity.cc"
 #include "mood/projectile.cc"
+#include "mood/character.cc"
 
 #include "physics/physics.cc"
 
 namespace mood {
 
-void RenderCreateEffect(Rectf rect, v4f color, u32 ttl, r32 rotate_delta);
 void SpawnerUpdate();  // Defined in spawner.cc
 void ObstacleUpdate();  // Defined in obstacle.cc
 
 struct Sim {
-  u32 player_id = 0; 
-  // Cooldown that dictates whether the player can boost.
-  util::FrameCooldown boost_cooldown;
-  // Cooldown that lets player fire weapon.
-  util::FrameCooldown weapon_cooldown;
-  // Cooldown that makes player invulnerable.
-  util::FrameCooldown player_invulnerable;
   // Frame - incremented when SimUpdate is called.
   u64 frame = 0;
 };
@@ -29,15 +22,6 @@ static b8 kReloadGame = false;
 static char kReloadFrom[64] = "asset/test.map";
 static b8 kFreezeGame = false;
 static b8 kEnableEnemies = true;
-
-Character* Player() {
-  if (!kSim.player_id) return nullptr;
-  return FindCharacter(kSim.player_id);
-}
-
-physics::Particle2d* PlayerParticle() {
-  return physics::FindParticle2d(FindCharacter(kSim.player_id)->particle_id);
-}
 
 #include "mood/ai.cc"
 
@@ -51,14 +35,7 @@ SimInitialize()
   //particle->damping = 0.005f;
   //kSim.player_id = player->id;
 
-  kSim.boost_cooldown.frame = 60;
-  util::FrameCooldownInitialize(&kSim.boost_cooldown);
-
-  kSim.weapon_cooldown.frame = 10;
-  util::FrameCooldownInitialize(&kSim.weapon_cooldown);
-
-  kSim.player_invulnerable.frame = 20;
-  util::FrameCooldownInitialize(&kSim.player_invulnerable);
+  CharacterInitialize();
   
   AIInitialize();
 
@@ -76,7 +53,7 @@ SimReset()
 void
 __CharacterProjectileCollision(Character* character, Projectile* projectile)
 {
-  if (character->id == kSim.player_id) return;
+  if (character->id == kCharacter.player_id) return;
   SetDestroyFlag(projectile);
   character->health -= 3.f;
 }
@@ -107,9 +84,9 @@ __ProjectileParticleCollision(Projectile* projectile,
 void
 __PlayerCharacterCollision(Character* player, Character* character)
 {
-  if (util::FrameCooldownReady(&kSim.player_invulnerable)) {
+  if (util::FrameCooldownReady(&kCharacter.player_invulnerable)) {
     player->health -= 1.f;
-    util::FrameCooldownReset(&kSim.player_invulnerable);
+    util::FrameCooldownReset(&kCharacter.player_invulnerable);
   }
 }
 
@@ -192,123 +169,9 @@ bool
 SimUpdate()
 {
   ++kSim.frame;
-  FOR_EACH_ENTITY_P(Character, c, particle, {
-    // Move character.
-    if (particle) {
-      if (FLAGGED(c->character_flags, kCharacterMove)) {
-        if (c->move_dir.x > 0.f) {
-          particle->acceleration.x = (c->move_acceleration * c->move_multiplier);
-        } else if (c->move_dir.x < 0.f) {
-          particle->acceleration.x =
-              -(c->move_acceleration * c->move_multiplier);
-        }
-      }
 
-      // Instantly stop any horizontal acceleration the frame the character
-      // stops moving.
-      if (FLAGGED(c->prev_character_flags, kCharacterMove) &&
-          !FLAGGED(c->character_flags, kCharacterMove)) {
-        particle->acceleration.x = 0.f;
-      }
-
-      if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
-        if (util::FrameCooldownReady(&kSim.weapon_cooldown)) {
-          util::FrameCooldownReset(&kSim.weapon_cooldown);
-          ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
-                           kSim.player_id, kProjectileBullet);
-        }
-      }
-      if (FLAGGED(c->character_flags, kCharacterFireSecondary)) {
-        if (util::FrameCooldownReady(&kSim.weapon_cooldown)) {
-          util::FrameCooldownReset(&kSim.weapon_cooldown);
-          ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
-                           kSim.player_id, kProjectileGrenade);
-        }
-      }
-      if (FLAGGED(c->ability_flags, kCharacterAbilityBoost)) {
-        if (util::FrameCooldownReady(&kSim.boost_cooldown)) {
-          util::FrameCooldownReset(&kSim.boost_cooldown);
-          // Boosting make player invulnerable briefly.
-          util::FrameCooldownReset(&kSim.player_invulnerable);
-          particle->velocity = {};
-          particle->acceleration = {};
-          particle->force += c->facing * kPlayerBoostForce;
-          particle->disable_gravity_ttl = 10;
-          c->trail_effect_ttl = 10;
-        }
-      }
-      if (FLAGGED(c->character_flags, kCharacterJump)) {
-        if (particle->on_ground) particle->force.y += kJumpForce;
-      }
-    }
-
-    if (c->trail_effect_ttl > 0) {
-      if (c->trail_effect_ttl % 2 == 0) {
-        Rectf effect_rect(particle->position, v2f(10.f, 10.f));
-        RenderCreateEffect(
-            effect_rect, v4f(.4f, 1.f, .4f, 0.3f), 25, math::Random(1.f, 10.f));
-      }
-      --c->trail_effect_ttl;
-    }
-
-    c->aim_dir =
-        math::Normalize(math::Rotate(c->aim_dir, c->aim_rotate_delta));
-
-    if (c == Player()) {
-      Character* player = c;
-      if (player->facing.x > 0.f) {
-        r32 angle = atan2(player->aim_dir.y, player->aim_dir.x) * 180.f / PI;
-        if (angle > kAimAngleClamp || angle < -kAimAngleClamp) {
-          angle = CLAMPF(angle, -kAimAngleClamp, kAimAngleClamp);
-          player->aim_dir = math::Rotate(v2f(1.f, 0.f), angle);
-        } 
-      } else if (player->facing.x < 0.f) {
-        r32 angle = math::Atan2(player->aim_dir.y, player->aim_dir.x);
-        r32 low = 180.f - kAimAngleClamp;
-        r32 high = 180.f + kAimAngleClamp;
-        if (angle > kAimAngleClamp || angle < -kAimAngleClamp) {
-          angle = CLAMPF(angle, low, high);
-          player->aim_dir = math::Rotate(v2f(1.f, 0.f), angle);
-        }
-      }
-    }
-
-    if (c->health <= 0.f) {
-      if (c == Player()) {
-        return true;
-      } else {
-        SetDestroyFlag(c);
-        v2f up(0.f, 1.f);
-        for (int i = 0; i < 30; ++i) {
-          physics::Particle2d* ep =
-              physics::CreateParticle2d(particle->position + up * 1.f,
-                                        v2f(kParticleWidth, kParticleHeight));
-          ep->collision_mask = kCollisionMaskCharacter;
-          v2f dir = Rotate(up, math::Random(-55.f, 55.f));
-          ep->force = dir * math::Random(10000.f, 30000.f);
-          SBIT(ep->user_flags, kParticleBlood);
-          ep->ttl = kParticleTTL;
-        }
-      }
-    }
-
-    if (particle->velocity.x > 0.f) {
-      c->facing.x = 1.f;
-      c->aim_dir.x = fabs(c->aim_dir.x);
-    }
-    if (particle->velocity.x < 0.f) {
-      c->facing.x = -1.f;
-      c->aim_dir.x = -1.f * fabs(c->aim_dir.x);
-    }
-    // Particles on the ground with no acceleration should stop immediately.
-    // Without this stuff feels kinda floaty.
-    if (particle->on_ground && particle->acceleration.x == 0.f) {
-      particle->velocity.x = 0.f;
-    }
-
-    c->prev_character_flags = c->character_flags;
-  });
-
+  // Reset game if returns true.
+  if (CharacterUpdate()) return true;
   ObstacleUpdate();
   SpawnerUpdate();
   ProjectileUpdate();

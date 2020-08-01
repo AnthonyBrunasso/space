@@ -46,7 +46,9 @@ SpawnerUpdate()
             physics::Particle2d* particle = FindParticle(player);
             particle->collision_mask = kCollisionMaskCharacter;
             particle->damping = 0.005f;
-            kSim.player_id = player->id;
+            kCharacter.player_id = player->id;
+            player->double_jump_cooldown.frame = 15;
+            util::FrameCooldownInitialize(&player->double_jump_cooldown);
           }
         } break;
         case kSpawnerSnail: {

@@ -161,6 +161,8 @@ struct Character {
   r32 move_acceleration = kPlayerAcceleration;
   // How long the character must wait before they can perform a double jump.
   util::FrameCooldown double_jump_cooldown;
+  // Cooldown that lets character fire their weapon.
+  util::FrameCooldown weapon_cooldown;
 };
 
 enum ProjectileType {

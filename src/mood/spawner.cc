@@ -49,6 +49,8 @@ SpawnerUpdate()
             kCharacter.player_id = player->id;
             player->double_jump_cooldown.frame = 15;
             util::FrameCooldownInitialize(&player->double_jump_cooldown);
+            player->weapon_cooldown.frame = 10;
+            util::FrameCooldownInitialize(&player->weapon_cooldown);
           }
         } break;
         case kSpawnerSnail: {

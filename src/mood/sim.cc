@@ -44,7 +44,8 @@ SimReset()
 void
 __CharacterProjectileCollision(Character* character, Projectile* projectile)
 {
-  if (character->id == kCharacter.player_id) return;
+  // If the particle created the projectile - ignore the collision.
+  if (projectile->from_entity == character->id) return;
   SetDestroyFlag(projectile);
   character->health -= 3.f;
 }

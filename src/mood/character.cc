@@ -8,8 +8,6 @@ struct GCharacter {
   u32 player_id = 0; 
   // Cooldown that dictates whether the player can boost.
   util::FrameCooldown boost_cooldown;
-  // Cooldown that lets player fire weapon.
-  util::FrameCooldown weapon_cooldown;
   // Cooldown that makes player invulnerable.
   util::FrameCooldown player_invulnerable;
 };
@@ -31,10 +29,6 @@ CharacterInitialize()
 {
   kCharacter.boost_cooldown.frame = 60;
   util::FrameCooldownInitialize(&kCharacter.boost_cooldown);
-
-  kCharacter.weapon_cooldown.frame = 10;
-  util::FrameCooldownInitialize(&kCharacter.weapon_cooldown);
-
   kCharacter.player_invulnerable.frame = 20;
   util::FrameCooldownInitialize(&kCharacter.player_invulnerable);
 }
@@ -62,17 +56,17 @@ CharacterUpdate()
       }
 
       if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
-        if (util::FrameCooldownReady(&kCharacter.weapon_cooldown)) {
-          util::FrameCooldownReset(&kCharacter.weapon_cooldown);
+        if (util::FrameCooldownReady(&c->weapon_cooldown)) {
+          util::FrameCooldownReset(&c->weapon_cooldown);
           ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
-                           kCharacter.player_id, kProjectileBullet);
+                           c->id, kProjectileBullet);
         }
       }
       if (FLAGGED(c->character_flags, kCharacterFireSecondary)) {
-        if (util::FrameCooldownReady(&kCharacter.weapon_cooldown)) {
-          util::FrameCooldownReset(&kCharacter.weapon_cooldown);
+        if (util::FrameCooldownReady(&c->weapon_cooldown)) {
+          util::FrameCooldownReset(&c->weapon_cooldown);
           ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
-                           kCharacter.player_id, kProjectileGrenade);
+                           c->id, kProjectileGrenade);
         }
       }
       if (FLAGGED(c->ability_flags, kCharacterAbilityBoost)) {

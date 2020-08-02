@@ -43,6 +43,8 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
       } break;
       default: break;
     };
+    ai_character->weapon_cooldown.frame = 50;
+    util::FrameCooldownInitialize(&ai_character->weapon_cooldown);
     BB_SET(bb(ai_character), kAIBbType, behavior);
   }
 
@@ -102,9 +104,15 @@ AIBehaviorFlying(Character* c)
   // Head towards the player I guess?
   physics::Particle2d* player_particle = PlayerParticle();
   physics::Particle2d* ai_particle = FindParticle(c);
-  ai_particle->acceleration =
-    math::Normalize(player_particle->position - ai_particle->position) *
-        kEnemyAcceleration;
+  v2f dir = math::Normalize(player_particle->position - ai_particle->position);
+  ai_particle->acceleration = dir * kEnemyAcceleration;
+  if (math::LengthSquared(
+      player_particle->position - ai_particle->position) < 50000.f) {
+    c->aim_dir = math::Rotate(dir, math::Random(-20.f, 20.f));
+    SBIT(c->character_flags, kCharacterFireWeapon);
+  } else {
+    CBIT(c->character_flags, kCharacterFireWeapon);
+  }
 }
 
 void
@@ -130,6 +138,7 @@ AIUpdate()
 
   if (util::FrameCooldownReady(&kAI.spawn_cooldown)) {
     util::FrameCooldownReset(&kAI.spawn_cooldown);
-    printf("Spawn enemy..\n");
+    AICreate(v2f(math::Random(-100.f, 100.f), math::Random(100.f, 200.f)),
+             v2f(15.f, 15.f), kBehaviorSimpleFlying);
   }
 }

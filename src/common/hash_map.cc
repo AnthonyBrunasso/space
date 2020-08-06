@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <cstring>
 
 constexpr u32 kMaxHashKeyLength = 64;
 

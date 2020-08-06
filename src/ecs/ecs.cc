@@ -47,6 +47,38 @@ struct ComponentStorage {
     return &bytes[idx * sizeof_element];
   }
 
+  // Sorts last element in list returning the sorted element.
+  u8*
+  SortLastElement()
+  {
+    assert(size > 0);
+    if (size == 1) {
+      return Get(size - 1);
+    }
+    u8* ptr = Get(size - 1);
+    u32 tid = *((u32*)ptr);
+    s32 nelem = size - 2;
+    while (nelem >= 0) {
+      u8* nelem_ptr = Get(nelem);
+      u32 nelem_tid = *((u32*)nelem_ptr);
+      if (tid > nelem_tid) {
+        return ptr;
+      }
+      // Swap bytes from nelem_ptr to ptr.
+      // Creating the loop allows the compiler to vectorize the byte swapping
+      // which ends up being faster than 3 memcpys.
+      for (u32 i = 0; i < sizeof_element; ++i) {
+        u8 b = *ptr;
+        *ptr = *nelem_ptr;
+        *nelem_ptr = b;
+        ++ptr; ++nelem_ptr;
+      }
+      ptr = Get(nelem);
+      --nelem;
+    }
+    return ptr;
+  }
+
   u8* bytes = nullptr;
   u32 sizeof_element = 0;
   u32 size = 0;
@@ -62,11 +94,13 @@ GetComponents(u64 tid);
 // ids.
 struct Components;
 
-#define DECLARE_COMPONENT(Type, tid)                    \
-  Type* Assign##Type(ecs::Entity* ent) {                \
-    Type* t = (Type*)ecs::GetComponents(tid)->Assign(); \
-    t->entity_id = ent->id;                             \
-    return t;                                           \
+#define DECLARE_COMPONENT(Type, tid)                      \
+  Type* Assign##Type(ecs::Entity* ent) {                  \
+    ComponentStorage* storage = ecs::GetComponents(tid);  \
+    Type* t = (Type*)storage->Assign();                   \
+    t->entity_id = ent->id;                               \
+    t = (Type*)storage->SortLastElement();                \
+    return t;                                             \
   }
 
 template <u32 N>

@@ -53,21 +53,23 @@ struct Components {
 int
 main(int argc, char** argv)
 {
+  //while (!IsDebuggerPresent()) {}
+
   memory::Initialize(2048);
 
   ecs::Entity* e1 = ecs::UseEntity();
   ecs::Entity* e2 = ecs::UseEntity();
 
   {
+    Foo* foo = ecs::AssignFoo(e2);
+    foo->health = 16;
+  }
+
+  {
     Foo* foo = ecs::AssignFoo(e1);
     foo->health = 32;
     Bar* bar = ecs::AssignBar(e1);
     bar->stuff = 2.3f;
-  }
-
-  {
-    Foo* foo = ecs::AssignFoo(e2);
-    foo->health = 16;
   }
 
   {

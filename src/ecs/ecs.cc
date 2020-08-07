@@ -64,7 +64,7 @@ struct ComponentStorage {
       if (tid > nelem_tid) {
         return ptr;
       }
-      // Swap bytes from nelem_ptr to ptr.
+      // Swap bytes between nelem_ptr and ptr.
       // Creating the loop allows the compiler to vectorize the byte swapping
       // which ends up being faster than 3 memcpys.
       for (u32 i = 0; i < sizeof_element; ++i) {
@@ -77,6 +77,39 @@ struct ComponentStorage {
       --nelem;
     }
     return ptr;
+  }
+
+  u8*
+  Find(u32 id)
+  {
+    u32 l = 0;
+    u32 r = size - 1;
+    while (l <= r) {
+      u32 m = l + (r - l) / 2;
+      u8* bytes = Get(m);
+      u32 tid = *((u32*)bytes);
+      if (tid == id) return bytes;
+      if (tid < id) l = m + 1;
+      else r = m - 1;
+    }
+    return nullptr;
+  }
+
+  void
+  Erase(u32 id)
+  {
+    if (size == 0) return;
+    if (size == 1) {
+      memcpy(bytes, 0, sizeof_element);
+      return;
+    }
+    u8* elem = Find(id);
+    if (!elem) return;
+    u8* nelem = elem + sizeof_element;
+    u8* end = &bytes[(size - 1) * sizeof_element + sizeof_element];
+    memmove(elem, elem + sizeof_element, end - nelem);
+    --size;
+    memset(Get(size), 0, sizeof_element);
   }
 
   u8* bytes = nullptr;
@@ -94,13 +127,37 @@ GetComponents(u64 tid);
 // ids.
 struct Components;
 
+void
+DeleteEntity(Entity* ent)
+{
+  for (int i = 0; i < 64; ++i) {
+    if (FLAGGED(ent->components_mask, i)) {
+      GetComponents(i)->Erase(ent->id);
+    }
+  } 
+  SwapAndClearEntity(ent->id);
+}
+
 #define DECLARE_COMPONENT(Type, tid)                      \
   Type* Assign##Type(ecs::Entity* ent) {                  \
     ComponentStorage* storage = ecs::GetComponents(tid);  \
     Type* t = (Type*)storage->Assign();                   \
     t->entity_id = ent->id;                               \
+    ent->components_mask |= FLAG(tid);                    \
     t = (Type*)storage->SortLastElement();                \
     return t;                                             \
+  }                                                       \
+                                                          \
+  void Remove##Type(ecs::Entity* ent) {                   \
+    ComponentStorage* storage = ecs::GetComponents(tid);  \
+    storage->Erase(ent->id);                              \
+    CBIT(ent->components_mask, tid);                      \
+  }                                                       \
+                                                          \
+  Type* Get##Type(ecs::Entity* ent) {                     \
+    if (!ent->Has(tid)) return nullptr;                   \
+    ComponentStorage* storage = ecs::GetComponents(tid);  \
+    return (Type*)storage->Find(ent->id);                 \
   }
 
 template <u32 N>

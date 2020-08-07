@@ -25,11 +25,11 @@ GetComponents(u64 tid)
 {
   switch (tid) {
     case kFoo: {
-      static ecs::ComponentStorage f(2, sizeof(Foo));
+      static ecs::ComponentStorage f(8, sizeof(Foo));
       return &f;
     } break;
     case kBar: {
-      static ecs::ComponentStorage f(2, sizeof(Bar));
+      static ecs::ComponentStorage f(8, sizeof(Bar));
       return &f;
     } break;
     default: {
@@ -59,10 +59,23 @@ main(int argc, char** argv)
 
   ecs::Entity* e1 = ecs::UseEntity();
   ecs::Entity* e2 = ecs::UseEntity();
+  ecs::Entity* e3 = ecs::UseEntity();
+  ecs::Entity* e4 = ecs::UseEntity();
+  ecs::Entity* e5 = ecs::UseEntity();
+
+  {
+    Foo* foo = ecs::AssignFoo(e4);
+    foo->health = 4;
+  }
 
   {
     Foo* foo = ecs::AssignFoo(e2);
-    foo->health = 16;
+    foo->health = 2;
+  }
+
+  {
+    Foo* foo = ecs::AssignFoo(e3);
+    foo->health = 3;
   }
 
   {
@@ -70,6 +83,11 @@ main(int argc, char** argv)
     foo->health = 32;
     Bar* bar = ecs::AssignBar(e1);
     bar->stuff = 2.3f;
+  }
+
+  {
+    Foo* foo = ecs::AssignFoo(e5);
+    foo->health = 5;
   }
 
   {
@@ -87,6 +105,23 @@ main(int argc, char** argv)
     }
   }
 
+  printf("%u %u\n", e1->id, ecs::GetFoo(e1)->health);
+  printf("%u %u\n", e2->id, ecs::GetFoo(e2)->health);
+  printf("%u %u\n", e3->id, ecs::GetFoo(e3)->health);
+  printf("%u %u\n", e4->id, ecs::GetFoo(e4)->health);
+  printf("%u %u\n", e5->id, ecs::GetFoo(e5)->health);
+
+  ecs::RemoveFoo(e4);
+
+  {
+    ecs::EntityItr<1> itr(kFoo);
+    while (itr.Next()) {
+      printf("Entity found %u %u\n", itr.eid, itr.c.foo->health);
+    }
+  }
+
+  //ecs::RemoveFoo(e4);
+  //ecs::RemoveFoo(e5);
 
   return 0;
 }

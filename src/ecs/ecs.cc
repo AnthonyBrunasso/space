@@ -100,7 +100,7 @@ struct ComponentStorage {
   {
     if (size == 0) return;
     if (size == 1) {
-      memcpy(bytes, 0, sizeof_element);
+      memset(bytes, 0, sizeof_element);
       return;
     }
     u8* elem = Find(id);
@@ -143,7 +143,7 @@ DeleteEntity(Entity* ent)
     ComponentStorage* storage = ecs::GetComponents(tid);  \
     Type* t = (Type*)storage->Assign();                   \
     t->entity_id = ent->id;                               \
-    ent->components_mask |= FLAG(tid);                    \
+    SBIT(ent->components_mask, tid);                      \
     t = (Type*)storage->SortLastElement();                \
     return t;                                             \
   }                                                       \

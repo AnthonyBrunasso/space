@@ -91,9 +91,10 @@ main(int argc, char** argv)
   }
 
   {
+    ecs::RemoveBar(e1);
     ecs::EntityItr<2> itr(kFoo, kBar);
     while (itr.Next()) {
-      printf("Entity found %u %u %.2f\n",
+      printf("Entity found %u health: %u stuff: %.2f\n",
              itr.eid, itr.c.foo->health, itr.c.bar->stuff);
     }
   }

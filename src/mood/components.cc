@@ -13,6 +13,7 @@ enum TypeId : u64 {
   kCharacterComponent = 2,
   kDeathComponent = 3,
   kProjectileComponent = 4,
+  kComponentCount = 5,
 }; 
 
 struct PhysicsComponent {

@@ -186,22 +186,18 @@ SimUpdate()
   // Cleanup entities marked to die at the end of each simulation update
   // frame. Particle for physics system will be destroyed at the top of the
   // next integration step.
-  for (u32 i = 0; i < kUsedEntity;) {
-    Entity* entity = &kEntity[i];
-    if (FLAGGED(entity->flags, kEntityDestroy)) {
-      // AI characters are unique in that they require their blackboards
-      // deleted.
-      Character* c = FindCharacter(entity->id);
-      if (c && c->blackboard_id) {
-        //Blackboard* b = bb(c);
-        //SwapAndClearBlackboard(b->id);
-      }
-      physics::DeleteParticle2d(entity->particle_id);
-      SwapAndClearEntity(entity->id);
-      continue;
+  ecs::EntityItr<1> itr(kDeathComponent);
+  while (itr.Next()) {
+    if (itr.e->Has(kBlackboardComponent)) {
+      SwapAndClearBlackboard(
+          ecs::GetBlackboardComponent(itr.e)->blackboard_id);
     }
-    ++i;
+    if (itr.e->Has(kPhysicsComponent)) {
+      physics::DeleteParticle2d(ecs::GetPhysicsComponent(itr.e)->particle_id);
+    }
+    ecs::DeleteEntity(itr.e, kComponentCount);
   }
+  ecs::GetComponents(kDeathComponent)->Clear();
 
   // TODO: Not entirely sure why this is needed. Without this - sometimes
   // physics geometry can get into an invalid state where things tunnel

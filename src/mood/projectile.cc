@@ -77,10 +77,10 @@ ProjectileUpdate()
       }
     }
 
-    //--p->updates_to_live;
-    //if (!p->updates_to_live) {
-    //  SetDestroyFlag(p);
-    //}
+    --p->updates_to_live;
+    if (!p->updates_to_live) {
+      ecs::AssignDeathComponent(itr.e);
+    }
   }
 }
 

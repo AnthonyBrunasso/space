@@ -58,6 +58,8 @@ struct ComponentStorage {
     u8* ptr = Get(size - 1);
     u32 tid = *((u32*)ptr);
     s32 nelem = size - 2;
+    // TODO: This probably would be faster if I found the position of where
+    // this element should go, memoved everything up and put it there.
     while (nelem >= 0) {
       u8* nelem_ptr = Get(nelem);
       u32 nelem_tid = *((u32*)nelem_ptr);
@@ -112,6 +114,14 @@ struct ComponentStorage {
     memset(Get(size), 0, sizeof_element);
   }
 
+  void
+  Clear()
+  {
+    if (size == 0) return;
+    memset(bytes, 0,  sizeof_element * max_size);
+    size = 0;
+  }
+
   u8* bytes = nullptr;
   u32 sizeof_element = 0;
   u32 size = 0;
@@ -128,11 +138,11 @@ GetComponents(u64 tid);
 struct Components;
 
 void
-DeleteEntity(Entity* ent)
+DeleteEntity(Entity* ent, u32 max_comps = 64)
 {
   // If the entity has any components left attached to it - delete them.
   if (ent->components_mask) {
-    for (int i = 0; i < 64; ++i) {
+    for (int i = 0; i < max_comps; ++i) {
       if (FLAGGED(ent->components_mask, i)) {
         GetComponents(i)->Erase(ent->id);
       }

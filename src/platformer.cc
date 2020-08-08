@@ -23,7 +23,7 @@
 #include "mood/map.cc"
 #include "mood/interaction.cc"
 
-#define WIN_ATTACH_DEBUGGER 0
+#define WIN_ATTACH_DEBUGGER 1
 #define DEBUG_PHYSICS 0
 
 struct State {

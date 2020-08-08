@@ -68,7 +68,6 @@ main(int argc, char** argv)
   ecs::AssignFoo(e3);
   ecs::AssignFoo(e4);
 
-  ecs::AssignBar(e2);
   ecs::AssignBar(e3);
   ecs::AssignBar(e4);
 

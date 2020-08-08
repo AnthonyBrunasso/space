@@ -23,8 +23,8 @@ Player()
 physics::Particle2d*
 PlayerParticle()
 {
-  return physics::FindParticle2d(
-      FindCharacter(kCharacter.player_id)->particle_id);
+  ecs::Entity* ent = Player();
+  return physics::FindParticle2d(ecs::GetPhysicsComponent(ent)->particle_id);
 }
 
 bool

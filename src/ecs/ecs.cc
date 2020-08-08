@@ -199,12 +199,13 @@ struct EntityItr {
     va_end(args);
   } 
 
-  void IncreaseMin() {
+  void IncreaseMin(u8** ptrs) {
     u32 min = 0xFFFFFFFF;
     u32 min_idx = 0xFFFFFFFF;
     for (u32 i = 0; i < N; ++i) {
-      if (idx[i] < min) {
-        min = idx[i];
+      u32 id = *((u32*)(ptrs[i]));
+      if (id < min) {
+        min = id;
         min_idx = i;
       }
     }
@@ -232,7 +233,7 @@ struct EntityItr {
         }
       }
       if (match) break;
-      IncreaseMin();
+      IncreaseMin(ptrs);
     }
 
     if (match) {

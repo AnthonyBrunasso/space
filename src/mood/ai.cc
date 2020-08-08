@@ -61,11 +61,13 @@ AIInitialize()
 }
 
 void
-AIBehaviorPatrol(Character* c)
+AIBehaviorPatrol(AIComponent* ai)
 {
   const Patrol* patrol;
-  //if (!BB_GET(bb(c), kAIBbPatrol, patrol)) return;
-  physics::Particle2d* ai_particle = FindParticle(c);
+  if (!BB_GET(ai->blackboard, kAIBbPatrol, patrol)) return;
+  ecs::Entity* entity = ecs::FindEntity(ai->entity_id);
+  physics::Particle2d* ai_particle = physics::FindParticle2d(
+      ecs::GetPhysicsComponent(entity)->particle_id); 
   if (fabs(ai_particle->velocity.x) <= FLT_EPSILON) {
     r32 r = math::Random(0.f, 1.f);
     if (r < 0.5f) {
@@ -84,9 +86,9 @@ AIBehaviorPatrol(Character* c)
 }
 
 void
-AIBehaviorSimple(Character* c)
+AIBehaviorSimple(AIComponent* ai)
 {
-  AIBehaviorPatrol(c);
+  AIBehaviorPatrol(ai);
   // Head towards the player I guess?
   //physics::Particle2d* player_particle = PlayerParticle();
   //physics::Particle2d* ai_particle = FindParticle(c);
@@ -98,11 +100,14 @@ AIBehaviorSimple(Character* c)
 }
 
 void
-AIBehaviorFlying(Character* c)
+AIBehaviorFlying(AIComponent* ai)
 {
   // Head towards the player I guess?
   physics::Particle2d* player_particle = PlayerParticle();
-  physics::Particle2d* ai_particle = FindParticle(c);
+  ecs::Entity* entity = ecs::FindEntity(ai->entity_id);
+  physics::Particle2d* ai_particle = physics::FindParticle2d(
+      ecs::GetPhysicsComponent(entity)->particle_id); 
+  CharacterComponent* c = ecs::GetCharacterComponent(entity);
   v2f dir = math::Normalize(player_particle->position - ai_particle->position);
   ai_particle->acceleration = dir * kEnemyAcceleration;
   if (math::LengthSquared(
@@ -118,27 +123,26 @@ void
 AIUpdate()
 {
   if (!kEnableEnemies) return;
-#if 0
-  FOR_EACH_ENTITY(Character, c, {
+  ecs::EntityItr<1> itr(kAIComponent);
+  while (itr.Next()) {
     const u32* behavior;
-    if (!BB_GET(bb(c),  kAIBbType, behavior)) continue;
+    if (!BB_GET(itr.c.ai->blackboard,  kAIBbType, behavior)) continue;
     switch (*behavior) {
       case kBehaviorSimple: {
-        AIBehaviorSimple(c);
+        AIBehaviorSimple(itr.c.ai);
       } break;
       case kBehaviorSimpleFlying: {
-        AIBehaviorFlying(c);
+        AIBehaviorFlying(itr.c.ai);
       } break;
       default: {
-        printf("Unknown behavior entity %u\n", c->id);
+        printf("Unknown behavior entity %u\n", itr.e->id);
       } break;
     }
-  });
+  }
 
   if (util::FrameCooldownReady(&kAI.spawn_cooldown)) {
     util::FrameCooldownReset(&kAI.spawn_cooldown);
     AICreate(v2f(math::Random(-100.f, 100.f), math::Random(100.f, 200.f)),
              v2f(15.f, 15.f), kBehaviorSimpleFlying);
   }
-#endif
 }

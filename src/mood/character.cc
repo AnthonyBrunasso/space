@@ -71,15 +71,15 @@ CharacterUpdate()
       if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
         if (util::FrameCooldownReady(&c->weapon_cooldown)) {
           util::FrameCooldownReset(&c->weapon_cooldown);
-          //ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
-          //                 c->entity_id, kProjectileBullet);
+          ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
+                           c->entity_id, kProjectileBullet);
         }
       }
       if (FLAGGED(c->character_flags, kCharacterFireSecondary)) {
         if (util::FrameCooldownReady(&c->weapon_cooldown)) {
           util::FrameCooldownReset(&c->weapon_cooldown);
-          //ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
-          //                 c->id, kProjectileGrenade);
+          ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
+                           c->entity_id, kProjectileGrenade);
         }
       }
       if (FLAGGED(c->ability_flags, kCharacterAbilityBoost)) {

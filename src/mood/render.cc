@@ -174,7 +174,7 @@ Render()
 
   for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
     physics::Particle2d* p = &physics::kParticle2d[i];
-    Entity* e = FindEntity(p->entity_id);
+    ecs::Entity* e = ecs::FindEntity(p->entity_id);
     if (p->user_flags) {
       if (FLAGGED(p->user_flags, kParticleBlood)) {
         rgg::RenderRectangle(p->aabb(), rgg::kRed);
@@ -192,10 +192,11 @@ Render()
       } else if (FLAGGED(p->user_flags, kParticleBoost)) {
         if (kRenderAabb) rgg::RenderLineRectangle(p->aabb(), rgg::kPurple);
       }
-    } else if (e && e->type == kEntityTypeProjectile) {
+    } else if (e && e->Has(kProjectileComponent)) {
         rgg::RenderRectangle(p->Rect(), 0.f, p->rotation, rgg::kWhite);
     }
   }
+
   animation::Sprite* character_sprite = rgg::GetSprite(kRender.character_id);
   animation::Sprite* snail_sprite = rgg::GetSprite(kRender.snail_id);
   //physics::DebugRender(); 

@@ -12,6 +12,7 @@ enum TypeId : u64 {
   kBlackboardComponent = 1,
   kCharacterComponent = 2,
   kDeathComponent = 3,
+  kProjectileComponent = 4,
 }; 
 
 struct PhysicsComponent {
@@ -60,6 +61,17 @@ struct DeathComponent {
   u32 entity_id = 0;
 };
 
+struct ProjectileComponent {
+  u32 entity_id;
+  v2f dir;
+  ProjectileType projectile_type;
+  // Number of updates the projectile should live for.
+  uint64_t updates_to_live = 0;
+  // Entity that fired the projectile.
+  u32 from_entity = 0;
+  r32 speed = 500.f;
+};
+
 }
 
 namespace ecs {
@@ -87,6 +99,10 @@ GetComponents(u64 tid)
       static ecs::ComponentStorage f(1, sizeof(DeathComponent));
       return &f;
     } break;
+    case kProjectileComponent: {
+      static ecs::ComponentStorage f(256, sizeof(ProjectileComponent));
+      return &f;
+    } break;
     default: {
       assert(!"Unknown component type");
     } break;
@@ -98,12 +114,14 @@ DECLARE_COMPONENT(PhysicsComponent, kPhysicsComponent);
 DECLARE_COMPONENT(BlackboardComponent, kBlackboardComponent);
 DECLARE_COMPONENT(CharacterComponent, kCharacterComponent);
 DECLARE_COMPONENT(DeathComponent, kDeathComponent);
+DECLARE_COMPONENT(ProjectileComponent, kProjectileComponent);
 
 struct Components {
   PhysicsComponent* physics = nullptr;
   BlackboardComponent* blackboard = nullptr;
   CharacterComponent* character = nullptr;
   DeathComponent* death = nullptr;
+  ProjectileComponent* projectile = nullptr;
 };
 
 }

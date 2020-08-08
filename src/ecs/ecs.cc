@@ -82,10 +82,10 @@ struct ComponentStorage {
   u8*
   Find(u32 id)
   {
-    u32 l = 0;
-    u32 r = size - 1;
+    s32 l = 0;
+    s32 r = size - 1;
     while (l <= r) {
-      u32 m = l + (r - l) / 2;
+      s32 m = l + (r - l) / 2;
       u8* bytes = Get(m);
       u32 tid = *((u32*)bytes);
       if (tid == id) return bytes;
@@ -146,10 +146,10 @@ DeleteEntity(Entity* ent)
     if (!ent) return nullptr;                             \
     ComponentStorage* storage = ecs::GetComponents(tid);  \
     Type* t = (Type*)storage->Assign();                   \
-    SBIT(ent->components_mask, tid);                      \
-    t = (Type*)storage->SortLastElement();                \
     *t = {};                                              \
     t->entity_id = ent->id;                               \
+    SBIT(ent->components_mask, tid);                      \
+    t = (Type*)storage->SortLastElement();                \
     return t;                                             \
   }                                                       \
                                                           \
@@ -200,6 +200,7 @@ struct EntityItr {
     bool match = true;
     u32 id;
     while(1) {
+      match = true;
       u8* ptrs[N];
       for (u32 i = 0; i < N; ++i) {
         if (idx[i] >= comps[i]->max_size) return false;

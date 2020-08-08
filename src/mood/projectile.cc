@@ -11,13 +11,13 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
   v2f start_offset = {};
   r32 angle = atan2(dir.y, dir.x) * 180.f / PI;
   v2f size;
-  Projectile* projectile = nullptr;
   physics::Particle2d* particle = nullptr;
+  ecs::Entity* pentity = ecs::UseEntity();
+  ProjectileComponent* projectile = AssignProjectileComponent(pentity);
   switch (type) {
     case kProjectileBullet:
     case kProjectileLaser: {
-      projectile = UseEntityProjectile(start, v2f(10.5f, 1.2f));
-      particle = FindParticle(projectile);
+      particle = physics::CreateParticle2d(start, v2f(10.5f, 1.2f));
       particle->rotation = angle;
       SBIT(particle->flags, physics::kParticleIgnoreGravity);
       SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
@@ -32,8 +32,7 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
       if (particle_creator) {
         start_offset = v2f((particle_creator->dims.x / 2.f) * dir.x, 0.f);
       }
-      projectile = UseEntityProjectile(start + start_offset, v2f(4.f, 4.f));
-      particle = FindParticle(projectile);
+      particle = physics::CreateParticle2d(start, v2f(10.5f, 1.2f));
       //particle->force = dir * 50000.f;
       particle->rotation = 0.f;
       SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
@@ -41,9 +40,12 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
       projectile->updates_to_live = 300;
       projectile->speed = kGrenadeSpeed;
     } break;
-    default: break;
+    default: {
+      assert(!"Unknown projectile type...");
+    } break;
   };
-  if (!projectile) return;
+  ecs::AssignPhysicsComponent(pentity)->particle_id = particle->id;
+  particle->entity_id = pentity->id;
   dir += v2f(0.f, math::Random(-0.05f, 0.05f));
   projectile->dir = dir;
   projectile->projectile_type = type;
@@ -53,8 +55,11 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
 void
 ProjectileUpdate()
 {
-  FOR_EACH_ENTITY(Projectile, p, {
-    physics::Particle2d* particle = FindParticle(p);
+  ecs::EntityItr<2> itr(kPhysicsComponent, kProjectileComponent);
+  while (itr.Next()) {
+    physics::Particle2d* particle =
+        physics::FindParticle2d(itr.c.physics->particle_id);
+    ProjectileComponent* p = itr.c.projectile;
     if (particle) {
       switch (p->projectile_type) {
         case kProjectileLaser: {
@@ -72,11 +77,11 @@ ProjectileUpdate()
       }
     }
 
-    --p->updates_to_live;
-    if (!p->updates_to_live) {
-      SetDestroyFlag(p);
-    }
-  });
+    //--p->updates_to_live;
+    //if (!p->updates_to_live) {
+    //  SetDestroyFlag(p);
+    //}
+  }
 }
 
 }

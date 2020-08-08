@@ -63,6 +63,20 @@ main(int argc, char** argv)
   ecs::Entity* e4 = ecs::UseEntity();
   ecs::Entity* e5 = ecs::UseEntity();
 
+  ecs::AssignFoo(e1);
+  ecs::AssignFoo(e2);
+  ecs::AssignFoo(e3);
+  ecs::AssignFoo(e4);
+
+  ecs::AssignBar(e2);
+  ecs::AssignBar(e3);
+  ecs::AssignBar(e4);
+
+  ecs::EntityItr<2> itr(kFoo, kBar);
+  while (itr.Next()) {
+    printf("Entity found %u\n", itr.e->id);
+  }
+#if 0
   {
     Foo* foo = ecs::AssignFoo(e4);
     foo->health = 4;
@@ -123,6 +137,6 @@ main(int argc, char** argv)
 
   //ecs::RemoveFoo(e4);
   //ecs::RemoveFoo(e5);
-
+#endif
   return 0;
 }

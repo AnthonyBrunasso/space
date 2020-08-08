@@ -24,7 +24,7 @@
 #include "mood/interaction.cc"
 
 #define WIN_ATTACH_DEBUGGER 1
-#define DEBUG_PHYSICS 0
+#define DEBUG_PHYSICS 1
 
 struct State {
   // Game and render updates per second

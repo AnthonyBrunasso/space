@@ -42,6 +42,7 @@ SimReset()
   for (u32 i = 0; i < kComponentCount; ++i) {
     ecs::GetComponents(i)->Clear();
   }
+  ecs::ResetEntity();
   physics::Reset();
   ResetEntity();
 }

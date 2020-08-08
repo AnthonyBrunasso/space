@@ -27,7 +27,8 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
   ecs::Entity* ai_entity = ecs::UseEntity();
   CharacterComponent* ai_character = ecs::AssignCharacterComponent(ai_entity);
   PhysicsComponent* physics_comp = ecs::AssignPhysicsComponent(ai_entity);
-  physics::Particle2d* particle =  physics::CreateParticle2d(pos, dims);
+  physics::Particle2d* particle =
+      physics::CreateParticle2d(pos, dims, ai_entity->id);
   physics_comp->particle_id = particle->id;
   AIComponent* ai_comp = ecs::AssignAIComponent(ai_entity);
   if (particle) {

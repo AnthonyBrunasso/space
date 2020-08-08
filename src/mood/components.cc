@@ -13,7 +13,8 @@ enum TypeId : u64 {
   kCharacterComponent = 2,
   kDeathComponent = 3,
   kProjectileComponent = 4,
-  kComponentCount = 5,
+  kObstacleComponent = 5,
+  kComponentCount = 6,
 }; 
 
 struct PhysicsComponent {
@@ -63,7 +64,7 @@ struct DeathComponent {
 };
 
 struct ProjectileComponent {
-  u32 entity_id;
+  u32 entity_id = 0;
   v2f dir;
   ProjectileType projectile_type;
   // Number of updates the projectile should live for.
@@ -73,6 +74,13 @@ struct ProjectileComponent {
   // Entity that fired the projectile.
   r32 speed = 500.f;
 };
+
+struct ObstacleComponent {
+  u32 entity_id = 0;
+  ObstacleType obstacle_type = kObstacleNone;
+};
+
+
 
 }
 
@@ -105,6 +113,10 @@ GetComponents(u64 tid)
       static ecs::ComponentStorage f(256, sizeof(ProjectileComponent));
       return &f;
     } break;
+    case kObstacleComponent: {
+      static ecs::ComponentStorage f(32, sizeof(ObstacleComponent));
+      return &f;
+    } break;
     default: {
       assert(!"Unknown component type");
     } break;
@@ -117,13 +129,21 @@ DECLARE_COMPONENT(AIComponent, kAIComponent);
 DECLARE_COMPONENT(CharacterComponent, kCharacterComponent);
 DECLARE_COMPONENT(DeathComponent, kDeathComponent);
 DECLARE_COMPONENT(ProjectileComponent, kProjectileComponent);
+DECLARE_COMPONENT(ObstacleComponent, kObstacleComponent);
 
 struct Components {
-  PhysicsComponent* physics = nullptr;
-  AIComponent* ai = nullptr;
-  CharacterComponent* character = nullptr;
-  DeathComponent* death = nullptr;
+  PhysicsComponent*    physics    = nullptr;
+  AIComponent*         ai         = nullptr;
+  CharacterComponent*  character  = nullptr;
+  DeathComponent*      death      = nullptr;
   ProjectileComponent* projectile = nullptr;
+  ObstacleComponent*   obstacle   = nullptr;
 };
+
+physics::Particle2d*
+GetParticle(ecs::Entity* ent)
+{
+  return physics::FindParticle2d(ecs::GetPhysicsComponent(ent)->particle_id);
+}
 
 }

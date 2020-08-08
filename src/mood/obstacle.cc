@@ -8,9 +8,12 @@ ObstacleCreate(v2f pos, v2f dims, ObstacleType type)
   Obstacle* obstacle = nullptr;
   switch (type) {
     case kObstacleBoost: {
-      obstacle = UseEntityObstacle(pos, dims);
+      ecs::Entity* entity = ecs::UseEntity();
+      ObstacleComponent* obstacle = ecs::AssignObstacleComponent(entity);
+      physics::Particle2d* p =
+          physics::CreateParticle2d(pos, dims, entity->id);
+      ecs::AssignPhysicsComponent(entity)->particle_id = p->id;
       obstacle->obstacle_type = type;
-      physics::Particle2d* p = FindParticle(obstacle);
       SBIT(p->flags, physics::kParticleIgnoreGravity);
       SBIT(p->flags, physics::kParticleIgnoreCollisionResolution);
       SBIT(p->user_flags, kParticleBoost);
@@ -27,7 +30,10 @@ ObstacleCreate(v2f pos, v2f dims, ObstacleType type)
 void
 ObstacleUpdate()
 {
-  FOR_EACH_ENTITY_P(Obstacle, o, p, {
+  ecs::EntityItr<1> itr(kObstacleComponent);
+  while (itr.Next()) {
+    ObstacleComponent* o = itr.c.obstacle;
+    physics::Particle2d* p = ecs::GetParticle(itr.e);
     switch (o->obstacle_type) {
       case kObstacleBoost: {
         if (kSim.frame % 2 == 0) {
@@ -42,7 +48,7 @@ ObstacleUpdate()
         printf("%s Unknown obstacle type.", __FUNCTION__);
       } break;
     }
-  });
+  }
 }
 
 }

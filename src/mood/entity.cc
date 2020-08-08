@@ -102,37 +102,6 @@ enum EntityFlags {
   kEntityDestroy = 0,
 };
 
-enum CharacterFlags {
-  // If set the character will attempt to fire their primary weapon.
-  kCharacterFireWeapon = 0,
-  // If set the character will attempt to jump.
-  kCharacterJump = 1,
-  // Set for the frame the player fired their weapon.
-  kCharacterWeaponFired = 2,
-  // If set the character will attempt to fire their secondary weapon.
-  kCharacterFireSecondary = 3,
-  // Set if the character should be moving.
-  kCharacterMove = 4,
-};
-
-enum CharacterAbilityFlags {
-  // If set the character will boost in the direction of its velocity.
-  kCharacterAbilityBoost = 0,
-  // Set if the player is allowed to double jump.
-  kCharacterCanDoubleJump = 1,
-};
-
-enum CharacterBbEntry {
-  kAIBbType = 0, // Stores value of CharacterAIBehavior.
-  kAIBbPatrol = 1,
-};
-
-enum CharacterAIBehavior {
-  kBehaviorNull = 0,   // Blackboard entries can't be 0.
-  kBehaviorSimple = 1,
-  kBehaviorSimpleFlying = 2,
-};
-
 struct Character {
   ENTITY_DECL = kEntityTypeCharacter;
   v2f facing = {1.f, 0.f};
@@ -165,12 +134,6 @@ struct Character {
   util::FrameCooldown weapon_cooldown;
 };
 
-enum ProjectileType {
-  kProjectileLaser = 0,
-  kProjectileBullet = 1,
-  kProjectileGrenade = 2,
-};
-
 struct Projectile {
   ENTITY_DECL = kEntityTypeProjectile;
   v2f dir;
@@ -182,12 +145,6 @@ struct Projectile {
   r32 speed = 500.f;
 };
 
-enum SpawnerType {
-  kSpawnerNone = 0,
-  kSpawnerPlayer = 1,
-  kSpawnerSnail = 2,
-};
-
 struct Spawner {
   ENTITY_DECL = kEntityTypeSpawner;
   SpawnerType spawner_type = kSpawnerNone;
@@ -195,12 +152,6 @@ struct Spawner {
   u32 spawn_to_count = 1;
   // How many times the spawner has spawned the given character.
   u32 spawn_count = 0;
-};
-
-enum ObstacleType {
-  kObstacleNone = 0,
-  // Player will boost up if standing on a boost.
-  kObstacleBoost = 1,
 };
 
 struct Obstacle {

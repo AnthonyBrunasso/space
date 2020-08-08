@@ -6,6 +6,8 @@ void
 __CharacterProjectileCollision(CharacterComponent* character,
                                ProjectileComponent* projectile)
 {
+  assert(character);
+  assert(projectile);
   // If the particle created the projectile - ignore the collision.
   if (projectile->from_entity == character->entity_id) return;
   ecs::AssignDeathComponent(projectile->entity_id);
@@ -17,6 +19,8 @@ __ProjectileParticleCollision(ProjectileComponent* projectile,
                               physics::Particle2d* particle,
                               physics::BP2dCollision* c)
 {
+  assert(projectile);
+  assert(particle);
   ecs::Entity* projectile_ent = ecs::FindEntity(projectile->entity_id);
   ecs::AssignDeathComponent(projectile_ent);
   physics::Particle2d* projectile_particle = physics::FindParticle2d(
@@ -47,10 +51,12 @@ __PlayerCharacterCollision(Character* player, Character* character)
 }
 
 void
-__PlayerObstacleCollision(Character* player, Obstacle* obstacle)
+__PlayerObstacleCollision(CharacterComponent* character,
+                          ObstacleComponent* obstacle)
 {
   if (obstacle->obstacle_type == kObstacleBoost) {
-    physics::Particle2d* p = FindParticle(player);
+    physics::Particle2d* p =
+        ecs::GetParticle(ecs::FindEntity(character->entity_id));
     p->force.y = kObstacleBoostForce;
   }
 }
@@ -58,37 +64,52 @@ __PlayerObstacleCollision(Character* player, Obstacle* obstacle)
 void
 CollisionUpdate()
 {
-#define GETCOMP(Comp, name, e1, e2)                              \
-  Comp* name = e1 != nullptr ? ecs::Get##Comp(e1) : nullptr;     \
-  if (!name) e2 != nullptr  ? name = ecs::Get##Comp(e2) : nullptr;
+#define GET_COMP(T, t, f, e1, e2) \
+  T* t = nullptr;                 \
+  if (e1 && e1->Has(f)) {         \
+    t = ecs::Get##T(e1);          \
+  } else if (e2 && e2->Has(f)) {  \
+    t = ecs::Get##T(e2);          \
+  }
 
-#define GETPARTICLE(comp, name, p1, p2)   \
-  physics::Particle2d* name = nullptr;    \
-  if (p1->entity_id == comp->entity_id) { \
-    name = p2;                            \
-  } else { name = p1; }
+#define GET_COMBO(T1, t1, f1, T2, t2, f2, e1, e2) \
+  GET_COMP(T1, t1, f1, e1, e2)                    \
+  GET_COMP(T2, t2, f2, e1, e2)
 
   for (u32 i = 0; i < physics::kUsedBP2dCollision; ++i) {
     physics::BP2dCollision* c = &physics::kBP2dCollision[i];
     ecs::Entity* e1 = ecs::FindEntity(c->p1->entity_id);
     ecs::Entity* e2 = ecs::FindEntity(c->p2->entity_id);
 
-    if ((e1 && e2) &&
-        ((e1->Has(kCharacterComponent) && e2->Has(kProjectileComponent)) ||
-         (e2->Has(kCharacterComponent) && e1->Has(kProjectileComponent)))) {
-      GETCOMP(CharacterComponent, character, e1, e2);
-      GETCOMP(ProjectileComponent, projectile, e1, e2);
-      if (character && projectile) {
-        __CharacterProjectileCollision(character, projectile);
-        continue;
+    if (e1 && e2) {
+      {
+        GET_COMBO(CharacterComponent, c, kCharacterComponent,
+                  ProjectileComponent, p, kProjectileComponent,
+                  e1, e2);
+        if (c && p) {
+          __CharacterProjectileCollision(c, p);
+          continue;
+        }
+      }
+
+      {
+        GET_COMBO(CharacterComponent, c, kCharacterComponent,
+                  ObstacleComponent, o, kObstacleComponent,
+                  e1, e2);
+        if (c && o) {
+          __PlayerObstacleCollision(c, o);
+        }
       }
     }
 
     if (((e1 && e1->Has(kProjectileComponent)) ||
          (e2 && e2->Has(kProjectileComponent))) &&
         (c->p1->inverse_mass == 0.f || c->p2->inverse_mass == 0.f)) {
-      GETCOMP(ProjectileComponent, projectile, e1, e2);
-      GETPARTICLE(projectile, particle, c->p1, c->p2);
+      GET_COMP(ProjectileComponent, projectile, kProjectileComponent, e1, e2);
+      physics::Particle2d* particle = nullptr;
+      if (projectile->entity_id == c->p1->entity_id) {
+        particle = c->p2;
+      } else { particle = c->p1; }
       if (projectile && particle) {
         __ProjectileParticleCollision(projectile, particle, c);
         continue;

@@ -57,7 +57,6 @@ ProjectileUpdate()
 {
   ecs::EntityItr<2> itr(kPhysicsComponent, kProjectileComponent);
   while (itr.Next()) {
-    printf("%u\n", itr.e->id);
     physics::Particle2d* particle =
         physics::FindParticle2d(itr.c.physics->particle_id);
     ProjectileComponent* p = itr.c.projectile;

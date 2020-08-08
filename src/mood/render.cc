@@ -230,8 +230,9 @@ Render()
     rgg::RenderProgressBar(pb_rect, 0.f, c->health, c->max_health,
                            v4f(1.f, 0.f, 0.f, .7f), v4f(.8f, .8f, .8f, .5f));
     const u32* behavior = nullptr;
-#if 0
-    if (BB_GET(bb(c), kAIBbType, behavior)) {
+    AIComponent* ai = ecs::GetAIComponent(itr.e);
+    if (!ai) continue;
+    if (BB_GET(ai->blackboard, kAIBbType, behavior)) {
       switch (*behavior) {
         case kBehaviorSimple: {
           Rectf paabb = p->aabb();
@@ -251,7 +252,6 @@ Render()
         } break;
       }
     }
-#endif
   }
 
   for (u32 i = 0; i < kUsedTexture; ++i) {

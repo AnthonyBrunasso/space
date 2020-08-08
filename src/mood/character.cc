@@ -144,7 +144,7 @@ CharacterUpdate()
       if (IsPlayer(itr.e)) {
         return true;
       } else {
-        //SetDestroyFlag(c);
+        ecs::AssignDeathComponent(itr.e);
         v2f up(0.f, 1.f);
         for (int i = 0; i < 30; ++i) {
           physics::Particle2d* ep =

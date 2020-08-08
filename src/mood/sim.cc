@@ -38,6 +38,10 @@ SimInitialize()
 void
 SimReset()
 {
+  kCharacter.player_id = 0;
+  for (u32 i = 0; i < kComponentCount; ++i) {
+    ecs::GetComponents(i)->Clear();
+  }
   physics::Reset();
   ResetEntity();
 }

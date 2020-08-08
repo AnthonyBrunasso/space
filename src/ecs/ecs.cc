@@ -118,7 +118,7 @@ struct ComponentStorage {
   Clear()
   {
     if (size == 0) return;
-    memset(bytes, 0,  sizeof_element * max_size);
+    memset(bytes, 0,  sizeof_element * size);
     size = 0;
   }
 

@@ -42,8 +42,6 @@ SimReset()
   ResetEntity();
 }
 
-
-
 bool
 SimUpdate()
 {

@@ -23,7 +23,7 @@
 #include "mood/map.cc"
 #include "mood/interaction.cc"
 
-#define WIN_ATTACH_DEBUGGER 1
+#define WIN_ATTACH_DEBUGGER 0
 #define DEBUG_PHYSICS 0
 
 struct State {
@@ -120,15 +120,17 @@ GameInitialize(const v2f& dims)
     //math::Perspective(64.f, dims.x / dims.y, 1.f, 1000.f);
     math::Ortho(dims.x, 0.f, dims.y, 0.f, -1.f, 1.f);
 
-  rgg::Camera camera;
-  camera.position = v3f(0.f, 1.f, 1.f);
-  camera.dir = v3f(0.f, 0.f, -1.f);
-  camera.up = v3f(0.f, 1.f, 0.f);
-  camera.mode = rgg::kCameraBrowser;
-  camera.speed = v3f(5.f, 5.f, 0.0f);
-  camera.viewport = dims;
-  //camera.camera_control = false;
-  rgg::CameraInit(camera);
+  if (!rgg::CameraHasLocalCamera()) {
+    rgg::Camera camera;
+    camera.position = v3f(0.f, 1.f, 1.f);
+    camera.dir = v3f(0.f, 0.f, -1.f);
+    camera.up = v3f(0.f, 1.f, 0.f);
+    camera.mode = rgg::kCameraBrowser;
+    camera.speed = v3f(5.f, 5.f, 0.0f);
+    camera.viewport = dims;
+    //camera.camera_control = false;
+    rgg::CameraInit(camera);
+  }
 
   mood::SimInitialize();
   mood::RenderInitialize();

@@ -143,6 +143,12 @@ CameraInit(Camera camera)
   CameraInit(kLocalCameraTag, camera);
 }
 
+b8
+CameraHasLocalCamera()
+{
+  return kUsedCamera[kLocalCameraTag] > 0;
+}
+
 void
 CameraOverhead(const PlatformEvent& event)
 {

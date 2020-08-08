@@ -1,6 +1,5 @@
 #pragma once
 
-#include "mood/entity.cc"
 #include "mood/projectile.cc"
 #include "mood/character.cc"
 #include "mood/collision.cc"
@@ -44,7 +43,6 @@ SimReset()
   }
   ecs::ResetEntity();
   physics::Reset();
-  ResetEntity();
 }
 
 bool

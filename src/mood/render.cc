@@ -185,7 +185,7 @@ Render()
       } else if (FLAGGED(p->user_flags, kParticleSpawner)) {
         if (kRenderSpawner) {
           rgg::RenderLineRectangle(p->aabb(), rgg::kPurple);
-          Spawner* spawner = FindSpawner(p->entity_id);
+          SpawnerComponent* spawner = ecs::GetSpawnerComponent(e);
           rgg::RenderText(SpawnerName(spawner->spawner_type),
                           p->position - p->dims / 2.f, .5f, rgg::kWhite);
         }

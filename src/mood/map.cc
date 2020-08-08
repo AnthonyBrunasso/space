@@ -35,15 +35,21 @@ MapSave(const char* name)
               p->inverse_mass, p->flags, p->user_flags);
     }
   }
-  FOR_EACH_ENTITY_P(Spawner, s, p, {
+  ecs::EntityItr<1> spawner_itr(kSpawnerComponent);
+  while (spawner_itr.Next()) {
+    SpawnerComponent* s = spawner_itr.c.spawner;
+    physics::Particle2d* p = ecs::GetParticle(spawner_itr.e);
     fprintf(f, "s %.2f %.2f %u\n", p->position.x, p->position.y,
             s->spawner_type);
-  });
-  FOR_EACH_ENTITY_P(Obstacle, o, p, {
+  }
+  ecs::EntityItr<1> obstacle_itr(kObstacleComponent);
+  while (obstacle_itr.Next()) {
+    ObstacleComponent* o = obstacle_itr.c.obstacle;
+    physics::Particle2d* p = ecs::GetParticle(obstacle_itr.e);
     fprintf(f, "o %.2f %.2f %.2f %.2f %u\n",
             p->position.x, p->position.y, p->dims.x, p->dims.y,
             o->obstacle_type);
-  });
+  }
   fclose(f);
 }
 

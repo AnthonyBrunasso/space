@@ -244,9 +244,9 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
                           kInteraction.selection.spawner_type);
           } break;
           case kSelectionObstacle: {
-            Obstacle* o = ObstacleCreate(
+            ObstacleComponent* o = ObstacleCreate(
                 posf, v2f(5.f, 5.f), kInteraction.selection.obstacle_type);
-            kInteraction.selection.last_particle = FindParticle(o);
+            kInteraction.selection.last_particle = ecs::GetParticle(o);
           } break;
           default: break;
         }
@@ -260,24 +260,17 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
         // Try to delete a collider.
         for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
           physics::Particle2d* p = &physics::kParticle2d[i];
-          if (!FLAGGED(p->user_flags, kParticleCollider)) continue;
-          if (math::PointInRect(clickpos, p->aabb())) {
+          ecs::Entity* ent = ecs::FindEntity(p->entity_id);
+          if (!math::PointInRect(clickpos, p->aabb())) continue;
+          if (FLAGGED(p->user_flags, kParticleCollider)) {
             DeleteParticle2d(p);
-            break;
+            continue;
+          }
+          if (ent &&
+              (ent->Has(kSpawnerComponent) || ent->Has(kObstacleComponent))) {
+            ecs::AssignDeathComponent(ent);
           }
         }
-        // Try to delete a spawner.
-        FOR_EACH_ENTITY_P(Spawner, s, p, {
-          if (math::PointInRect(clickpos, p->aabb())) {
-            SetDestroyFlag(s);
-          }
-        });
-        // Try to delete a obstacle.
-        FOR_EACH_ENTITY_P(Obstacle, s, p, {
-          if (math::PointInRect(clickpos, p->aabb())) {
-            SetDestroyFlag(s);
-          }
-        });
       }
     } break;
     case MOUSE_UP: {
@@ -345,6 +338,8 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
 void
 EntityViewer(v2f screen)
 {
+  // TODO:
+#if 0
   static char kUIBuffer[64];
   static b8 enable = false;
   static v2f pos(screen.x - 315, screen.y);
@@ -375,6 +370,7 @@ EntityViewer(v2f screen)
     imui::Text(kUIBuffer);
   }
   imui::End();
+#endif
 }
 
 void

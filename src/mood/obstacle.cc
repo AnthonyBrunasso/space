@@ -2,14 +2,14 @@
 
 namespace mood {
 
-Obstacle*
+ObstacleComponent*
 ObstacleCreate(v2f pos, v2f dims, ObstacleType type)
 {
-  Obstacle* obstacle = nullptr;
+  ObstacleComponent* obstacle = nullptr;
   switch (type) {
     case kObstacleBoost: {
       ecs::Entity* entity = ecs::UseEntity();
-      ObstacleComponent* obstacle = ecs::AssignObstacleComponent(entity);
+      obstacle = ecs::AssignObstacleComponent(entity);
       physics::Particle2d* p =
           physics::CreateParticle2d(pos, dims, entity->id);
       ecs::AssignPhysicsComponent(entity)->particle_id = p->id;

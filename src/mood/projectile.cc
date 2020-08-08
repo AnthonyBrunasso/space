@@ -1,13 +1,11 @@
 #pragma once
 
-#include "entity.cc"
-
 namespace mood {
 
 void
 ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
 {
-  Entity* entity_creator = FindEntity(from_entity);
+  ecs::Entity* creator_entity = ecs::FindEntity(from_entity);
   v2f start_offset = {};
   r32 angle = atan2(dir.y, dir.x) * 180.f / PI;
   v2f size;
@@ -27,8 +25,7 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
       projectile->speed = kProjectileSpeed;
     } break;
     case kProjectileGrenade: {
-      physics::Particle2d* particle_creator =
-          physics::FindParticle2d(entity_creator->particle_id);
+      physics::Particle2d* particle_creator = ecs::GetParticle(creator_entity);
       v2f start_offset = {};
       if (particle_creator) {
         start_offset = v2f((particle_creator->dims.x / 2.f) * dir.x, 0.f);

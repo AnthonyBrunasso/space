@@ -1,6 +1,5 @@
 #pragma once
 
-#include "mood/entity.cc"
 #include "physics/physics.cc"
 
 static u32 kAISpawnNum;

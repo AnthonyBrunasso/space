@@ -42,15 +42,6 @@ __ProjectileParticleCollision(ProjectileComponent* projectile,
 }
 
 void
-__PlayerCharacterCollision(Character* player, Character* character)
-{
-  if (util::FrameCooldownReady(&kCharacter.player_invulnerable)) {
-    player->health -= 1.f;
-    util::FrameCooldownReset(&kCharacter.player_invulnerable);
-  }
-}
-
-void
 __PlayerObstacleCollision(CharacterComponent* character,
                           ObstacleComponent* obstacle)
 {
@@ -60,6 +51,17 @@ __PlayerObstacleCollision(CharacterComponent* character,
     p->force.y = kObstacleBoostForce;
   }
 }
+
+#if 0
+void
+__PlayerCharacterCollision(Character* player, Character* character)
+{
+  if (util::FrameCooldownReady(&kCharacter.player_invulnerable)) {
+    player->health -= 1.f;
+    util::FrameCooldownReset(&kCharacter.player_invulnerable);
+  }
+}
+#endif
 
 void
 CollisionUpdate()

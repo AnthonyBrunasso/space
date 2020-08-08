@@ -3,8 +3,6 @@
 #define ENTITY_COUNT 2048
 #include "ecs/ecs.cc"
 
-#include "mood/entity.cc"
-
 namespace mood {
 
 enum TypeId : u64 {
@@ -158,6 +156,14 @@ physics::Particle2d*
 GetParticle(ecs::Entity* ent)
 {
   return physics::FindParticle2d(ecs::GetPhysicsComponent(ent)->particle_id);
+}
+
+template <typename Component>
+physics::Particle2d*
+GetParticle(Component* c)
+{
+  ecs::Entity* ent = ecs::FindEntity(c->entity_id);
+  return GetParticle(ent);
 }
 
 }

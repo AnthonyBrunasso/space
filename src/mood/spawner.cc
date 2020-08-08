@@ -18,9 +18,12 @@ SpawnerCreate(v2f pos, SpawnerType type)
   switch (type) {
     case kSpawnerPlayer:
     case kSpawnerSnail: {
-      Spawner* spawner = UseEntitySpawner(pos, v2f(5.f, 5.f));
+      ecs::Entity* entity = ecs::UseEntity();
+      SpawnerComponent* spawner = ecs::AssignSpawnerComponent(entity);
+      physics::Particle2d* p = physics::CreateParticle2d(
+          pos, v2f(5.f, 5.f), entity->id);
+      ecs::AssignPhysicsComponent(entity)->particle_id = p->id;
       spawner->spawner_type = type;
-      physics::Particle2d* p = FindParticle(spawner);
       SBIT(p->flags, physics::kParticleIgnoreGravity);
       SBIT(p->flags, physics::kParticleIgnoreCollisionResolution);
       SBIT(p->user_flags, kParticleSpawner);
@@ -35,7 +38,10 @@ SpawnerCreate(v2f pos, SpawnerType type)
 void
 SpawnerUpdate()
 {
-  FOR_EACH_ENTITY_P(Spawner, s, p, {
+  ecs::EntityItr<1> itr(kSpawnerComponent);
+  while (itr.Next()) {
+    SpawnerComponent* s = itr.c.spawner;
+    physics::Particle2d* p = GetParticle(itr.e);
     if (s->spawn_count < s->spawn_to_count) {
       switch (s->spawner_type) {
         case kSpawnerPlayer: {
@@ -69,7 +75,7 @@ SpawnerUpdate()
       }
       ++s->spawn_count;
     }
-  });
+  }
 }
 
 }

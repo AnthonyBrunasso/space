@@ -14,7 +14,8 @@ enum TypeId : u64 {
   kDeathComponent = 3,
   kProjectileComponent = 4,
   kObstacleComponent = 5,
-  kComponentCount = 6,
+  kSpawnerComponent = 6,
+  kComponentCount = 7,
 }; 
 
 struct PhysicsComponent {
@@ -80,7 +81,14 @@ struct ObstacleComponent {
   ObstacleType obstacle_type = kObstacleNone;
 };
 
-
+struct SpawnerComponent {
+  u32 entity_id = 0;
+  SpawnerType spawner_type = kSpawnerNone;
+  // How many times the spawner should spawn the given character.
+  u32 spawn_to_count = 1;
+  // How many times the spawner has spawned the given character.
+  u32 spawn_count = 0;
+};
 
 }
 
@@ -117,6 +125,10 @@ GetComponents(u64 tid)
       static ecs::ComponentStorage f(32, sizeof(ObstacleComponent));
       return &f;
     } break;
+    case kSpawnerComponent: {
+      static ecs::ComponentStorage f(32, sizeof(ObstacleComponent));
+      return &f;
+    } break;
     default: {
       assert(!"Unknown component type");
     } break;
@@ -130,6 +142,7 @@ DECLARE_COMPONENT(CharacterComponent, kCharacterComponent);
 DECLARE_COMPONENT(DeathComponent, kDeathComponent);
 DECLARE_COMPONENT(ProjectileComponent, kProjectileComponent);
 DECLARE_COMPONENT(ObstacleComponent, kObstacleComponent);
+DECLARE_COMPONENT(SpawnerComponent, kSpawnerComponent);
 
 struct Components {
   PhysicsComponent*    physics    = nullptr;
@@ -138,6 +151,7 @@ struct Components {
   DeathComponent*      death      = nullptr;
   ProjectileComponent* projectile = nullptr;
   ObstacleComponent*   obstacle   = nullptr;
+  SpawnerComponent*    spawner    = nullptr;
 };
 
 physics::Particle2d*

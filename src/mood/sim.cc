@@ -42,21 +42,24 @@ SimReset()
 }
 
 void
-__CharacterProjectileCollision(Character* character, Projectile* projectile)
+__CharacterProjectileCollision(CharacterComponent* character,
+                               ProjectileComponent* projectile)
 {
   // If the particle created the projectile - ignore the collision.
-  if (projectile->from_entity == character->id) return;
-  SetDestroyFlag(projectile);
+  if (projectile->from_entity == character->entity_id) return;
+  ecs::AssignDeathComponent(projectile->entity_id);
   character->health -= 3.f;
 }
 
 void
-__ProjectileParticleCollision(Projectile* projectile,
+__ProjectileParticleCollision(ProjectileComponent* projectile,
                               physics::Particle2d* particle,
                               physics::BP2dCollision* c)
 {
-  SetDestroyFlag(projectile);
-  physics::Particle2d* projectile_particle = FindParticle(projectile);
+  ecs::Entity* projectile_ent = ecs::FindEntity(projectile->entity_id);
+  ecs::AssignDeathComponent(projectile_ent);
+  physics::Particle2d* projectile_particle = physics::FindParticle2d(
+      ecs::GetPhysicsComponent(projectile_ent)->particle_id);
   // Spawn effect flying off in opposite direction.
   if (projectile_particle) {
     v2f dir = -math::Normalize(projectile_particle->velocity);
@@ -94,20 +97,43 @@ __PlayerObstacleCollision(Character* player, Obstacle* obstacle)
 void
 __ResolveCollisions()
 {
-#if 0
+#define GETCOMP(Comp, name, e1, e2)                              \
+  Comp* name = e1 != nullptr ? ecs::Get##Comp(e1) : nullptr;     \
+  if (!name) e2 != nullptr  ? name = ecs::Get##Comp(e2) : nullptr;
+
+#define GETPARTICLE(comp, name, p1, p2)   \
+  physics::Particle2d* name = nullptr;    \
+  if (p1->entity_id == comp->entity_id) { \
+    name = p2;                            \
+  } else { name = p1; }
+
   for (u32 i = 0; i < physics::kUsedBP2dCollision; ++i) {
     physics::BP2dCollision* c = &physics::kBP2dCollision[i];
-    {
-      // Check for character / projectile collisions.
-      Character* character = FindCharacter(c->p1->entity_id);
-      Projectile* projectile = FindProjectile(c->p2->entity_id);
-      if (!character) character = FindCharacter(c->p2->entity_id);
-      if (!projectile) projectile = FindProjectile(c->p1->entity_id);
+    ecs::Entity* e1 = ecs::FindEntity(c->p1->entity_id);
+    ecs::Entity* e2 = ecs::FindEntity(c->p2->entity_id);
+
+    if ((e1 && e2) &&
+        ((e1->Has(kCharacterComponent) && e2->Has(kProjectileComponent)) ||
+         (e2->Has(kCharacterComponent) && e1->Has(kProjectileComponent)))) {
+      GETCOMP(CharacterComponent, character, e1, e2);
+      GETCOMP(ProjectileComponent, projectile, e1, e2);
       if (character && projectile) {
         __CharacterProjectileCollision(character, projectile);
         continue;
       }
     }
+
+    if (((e1 && e1->Has(kProjectileComponent)) ||
+         (e2 && e2->Has(kProjectileComponent))) &&
+        (c->p1->inverse_mass == 0.f || c->p2->inverse_mass == 0.f)) {
+      GETCOMP(ProjectileComponent, projectile, e1, e2);
+      GETPARTICLE(projectile, particle, c->p1, c->p2);
+      if (projectile && particle) {
+        __ProjectileParticleCollision(projectile, particle, c);
+        continue;
+      }
+    }
+#if 0
     {
       Character* player = FindCharacter(c->p1->entity_id);
       Character* character = nullptr;
@@ -155,8 +181,8 @@ __ResolveCollisions()
         continue;
       }
     }
-  }
 #endif
+  }
 }
 
 bool

@@ -163,6 +163,11 @@ DeleteEntity(Entity* ent, u32 max_comps = 64)
     return t;                                             \
   }                                                       \
                                                           \
+  Type* Assign##Type(u32 entity_id) {                     \
+    if (!entity_id) return nullptr;                       \
+    return Assign##Type(ecs::FindEntity(entity_id));      \
+  }                                                       \
+                                                          \
   void Remove##Type(ecs::Entity* ent) {                   \
     if (!ent) return;                                     \
     ComponentStorage* storage = ecs::GetComponents(tid);  \

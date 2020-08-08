@@ -68,8 +68,9 @@ struct ProjectileComponent {
   ProjectileType projectile_type;
   // Number of updates the projectile should live for.
   uint64_t updates_to_live = 0;
+  // Entity that fired this projectile.
+  u32 from_entity = 0; 
   // Entity that fired the projectile.
-  u32 from_entity = 0;
   r32 speed = 500.f;
 };
 
@@ -97,7 +98,7 @@ GetComponents(u64 tid)
       return &f;
     } break;
     case kDeathComponent: {
-      static ecs::ComponentStorage f(1, sizeof(DeathComponent));
+      static ecs::ComponentStorage f(64, sizeof(DeathComponent));
       return &f;
     } break;
     case kProjectileComponent: {

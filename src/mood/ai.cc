@@ -29,10 +29,7 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
   PhysicsComponent* physics_comp = ecs::AssignPhysicsComponent(ai_entity);
   physics::Particle2d* particle =  physics::CreateParticle2d(pos, dims);
   physics_comp->particle_id = particle->id;
-  BlackboardComponent* blackboard_comp =
-      ecs::AssignBlackboardComponent(ai_entity);
-  Blackboard* bboard = UseBlackboard();
-  blackboard_comp->blackboard_id = bboard->id;
+  AIComponent* ai_comp = ecs::AssignAIComponent(ai_entity);
   if (particle) {
     particle->collision_mask = kCollisionMaskCharacter;
     particle->damping = 0.005f;
@@ -47,13 +44,13 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
     };
     ai_character->weapon_cooldown.frame = 50;
     util::FrameCooldownInitialize(&ai_character->weapon_cooldown);
-    BB_SET(bboard, kAIBbType, behavior);
+    BB_SET(ai_comp->blackboard, kAIBbType, behavior);
   }
 
   Patrol patrol;
   patrol.left_x = pos.x - 50.f;
   patrol.right_x = pos.x + 50.f;
-  BB_SET(bboard, kAIBbPatrol, patrol);
+  BB_SET(ai_comp->blackboard, kAIBbPatrol, patrol);
 }
 
 void

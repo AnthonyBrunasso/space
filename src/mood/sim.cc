@@ -73,10 +73,6 @@ SimUpdate()
   // next integration step.
   ecs::EntityItr<1> itr(kDeathComponent);
   while (itr.Next()) {
-    if (itr.e->Has(kBlackboardComponent)) {
-      SwapAndClearBlackboard(
-          ecs::GetBlackboardComponent(itr.e)->blackboard_id);
-    }
     if (itr.e->Has(kPhysicsComponent)) {
       physics::DeleteParticle2d(ecs::GetPhysicsComponent(itr.e)->particle_id);
     }

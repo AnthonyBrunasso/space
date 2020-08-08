@@ -9,7 +9,7 @@ namespace mood {
 
 enum TypeId : u64 {
   kPhysicsComponent = 0,
-  kBlackboardComponent = 1,
+  kAIComponent = 1,
   kCharacterComponent = 2,
   kDeathComponent = 3,
   kProjectileComponent = 4,
@@ -21,9 +21,9 @@ struct PhysicsComponent {
   u32 particle_id = 0;
 };
 
-struct BlackboardComponent {
+struct AIComponent {
   u32 entity_id = 0;
-  u32 blackboard_id = 0;
+  Blackboard blackboard;
 };
 
 struct CharacterComponent {
@@ -89,8 +89,8 @@ GetComponents(u64 tid)
           PHYSICS_PARTICLE_COUNT, sizeof(PhysicsComponent));
       return &f;
     } break;
-    case kBlackboardComponent: {
-      static ecs::ComponentStorage f(64, sizeof(BlackboardComponent));
+    case kAIComponent: {
+      static ecs::ComponentStorage f(64, sizeof(AIComponent));
       return &f;
     } break;
     case kCharacterComponent: {
@@ -113,14 +113,14 @@ GetComponents(u64 tid)
 }
 
 DECLARE_COMPONENT(PhysicsComponent, kPhysicsComponent);
-DECLARE_COMPONENT(BlackboardComponent, kBlackboardComponent);
+DECLARE_COMPONENT(AIComponent, kAIComponent);
 DECLARE_COMPONENT(CharacterComponent, kCharacterComponent);
 DECLARE_COMPONENT(DeathComponent, kDeathComponent);
 DECLARE_COMPONENT(ProjectileComponent, kProjectileComponent);
 
 struct Components {
   PhysicsComponent* physics = nullptr;
-  BlackboardComponent* blackboard = nullptr;
+  AIComponent* ai = nullptr;
   CharacterComponent* character = nullptr;
   DeathComponent* death = nullptr;
   ProjectileComponent* projectile = nullptr;

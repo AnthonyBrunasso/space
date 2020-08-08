@@ -40,17 +40,26 @@ SpawnerUpdate()
       switch (s->spawner_type) {
         case kSpawnerPlayer: {
           if (!Player()) {
-            Character* player =
-                UseEntityCharacter(p->position,
-                                   v2f(kPlayerWidth, kPlayerHeight));
-            physics::Particle2d* particle = FindParticle(player);
+            //Character* player =
+            //    UseEntityCharacter(p->position,
+            //                       v2f(kPlayerWidth, kPlayerHeight));
+            //physics::Particle2d* particle = FindParticle(player);
+            ecs::Entity* player_entity = ecs::UseEntity();
+            printf("Creating player %u\n", player_entity->id);
+            kCharacter.player_id = player_entity->id;
+            CharacterComponent* player_comp =
+                ecs::AssignCharacterComponent(player_entity);
+            PhysicsComponent* physics_comp =
+                ecs::AssignPhysicsComponent(player_entity);
+            physics::Particle2d* particle =  physics::CreateParticle2d(
+                p->position, v2f(kPlayerWidth, kPlayerHeight));
+            physics_comp->particle_id = particle->id;
             particle->collision_mask = kCollisionMaskCharacter;
             particle->damping = 0.005f;
-            kCharacter.player_id = player->id;
-            player->double_jump_cooldown.frame = 15;
-            util::FrameCooldownInitialize(&player->double_jump_cooldown);
-            player->weapon_cooldown.frame = 10;
-            util::FrameCooldownInitialize(&player->weapon_cooldown);
+            player_comp->double_jump_cooldown.frame = 15;
+            util::FrameCooldownInitialize(&player_comp->double_jump_cooldown);
+            player_comp->weapon_cooldown.frame = 10;
+            util::FrameCooldownInitialize(&player_comp->weapon_cooldown);
           }
         } break;
         case kSpawnerSnail: {

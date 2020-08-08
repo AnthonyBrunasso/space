@@ -14,14 +14,23 @@ struct GCharacter {
 
 static GCharacter kCharacter;
 
-Character* Player() {
-  if (!kCharacter.player_id) return nullptr;
-  return FindCharacter(kCharacter.player_id);
+ecs::Entity*
+Player()
+{
+  return ecs::FindEntity(kCharacter.player_id);
 }
 
-physics::Particle2d* PlayerParticle() {
+physics::Particle2d*
+PlayerParticle()
+{
   return physics::FindParticle2d(
       FindCharacter(kCharacter.player_id)->particle_id);
+}
+
+bool
+IsPlayer(ecs::Entity* ent)
+{
+  return kCharacter.player_id && kCharacter.player_id == ent->id;
 }
 
 void
@@ -36,7 +45,11 @@ CharacterInitialize()
 bool
 CharacterUpdate()
 {
-  FOR_EACH_ENTITY_P(Character, c, particle, {
+  ecs::EntityItr<2> itr(kPhysicsComponent, kCharacterComponent);
+  while (itr.Next()) {
+    physics::Particle2d* particle =
+        physics::FindParticle2d(itr.c.physics->particle_id);
+    CharacterComponent* c = itr.c.character;
     // Move character.
     if (particle) {
       if (FLAGGED(c->character_flags, kCharacterMove)) {
@@ -58,15 +71,15 @@ CharacterUpdate()
       if (FLAGGED(c->character_flags, kCharacterFireWeapon)) {
         if (util::FrameCooldownReady(&c->weapon_cooldown)) {
           util::FrameCooldownReset(&c->weapon_cooldown);
-          ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
-                           c->id, kProjectileBullet);
+          //ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
+          //                 c->entity_id, kProjectileBullet);
         }
       }
       if (FLAGGED(c->character_flags, kCharacterFireSecondary)) {
         if (util::FrameCooldownReady(&c->weapon_cooldown)) {
           util::FrameCooldownReset(&c->weapon_cooldown);
-          ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
-                           c->id, kProjectileGrenade);
+          //ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
+          //                 c->id, kProjectileGrenade);
         }
       }
       if (FLAGGED(c->ability_flags, kCharacterAbilityBoost)) {
@@ -108,8 +121,8 @@ CharacterUpdate()
     c->aim_dir =
         math::Normalize(math::Rotate(c->aim_dir, c->aim_rotate_delta));
 
-    if (c == Player()) {
-      Character* player = c;
+    if (IsPlayer(itr.e)) {
+      CharacterComponent* player = c;
       if (player->facing.x > 0.f) {
         r32 angle = atan2(player->aim_dir.y, player->aim_dir.x) * 180.f / PI;
         if (angle > kAimAngleClamp || angle < -kAimAngleClamp) {
@@ -128,10 +141,10 @@ CharacterUpdate()
     }
 
     if (c->health <= 0.f) {
-      if (c == Player()) {
+      if (IsPlayer(itr.e)) {
         return true;
       } else {
-        SetDestroyFlag(c);
+        //SetDestroyFlag(c);
         v2f up(0.f, 1.f);
         for (int i = 0; i < 30; ++i) {
           physics::Particle2d* ep =
@@ -161,7 +174,7 @@ CharacterUpdate()
     }
 
     c->prev_character_flags = c->character_flags;
-  });
+  }
 
   return false;
 }

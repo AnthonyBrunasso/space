@@ -103,10 +103,12 @@ InteractionInitialize()
 void
 ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
 {
-  Character* player = Player();
+  ecs::Entity* pe = Player();
+  CharacterComponent* player = ecs::GetCharacterComponent(pe);
   physics::Particle2d* player_particle = nullptr;
   if (player) {
-    player_particle = FindParticle(player);
+    player_particle = physics::FindParticle2d(
+        ecs::GetPhysicsComponent(pe)->particle_id);
   }
   switch(event.type) {
     case KEY_DOWN: {

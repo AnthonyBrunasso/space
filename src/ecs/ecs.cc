@@ -130,31 +130,38 @@ struct Components;
 void
 DeleteEntity(Entity* ent)
 {
-  for (int i = 0; i < 64; ++i) {
-    if (FLAGGED(ent->components_mask, i)) {
-      GetComponents(i)->Erase(ent->id);
+  // If the entity has any components left attached to it - delete them.
+  if (ent->components_mask) {
+    for (int i = 0; i < 64; ++i) {
+      if (FLAGGED(ent->components_mask, i)) {
+        GetComponents(i)->Erase(ent->id);
+      }
     }
-  } 
+  }
   SwapAndClearEntity(ent->id);
 }
 
 #define DECLARE_COMPONENT(Type, tid)                      \
   Type* Assign##Type(ecs::Entity* ent) {                  \
+    if (!ent) return nullptr;                             \
     ComponentStorage* storage = ecs::GetComponents(tid);  \
     Type* t = (Type*)storage->Assign();                   \
-    t->entity_id = ent->id;                               \
     SBIT(ent->components_mask, tid);                      \
     t = (Type*)storage->SortLastElement();                \
+    *t = {};                                              \
+    t->entity_id = ent->id;                               \
     return t;                                             \
   }                                                       \
                                                           \
   void Remove##Type(ecs::Entity* ent) {                   \
+    if (!ent) return;                                     \
     ComponentStorage* storage = ecs::GetComponents(tid);  \
     storage->Erase(ent->id);                              \
     CBIT(ent->components_mask, tid);                      \
   }                                                       \
                                                           \
   Type* Get##Type(ecs::Entity* ent) {                     \
+    if (!ent) return nullptr;                             \
     if (!ent->Has(tid)) return nullptr;                   \
     ComponentStorage* storage = ecs::GetComponents(tid);  \
     return (Type*)storage->Find(ent->id);                 \
@@ -213,7 +220,7 @@ struct EntityItr {
     }
 
     if (match) {
-      eid = id;
+      e = FindEntity(id);
       for (u32 i = 0; i < N; ++i) {
         // TODO: Do I need to address 32-bit vs 64-bit here?
         u64* comp = (u64*)comps[i]->Get(idx[i]);
@@ -227,7 +234,13 @@ struct EntityItr {
     return false;
   }
 
-  u32 eid = 0;
+  void Reset() {
+    e = nullptr;
+    c = {};
+    idx = {};
+  }
+
+  Entity* e = nullptr;
   Components c;
 
   ComponentStorage* comps[N];

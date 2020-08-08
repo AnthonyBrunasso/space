@@ -13,6 +13,7 @@
 
 // Gameplay stuff.
 #include "mood/constants.cc"
+#include "mood/components.cc"
 #include "mood/util.cc"
 #include "mood/render.cc"
 #include "mood/character.cc"
@@ -22,7 +23,7 @@
 #include "mood/map.cc"
 #include "mood/interaction.cc"
 
-#define WIN_ATTACH_DEBUGGER 0
+#define WIN_ATTACH_DEBUGGER 1
 #define DEBUG_PHYSICS 0
 
 struct State {

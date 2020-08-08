@@ -199,8 +199,13 @@ Render()
   animation::Sprite* character_sprite = rgg::GetSprite(kRender.character_id);
   animation::Sprite* snail_sprite = rgg::GetSprite(kRender.snail_id);
   //physics::DebugRender(); 
-  FOR_EACH_ENTITY_P(Character, c, p, {
-    if (c == Player()) {
+  ecs::EntityItr<2> itr(kPhysicsComponent, kCharacterComponent);
+  while (itr.Next()) {
+    physics::Particle2d* p =
+      physics::FindParticle2d(itr.c.physics->particle_id);
+    CharacterComponent* c = itr.c.character;
+    ecs::Entity* player = Player();
+    if (player->id == c->entity_id) {
       Rectf paabb = p->aabb();
       bool mirror = c->facing.x >= 0.f ? false : true;
       if (fabs(p->velocity.x) > 10.f) {
@@ -224,6 +229,7 @@ Render()
     rgg::RenderProgressBar(pb_rect, 0.f, c->health, c->max_health,
                            v4f(1.f, 0.f, 0.f, .7f), v4f(.8f, .8f, .8f, .5f));
     const u32* behavior = nullptr;
+#if 0
     if (BB_GET(bb(c), kAIBbType, behavior)) {
       switch (*behavior) {
         case kBehaviorSimple: {
@@ -244,7 +250,8 @@ Render()
         } break;
       }
     }
-  });
+#endif
+  }
 
   for (u32 i = 0; i < kUsedTexture; ++i) {
     Texture* t = &kTexture[i];
@@ -291,13 +298,14 @@ Render()
   rgg::ModifyObserver mod(
       math::Ortho2(kRenderTargetWidth, 0.0f, kRenderTargetHeight,
                    0.0f, 0.0f, 0.0f), math::Identity());
-  Character* c = Player();
+  ecs::Entity* c = Player();
   if (c) {
+    CharacterComponent* cc = ecs::GetCharacterComponent(c);
     rgg::RenderProgressBar(
         Rectf(kRenderTargetWidth / 2.f - kPlayerHealthBarWidth / 2.f,
               kRenderTargetHeight - 20.f, kPlayerHealthBarWidth,
               kPlayerHealthBarHeight),
-        0.f, c->health, c->max_health, rgg::kRed, rgg::kWhite);
+        0.f, cc->health, cc->max_health, rgg::kRed, rgg::kWhite);
   }
 }
 

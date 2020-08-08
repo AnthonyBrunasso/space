@@ -94,6 +94,7 @@ __PlayerObstacleCollision(Character* player, Obstacle* obstacle)
 void
 __ResolveCollisions()
 {
+#if 0
   for (u32 i = 0; i < physics::kUsedBP2dCollision; ++i) {
     physics::BP2dCollision* c = &physics::kBP2dCollision[i];
     {
@@ -155,6 +156,7 @@ __ResolveCollisions()
       }
     }
   }
+#endif
 }
 
 bool
@@ -169,8 +171,12 @@ SimUpdate()
   ProjectileUpdate();
   AIUpdate();
 
-  if (Player()) {
-    rgg::CameraLerpToPositionXY(FindParticle(Player())->position +
+  ecs::Entity* player = Player();
+  if (player) {
+    physics::Particle2d* particle =
+        physics::FindParticle2d(
+            ecs::GetPhysicsComponent(player)->particle_id);
+    rgg::CameraLerpToPositionXY(particle->position +
                                 v2f(0.f, kCameraYOffset), .1f);
   }
 
@@ -187,8 +193,8 @@ SimUpdate()
       // deleted.
       Character* c = FindCharacter(entity->id);
       if (c && c->blackboard_id) {
-        Blackboard* b = bb(c);
-        SwapAndClearBlackboard(b->id);
+        //Blackboard* b = bb(c);
+        //SwapAndClearBlackboard(b->id);
       }
       physics::DeleteParticle2d(entity->particle_id);
       SwapAndClearEntity(entity->id);

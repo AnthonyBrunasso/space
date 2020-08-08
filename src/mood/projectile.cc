@@ -17,7 +17,8 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
   switch (type) {
     case kProjectileBullet:
     case kProjectileLaser: {
-      particle = physics::CreateParticle2d(start, v2f(10.5f, 1.2f));
+      particle =
+          physics::CreateParticle2d(start, v2f(10.5f, 1.2f), pentity->id);
       particle->rotation = angle;
       SBIT(particle->flags, physics::kParticleIgnoreGravity);
       SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
@@ -32,8 +33,8 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
       if (particle_creator) {
         start_offset = v2f((particle_creator->dims.x / 2.f) * dir.x, 0.f);
       }
-      particle = physics::CreateParticle2d(start, v2f(10.5f, 1.2f));
-      //particle->force = dir * 50000.f;
+      particle =
+          physics::CreateParticle2d(start, v2f(10.5f, 1.2f), pentity->id);
       particle->rotation = 0.f;
       SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
       SBIT(particle->flags, physics::kParticleIgnoreDamping);
@@ -45,7 +46,6 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
     } break;
   };
   ecs::AssignPhysicsComponent(pentity)->particle_id = particle->id;
-  particle->entity_id = pentity->id;
   dir += v2f(0.f, math::Random(-0.05f, 0.05f));
   projectile->dir = dir;
   projectile->projectile_type = type;

@@ -141,11 +141,12 @@ Reset()
 }
 
 Particle2d*
-CreateParticle2d(v2f pos, v2f dims)
+CreateParticle2d(v2f pos, v2f dims, u32 entity_id = 0)
 {
   Particle2d* particle = UseParticle2d();
   particle->position = pos;
   particle->dims = dims;
+  particle->entity_id = entity_id;
   BPInitP2d(particle);
   return particle;
 }

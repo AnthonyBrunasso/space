@@ -86,7 +86,7 @@ struct ProjectileComponent {
   v2f dir;
   ProjectileType projectile_type;
   // Number of updates the projectile should live for.
-  uint64_t updates_to_live = 0;
+  uint64_t ttl = 0;
   // Entity that fired this projectile.
   u32 from_entity = 0; 
   // Entity that fired the projectile.
@@ -111,6 +111,10 @@ struct WeaponComponent {
   u32 entity_id = 0;
   // Types of projectiles the weapon creates.
   ProjectileType projectile_type;
+  // Speed of projectile the weapon spawns.
+  r32 projectile_speed = kProjectileSpeed;
+  // How many frames the projectile should last for.
+  r32 projectile_ttl = kProjectileTtl;
   // Cooldown that lets character fire their weapon.
   util::FrameCooldown cooldown;
 };

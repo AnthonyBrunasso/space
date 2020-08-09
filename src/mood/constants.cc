@@ -17,6 +17,7 @@ constexpr r32 kAimSensitivity = 3.f;
 
 // Projectile constants.
 constexpr r32 kProjectileSpeed = 700.f;
+constexpr u32 kProjectileTtl = 50;
 constexpr r32 kGrenadeSpeed = 700.f;
 
 // Enemy constants.
@@ -83,13 +84,13 @@ enum CharacterFlags {
   kCharacterFireSecondary = 3,
   // Set if the character should be moving.
   kCharacterMove = 4,
+  // Set if the player is allowed to double jump.
+  kCharacterCanDoubleJump = 5,
 };
 
 enum CharacterAbilityFlags {
   // If set the character will boost in the direction of its velocity.
   kCharacterAbilityBoost = 0,
-  // Set if the player is allowed to double jump.
-  kCharacterCanDoubleJump = 1,
 };
 
 enum CharacterBbEntry {

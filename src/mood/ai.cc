@@ -44,6 +44,8 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
     };
     WeaponComponent* weapon = ecs::AssignWeaponComponent(ai_entity);
     weapon->projectile_type = kProjectileBullet;
+    weapon->projectile_speed = kProjectileSpeed / 4.f;
+    weapon->projectile_ttl = 500;
     weapon->cooldown.frame = 50;
     util::FrameCooldownInitialize(&weapon->cooldown);
     BB_SET(ai_comp->blackboard, kAIBbType, behavior);

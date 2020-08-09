@@ -3,7 +3,8 @@
 namespace mood {
 
 void
-ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
+ProjectileCreate(v2f start, v2f dir, u32 from_entity,
+                 const WeaponComponent& weapon)
 {
   ecs::Entity* creator_entity = ecs::FindEntity(from_entity);
   v2f start_offset = {};
@@ -12,7 +13,7 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
   physics::Particle2d* particle = nullptr;
   ecs::Entity* pentity = ecs::UseEntity();
   ProjectileComponent* projectile = AssignProjectileComponent(pentity);
-  switch (type) {
+  switch (weapon.projectile_type) {
     case kProjectileBullet:
     case kProjectileLaser: {
       particle =
@@ -21,8 +22,8 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
       SBIT(particle->flags, physics::kParticleIgnoreGravity);
       SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
       SBIT(particle->flags, physics::kParticleIgnoreDamping);
-      projectile->updates_to_live = 50;
-      projectile->speed = kProjectileSpeed;
+      projectile->ttl = weapon.projectile_ttl;
+      projectile->speed = weapon.projectile_speed;
     } break;
     case kProjectileGrenade: {
       physics::Particle2d* particle_creator = ecs::GetParticle(creator_entity);
@@ -35,8 +36,8 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
       particle->rotation = 0.f;
       SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
       SBIT(particle->flags, physics::kParticleIgnoreDamping);
-      projectile->updates_to_live = 300;
-      projectile->speed = kGrenadeSpeed;
+      projectile->ttl = weapon.projectile_ttl; 
+      projectile->speed = weapon.projectile_speed;
     } break;
     default: {
       assert(!"Unknown projectile type...");
@@ -45,7 +46,7 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
   ecs::AssignPhysicsComponent(pentity)->particle_id = particle->id;
   dir += v2f(0.f, math::Random(-0.05f, 0.05f));
   projectile->dir = dir;
-  projectile->projectile_type = type;
+  projectile->projectile_type = weapon.projectile_type;
   projectile->from_entity = from_entity;
 }
 
@@ -74,8 +75,8 @@ ProjectileUpdate()
       }
     }
 
-    --p->updates_to_live;
-    if (!p->updates_to_live) {
+    --p->ttl;
+    if (!p->ttl) {
       ecs::AssignDeathComponent(itr.e);
     }
   }

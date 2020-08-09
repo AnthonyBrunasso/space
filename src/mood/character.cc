@@ -74,7 +74,7 @@ CharacterUpdate()
         if (util::FrameCooldownReady(&weapon->cooldown)) {
           util::FrameCooldownReset(&weapon->cooldown);
           ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
-                           c->entity_id, weapon->projectile_type);
+                           c->entity_id, *weapon);
         }
       }
       //if (weapon && FLAGGED(c->character_flags, kCharacterFireSecondary)) {

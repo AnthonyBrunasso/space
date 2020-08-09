@@ -27,6 +27,12 @@ PlayerParticle()
   return physics::FindParticle2d(ecs::GetPhysicsComponent(ent)->particle_id);
 }
 
+u32
+PlayerId()
+{
+  return kCharacter.player_id;
+}
+
 bool
 IsPlayer(ecs::Entity* ent)
 {
@@ -152,7 +158,7 @@ CharacterUpdate()
           physics::Particle2d* ep =
               physics::CreateParticle2d(particle->position + up * 1.f,
                                         v2f(kParticleWidth, kParticleHeight));
-          ep->collision_mask = kCollisionMaskCharacter;
+          SBIT(ep->collision_mask, kCollisionMaskCharacter);
           v2f dir = Rotate(up, math::Random(-55.f, 55.f));
           ep->force = dir * math::Random(10000.f, 30000.f);
           SBIT(ep->user_flags, kParticleBlood);

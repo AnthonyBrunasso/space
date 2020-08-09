@@ -206,6 +206,7 @@ BPCalculateCollisions()
           p2 = FindParticle2d(p2->next_p2d_x);
           continue;
         }
+
         BP2dCollision* collision = UseBP2dCollision();
         collision->p1 = p1;
         collision->p2 = p2;

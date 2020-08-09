@@ -59,7 +59,7 @@ SpawnerUpdate()
                 p->position, v2f(kPlayerWidth, kPlayerHeight),
                 player_entity->id);
             physics_comp->particle_id = particle->id;
-            particle->collision_mask = kCollisionMaskCharacter;
+            SBIT(particle->collision_mask, kCollisionMaskCharacter);
             particle->damping = 0.005f;
             player_comp->double_jump_cooldown.frame = 15;
             util::FrameCooldownInitialize(&player_comp->double_jump_cooldown);

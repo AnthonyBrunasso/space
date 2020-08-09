@@ -2,6 +2,8 @@
 
 namespace mood {
 
+u32 PlayerId(); // defined in character.cc
+
 void
 ProjectileCreate(v2f start, v2f dir, u32 from_entity,
                  const WeaponComponent& weapon)
@@ -48,6 +50,9 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity,
   projectile->dir = dir;
   projectile->projectile_type = weapon.projectile_type;
   projectile->from_entity = from_entity;
+  if (from_entity != PlayerId()) {
+    SBIT(particle->collision_mask, kCollisionMaskAI);
+  }
 }
 
 void

@@ -32,7 +32,7 @@ __ProjectileParticleCollision(ProjectileComponent* projectile,
       physics::Particle2d* ep =
           physics::CreateParticle2d(projectile_particle->position + dir * 1.f,
                                     v2f(kParticleWidth, kParticleHeight));
-      ep->collision_mask = kCollisionMaskCharacter;
+      SBIT(ep->collision_mask, kCollisionMaskCharacter);
       v2f fdir = Rotate(dir, math::Random(-25.f, 25.f));
       ep->force = fdir * math::Random(3000.f, 15000.f);
       ep->ttl = kParticleTTL;
@@ -83,6 +83,8 @@ CollisionUpdate()
     ecs::Entity* e1 = ecs::FindEntity(c->p1->entity_id);
     ecs::Entity* e2 = ecs::FindEntity(c->p2->entity_id);
 
+    if (c->p1->collision_mask & c->p2->collision_mask) continue;
+
     if (e1 && e2) {
       {
         GET_COMBO(CharacterComponent, c, kCharacterComponent,
@@ -117,55 +119,6 @@ CollisionUpdate()
         continue;
       }
     }
-#if 0
-    {
-      Character* player = FindCharacter(c->p1->entity_id);
-      Character* character = nullptr;
-      if (player == Player()) {
-        character = FindCharacter(c->p2->entity_id);
-      }
-      if (player && character && player != character) {
-        __PlayerCharacterCollision(player, character);
-        continue;
-      }
-      player = FindCharacter(c->p2->entity_id);
-      character = nullptr;
-      if (player == Player()) {
-        character = FindCharacter(c->p1->entity_id);
-      }
-      if (player && character && player != character) {
-        __PlayerCharacterCollision(player, character);
-        continue;
-      }
-    }
-    {
-      Projectile* projectile = FindProjectile(c->p1->entity_id);
-      physics::Particle2d* particle = c->p2;
-      if (!projectile) {
-        projectile = FindProjectile(c->p2->entity_id);
-        particle = c->p1;
-      }
-      if (projectile && particle && particle->inverse_mass == 0.f) {
-        __ProjectileParticleCollision(projectile, particle, c);
-        continue;
-      }
-    }
-    {
-      Character* player = FindCharacter(c->p1->entity_id);
-      Obstacle* obstacle = FindObstacle(c->p2->entity_id);
-      if (player && obstacle) {
-        __PlayerObstacleCollision(player, obstacle);
-        continue;
-      }
-
-      obstacle = FindObstacle(c->p1->entity_id);
-      player = FindCharacter(c->p2->entity_id);
-      if (player && obstacle) {
-        __PlayerObstacleCollision(player, obstacle);
-        continue;
-      }
-    }
-#endif
   }
 }
 

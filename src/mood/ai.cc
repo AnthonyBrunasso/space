@@ -31,7 +31,8 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
   physics_comp->particle_id = particle->id;
   AIComponent* ai_comp = ecs::AssignAIComponent(ai_entity);
   if (particle) {
-    particle->collision_mask = kCollisionMaskCharacter;
+    SBIT(particle->collision_mask, kCollisionMaskAI);
+    SBIT(particle->collision_mask, kCollisionMaskCharacter);
     particle->damping = 0.005f;
     switch (behavior) {
       case kBehaviorSimple: {

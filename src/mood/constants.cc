@@ -58,6 +58,8 @@ enum CollisionMask {
   kCollisionMaskNone = 0,
   // Characters do not resolve collisions amongst each other.
   kCollisionMaskCharacter = 1,
+  // AI Stuff we don't want colliding together.
+  kCollisionMaskAI = 2,
 };
 
 enum ParticleFlags {

@@ -62,7 +62,7 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
 void
 AIInitialize()
 {
-  kAI.spawn_cooldown.frame = 300;
+  kAI.spawn_cooldown.frame = 200;
   util::FrameCooldownInitialize(&kAI.spawn_cooldown);
 }
 
@@ -148,7 +148,7 @@ AIUpdate()
 
   if (util::FrameCooldownReady(&kAI.spawn_cooldown)) {
     util::FrameCooldownReset(&kAI.spawn_cooldown);
-    AICreate(v2f(math::Random(-100.f, 100.f), math::Random(100.f, 200.f)),
+    AICreate(v2f(math::Random(-1000.f, 1000.f), math::Random(100.f, 200.f)),
              v2f(15.f, 15.f), kBehaviorSimpleFlying);
   }
 }

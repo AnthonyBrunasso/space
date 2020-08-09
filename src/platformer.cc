@@ -7,13 +7,14 @@
 #include "renderer/renderer.cc"
 #include "renderer/camera.cc"
 #include "renderer/imui.cc"
-#define PHYSICS_PARTICLE_COUNT 1024
+#define PHYSICS_PARTICLE_COUNT 2048
 #include "physics/physics.cc"
 #include "util/cooldown.cc"
 
 // Gameplay stuff.
 #include "mood/constants.cc"
 #include "mood/components.cc"
+#include "mood/player.cc"
 #include "mood/util.cc"
 #include "mood/render.cc"
 #include "mood/character.cc"

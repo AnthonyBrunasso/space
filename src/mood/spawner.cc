@@ -47,7 +47,7 @@ SpawnerUpdate()
         case kSpawnerPlayer: {
           if (!Player()) {
             ecs::Entity* player_entity = ecs::UseEntity();
-            kCharacter.player_id = player_entity->id;
+            kPlayer.id = player_entity->id;
             CharacterComponent* player_comp =
                 ecs::AssignCharacterComponent(player_entity);
             WeaponComponent* weapon =

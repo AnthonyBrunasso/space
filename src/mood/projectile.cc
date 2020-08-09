@@ -9,50 +9,53 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity,
                  const WeaponComponent& weapon)
 {
   ecs::Entity* creator_entity = ecs::FindEntity(from_entity);
-  v2f start_offset = {};
-  dir = math::Rotate(dir, math::Random(
-            -weapon.random_aim_offset, weapon.random_aim_offset));
-  r32 angle = atan2(dir.y, dir.x) * 180.f / PI;
-  v2f size;
-  physics::Particle2d* particle = nullptr;
-  ecs::Entity* pentity = ecs::UseEntity();
-  ProjectileComponent* projectile = AssignProjectileComponent(pentity);
-  switch (weapon.projectile_type) {
-    case kProjectileBullet:
-    case kProjectileLaser: {
-      particle =
-          physics::CreateParticle2d(start, v2f(10.5f, 1.2f), pentity->id);
-      particle->rotation = angle;
-      SBIT(particle->flags, physics::kParticleIgnoreGravity);
-      SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
-      SBIT(particle->flags, physics::kParticleIgnoreDamping);
-      projectile->ttl = weapon.projectile_ttl;
-      projectile->speed = weapon.projectile_speed;
-    } break;
-    case kProjectileGrenade: {
-      physics::Particle2d* particle_creator = ecs::GetParticle(creator_entity);
-      v2f start_offset = {};
-      if (particle_creator) {
-        start_offset = v2f((particle_creator->dims.x / 2.f) * dir.x, 0.f);
-      }
-      particle =
-          physics::CreateParticle2d(start, v2f(10.5f, 1.2f), pentity->id);
-      particle->rotation = 0.f;
-      SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
-      SBIT(particle->flags, physics::kParticleIgnoreDamping);
-      projectile->ttl = weapon.projectile_ttl; 
-      projectile->speed = weapon.projectile_speed;
-    } break;
-    default: {
-      assert(!"Unknown projectile type...");
-    } break;
-  }
-  ecs::AssignPhysicsComponent(pentity)->particle_id = particle->id;
-  projectile->dir = dir;
-  projectile->projectile_type = weapon.projectile_type;
-  projectile->from_entity = from_entity;
-  if (from_entity != PlayerId()) {
-    SBIT(particle->collision_mask, kCollisionMaskAI);
+  for (u32 i = 0; i < weapon.num_projectile; ++i) {
+    v2f start_offset = {};
+    v2f ndir = math::Rotate(dir, math::Random(
+              -weapon.random_aim_offset, weapon.random_aim_offset));
+    r32 angle = atan2(ndir.y, ndir.x) * 180.f / PI;
+    v2f size;
+    physics::Particle2d* particle = nullptr;
+    ecs::Entity* pentity = ecs::UseEntity();
+    ProjectileComponent* projectile = AssignProjectileComponent(pentity);
+    switch (weapon.projectile_type) {
+      case kProjectileBullet:
+      case kProjectileLaser: {
+        particle =
+            physics::CreateParticle2d(start, v2f(10.5f, 1.2f), pentity->id);
+        particle->rotation = angle;
+        SBIT(particle->flags, physics::kParticleIgnoreGravity);
+        SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
+        SBIT(particle->flags, physics::kParticleIgnoreDamping);
+        projectile->ttl = weapon.projectile_ttl;
+        projectile->speed = weapon.projectile_speed;
+      } break;
+      case kProjectileGrenade: {
+        physics::Particle2d* particle_creator =
+            ecs::GetParticle(creator_entity);
+        v2f start_offset = {};
+        if (particle_creator) {
+          start_offset = v2f((particle_creator->dims.x / 2.f) * ndir.x, 0.f);
+        }
+        particle =
+            physics::CreateParticle2d(start, v2f(10.5f, 1.2f), pentity->id);
+        particle->rotation = 0.f;
+        SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
+        SBIT(particle->flags, physics::kParticleIgnoreDamping);
+        projectile->ttl = weapon.projectile_ttl; 
+        projectile->speed = weapon.projectile_speed;
+      } break;
+      default: {
+        assert(!"Unknown projectile type...");
+      } break;
+    }
+    ecs::AssignPhysicsComponent(pentity)->particle_id = particle->id;
+    projectile->dir = ndir;
+    projectile->projectile_type = weapon.projectile_type;
+    projectile->from_entity = from_entity;
+    if (from_entity != PlayerId()) {
+      SBIT(particle->collision_mask, kCollisionMaskAI);
+    }
   }
 }
 

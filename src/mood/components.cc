@@ -120,6 +120,8 @@ struct WeaponComponent {
   // Projectile will be randomly offset by an angle between
   // [-random_aim_offset, random_aim_offset] degrees.
   r32 random_aim_offset = 0.f;
+  // Numbers of projectiles to shoot when using.
+  u32 num_projectile = 1;
 };
 
 }
@@ -168,7 +170,7 @@ GetComponents(u64 tid)
       return &f;
     } break;
     case kProjectileComponent: {
-      static ecs::ComponentStorage f(256, sizeof(ProjectileComponent));
+      static ecs::ComponentStorage f(512, sizeof(ProjectileComponent));
       return &f;
     } break;
     case kObstacleComponent: {

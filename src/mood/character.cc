@@ -5,47 +5,13 @@ namespace mood {
 void RenderCreateEffect(Rectf rect, v4f color, u32 ttl, r32 rotate_delta);
 
 struct GCharacter {
-  u32 player_id = 0; 
-  // Cooldown that dictates whether the player can boost.
-  util::FrameCooldown boost_cooldown;
-  // Cooldown that makes player invulnerable.
-  util::FrameCooldown player_invulnerable;
 };
 
 static GCharacter kCharacter;
 
-ecs::Entity*
-Player()
-{
-  return ecs::FindEntity(kCharacter.player_id);
-}
-
-physics::Particle2d*
-PlayerParticle()
-{
-  ecs::Entity* ent = Player();
-  return physics::FindParticle2d(ecs::GetPhysicsComponent(ent)->particle_id);
-}
-
-u32
-PlayerId()
-{
-  return kCharacter.player_id;
-}
-
-bool
-IsPlayer(ecs::Entity* ent)
-{
-  return kCharacter.player_id && kCharacter.player_id == ent->id;
-}
-
 void
 CharacterInitialize()
 {
-  kCharacter.boost_cooldown.frame = 60;
-  util::FrameCooldownInitialize(&kCharacter.boost_cooldown);
-  kCharacter.player_invulnerable.frame = 20;
-  util::FrameCooldownInitialize(&kCharacter.player_invulnerable);
 }
 
 bool
@@ -91,10 +57,10 @@ CharacterUpdate()
       //  }
       //}
       if (FLAGGED(c->ability_flags, kCharacterAbilityBoost)) {
-        if (util::FrameCooldownReady(&kCharacter.boost_cooldown)) {
-          util::FrameCooldownReset(&kCharacter.boost_cooldown);
+        if (util::FrameCooldownReady(&kPlayer.boost_cooldown)) {
+          util::FrameCooldownReset(&kPlayer.boost_cooldown);
           // Boosting make player invulnerable briefly.
-          util::FrameCooldownReset(&kCharacter.player_invulnerable);
+          util::FrameCooldownReset(&kPlayer.player_invulnerable);
           particle->velocity = {};
           particle->acceleration = {};
           particle->force += c->facing * kPlayerBoostForce;

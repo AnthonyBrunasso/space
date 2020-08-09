@@ -50,6 +50,8 @@ SpawnerUpdate()
             kCharacter.player_id = player_entity->id;
             CharacterComponent* player_comp =
                 ecs::AssignCharacterComponent(player_entity);
+            WeaponComponent* weapon =
+                ecs::AssignWeaponComponent(player_entity);
             PhysicsComponent* physics_comp =
                 ecs::AssignPhysicsComponent(player_entity);
             physics::Particle2d* particle =  physics::CreateParticle2d(
@@ -60,8 +62,8 @@ SpawnerUpdate()
             particle->damping = 0.005f;
             player_comp->double_jump_cooldown.frame = 15;
             util::FrameCooldownInitialize(&player_comp->double_jump_cooldown);
-            player_comp->weapon_cooldown.frame = 10;
-            util::FrameCooldownInitialize(&player_comp->weapon_cooldown);
+            weapon->cooldown.frame = 10;
+            util::FrameCooldownInitialize(&weapon->cooldown);
           }
         } break;
         case kSpawnerSnail: {

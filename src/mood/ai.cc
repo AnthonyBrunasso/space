@@ -42,8 +42,9 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
       } break;
       default: break;
     };
-    ai_character->weapon_cooldown.frame = 50;
-    util::FrameCooldownInitialize(&ai_character->weapon_cooldown);
+    WeaponComponent* weapon = ecs::AssignWeaponComponent(ai_entity);
+    weapon->cooldown.frame = 50;
+    util::FrameCooldownInitialize(&weapon->cooldown);
     BB_SET(ai_comp->blackboard, kAIBbType, behavior);
   }
 

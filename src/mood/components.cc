@@ -11,7 +11,8 @@ enum TypeId : u64 {
   kProjectileComponent = 4,
   kObstacleComponent = 5,
   kSpawnerComponent = 6,
-  kComponentCount = 7,
+  kWeaponComponent = 7,
+  kComponentCount = 8,
 }; 
 
 const char*
@@ -25,6 +26,7 @@ TypeName(TypeId type_id)
     case kProjectileComponent: return "Projectile";
     case kObstacleComponent: return "Obstacle";
     case kSpawnerComponent: return "Spawner";
+    case kWeaponComponent: return "Weapon";
     default: return "Unknown";
   }
   return "Unknown";
@@ -72,8 +74,6 @@ struct CharacterComponent {
   r32 move_acceleration = kPlayerAcceleration;
   // How long the character must wait before they can perform a double jump.
   util::FrameCooldown double_jump_cooldown;
-  // Cooldown that lets character fire their weapon.
-  util::FrameCooldown weapon_cooldown;
 };
 
 // If set on an entity will remove it at the end of the current frame.
@@ -107,6 +107,12 @@ struct SpawnerComponent {
   u32 spawn_count = 0;
 };
 
+struct WeaponComponent {
+  u32 entity_id = 0;
+  // Cooldown that lets character fire their weapon.
+  util::FrameCooldown cooldown;
+};
+
 }
 
 namespace ecs {
@@ -119,6 +125,7 @@ struct Components {
   mood::ProjectileComponent* projectile = nullptr;
   mood::ObstacleComponent*   obstacle   = nullptr;
   mood::SpawnerComponent*    spawner    = nullptr;
+  mood::WeaponComponent*     weapon     = nullptr;
 };
 
 }
@@ -163,6 +170,10 @@ GetComponents(u64 tid)
       static ecs::ComponentStorage f(32, sizeof(SpawnerComponent));
       return &f;
     } break;
+    case kWeaponComponent: {
+      static ecs::ComponentStorage f(128, sizeof(WeaponComponent));
+      return &f;
+    } break;
     default: {
       assert(!"Unknown component type");
     } break;
@@ -177,6 +188,7 @@ DECLARE_COMPONENT(DeathComponent, kDeathComponent);
 DECLARE_COMPONENT(ProjectileComponent, kProjectileComponent);
 DECLARE_COMPONENT(ObstacleComponent, kObstacleComponent);
 DECLARE_COMPONENT(SpawnerComponent, kSpawnerComponent);
+DECLARE_COMPONENT(WeaponComponent, kWeaponComponent);
 
 physics::Particle2d*
 GetParticle(ecs::Entity* ent)

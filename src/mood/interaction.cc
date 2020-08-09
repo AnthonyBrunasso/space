@@ -341,10 +341,6 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
 void
 CharacterComponentUI(CharacterComponent* comp)
 {
-  imui::SameLine();
-  imui::Text("flags: ");
-  imui::Bitfield32(comp->flags);
-  imui::NewLine();
   snprintf(kUIBuffer, kUIBufferSize, "facing: %.2f %.2f",
            comp->facing.x, comp->facing.y);
   imui::Text(kUIBuffer);
@@ -397,7 +393,12 @@ EntityViewer(v2f screen)
   for (u32 i = 0; i < ecs::kUsedEntity; ++i) {
     ecs::Entity* e = &ecs::kEntity[i];
     snprintf(kUIBuffer, kUIBufferSize, "Entity %u", e->id);
-    imui::Text(kUIBuffer);
+    if (imui::Text(kUIBuffer, toptions).highlighted) {
+      physics::Particle2d* particle = ecs::GetParticle(e);
+      if (particle) {
+        rgg::DebugPushRect(particle->aabb(), rgg::kRed);
+      }
+    }
     imui::Indent(2);
     for (u32 j = 0; j < kComponentCount; ++j) {
       if (e->Has(j)) {

@@ -18,13 +18,13 @@ const char*
 TypeName(TypeId type_id)
 {
   switch (type_id) {
-    case kPhysicsComponent: return "Physics Component";
-    case kAIComponent: return "AI Component";
-    case kCharacterComponent: return "Character Component";
-    case kDeathComponent: return "Death Component";
-    case kProjectileComponent: return "Projectile Component";
-    case kObstacleComponent: return "Obstacle Component";
-    case kSpawnerComponent: return "Spawner Component";
+    case kPhysicsComponent: return "Physics";
+    case kAIComponent: return "AI";
+    case kCharacterComponent: return "Character";
+    case kDeathComponent: return "Death";
+    case kProjectileComponent: return "Projectile";
+    case kObstacleComponent: return "Obstacle";
+    case kSpawnerComponent: return "Spawner";
     default: return "Unknown";
   }
   return "Unknown";
@@ -48,7 +48,6 @@ struct AIComponent {
 
 struct CharacterComponent {
   u32 entity_id = 0;
-  u32 flags = 0; // TODO: Remove?
   v2f facing = {1.f, 0.f};
   u8 prev_character_flags = 0;
   u8 character_flags = 0;

@@ -170,7 +170,6 @@ Render()
     rgg::RenderLine(start, pl->end, pl->color);
   }
 
-  rgg::DebugRenderWorldPrimitives();
 
   for (u32 i = 0; i < physics::kUsedParticle2d; ++i) {
     physics::Particle2d* p = &physics::kParticle2d[i];
@@ -258,6 +257,8 @@ Render()
     Texture* t = &kTexture[i];
     rgg::RenderTexture(t->texture_id, t->subrect, t->rect);
   }
+
+  rgg::DebugRenderWorldPrimitives();
 
   if (kRenderGrid) {
     v4f colors[] = {

@@ -98,13 +98,13 @@ CharacterUpdate()
         if (particle->on_ground) {
           particle->force.y += kJumpForce;
           util::FrameCooldownReset(&c->double_jump_cooldown);
-          SBIT(c->flags, kCharacterCanDoubleJump);
+          SBIT(c->character_flags, kCharacterCanDoubleJump);
         }
 
         if (util::FrameCooldownReady(&c->double_jump_cooldown) &&
-            FLAGGED(c->flags, kCharacterCanDoubleJump)) {
+            FLAGGED(c->character_flags, kCharacterCanDoubleJump)) {
           particle->force.y += kJumpForce;
-          CBIT(c->flags, kCharacterCanDoubleJump);
+          CBIT(c->character_flags, kCharacterCanDoubleJump);
         }
       }
     }

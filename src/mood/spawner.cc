@@ -52,6 +52,7 @@ SpawnerUpdate()
                 ecs::AssignCharacterComponent(player_entity);
             WeaponComponent* weapon =
                 ecs::AssignWeaponComponent(player_entity);
+            weapon->projectile_type = kProjectileBullet;
             PhysicsComponent* physics_comp =
                 ecs::AssignPhysicsComponent(player_entity);
             physics::Particle2d* particle =  physics::CreateParticle2d(

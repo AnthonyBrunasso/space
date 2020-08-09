@@ -109,6 +109,8 @@ struct SpawnerComponent {
 
 struct WeaponComponent {
   u32 entity_id = 0;
+  // Types of projectiles the weapon creates.
+  ProjectileType projectile_type;
   // Cooldown that lets character fire their weapon.
   util::FrameCooldown cooldown;
 };

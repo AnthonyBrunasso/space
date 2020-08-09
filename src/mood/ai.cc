@@ -43,6 +43,7 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
       default: break;
     };
     WeaponComponent* weapon = ecs::AssignWeaponComponent(ai_entity);
+    weapon->projectile_type = kProjectileBullet;
     weapon->cooldown.frame = 50;
     util::FrameCooldownInitialize(&weapon->cooldown);
     BB_SET(ai_comp->blackboard, kAIBbType, behavior);

@@ -41,7 +41,7 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
     default: {
       assert(!"Unknown projectile type...");
     } break;
-  };
+  }
   ecs::AssignPhysicsComponent(pentity)->particle_id = particle->id;
   dir += v2f(0.f, math::Random(-0.05f, 0.05f));
   projectile->dir = dir;

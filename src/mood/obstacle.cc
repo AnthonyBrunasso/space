@@ -12,6 +12,7 @@ ObstacleCreate(v2f pos, v2f dims, ObstacleType type)
       obstacle = ecs::AssignObstacleComponent(entity);
       physics::Particle2d* p =
           physics::CreateParticle2d(pos, dims, entity->id);
+      SBIT(p->collision_mask, kCollisionMaskAI);
       ecs::AssignPhysicsComponent(entity)->particle_id = p->id;
       obstacle->obstacle_type = type;
       SBIT(p->flags, physics::kParticleIgnoreGravity);

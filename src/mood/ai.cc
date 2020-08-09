@@ -47,7 +47,8 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
     weapon->projectile_type = kProjectileBullet;
     weapon->projectile_speed = kProjectileSpeed / 4.f;
     weapon->projectile_ttl = 500;
-    weapon->cooldown.frame = 50;
+    weapon->cooldown.frame = 40;
+    weapon->random_aim_offset = 15.f;
     util::FrameCooldownInitialize(&weapon->cooldown);
     BB_SET(ai_comp->blackboard, kAIBbType, behavior);
   }
@@ -117,7 +118,7 @@ AIBehaviorFlying(AIComponent* ai)
   ai_particle->acceleration = dir * kEnemyAcceleration;
   if (math::LengthSquared(
       player_particle->position - ai_particle->position) < 50000.f) {
-    c->aim_dir = math::Rotate(dir, math::Random(-20.f, 20.f));
+    c->aim_dir = dir;
     SBIT(c->character_flags, kCharacterFireWeapon);
   } else {
     CBIT(c->character_flags, kCharacterFireWeapon);

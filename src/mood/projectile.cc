@@ -10,6 +10,8 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity,
 {
   ecs::Entity* creator_entity = ecs::FindEntity(from_entity);
   v2f start_offset = {};
+  dir = math::Rotate(dir, math::Random(
+            -weapon.random_aim_offset, weapon.random_aim_offset));
   r32 angle = atan2(dir.y, dir.x) * 180.f / PI;
   v2f size;
   physics::Particle2d* particle = nullptr;
@@ -46,7 +48,6 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity,
     } break;
   }
   ecs::AssignPhysicsComponent(pentity)->particle_id = particle->id;
-  dir += v2f(0.f, math::Random(-0.05f, 0.05f));
   projectile->dir = dir;
   projectile->projectile_type = weapon.projectile_type;
   projectile->from_entity = from_entity;

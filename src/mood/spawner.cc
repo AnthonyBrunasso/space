@@ -52,7 +52,6 @@ SpawnerUpdate()
                 ecs::AssignCharacterComponent(player_entity);
             WeaponComponent* weapon =
                 ecs::AssignWeaponComponent(player_entity);
-            weapon->projectile_type = kProjectileBullet;
             PhysicsComponent* physics_comp =
                 ecs::AssignPhysicsComponent(player_entity);
             physics::Particle2d* particle =  physics::CreateParticle2d(
@@ -63,7 +62,9 @@ SpawnerUpdate()
             particle->damping = 0.005f;
             player_comp->double_jump_cooldown.frame = 15;
             util::FrameCooldownInitialize(&player_comp->double_jump_cooldown);
+            weapon->projectile_type = kProjectileBullet;
             weapon->cooldown.frame = 10;
+            weapon->random_aim_offset = 5.f;
             util::FrameCooldownInitialize(&weapon->cooldown);
           }
         } break;

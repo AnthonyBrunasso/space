@@ -117,6 +117,9 @@ struct WeaponComponent {
   r32 projectile_ttl = kProjectileTtl;
   // Cooldown that lets character fire their weapon.
   util::FrameCooldown cooldown;
+  // Projectile will be randomly offset by an angle between
+  // [-random_aim_offset, random_aim_offset] degrees.
+  r32 random_aim_offset = 0.f;
 };
 
 }

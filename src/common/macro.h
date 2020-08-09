@@ -59,3 +59,5 @@
 
 // Non-branching equivalence to: (condition) ? a : b
 #define TERNARY(condition, a, b) (((a) * (condition)) + ((b) * !(condition)))
+
+#define NUMARGS(...)  (sizeof((int[]){__VA_ARGS__})/sizeof(int))

@@ -14,6 +14,28 @@ enum TypeId : u64 {
   kComponentCount = 7,
 }; 
 
+const char*
+TypeName(TypeId type_id)
+{
+  switch (type_id) {
+    case kPhysicsComponent: return "Physics Component";
+    case kAIComponent: return "AI Component";
+    case kCharacterComponent: return "Character Component";
+    case kDeathComponent: return "Death Component";
+    case kProjectileComponent: return "Projectile Component";
+    case kObstacleComponent: return "Obstacle Component";
+    case kSpawnerComponent: return "Spawner Component";
+    default: return "Unknown";
+  }
+  return "Unknown";
+}
+
+const char*
+TypeName(u64 type_id)
+{
+  return TypeName((TypeId)type_id);
+}
+
 struct PhysicsComponent {
   u32 entity_id = 0;
   u32 particle_id = 0;

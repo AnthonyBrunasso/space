@@ -2,6 +2,9 @@
 
 namespace mood {
 
+static const u32 kUIBufferSize = 128;
+static char kUIBuffer[kUIBufferSize];
+
 enum SelectionType {
   kSelectionNone,
   // If these numbers change change render.cc call to IsInEditMode.
@@ -336,41 +339,97 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
 }
 
 void
+CharacterComponentUI(CharacterComponent* comp)
+{
+  imui::SameLine();
+  imui::Text("flags: ");
+  imui::Bitfield32(comp->flags);
+  imui::NewLine();
+  snprintf(kUIBuffer, kUIBufferSize, "facing: %.2f %.2f",
+           comp->facing.x, comp->facing.y);
+  imui::Text(kUIBuffer);
+  imui::SameLine();
+  imui::Text("character_flags: ");
+  imui::Bitfield8(comp->character_flags);
+  imui::NewLine();
+  imui::SameLine();
+  imui::Text("ability_flags: ");
+  imui::Bitfield8(comp->ability_flags);
+  imui::NewLine();
+  snprintf(kUIBuffer, kUIBufferSize, "trail_effect_ttl: %u",
+           comp->trail_effect_ttl);
+  imui::Text(kUIBuffer);
+  snprintf(kUIBuffer, kUIBufferSize, "health: %.2f", comp->health);
+  imui::Text(kUIBuffer);
+  snprintf(kUIBuffer, kUIBufferSize, "max_health: %.2f", comp->max_health);
+  imui::Text(kUIBuffer);
+  snprintf(kUIBuffer, kUIBufferSize, "aim_dir: %.2f %.2f", comp->aim_dir.x,
+           comp->aim_dir.y);
+  imui::Text(kUIBuffer);
+  snprintf(kUIBuffer, kUIBufferSize, "aim_rotate_delta: %.2f",
+           comp->aim_rotate_delta);
+  imui::Text(kUIBuffer);
+  snprintf(kUIBuffer, kUIBufferSize, "anim_frame: %u", comp->anim_frame);
+  imui::Text(kUIBuffer);
+  snprintf(kUIBuffer, kUIBufferSize, "move_dir: %.2f %.2f", comp->move_dir.x,
+           comp->move_dir.y);
+  imui::Text(kUIBuffer);
+  snprintf(kUIBuffer, kUIBufferSize, "move_multiplier: %.2f",
+           comp->move_multiplier);
+  imui::Text(kUIBuffer);
+  snprintf(kUIBuffer, kUIBufferSize, "move_acceleration: %.2f",
+           comp->move_acceleration);
+  imui::Text(kUIBuffer);
+}
+
+void
 EntityViewer(v2f screen)
 {
-  // TODO:
-#if 0
-  static char kUIBuffer[64];
+  static u64 kEntityMask[ENTITY_COUNT];
   static b8 enable = false;
   static v2f pos(screen.x - 315, screen.y);
+  imui::TextOptions toptions;
+  toptions.highlight_color = rgg::kRed;
   imui::PaneOptions options;
   options.width = options.max_width = 315.f;
+  options.max_height = 800.f;
   imui::Begin("Entity Viewer", imui::kEveryoneTag, options, &pos, &enable);
-  for (u32 i = 0; i < kUsedEntity; ++i) {
-    Entity* e = &kEntity[i];
-    imui::Indent(0);
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "Entity %u", e->id);
+  for (u32 i = 0; i < ecs::kUsedEntity; ++i) {
+    ecs::Entity* e = &ecs::kEntity[i];
+    snprintf(kUIBuffer, kUIBufferSize, "Entity %u", e->id);
     imui::Text(kUIBuffer);
     imui::Indent(2);
-    physics::Particle2d* p = physics::FindParticle2d(e->particle_id);
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "Particle %u", p->id);
-    imui::Text(kUIBuffer);
-    imui::Indent(4);
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "pos %.2f %.2f", p->position.x,
-             p->position.y);
-    imui::Text(kUIBuffer);
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "vel %.2f %.2f", p->velocity.x,
-             p->velocity.y);
-    imui::Text(kUIBuffer);
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "acc %.2f %.2f", p->acceleration.x,
-             p->acceleration.y);
-    imui::Text(kUIBuffer);
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "dims %.2f %.2f", p->dims.x,
-             p->dims.y);
-    imui::Text(kUIBuffer);
+    for (u32 j = 0; j < kComponentCount; ++j) {
+      if (e->Has(j)) {
+        if (imui::Text(TypeName(j), toptions).clicked) {
+          FBIT(kEntityMask[i], j);
+        }
+        if (FLAGGED(kEntityMask[i], j)) {
+          imui::Indent(4);
+          switch ((TypeId)j) {
+            case kPhysicsComponent: {
+            } break;
+            case kAIComponent: {
+            } break;
+            case kCharacterComponent: {
+              CharacterComponentUI(ecs::GetCharacterComponent(e));
+            } break;
+            case kDeathComponent: {
+            } break;
+            case kProjectileComponent: {
+            } break;
+            case kObstacleComponent: {
+            } break;
+            case kSpawnerComponent: {
+            } break;
+          }
+          imui::Indent(2);
+        }
+      }
+    }
+    imui::Indent(0);
   }
   imui::End();
-#endif
 }
 
 void

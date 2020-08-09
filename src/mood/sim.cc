@@ -76,6 +76,8 @@ SimUpdate()
   // next integration step.
   ECS_ITR1(itr, kDeathComponent);
   while (itr.Next()) {
+    // Just in case an entity got multiple death components.
+    if (!itr.e) continue;
     if (itr.e->Has(kPhysicsComponent)) {
       physics::DeleteParticle2d(ecs::GetPhysicsComponent(itr.e)->particle_id);
     }

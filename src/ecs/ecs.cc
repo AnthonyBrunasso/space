@@ -24,7 +24,8 @@ struct Entity {
 DECLARE_HASH_ARRAY(Entity, ENTITY_COUNT);
 
 struct ComponentStorage {
-  ComponentStorage(u32 n, u32 sz) {
+  ComponentStorage(u32 n, u32 sz)
+  {
     bytes = memory::PushBytes(n * sz);
     assert(bytes != nullptr);
     sizeof_element = sz;

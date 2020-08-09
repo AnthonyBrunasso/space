@@ -184,11 +184,10 @@ DeleteEntity(Entity* ent, u32 max_comps = 64)
 
 template <u32 N>
 struct EntityItr {
-  EntityItr(...) {
+  EntityItr(u32 n, ...) {
     va_list args;
-    va_start(args, N);
+    va_start(args, n);
     u32 cnt = 0;
-    va_arg(args, u64);
     for (u32 i = 0; i < N; ++i) {
       u64 tid = va_arg(args, u64);
       types[i] = tid;
@@ -197,7 +196,7 @@ struct EntityItr {
     }
     assert(cnt == N);
     va_end(args);
-  } 
+  }
 
   void IncreaseMin(u8** ptrs) {
     u32 min = 0xFFFFFFFF;
@@ -264,5 +263,16 @@ struct EntityItr {
   u64 types[N];
   u32 idx[N] = {};
 };
+
+// Just some helpers to avoid typing.
+
+#define ECS_ITR1(name, ...) \
+  ecs::EntityItr<1> name(1, __VA_ARGS__);
+
+#define ECS_ITR2(name, ...) \
+  ecs::EntityItr<2> name(2, __VA_ARGS__);
+
+#define ECS_ITR3(name, ...) \
+  ecs::EntityItr<3> name(3, __VA_ARGS__);
 
 }

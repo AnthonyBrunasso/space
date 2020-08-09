@@ -30,7 +30,7 @@ ObstacleCreate(v2f pos, v2f dims, ObstacleType type)
 void
 ObstacleUpdate()
 {
-  ecs::EntityItr<1> itr(kObstacleComponent);
+  ECS_ITR1(itr, kObstacleComponent);
   while (itr.Next()) {
     ObstacleComponent* o = itr.c.obstacle;
     physics::Particle2d* p = ecs::GetParticle(itr.e);

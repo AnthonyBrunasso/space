@@ -123,7 +123,7 @@ void
 AIUpdate()
 {
   if (!kEnableEnemies) return;
-  ecs::EntityItr<1> itr(kAIComponent);
+  ECS_ITR1(itr, kAIComponent);
   while (itr.Next()) {
     const u32* behavior;
     if (!BB_GET(itr.c.ai->blackboard,  kAIBbType, behavior)) continue;

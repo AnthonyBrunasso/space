@@ -74,7 +74,7 @@ SimUpdate()
   // Cleanup entities marked to die at the end of each simulation update
   // frame. Particle for physics system will be destroyed at the top of the
   // next integration step.
-  ecs::EntityItr<1> itr(kDeathComponent);
+  ECS_ITR1(itr, kDeathComponent);
   while (itr.Next()) {
     if (itr.e->Has(kPhysicsComponent)) {
       physics::DeleteParticle2d(ecs::GetPhysicsComponent(itr.e)->particle_id);

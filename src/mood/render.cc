@@ -200,7 +200,7 @@ Render()
   animation::Sprite* character_sprite = rgg::GetSprite(kRender.character_id);
   animation::Sprite* snail_sprite = rgg::GetSprite(kRender.snail_id);
   //physics::DebugRender(); 
-  ecs::EntityItr<2> itr(kPhysicsComponent, kCharacterComponent);
+  ECS_ITR2(itr, kPhysicsComponent, kCharacterComponent);
   while (itr.Next()) {
     physics::Particle2d* p =
       physics::FindParticle2d(itr.c.physics->particle_id);

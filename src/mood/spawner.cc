@@ -38,7 +38,7 @@ SpawnerCreate(v2f pos, SpawnerType type)
 void
 SpawnerUpdate()
 {
-  ecs::EntityItr<1> itr(kSpawnerComponent);
+  ECS_ITR1(itr, kSpawnerComponent);
   while (itr.Next()) {
     SpawnerComponent* s = itr.c.spawner;
     physics::Particle2d* p = GetParticle(itr.e);

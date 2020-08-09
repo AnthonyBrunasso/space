@@ -52,7 +52,7 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity, ProjectileType type)
 void
 ProjectileUpdate()
 {
-  ecs::EntityItr<2> itr(kPhysicsComponent, kProjectileComponent);
+  ECS_ITR2(itr, kPhysicsComponent, kProjectileComponent);
   while (itr.Next()) {
     physics::Particle2d* particle =
         physics::FindParticle2d(itr.c.physics->particle_id);

@@ -46,26 +46,7 @@ SpawnerUpdate()
       switch (s->spawner_type) {
         case kSpawnerPlayer: {
           if (!Player()) {
-            ecs::Entity* player_entity = ecs::UseEntity();
-            kPlayer.id = player_entity->id;
-            CharacterComponent* player_comp =
-                ecs::AssignCharacterComponent(player_entity);
-            WeaponComponent* weapon =
-                ecs::AssignWeaponComponent(player_entity);
-            PhysicsComponent* physics_comp =
-                ecs::AssignPhysicsComponent(player_entity);
-            physics::Particle2d* particle =  physics::CreateParticle2d(
-                p->position, v2f(kPlayerWidth, kPlayerHeight),
-                player_entity->id);
-            physics_comp->particle_id = particle->id;
-            SBIT(particle->collision_mask, kCollisionMaskCharacter);
-            particle->damping = 0.005f;
-            player_comp->double_jump_cooldown.frame = 15;
-            util::FrameCooldownInitialize(&player_comp->double_jump_cooldown);
-            weapon->projectile_type = kProjectileBullet;
-            weapon->cooldown.frame = 10;
-            weapon->random_aim_offset = 5.f;
-            util::FrameCooldownInitialize(&weapon->cooldown);
+            PlayerCreate(p->position);
           }
         } break;
         case kSpawnerSnail: {

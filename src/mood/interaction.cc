@@ -333,6 +333,16 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
       } else {
         CBIT(player->character_flags, kCharacterFireSecondary);
       }
+
+      if (FLAGGED(event.controller.controller_flags,
+                  XBOX_CONTROLLER_RIGHT_SHOULDER)) {
+        PlayerNextWeapon();
+      }
+
+      if (FLAGGED(event.controller.controller_flags,
+                  XBOX_CONTROLLER_LEFT_SHOULDER)) {
+        PlayerPrevWeapon();
+      }
     } break;
     default: break;
   }

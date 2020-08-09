@@ -1,7 +1,5 @@
 #pragma once
 
-#define ENTITY_COUNT 2048
-#include "ecs/ecs.cc"
 
 namespace mood {
 
@@ -92,6 +90,23 @@ struct SpawnerComponent {
 
 namespace ecs {
 
+struct Components {
+  mood::PhysicsComponent*    physics    = nullptr;
+  mood::AIComponent*         ai         = nullptr;
+  mood::CharacterComponent*  character  = nullptr;
+  mood::DeathComponent*      death      = nullptr;
+  mood::ProjectileComponent* projectile = nullptr;
+  mood::ObstacleComponent*   obstacle   = nullptr;
+  mood::SpawnerComponent*    spawner    = nullptr;
+};
+
+}
+
+#define ENTITY_COUNT 2048
+#include "ecs/ecs.cc"
+
+namespace ecs {
+
 using namespace mood;
 
 ComponentStorage*
@@ -124,7 +139,7 @@ GetComponents(u64 tid)
       return &f;
     } break;
     case kSpawnerComponent: {
-      static ecs::ComponentStorage f(32, sizeof(ObstacleComponent));
+      static ecs::ComponentStorage f(32, sizeof(SpawnerComponent));
       return &f;
     } break;
     default: {
@@ -141,16 +156,6 @@ DECLARE_COMPONENT(DeathComponent, kDeathComponent);
 DECLARE_COMPONENT(ProjectileComponent, kProjectileComponent);
 DECLARE_COMPONENT(ObstacleComponent, kObstacleComponent);
 DECLARE_COMPONENT(SpawnerComponent, kSpawnerComponent);
-
-struct Components {
-  PhysicsComponent*    physics    = nullptr;
-  AIComponent*         ai         = nullptr;
-  CharacterComponent*  character  = nullptr;
-  DeathComponent*      death      = nullptr;
-  ProjectileComponent* projectile = nullptr;
-  ObstacleComponent*   obstacle   = nullptr;
-  SpawnerComponent*    spawner    = nullptr;
-};
 
 physics::Particle2d*
 GetParticle(ecs::Entity* ent)

@@ -1,5 +1,5 @@
-#define ENTITY_COUNT 512
-#include "ecs/ecs.cc"
+#include <cstdio>
+#include <platform/platform.cc>
 
 enum TypeId : u64 {
   kFoo = 0,
@@ -17,6 +17,19 @@ struct Bar {
 };
 
 // Users must define their ecs nonsense in the ecs namespace.
+namespace ecs {
+
+// Must match order for TypeId.
+struct Components {
+  Foo* foo = nullptr;
+  Bar* bar = nullptr;
+};
+
+}
+
+#define ENTITY_COUNT 512
+#include "ecs/ecs.cc"
+
 
 namespace ecs {
 
@@ -42,11 +55,6 @@ GetComponents(u64 tid)
 DECLARE_COMPONENT(Foo, kFoo);
 DECLARE_COMPONENT(Bar, kBar);
 
-// Must match order for TypeId.
-struct Components {
-  Foo* foo = nullptr;
-  Bar* bar = nullptr;
-};
 
 }
 
@@ -63,15 +71,11 @@ main(int argc, char** argv)
   ecs::Entity* e4 = ecs::UseEntity();
   ecs::Entity* e5 = ecs::UseEntity();
 
-  ecs::AssignFoo(e1);
   ecs::AssignFoo(e2);
   ecs::AssignFoo(e3);
   ecs::AssignFoo(e4);
 
-  ecs::AssignBar(e3);
-  ecs::AssignBar(e4);
-
-  ecs::EntityItr<2> itr(kFoo, kBar);
+  ecs::EntityItr<1> itr(kFoo);
   while (itr.Next()) {
     printf("Entity found %u\n", itr.e->id);
   }

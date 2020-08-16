@@ -1,14 +1,10 @@
-Tasks -
+Bugs -
 
-  [] Gravity controlled projectiles - grenades and such.
-  [x] A level.
-  [x] Stair collision geometry.
-  [x] Unit spawners.
-  [x] Save particle bitmask to collision geometry.
+  1. When multiple projectiles are shot - some appear to clip entirely through
+     walls. It appears to be related to having multiple projectiles with high
+     speed since:
+
+        a. Individual fast projectiles shot do not reproduce the issue.
+        b. Multiple slow projectiles shot do not reproduce the issue.
 
 Ideas -
-
-  1. Perhaps would be cool if secondary fire was also some sort of terrain
-     traversing helper. So unlocking new guns would also unlock new areas
-     of the map. Like a could could have a grapling hook, teleport with
-     projectile, etc.

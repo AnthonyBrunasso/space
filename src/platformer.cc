@@ -26,6 +26,7 @@
 
 #define WIN_ATTACH_DEBUGGER 0
 #define DEBUG_PHYSICS 0
+#define DEBUG_UI 0
 
 struct State {
   // Game and render updates per second
@@ -100,9 +101,11 @@ DebugUI()
   }
 
   {
+#if DEBUG_UI
     static b8 enable_debug = false;
     static v2f ui_pos(300.f, screen.y);
     imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
+#endif
   }
 
   //physics::DebugUI(screen);

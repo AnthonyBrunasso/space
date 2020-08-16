@@ -47,7 +47,7 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
     weapon->projectile_type = kProjectileBullet;
     weapon->projectile_speed = kProjectileSpeed / 4.f;
     weapon->projectile_ttl = 500;
-    weapon->cooldown.frame = 40;
+    weapon->cooldown.frame = 60;
     weapon->random_aim_offset = 15.f;
     util::FrameCooldownInitialize(&weapon->cooldown);
     BB_SET(ai_comp->blackboard, kAIBbType, behavior);

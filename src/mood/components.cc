@@ -91,6 +91,8 @@ struct ProjectileComponent {
   u32 from_entity = 0; 
   // Entity that fired the projectile.
   r32 speed = 500.f;
+  // Damage the projectile will do when hitting a character.
+  r32 damage = 3.f;
 };
 
 struct ObstacleComponent {
@@ -115,6 +117,8 @@ struct WeaponComponent {
   r32 projectile_speed = kProjectileSpeed;
   // How many frames the projectile should last for.
   r32 projectile_ttl = kProjectileTtl;
+  // Damage that a projectile from this weapon will do.
+  r32 projectile_damage = 3.f;
   // Cooldown that lets character fire their weapon.
   util::FrameCooldown cooldown;
   // Projectile will be randomly offset by an angle between

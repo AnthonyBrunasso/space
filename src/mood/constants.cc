@@ -110,6 +110,7 @@ enum ProjectileType {
   kProjectileLaser = 0,
   kProjectileBullet = 1,
   kProjectileGrenade = 2,
+  kProjectilePellet = 3,
 };
 
 enum SpawnerType {

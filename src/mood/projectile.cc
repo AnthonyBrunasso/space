@@ -24,11 +24,11 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity,
         particle =
             physics::CreateParticle2d(start, v2f(10.5f, 1.2f), pentity->id);
         particle->rotation = angle;
-        SBIT(particle->flags, physics::kParticleIgnoreGravity);
-        SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
-        SBIT(particle->flags, physics::kParticleIgnoreDamping);
-        projectile->ttl = weapon.projectile_ttl;
-        projectile->speed = weapon.projectile_speed;
+      } break;
+      case kProjectilePellet: {
+        particle =
+            physics::CreateParticle2d(start, v2f(4.5f, 1.5f), pentity->id);
+        particle->rotation = angle;
       } break;
       case kProjectileGrenade: {
         physics::Particle2d* particle_creator =
@@ -40,19 +40,21 @@ ProjectileCreate(v2f start, v2f dir, u32 from_entity,
         particle =
             physics::CreateParticle2d(start, v2f(10.5f, 1.2f), pentity->id);
         particle->rotation = 0.f;
-        SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
-        SBIT(particle->flags, physics::kParticleIgnoreDamping);
-        projectile->ttl = weapon.projectile_ttl; 
-        projectile->speed = weapon.projectile_speed;
       } break;
       default: {
         assert(!"Unknown projectile type...");
       } break;
     }
-    ecs::AssignPhysicsComponent(pentity)->particle_id = particle->id;
+    SBIT(particle->flags, physics::kParticleIgnoreGravity);
+    SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
+    SBIT(particle->flags, physics::kParticleIgnoreDamping);
+    projectile->ttl = weapon.projectile_ttl;
+    projectile->speed = weapon.projectile_speed;
+    projectile->damage = weapon.projectile_damage;
     projectile->dir = ndir;
     projectile->projectile_type = weapon.projectile_type;
     projectile->from_entity = from_entity;
+    ecs::AssignPhysicsComponent(pentity)->particle_id = particle->id;
     if (from_entity != PlayerId()) {
       SBIT(particle->collision_mask, kCollisionMaskAI);
     }
@@ -71,6 +73,7 @@ ProjectileUpdate()
       switch (p->projectile_type) {
         case kProjectileLaser: {
         } break;
+        case kProjectilePellet:
         case kProjectileBullet: {
           v2f delta = p->dir * p->speed;
           particle->velocity = delta;

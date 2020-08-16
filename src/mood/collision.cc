@@ -11,7 +11,7 @@ __CharacterProjectileCollision(CharacterComponent* character,
   // If the particle created the projectile - ignore the collision.
   if (projectile->from_entity == character->entity_id) return;
   ecs::AssignDeathComponent(projectile->entity_id);
-  character->health -= 3.f;
+  character->health -= projectile->damage;
 }
 
 void

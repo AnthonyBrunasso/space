@@ -21,7 +21,7 @@ static Sim kSim;
 static b8 kReloadGame = false;
 static char kReloadFrom[64] = "asset/test.map";
 static b8 kFreezeGame = false;
-static b8 kEnableEnemies = true;
+static b8 kEnableEnemies = false;
 
 #include "mood/ai.cc"
 

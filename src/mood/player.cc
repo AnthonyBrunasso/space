@@ -52,18 +52,22 @@ PlayerSetWeapon(PlayerWeapon weapon_type)
   switch (weapon_type) {
     case kPlayerWeaponMachinegun: {
       weapon->projectile_type = kProjectileBullet;
-      weapon->random_aim_offset = 5.f;
+      weapon->random_aim_offset = 2.f;
       weapon->projectile_ttl = kProjectileTtl;
+      weapon->projectile_damage = 3.f;
+      weapon->projectile_speed = kProjectileSpeed;
       weapon->num_projectile = 1;
       weapon->cooldown.frame = 10;
       util::FrameCooldownInitialize(&weapon->cooldown);
     } break;
     case kPlayerWeaponShotgun: {
-      weapon->projectile_type = kProjectileBullet;
+      weapon->projectile_type = kProjectilePellet;
       weapon->random_aim_offset = 10.f;
       weapon->projectile_ttl = kProjectileTtl;
-      weapon->num_projectile = 10;
-      weapon->cooldown.frame = 40;
+      weapon->projectile_damage = 1.5f;
+      weapon->projectile_speed = kProjectileSpeed;
+      weapon->num_projectile = 15;
+      weapon->cooldown.frame = 50;
     } break;
     default: assert(!"Undefined weapon type.");
   }

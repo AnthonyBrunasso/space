@@ -24,6 +24,7 @@
 #include "win32_sleep.cc"
 #include "win32_thread.cc"
 #include "win32_udp.cc"
+#include "win32_tcp.cc"
 #else
 #include "unix_filesystem.cc"
 #include "unix_sleep.cc"

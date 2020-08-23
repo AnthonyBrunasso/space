@@ -293,4 +293,10 @@ GetCursorPosition()
   // Change origin of screen to be top left to be consistent with other platforms.
   return v2f(pos.x, pos.y);
 }
+
+const char*
+GetBinaryPath()
+{
+  return "";
+}
 }  // namespace window

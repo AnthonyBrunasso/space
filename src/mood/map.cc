@@ -54,16 +54,26 @@ MapSave(const char* name)
 }
 
 void
+MapCreateEmpty(const char* name)
+{
+  FILE* f = fopen(name, "w+");
+  if (!f) return;
+  printf("Map create empty %s\n", name);
+  fprintf(f, "%s\n", name);
+  fclose(f);
+}
+
+void
 MapReload(const char* name)
 {
   kReloadGame = true;
-  strcpy(kReloadFrom, name);
+  strcpy(kCurrentMapName, name);
 }
 
 void
 MapLoadFrom(const char* name)
 {
-  printf("Loading Map From %s\n", kReloadFrom);
+  printf("Loading Map From %s\n", kCurrentMapName);
   FILE* f = fopen(name, "rb");
   if (!f) {
     printf("Unable to load map %s\n", name);
@@ -117,6 +127,30 @@ MapLoadFrom(const char* name)
     }
   }
   fclose(f);
+}
+
+void
+MapUniqueNameFinder(const char* filename)
+{
+  if (strncmp(filename, "asset/level", 11) == 0) {
+    uint32_t lvl_num;
+    sscanf(filename, "asset/level_%u.map", &lvl_num);
+    if (lvl_num >= kMapNum) {
+      ++kMapNum;
+    }
+  }
+  //printf("Setting current map name...\n");
+  strcpy(kCurrentMapName, "asset/level_");
+  char num[8];
+  sprintf(num, "%d", kMapNum);
+  strcat(kCurrentMapName, num);
+  strcat(kCurrentMapName, ".map");
+}
+
+void
+MapGenerateUniqueName()
+{
+  filesystem::WalkDirectory("asset/", MapUniqueNameFinder);
 }
 
 }

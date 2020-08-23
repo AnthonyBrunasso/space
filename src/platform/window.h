@@ -105,4 +105,7 @@ v2f GetWindowSize();
 v2f GetPrimaryMonitorSize();
 
 v2f GetCursorPosition();
+
+const char* GetBinaryPath();
+
 }  // namespace window

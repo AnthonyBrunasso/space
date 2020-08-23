@@ -675,4 +675,11 @@ GetCursorPosition()
   v2f dims = GetWindowSize();
   return v2f((r32)cursor.x, dims.y - (r32)cursor.y);
 }
+
+const char*
+GetBinaryPath()
+{
+  return "";
+}
+
 }  // namespace window

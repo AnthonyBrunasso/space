@@ -585,6 +585,11 @@ MapEditor(v2f screen)
   imui::Indent(0);
   imui::HorizontalLine(v4f(1.f, 1.f, 1.f, .2f));
   imui::Space(imui::kVertical, 5.f);
+  if (imui::Text("New Map", toptions).clicked) {
+    MapGenerateUniqueName();
+    MapCreateEmpty(kCurrentMapName);
+    kReloadGame = true;
+  }
   if (imui::Text("Save Map", toptions).clicked) {
     MapSave("asset/test.map");
   }
@@ -599,7 +604,7 @@ MapEditor(v2f screen)
   }
   if (imui::Text("Clear Map", toptions).clicked) {
     kReloadGame = true;
-    strcpy(kReloadFrom, "");
+    strcpy(kCurrentMapName, "");
   }
   imui::End();
 }

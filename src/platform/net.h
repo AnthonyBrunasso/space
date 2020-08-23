@@ -7,6 +7,7 @@
 
 extern "C" {
 extern int udp_errno;
+extern int tcp_errno;
 }
 
 struct Udp4 {
@@ -20,3 +21,13 @@ struct Udp4 {
   char socket_address[16];
 };
 
+struct Tcp4 {
+#ifdef _WIN32
+  SOCKET socket;
+#else
+  // File descriptor for socket
+  s32 socket;
+#endif
+  // Family, address, port of destination
+  char socket_address[16];
+};

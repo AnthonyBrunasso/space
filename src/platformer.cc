@@ -26,7 +26,7 @@
 
 #define WIN_ATTACH_DEBUGGER 0
 #define DEBUG_PHYSICS 0
-#define DEBUG_UI 0
+#define DEBUG_UI 1
 
 struct State {
   // Game and render updates per second
@@ -140,8 +140,8 @@ GameInitialize(const v2f& dims)
   mood::RenderInitialize();
   mood::InteractionInitialize();
 
-  if (strlen(mood::kReloadFrom) > 0) {
-    mood::MapLoadFrom(mood::kReloadFrom);
+  if (strlen(mood::kCurrentMapName) > 0) {
+    mood::MapLoadFrom(mood::kCurrentMapName);
   }
 }
 

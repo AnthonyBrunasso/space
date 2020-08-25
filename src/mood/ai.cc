@@ -4,13 +4,6 @@
 
 static u32 kAISpawnNum;
 
-struct AI {
-  util::FrameCooldown spawn_cooldown;
-};
-
-static AI kAI;
-
-
 struct Patrol {
   // Left and right endpoints of patrol on x axis.
   r32 left_x;
@@ -62,8 +55,6 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
 void
 AIInitialize()
 {
-  kAI.spawn_cooldown.frame = 200;
-  util::FrameCooldownInitialize(&kAI.spawn_cooldown);
 }
 
 void
@@ -145,11 +136,5 @@ AIUpdate()
         printf("Unknown behavior entity %u\n", itr.e->id);
       } break;
     }
-  }
-
-  if (util::FrameCooldownReady(&kAI.spawn_cooldown)) {
-    util::FrameCooldownReset(&kAI.spawn_cooldown);
-    AICreate(v2f(math::Random(-1000.f, 1000.f), math::Random(100.f, 200.f)),
-             v2f(15.f, 15.f), kBehaviorSimpleFlying);
   }
 }

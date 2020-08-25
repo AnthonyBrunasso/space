@@ -107,6 +107,8 @@ struct SpawnerComponent {
   u32 spawn_to_count = 1;
   // How many times the spawner has spawned the given character.
   u32 spawn_count = 0;
+  // When ready will spawn a unit.
+  util::FrameCooldown cooldown;
 };
 
 struct WeaponComponent {

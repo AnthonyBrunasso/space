@@ -558,6 +558,11 @@ MapEditor(v2f screen)
     kInteraction.selection.subrect = animation::Rect(snail_sprite);
     kInteraction.selection.spawner_type = kSpawnerSnail;
   }
+  imui::Space(imui::kHorizontal, 5.f);
+  if (imui::ButtonCircle(16.f, rgg::kRed).clicked) {
+    kInteraction.selection.type = kSelectionSpawner;
+    kInteraction.selection.spawner_type = kSpawnerFlying;
+  }
   imui::NewLine();
   imui::Space(imui::kVertical, 5.f);
   if (imui::Button(32.f, 32.f, rgg::kRed).clicked) {

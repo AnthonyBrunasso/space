@@ -117,6 +117,7 @@ enum SpawnerType {
   kSpawnerNone = 0,
   kSpawnerPlayer = 1,
   kSpawnerSnail = 2,
+  kSpawnerFlying = 3,
 };
 
 

@@ -32,6 +32,7 @@ physics::Particle2d*
 PlayerParticle()
 {
   ecs::Entity* ent = Player();
+  if (!ent) return nullptr;
   return physics::FindParticle2d(ecs::GetPhysicsComponent(ent)->particle_id);
 }
 

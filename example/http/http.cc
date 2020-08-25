@@ -9,9 +9,9 @@ main(int argc, char** argv)
 
   tcp::Init();
 
-  tcp::Connect("www.codeacademy.com", "80", &sock);
+  tcp::Connect("www.google.com", "80", &sock);
 
-  const char* msg = "GET / HTTP/1.1\r\nHost: www.codeacademy.com\r\n\r\n";
+  const char* msg = "GET / HTTP/1.1\r\nHost: www.google.com\r\n\r\n";
 
   printf("tcp send: %i\n", tcp::Send(sock, msg, strlen(msg)));
 

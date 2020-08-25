@@ -110,6 +110,7 @@ AIBehaviorFlying(AIComponent* ai)
 {
   // Head towards the player I guess?
   physics::Particle2d* player_particle = PlayerParticle();
+  if (!player_particle) return;
   ecs::Entity* entity = ecs::FindEntity(ai->entity_id);
   physics::Particle2d* ai_particle = physics::FindParticle2d(
       ecs::GetPhysicsComponent(entity)->particle_id); 

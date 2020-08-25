@@ -205,7 +205,7 @@ Render()
       physics::FindParticle2d(itr.c.physics->particle_id);
     CharacterComponent* c = itr.c.character;
     ecs::Entity* player = Player();
-    if (player->id == c->entity_id) {
+    if (player && player->id == c->entity_id) {
       Rectf paabb = p->aabb();
       bool mirror = c->facing.x >= 0.f ? false : true;
       if (fabs(p->velocity.x) > 10.f) {

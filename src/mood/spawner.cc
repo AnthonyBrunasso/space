@@ -31,7 +31,7 @@ SpawnerCreate(v2f pos, SpawnerType type)
       SBIT(p->user_flags, kParticleSpawner);
       if (type == kSpawnerFlying) {
         spawner->spawn_to_count = UINT32_MAX;
-        spawner->cooldown.frame = 120;
+        spawner->cooldown.frame = 300;
       }
       util::FrameCooldownInitialize(&spawner->cooldown);
     } break;

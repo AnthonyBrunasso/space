@@ -170,6 +170,7 @@ BPInitP2d(Particle2d* particle)
 void
 BPCalculateCollisions()
 {
+  if (!kPhysics.p2d_head_x) return;
   kUsedBP2dCollision = 0;
   // Detect all colliding particles.
   Particle2d* p1 = FindParticle2d(kPhysics.p2d_head_x);

@@ -58,7 +58,7 @@ PlayerSetWeapon(PlayerWeapon weapon_type)
       weapon->projectile_damage = 3.f;
       weapon->projectile_speed = kProjectileSpeed;
       weapon->num_projectile = 1;
-      weapon->cooldown.frame = 10;
+      weapon->cooldown.frame = 42;
       util::FrameCooldownInitialize(&weapon->cooldown);
     } break;
     case kPlayerWeaponShotgun: {

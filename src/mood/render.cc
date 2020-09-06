@@ -209,7 +209,10 @@ Render()
       Rectf paabb = p->aabb();
       bool mirror = c->facing.x >= 0.f ? false : true;
       b8 anim_reset = false;
-      if (!p->on_ground) {
+      WeaponComponent* w = ecs::GetWeaponComponent(player);
+      if (w && !util::FrameCooldownReady(&w->cooldown)) {
+        anim_reset = animation::SetLabel("attack", character_sprite);
+      } else if (!p->on_ground) {
         if (!FLAGGED(c->character_flags, kCharacterCanDoubleJump)) {
           anim_reset = animation::SetLabel("double_jump", character_sprite);
         } else {

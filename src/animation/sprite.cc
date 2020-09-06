@@ -10,6 +10,11 @@ static constexpr u32 kMaxCoordSize = 16;
 
 #define SPRITE_LABEL(name) char name[32];
 
+enum LabelFlags {
+  // If set sprite will not cycle after the last animation frame.
+  kLabelNoCycle = 0,
+};
+
 struct Label {
   SPRITE_LABEL(name);
 
@@ -17,6 +22,7 @@ struct Label {
   u32 coord_size = 0;
   // Number of frames to wait before traversing to next image.
   u32 frame_count = 0;
+  u32 flags = 0;
 };
 
 struct Sprite {
@@ -73,6 +79,9 @@ LoadAnimation(const char* filename, Sprite* sprite)
     } else if (strcmp(line, "f") == 0) {
       assert(clabel);
       fscanf(f, "%u\n", &clabel->frame_count);
+    } else if (strcmp(line, "nocycle") == 0) {
+      assert(clabel);
+      SBIT(clabel->flags, kLabelNoCycle);
     } else { continue; }  // Unrecognized line
   }
   fclose(f);
@@ -90,26 +99,28 @@ LoadAnimation(const char* filename, Sprite* sprite)
   return true;
 }
 
-void
+b8
 SetLabel(u32 idx, Sprite* sprite, bool mirror = false)
 {
+  b8 changed = sprite->label_idx != idx;
   sprite->last_update = 0;
   sprite->label_idx = idx;
   sprite->label_coord_idx = 0;
   sprite->mirror = mirror;
+  return changed;
 }
 
-void
+b8
 SetLabel(const char* label, Sprite* sprite, bool mirror = false)
 {
   for (s32 i = 0; i < sprite->label_size; ++i) {
     Label* l = &sprite->label[i];
     if (strcmp(l->name, label) == 0) {
-      if (sprite->label_idx == i) return;
-      SetLabel(i, sprite, mirror);
-      return;
+      if (sprite->label_idx == i) return false;
+      return SetLabel(i, sprite, mirror);
     }
   }
+  return false;
 }
 
 Rectf
@@ -119,7 +130,11 @@ Update(Sprite* sprite, u32* anim_frame)
   Label* l = &sprite->label[sprite->label_idx];
   if (sprite->last_update > l->frame_count) {
     *anim_frame += 1;
-    if (*anim_frame >= l->coord_size) *anim_frame = 0;
+    if (FLAGGED(l->flags, kLabelNoCycle) && *anim_frame >= l->coord_size) {
+      *anim_frame = l->coord_size - 1;
+    } else if (*anim_frame >= l->coord_size) {
+      *anim_frame = 0;
+    }
     sprite->last_update = 0;
   }
   v2i c = l->coord[*anim_frame];

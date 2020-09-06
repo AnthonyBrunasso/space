@@ -75,7 +75,7 @@ RenderInitialize()
       rgg::LoadTextureAndSprite("asset/snail.tga", "asset/snail.anim", info);
   assert(kRender.snail_id);
   kRender.character_id  =
-      rgg::LoadTextureAndSprite("asset/main_character.tga", "asset/main_character.anim",
+      rgg::LoadTextureAndSprite("asset/adventurer.tga", "asset/adventurer.anim",
                                 info);
   assert(kRender.character_id);
   kRender.terrain_id = rgg::LoadTextureAndSprite(
@@ -208,9 +208,21 @@ Render()
     if (player && player->id == c->entity_id) {
       Rectf paabb = p->aabb();
       bool mirror = c->facing.x >= 0.f ? false : true;
-      if (fabs(p->velocity.x) > 10.f) {
-        animation::SetLabel("walk", character_sprite);
-      } else animation::SetLabel("idle", character_sprite);
+      b8 anim_reset = false;
+      if (!p->on_ground) {
+        if (!FLAGGED(c->character_flags, kCharacterCanDoubleJump)) {
+          anim_reset = animation::SetLabel("double_jump", character_sprite);
+        } else {
+          anim_reset = animation::SetLabel("jump", character_sprite);
+        }
+      } else {
+        if (fabs(p->velocity.x) > 10.f) {
+          anim_reset = animation::SetLabel("walk", character_sprite);
+        } else {
+          anim_reset = animation::SetLabel("idle", character_sprite);
+        }
+      }
+      if (anim_reset) c->anim_frame = 0; 
       v2f end = p->position + c->aim_dir * 100.f;
       rgg::RenderLine(p->position, end, v4f(1.f, 0.f, 0.f, 0.25f));
       rgg::RenderTexture(
@@ -224,8 +236,7 @@ Render()
     }
     Rectf aabb = p->aabb();
     r32 r_width = aabb.width * kEnemyHealthWidthPercent;
-    Rectf pb_rect(aabb.x, aabb.Max().y + 1.f,
-                  r_width, kEnemyHealthHeight);
+    Rectf pb_rect(aabb.x, aabb.Max().y + 1.f, r_width, kEnemyHealthHeight);
     rgg::RenderProgressBar(pb_rect, 0.f, c->health, c->max_health,
                            v4f(1.f, 0.f, 0.f, .7f), v4f(.8f, .8f, .8f, .5f));
     const u32* behavior = nullptr;

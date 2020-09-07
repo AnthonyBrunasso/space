@@ -211,7 +211,7 @@ Render()
       b8 anim_reset = false;
       WeaponComponent* w = ecs::GetWeaponComponent(player);
       if (w && !util::FrameCooldownReady(&w->cooldown)) {
-        anim_reset = animation::SetLabel("attack", character_sprite);
+        anim_reset = animation::SetLabel("attack_one", character_sprite);
       } else if (!p->on_ground) {
         if (!FLAGGED(c->character_flags, kCharacterCanDoubleJump)) {
           anim_reset = animation::SetLabel("double_jump", character_sprite);

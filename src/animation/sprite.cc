@@ -165,4 +165,4 @@ LabelName(Sprite* sprite)
   return l->name;
 }
 
-}
+}  // namespace animation

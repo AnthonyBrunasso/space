@@ -10,7 +10,6 @@ enum AdventurerAnimState {
   kAdventurerAnimNumStates = 3,
 };
 
-
 using animation::FSM;
 
 DECLARE_HASH_ARRAY(FSM, 256);
@@ -31,23 +30,13 @@ AnimUseAdventurerFSM(u32 entity_id)
       .Transition(
           kAdventurerAnimWalk,
           [](u32 entity_id) {
-            ecs::Entity* entity = ecs::FindEntity(entity_id);
-            PhysicsComponent* phys = ecs::GetPhysicsComponent(entity);
-            if (!phys) return false;
-            physics::Particle2d* p =
-                physics::FindParticle2d(phys->particle_id);
-            if (!p) return false;
+            GET_PARTICLE_OR_RETURN(p, entity_id, return false);
             return fabs(p->velocity.x) > 0.f;
           })
       .Transition(
           kAdventurerAnimJump,
           [](u32 entity_id) {
-            ecs::Entity* entity = ecs::FindEntity(entity_id);
-            PhysicsComponent* phys = ecs::GetPhysicsComponent(entity);
-            if (!phys) return false;
-            physics::Particle2d* p =
-                physics::FindParticle2d(phys->particle_id);
-            if (!p) return false;
+            GET_PARTICLE_OR_RETURN(p, entity_id, return false);
             return !p->on_ground;
           });
 
@@ -61,23 +50,13 @@ AnimUseAdventurerFSM(u32 entity_id)
       .Transition(
           kAdventurerAnimIdle,
           [](u32 entity_id) {
-            ecs::Entity* entity = ecs::FindEntity(entity_id);
-            PhysicsComponent* phys = ecs::GetPhysicsComponent(entity);
-            if (!phys) return false;
-            physics::Particle2d* p =
-                physics::FindParticle2d(phys->particle_id);
-            if (!p) return false;
+            GET_PARTICLE_OR_RETURN(p, entity_id, return false);
             return p->velocity.x == 0.f;
           })
       .Transition(
           kAdventurerAnimJump,
           [](u32 entity_id) {
-            ecs::Entity* entity = ecs::FindEntity(entity_id);
-            PhysicsComponent* phys = ecs::GetPhysicsComponent(entity);
-            if (!phys) return false;
-            physics::Particle2d* p =
-                physics::FindParticle2d(phys->particle_id);
-            if (!p) return false;
+            GET_PARTICLE_OR_RETURN(p, entity_id, return false);
             return !p->on_ground;
           });
 
@@ -93,12 +72,7 @@ AnimUseAdventurerFSM(u32 entity_id)
       .Transition(
           kAdventurerAnimIdle,
           [](u32 entity_id) {
-            ecs::Entity* entity = ecs::FindEntity(entity_id);
-            PhysicsComponent* phys = ecs::GetPhysicsComponent(entity);
-            if (!phys) return false;
-            physics::Particle2d* p =
-                physics::FindParticle2d(phys->particle_id);
-            if (!p) return false;
+            GET_PARTICLE_OR_RETURN(p, entity_id, return false);
             return p->on_ground != 0;
           });
 

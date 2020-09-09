@@ -222,7 +222,9 @@ DECLARE_COMPONENT(AnimComponent, kAnimComponent);
 physics::Particle2d*
 GetParticle(ecs::Entity* ent)
 {
-  return physics::FindParticle2d(ecs::GetPhysicsComponent(ent)->particle_id);
+  PhysicsComponent* phys = ecs::GetPhysicsComponent(ent);
+  if (!phys) return nullptr;
+  return physics::FindParticle2d(phys->particle_id);
 }
 
 template <typename Component>
@@ -230,7 +232,13 @@ physics::Particle2d*
 GetParticle(Component* c)
 {
   ecs::Entity* ent = ecs::FindEntity(c->entity_id);
+  if (!ent) return nullptr;
   return GetParticle(ent);
 }
+
+#define GET_PARTICLE_OR_RETURN(p, entity_id, jmp)   \
+  ecs::Entity* entity = ecs::FindEntity(entity_id); \
+  physics::Particle2d* p = GetParticle(entity);     \
+  if (!p) jmp;                                      \
 
 }

@@ -26,6 +26,8 @@ enum FSMNodeFlags {
   kFSMNodeStopOnFinalFrame = 0,
   // Animation cannot be transitioned out of until it is finished.
   kFSMNodePlayUntilComplete = 1,
+  // If set gampleay should not move the character while this node runs.
+  kFSMNodeCantMove = 2,
 };
 
 struct FSMNodeData {
@@ -131,6 +133,13 @@ struct FSM {
     const std::vector<AnimFrame>& af = node_data[current_state].frames;
     assert(current_frame < af.size());
     return af[current_frame];
+  }
+
+  u32
+  Flags() const
+  {
+    assert(current_state < node_data.size());
+    return node_data[current_state].flags;
   }
 
   bool

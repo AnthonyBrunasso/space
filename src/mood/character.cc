@@ -22,6 +22,7 @@ CharacterUpdate()
     physics::Particle2d* particle =
         physics::FindParticle2d(itr.c.physics->particle_id);
     CharacterComponent* c = itr.c.character;
+    AnimComponent* anim = ecs::GetAnimComponent(itr.e);
     // Move character.
     if (particle) {
       if (FLAGGED(c->character_flags, kCharacterMove)) {
@@ -38,6 +39,12 @@ CharacterUpdate()
       if (FLAGGED(c->prev_character_flags, kCharacterMove) &&
           !FLAGGED(c->character_flags, kCharacterMove)) {
         particle->acceleration.x = 0.f;
+      }
+
+      if (anim && FLAGGED(anim->fsm.Flags(), animation::kFSMNodeCantMove)) {
+        particle->acceleration.x = 0.f;
+        particle->velocity.y = 0.f;
+        CBIT(particle->flags, physics::kParticleIgnoreGravity);
       }
 
       ProjectileWeaponComponent* weapon =

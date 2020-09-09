@@ -227,9 +227,9 @@ Render()
         }
       }
       if (anim_reset) c->anim_frame = 0; 
-#endif
       v2f end = p->position + c->aim_dir * 100.f;
       rgg::RenderLine(p->position, end, v4f(1.f, 0.f, 0.f, 0.25f));
+#endif
       rgg::RenderTexture(
             kRender.character_id,
             itr.c.anim->fsm.Frame().rect(),

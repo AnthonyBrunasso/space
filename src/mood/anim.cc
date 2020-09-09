@@ -111,6 +111,7 @@ AnimInitAdventurerFSM(animation::FSM* fsm, u32 entity_id)
       .Frame(50.f * 5.f, 37.f * 6.f, 50.f, 37.f, 5)
       .Frame(50.f * 6.f, 37.f * 6.f, 50.f, 37.f, 5)
       .Flag(animation::kFSMNodePlayUntilComplete)
+      .Flag(animation::kFSMNodeCantMove)
       .Transition(kAdventurerAnimAttackTwo, attacking)
       .Transition(kAdventurerAnimIdle, on_ground)
       .Transition(kAdventurerAnimSingleJump, in_air);
@@ -121,6 +122,7 @@ AnimInitAdventurerFSM(animation::FSM* fsm, u32 entity_id)
       .Frame(50.f * 2.f, 37.f * 7.f, 50.f, 37.f, 5)
       .Frame(50.f * 3.f, 37.f * 7.f, 50.f, 37.f, 5)
       .Flag(animation::kFSMNodePlayUntilComplete)
+      .Flag(animation::kFSMNodeCantMove)
       .Transition(kAdventurerAnimAttackThree, attacking)
       .Transition(kAdventurerAnimIdle, on_ground)
       .Transition(kAdventurerAnimSingleJump, in_air);
@@ -133,6 +135,7 @@ AnimInitAdventurerFSM(animation::FSM* fsm, u32 entity_id)
       .Frame(50.f * 1.f, 37.f * 8.f, 50.f, 37.f, 5)
       .Frame(50.f * 2.f, 37.f * 8.f, 50.f, 37.f, 5)
       .Flag(animation::kFSMNodePlayUntilComplete)
+      .Flag(animation::kFSMNodeCantMove)
       .Transition(kAdventurerAnimIdle, on_ground)
       .Transition(kAdventurerAnimSingleJump, in_air);
 

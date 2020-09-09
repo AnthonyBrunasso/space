@@ -156,26 +156,18 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
               !kInteraction.selection.tile_offset;
         } break;
         case 'a': {
-          if (player) {
-            SBIT(player->character_flags, kCharacterFireWeapon);
-          }
+          PlayerAttack();
         } break;
         case 0 /* ARROW UP */: {
-          if (player) {
-            SBIT(player->character_flags, kCharacterJump);
-          }
+          PlayerJump();
         } break;
         case 3 /* ARROW RIGHT */: {
-          if (player_particle) {
-            player_particle->acceleration.x = kPlayerAcceleration;
-          }
+          PlayerMove(v2f(kPlayerAcceleration, 0.f), 1.f);
         } break;
         case 1 /* ARROW DOWN */: {
         } break;
         case 2 /* ARROW LEFT */: {
-          if (player_particle) {
-            player_particle->acceleration.x = -kPlayerAcceleration;
-          }
+          PlayerMove(v2f(-kPlayerAcceleration, 0.f), 1.f);
         } break;
         case 's': {
           if (player) {
@@ -187,26 +179,18 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
     case KEY_UP: {
       switch (event.key) {
         case 'a': {
-          if (player) {
-            CBIT(player->character_flags, kCharacterFireWeapon);
-          }
+          PlayerStopAttack();
         } break;
         case 0  /* ARROW UP */: {
-          if (player) {
-            CBIT(player->character_flags, kCharacterJump);
-          }
+          PlayerStopJump();
         } break;
         case 3 /* ARROW RIGHT */: {
-          if (player) {
-            player_particle->acceleration.x = 0.f;
-          }
+          PlayerStopMove();
         } break;
         case 1 /* ARROW DOWN */: {
         } break;
         case 2 /* ARROW LEFT */: {
-          if (player) {
-            player_particle->acceleration.x = 0.f;
-          }
+          PlayerStopMove();
         } break;
         case 's': {
           if (player) {
@@ -292,12 +276,9 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
         if (FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_X)) {
           SBIT(player->ability_flags, kCharacterAbilityBoost);
         }
-
-        SBIT(player->character_flags, kCharacterMove);
-        player->move_dir = cdir;
-        player->move_multiplier = cmag;
+        PlayerMove(cdir, cmag);
       } else {
-        CBIT(player->character_flags, kCharacterMove);
+        PlayerStopMove();
       }
 
       if (!FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_X)) {
@@ -317,9 +298,9 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
       }
 
       if (FLAGGED(event.controller.controller_flags, XBOX_CONTROLLER_A)) {
-        SBIT(player->character_flags, kCharacterJump);
+        PlayerJump();
       } else {
-        CBIT(player->character_flags, kCharacterJump);
+        PlayerStopJump();
       }
 
       if (event.controller.right_trigger) {

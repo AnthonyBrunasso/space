@@ -3,9 +3,8 @@
 namespace mood {
 
 enum PlayerWeapon {
-  kPlayerWeaponMachinegun = 0,
-  kPlayerWeaponShotgun = 1,
-  kPlayerWeaponCount = 2,
+  kPlayerWeaponSword = 0,
+  kPlayerWeaponCount = 1,
 };
 
 struct Player {
@@ -17,7 +16,7 @@ struct Player {
   // How long the player must wait to switch a weapon.
   util::FrameCooldown change_weapon_cooldown;
   // Current weapon the player is using.
-  PlayerWeapon current_weapon = kPlayerWeaponMachinegun;
+  PlayerWeapon current_weapon = kPlayerWeaponSword;
 };
 
 static Player kPlayer;
@@ -46,33 +45,6 @@ void
 PlayerSetWeapon(PlayerWeapon weapon_type)
 {
   ecs::Entity* player_entity = Player();
-  ProjectileWeaponComponent* weapon =
-      ecs::GetProjectileWeaponComponent(player_entity);
-  if (!weapon) {
-    weapon = ecs::AssignProjectileWeaponComponent(player_entity);
-  }
-  switch (weapon_type) {
-    case kPlayerWeaponMachinegun: {
-      weapon->projectile_type = kProjectileBullet;
-      weapon->random_aim_offset = 2.f;
-      weapon->projectile_ttl = kProjectileTtl;
-      weapon->projectile_damage = 3.f;
-      weapon->projectile_speed = kProjectileSpeed;
-      weapon->num_projectile = 1;
-      weapon->cooldown.frame = 30;
-      util::FrameCooldownInitialize(&weapon->cooldown);
-    } break;
-    case kPlayerWeaponShotgun: {
-      weapon->projectile_type = kProjectilePellet;
-      weapon->random_aim_offset = 10.f;
-      weapon->projectile_ttl = kProjectileTtl;
-      weapon->projectile_damage = 1.5f;
-      weapon->projectile_speed = kProjectileSpeed;
-      weapon->num_projectile = 15;
-      weapon->cooldown.frame = 50;
-    } break;
-    default: assert(!"Undefined weapon type.");
-  }
   kPlayer.current_weapon = weapon_type;
 }
 
@@ -113,7 +85,7 @@ PlayerCreate(v2f position)
   particle->damping = 0.005f;
   player_comp->double_jump_cooldown.frame = 15;
   util::FrameCooldownInitialize(&player_comp->double_jump_cooldown);
-  PlayerSetWeapon(kPlayerWeaponMachinegun);
+  PlayerSetWeapon(kPlayerWeaponSword);
 }
 
 void
@@ -139,6 +111,62 @@ PlayerPrevWeapon()
     PlayerSetWeapon((PlayerWeapon)(kPlayer.current_weapon - 1));
   }
   util::FrameCooldownReset(&kPlayer.change_weapon_cooldown);
+}
+
+void
+PlayerAttack()
+{
+  ecs::Entity* player = Player();
+  if (!player) return;
+  CharacterComponent* character = ecs::GetCharacterComponent(player);
+  SBIT(character->character_flags, kCharacterFireWeapon);
+}
+
+void
+PlayerStopAttack()
+{
+  ecs::Entity* player = Player();
+  if (!player) return;
+  CharacterComponent* character = ecs::GetCharacterComponent(player);
+  CBIT(character->character_flags, kCharacterFireWeapon);
+}
+
+void
+PlayerJump()
+{
+  ecs::Entity* player = Player();
+  if (!player) return;
+  CharacterComponent* character = ecs::GetCharacterComponent(player);
+  SBIT(character->character_flags, kCharacterJump);
+}
+
+void
+PlayerStopJump()
+{
+  ecs::Entity* player = Player();
+  if (!player) return;
+  CharacterComponent* character = ecs::GetCharacterComponent(player);
+  CBIT(character->character_flags, kCharacterJump);
+}
+
+void
+PlayerMove(v2f move_dir, r32 move_multiplier)
+{
+  ecs::Entity* player = Player();
+  if (!player) return;
+  CharacterComponent* character = ecs::GetCharacterComponent(player);
+  character->move_dir = move_dir;
+  character->move_multiplier = move_multiplier;
+  SBIT(character->character_flags, kCharacterMove);
+}
+
+void
+PlayerStopMove()
+{
+  ecs::Entity* player = Player();
+  if (!player) return;
+  CharacterComponent* character = ecs::GetCharacterComponent(player);
+  CBIT(character->character_flags, kCharacterMove);
 }
 
 }

@@ -204,7 +204,6 @@ Render()
     physics::Particle2d* p =
       physics::FindParticle2d(itr.c.physics->particle_id);
     CharacterComponent* c = itr.c.character;
-    animation::FSM* fsm = FindFSM(itr.c.anim->fsm_id);
     ecs::Entity* player = Player();
     if (player && player->id == c->entity_id) {
       Rectf paabb = p->aabb();
@@ -233,7 +232,7 @@ Render()
       rgg::RenderLine(p->position, end, v4f(1.f, 0.f, 0.f, 0.25f));
       rgg::RenderTexture(
             kRender.character_id,
-            fsm->Frame().rect(),
+            itr.c.anim->fsm.Frame().rect(),
             Rectf(paabb.x - 18.f, paabb.y,
                   character_sprite->width,
                   character_sprite->height), mirror);

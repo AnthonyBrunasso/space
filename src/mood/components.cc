@@ -133,7 +133,7 @@ struct WeaponComponent {
 
 struct AnimComponent {
   u32 entity_id = 0;
-  u32 fsm_id = 0;
+  animation::FSM fsm;
 };
 
 }

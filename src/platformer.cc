@@ -10,12 +10,11 @@
 #define PHYSICS_PARTICLE_COUNT 2048
 #include "physics/physics.cc"
 #include "util/cooldown.cc"
-
+#include "animation/fsm.cc"
 
 // Gameplay stuff.
 #include "mood/constants.cc"
 #include "mood/components.cc"
-#include "animation/fsm.cc"
 #include "mood/anim.cc"
 #include "mood/player.cc"
 #include "mood/util.cc"

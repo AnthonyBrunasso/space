@@ -10,15 +10,9 @@ enum AdventurerAnimState {
   kAdventurerAnimNumStates = 3,
 };
 
-using animation::FSM;
-
-DECLARE_HASH_ARRAY(FSM, 256);
-
 u32
-AnimUseAdventurerFSM(u32 entity_id)
+AnimInitAdventurerFSM(animation::FSM* fsm, u32 entity_id)
 {
-  FSM* fsm = UseFSM();
-
   fsm->Initialize(kAdventurerAnimNumStates, kAdventurerAnimIdle);
   fsm->entity_id = entity_id;
 
@@ -82,8 +76,9 @@ AnimUseAdventurerFSM(u32 entity_id)
 void
 AnimUpdate()
 {
-  for (u32 i = 0; i < kUsedFSM; ++i) {
-    kFSM[i].Update();
+  ECS_ITR1(itr, kAnimComponent);
+  while (itr.Next()) {
+    itr.c.anim->fsm.Update();
   }
 }
 

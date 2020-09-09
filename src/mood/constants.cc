@@ -88,6 +88,8 @@ enum CharacterFlags {
   kCharacterMove = 4,
   // Set if the player is allowed to double jump.
   kCharacterCanDoubleJump = 5,
+  // If set the character will attempt to attack with a melee weapon.
+  kCharacterAttackMelee = 6,
 };
 
 enum CharacterAbilityFlags {

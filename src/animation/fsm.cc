@@ -96,6 +96,7 @@ struct FSM {
   void
   Update()
   {
+    assert(current_state < node_data.size());
     const FSMNodeData& nd = node_data[current_state];
 
     if (!FLAGGED(nd.flags, kFSMNodePlayUntilComplete) ||
@@ -130,6 +131,14 @@ struct FSM {
     const std::vector<AnimFrame>& af = node_data[current_state].frames;
     assert(current_frame < af.size());
     return af[current_frame];
+  }
+
+  bool
+  CanInterrupt() const
+  {
+    assert(current_state < node_data.size());
+    const FSMNodeData& nd = node_data[current_state];
+    return !FLAGGED(nd.flags, kFSMNodePlayUntilComplete);
   }
 
   void

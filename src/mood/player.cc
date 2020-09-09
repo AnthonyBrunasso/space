@@ -118,8 +118,10 @@ PlayerAttack()
 {
   ecs::Entity* player = Player();
   if (!player) return;
+  //AnimComponent* anim = ecs::GetAnimComponent(player);
+  //if (!anim->fsm.CanInterrupt()) return;
   CharacterComponent* character = ecs::GetCharacterComponent(player);
-  SBIT(character->character_flags, kCharacterFireWeapon);
+  SBIT(character->character_flags, kCharacterAttackMelee);
 }
 
 void
@@ -128,7 +130,7 @@ PlayerStopAttack()
   ecs::Entity* player = Player();
   if (!player) return;
   CharacterComponent* character = ecs::GetCharacterComponent(player);
-  CBIT(character->character_flags, kCharacterFireWeapon);
+  CBIT(character->character_flags, kCharacterAttackMelee);
 }
 
 void
@@ -136,6 +138,8 @@ PlayerJump()
 {
   ecs::Entity* player = Player();
   if (!player) return;
+  //AnimComponent* anim = ecs::GetAnimComponent(player);
+  //if (!anim->fsm.CanInterrupt()) return;
   CharacterComponent* character = ecs::GetCharacterComponent(player);
   SBIT(character->character_flags, kCharacterJump);
 }
@@ -154,6 +158,8 @@ PlayerMove(v2f move_dir, r32 move_multiplier)
 {
   ecs::Entity* player = Player();
   if (!player) return;
+  //AnimComponent* anim = ecs::GetAnimComponent(player);
+  //if (!anim->fsm.CanInterrupt()) return;
   CharacterComponent* character = ecs::GetCharacterComponent(player);
   character->move_dir = move_dir;
   character->move_multiplier = move_multiplier;

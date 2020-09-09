@@ -22,7 +22,10 @@ struct AnimFrame {
 typedef std::function<b8(u32)> TransitionFunc;
 
 enum FSMNodeFlags {
+  // Animation will freeze on the final frame instead of looping.
   kFSMNodeStopOnFinalFrame = 0,
+  // Animation cannot be transitioned out of until it is finished.
+  kFSMNodePlayUntilComplete = 1,
 };
 
 struct FSMNodeData {
@@ -94,11 +97,15 @@ struct FSM {
   Update()
   {
     const FSMNodeData& nd = node_data[current_state];
-    for (const auto& [state, func] : nd.transition) {
-      if (func(entity_id)) {
-        current_state = state;
-        current_frame = 0;
-        return;
+
+    if (!FLAGGED(nd.flags, kFSMNodePlayUntilComplete) ||
+        current_frame == nd.frames.size() - 1) {
+      for (const auto& [state, func] : nd.transition) {
+        if (func(entity_id)) {
+          current_state = state;
+          current_frame = 0;
+          return;
+        }
       }
     }
 
@@ -151,6 +158,5 @@ struct FSM {
   // Entity this FSM belongs to.
   u32 entity_id = 0;
 };
-
 
 }  // namespace animation

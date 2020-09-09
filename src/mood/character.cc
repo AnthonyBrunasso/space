@@ -40,7 +40,8 @@ CharacterUpdate()
         particle->acceleration.x = 0.f;
       }
 
-      WeaponComponent* weapon = ecs::GetWeaponComponent(itr.e);
+      ProjectileWeaponComponent* weapon =
+          ecs::GetProjectileWeaponComponent(itr.e);
 
       if (weapon && FLAGGED(c->character_flags, kCharacterFireWeapon)) {
         if (util::FrameCooldownReady(&weapon->cooldown)) {

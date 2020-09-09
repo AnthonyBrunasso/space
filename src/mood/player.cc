@@ -46,9 +46,10 @@ void
 PlayerSetWeapon(PlayerWeapon weapon_type)
 {
   ecs::Entity* player_entity = Player();
-  WeaponComponent* weapon = ecs::GetWeaponComponent(player_entity);
+  ProjectileWeaponComponent* weapon =
+      ecs::GetProjectileWeaponComponent(player_entity);
   if (!weapon) {
-    weapon = ecs::AssignWeaponComponent(player_entity);
+    weapon = ecs::AssignProjectileWeaponComponent(player_entity);
   }
   switch (weapon_type) {
     case kPlayerWeaponMachinegun: {
@@ -58,7 +59,7 @@ PlayerSetWeapon(PlayerWeapon weapon_type)
       weapon->projectile_damage = 3.f;
       weapon->projectile_speed = kProjectileSpeed;
       weapon->num_projectile = 1;
-      weapon->cooldown.frame = 42;
+      weapon->cooldown.frame = 30;
       util::FrameCooldownInitialize(&weapon->cooldown);
     } break;
     case kPlayerWeaponShotgun: {

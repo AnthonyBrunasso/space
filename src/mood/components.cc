@@ -10,7 +10,7 @@ enum TypeId : u64 {
   kProjectileComponent = 4,
   kObstacleComponent = 5,
   kSpawnerComponent = 6,
-  kWeaponComponent = 7,
+  kProjectileWeaponComponent = 7,
   kAnimComponent = 8,
   kComponentCount = 9,
 }; 
@@ -26,7 +26,7 @@ TypeName(TypeId type_id)
     case kProjectileComponent: return "Projectile";
     case kObstacleComponent: return "Obstacle";
     case kSpawnerComponent: return "Spawner";
-    case kWeaponComponent: return "Weapon";
+    case kProjectileWeaponComponent: return "ProjectileWeapon";
     case kAnimComponent: return "Anim";
     default: return "Unknown";
   }
@@ -112,7 +112,7 @@ struct SpawnerComponent {
   util::FrameCooldown cooldown;
 };
 
-struct WeaponComponent {
+struct ProjectileWeaponComponent {
   u32 entity_id = 0;
   // Types of projectiles the weapon creates.
   ProjectileType projectile_type;
@@ -141,14 +141,14 @@ struct AnimComponent {
 namespace ecs {
 
 struct Components {
-  mood::PhysicsComponent*    physics    = nullptr;
-  mood::AIComponent*         ai         = nullptr;
-  mood::CharacterComponent*  character  = nullptr;
-  mood::DeathComponent*      death      = nullptr;
-  mood::ProjectileComponent* projectile = nullptr;
-  mood::ObstacleComponent*   obstacle   = nullptr;
-  mood::SpawnerComponent*    spawner    = nullptr;
-  mood::WeaponComponent*     weapon     = nullptr;
+  mood::PhysicsComponent*          physics    = nullptr;
+  mood::AIComponent*               ai         = nullptr;
+  mood::CharacterComponent*        character  = nullptr;
+  mood::DeathComponent*            death      = nullptr;
+  mood::ProjectileComponent*       projectile = nullptr;
+  mood::ObstacleComponent*         obstacle   = nullptr;
+  mood::SpawnerComponent*          spawner    = nullptr;
+  mood::ProjectileWeaponComponent* weapon     = nullptr;
   mood::AnimComponent*       anim       = nullptr;
 };
 
@@ -194,8 +194,8 @@ GetComponents(u64 tid)
       static ecs::ComponentStorage f(32, sizeof(SpawnerComponent));
       return &f;
     } break;
-    case kWeaponComponent: {
-      static ecs::ComponentStorage f(128, sizeof(WeaponComponent));
+    case kProjectileWeaponComponent: {
+      static ecs::ComponentStorage f(64, sizeof(ProjectileWeaponComponent));
       return &f;
     } break;
     case kAnimComponent: {
@@ -216,7 +216,7 @@ DECLARE_COMPONENT(DeathComponent, kDeathComponent);
 DECLARE_COMPONENT(ProjectileComponent, kProjectileComponent);
 DECLARE_COMPONENT(ObstacleComponent, kObstacleComponent);
 DECLARE_COMPONENT(SpawnerComponent, kSpawnerComponent);
-DECLARE_COMPONENT(WeaponComponent, kWeaponComponent);
+DECLARE_COMPONENT(ProjectileWeaponComponent, kProjectileWeaponComponent);
 DECLARE_COMPONENT(AnimComponent, kAnimComponent);
 
 physics::Particle2d*

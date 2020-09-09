@@ -433,7 +433,7 @@ EntityViewer(v2f screen)
             } break;
             case kSpawnerComponent: {
             } break;
-            case kWeaponComponent: {
+            case kProjectileWeaponComponent: {
             } break;
             default: assert(!"Add component...");
           }

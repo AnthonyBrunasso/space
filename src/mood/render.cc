@@ -209,7 +209,7 @@ Render()
       Rectf paabb = p->aabb();
       bool mirror = c->facing.x >= 0.f ? false : true;
       b8 anim_reset = false;
-      WeaponComponent* w = ecs::GetWeaponComponent(player);
+      ProjectileWeaponComponent* w = ecs::GetProjectileWeaponComponent(player);
 #if 0
       if (w && !util::FrameCooldownReady(&w->cooldown)) {
         anim_reset = animation::SetLabel("attack_one", character_sprite);

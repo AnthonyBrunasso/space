@@ -6,7 +6,7 @@ u32 PlayerId(); // defined in character.cc
 
 void
 ProjectileCreate(v2f start, v2f dir, u32 from_entity,
-                 const WeaponComponent& weapon)
+                 const ProjectileWeaponComponent& weapon)
 {
   ecs::Entity* creator_entity = ecs::FindEntity(from_entity);
   for (u32 i = 0; i < weapon.num_projectile; ++i) {

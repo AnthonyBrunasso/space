@@ -36,7 +36,8 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
       } break;
       default: break;
     };
-    WeaponComponent* weapon = ecs::AssignWeaponComponent(ai_entity);
+    ProjectileWeaponComponent* weapon =
+        ecs::AssignProjectileWeaponComponent(ai_entity);
     weapon->projectile_type = kProjectileBullet;
     weapon->projectile_speed = kProjectileSpeed / 4.f;
     weapon->projectile_ttl = 500;

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <ecs/ecs.cc>
-
 #include <vector>
 
 namespace animation
@@ -21,7 +19,7 @@ struct AnimFrame {
   }
 };
 
-typedef std::function<b8(ecs::Entity)> TransitionFunc;
+typedef std::function<b8(u32)> TransitionFunc;
 
 enum FSMNodeFlags {
   // If set animation will not reset to the first frame when reaching the last.
@@ -98,7 +96,7 @@ struct FSM {
   {
     const FSMNodeData& nd = node_data[current_state];
     for (const auto& [state, func] : nd.transition) {
-      if (func(entity)) {
+      if (func(entity_id)) {
         current_state = state;
         current_frame = 0;
         return;
@@ -146,7 +144,7 @@ struct FSM {
   u32 ticks_in_frame;
 
   // Entity this FSM belongs to.
-  ecs::Entity entity;
+  u32 entity_id = 0;
 };
 
 

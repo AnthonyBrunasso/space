@@ -62,7 +62,7 @@ AnimInitAdventurerFSM(animation::FSM* fsm, u32 entity_id)
       .Frame(50.f * 3.f, 37.f * 2.f, 50.f, 37.f, 7)
       .Frame(50.f * 1.f, 37.f * 3.f, 50.f, 37.f, 8)
       .Frame(50.f * 2.f, 37.f * 3.f, 50.f, 37.f, 8)
-      .StopOnFrame(5)
+      .Flag(animation::kFSMNodeStopOnFinalFrame)
       .Transition(
           kAdventurerAnimIdle,
           [](u32 entity_id) {
@@ -90,7 +90,7 @@ AnimInitAdventurerFSM(animation::FSM* fsm, u32 entity_id)
       .Frame(50.f * 0.f, 37.f * 3.f, 50.f, 37.f, 6)
       .Frame(50.f * 1.f, 37.f * 3.f, 50.f, 37.f, 6)
       .Frame(50.f * 2.f, 37.f * 3.f, 50.f, 37.f, 6)
-      .StopOnFrame(6)
+      .Flag(animation::kFSMNodeStopOnFinalFrame)
       .Transition(
           kAdventurerAnimIdle,
           [](u32 entity_id) {

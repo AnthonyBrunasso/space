@@ -22,13 +22,13 @@ struct AnimFrame {
 typedef std::function<b8(u32)> TransitionFunc;
 
 enum FSMNodeFlags {
+  kFSMNodeStopOnFinalFrame = 0,
 };
 
 struct FSMNodeData {
   std::vector<AnimFrame> frames;
   std::vector<std::pair<u32, TransitionFunc>> transition;
   u32 flags = 0;
-  u32 stop_on_frame = UINT32_MAX;
 };
 
 struct FSMBuilder {
@@ -50,17 +50,9 @@ struct FSMBuilder {
   }
 
   FSMBuilder&
-  Flag(u32 flags)
+  Flag(u32 flag)
   {
-    node_data->flags |= flags;
-    return *this;
-  }
-
-  FSMBuilder&
-  StopOnFrame(u32 frame)
-  {
-    assert(frame < node_data->frames.size());
-    node_data->stop_on_frame = frame;
+    SBIT(node_data->flags, flag);
     return *this;
   }
 
@@ -110,8 +102,8 @@ struct FSM {
       }
     }
 
-    if (nd.stop_on_frame != UINT32_MAX &&
-        current_frame == nd.stop_on_frame) {
+    if (FLAGGED(nd.flags, kFSMNodeStopOnFinalFrame) &&
+        current_frame == nd.frames.size() - 1) {
       return;
     }
 

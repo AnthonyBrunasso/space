@@ -1,6 +1,5 @@
 #pragma once
 
-
 namespace mood {
 
 enum TypeId : u64 {
@@ -12,7 +11,8 @@ enum TypeId : u64 {
   kObstacleComponent = 5,
   kSpawnerComponent = 6,
   kWeaponComponent = 7,
-  kComponentCount = 8,
+  kAnimComponent = 8,
+  kComponentCount = 9,
 }; 
 
 const char*
@@ -27,6 +27,7 @@ TypeName(TypeId type_id)
     case kObstacleComponent: return "Obstacle";
     case kSpawnerComponent: return "Spawner";
     case kWeaponComponent: return "Weapon";
+    case kAnimComponent: return "Anim";
     default: return "Unknown";
   }
   return "Unknown";
@@ -130,6 +131,11 @@ struct WeaponComponent {
   u32 num_projectile = 1;
 };
 
+struct AnimComponent {
+  u32 entity_id = 0;
+  u32 fsm_id = 0;
+};
+
 }
 
 namespace ecs {
@@ -143,6 +149,7 @@ struct Components {
   mood::ObstacleComponent*   obstacle   = nullptr;
   mood::SpawnerComponent*    spawner    = nullptr;
   mood::WeaponComponent*     weapon     = nullptr;
+  mood::AnimComponent*       anim       = nullptr;
 };
 
 }
@@ -191,6 +198,10 @@ GetComponents(u64 tid)
       static ecs::ComponentStorage f(128, sizeof(WeaponComponent));
       return &f;
     } break;
+    case kAnimComponent: {
+      static ecs::ComponentStorage f(256, sizeof(AnimComponent));
+      return &f;
+    } break;
     default: {
       assert(!"Unknown component type");
     } break;
@@ -206,6 +217,7 @@ DECLARE_COMPONENT(ProjectileComponent, kProjectileComponent);
 DECLARE_COMPONENT(ObstacleComponent, kObstacleComponent);
 DECLARE_COMPONENT(SpawnerComponent, kSpawnerComponent);
 DECLARE_COMPONENT(WeaponComponent, kWeaponComponent);
+DECLARE_COMPONENT(AnimComponent, kAnimComponent);
 
 physics::Particle2d*
 GetParticle(ecs::Entity* ent)

@@ -101,6 +101,9 @@ PlayerCreate(v2f position)
       ecs::AssignCharacterComponent(player_entity);
   PhysicsComponent* physics_comp =
       ecs::AssignPhysicsComponent(player_entity);
+  AnimComponent* anim_comp =
+      ecs::AssignAnimComponent(player_entity);
+  anim_comp->fsm_id = AnimUseAdventurerFSM();
   physics::Particle2d* particle =  physics::CreateParticle2d(
       position, v2f(kPlayerWidth, kPlayerHeight),
       player_entity->id);

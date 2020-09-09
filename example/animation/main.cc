@@ -143,8 +143,6 @@ struct FSM {
 int
 main(int argc, char** argv)
 {
-  printf("Animate me...\n");
-
   FSM adventurer_fsm(kAdventurerNumStates, kAdventurerIdle);
 
   adventurer_fsm
@@ -157,7 +155,7 @@ main(int argc, char** argv)
                   [](ecs::Entity entity) {
                     printf("Transition to walk?\n");
                     return false;
-                  });
+                  })
       .Transition(kAdventurerJump,
                   [](ecs::Entity entity) {
                     printf("Transition to jump?\n");
@@ -171,12 +169,12 @@ main(int argc, char** argv)
       .Frame(50.f, 37.f * 3.f, 50.f, 37.f, 25)
       .Frame(50.f, 37.f * 4.f, 50.f, 37.f, 25)
       .Frame(50.f, 37.f * 5.f, 50.f, 37.f, 25)
-      .Frame(50.f, 37.f * 6.f, 50.f, 37.f, 25);
+      .Frame(50.f, 37.f * 6.f, 50.f, 37.f, 25)
       .Transition(kAdventurerIdle,
                   [](ecs::Entity entity) {
                     printf("Transition to walk?\n");
                     return false;
-                  });
+                  })
       .Transition(kAdventurerJump,
                   [](ecs::Entity entity) {
                     printf("Transition to jump?\n");
@@ -197,6 +195,16 @@ main(int argc, char** argv)
 
   adventurer_fsm.Update();
   adventurer_fsm.DebugPrint(); 
+
+  std::vector<int> a;
+
+  a.reserve(10);
+
+  printf("%i\n", a[5]);
+
+  a.push_back(3);
+
+  printf("%i\n", a[0]);
 
   return 0;
 }

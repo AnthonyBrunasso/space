@@ -73,6 +73,8 @@ SimUpdate()
   // be resolved before rendering.
   CollisionUpdate();
 
+  AnimUpdate();
+
   // Cleanup entities marked to die at the end of each simulation update
   // frame. Particle for physics system will be destroyed at the top of the
   // next integration step.

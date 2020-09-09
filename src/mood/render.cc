@@ -199,17 +199,19 @@ Render()
   animation::Sprite* character_sprite = rgg::GetSprite(kRender.character_id);
   animation::Sprite* snail_sprite = rgg::GetSprite(kRender.snail_id);
   //physics::DebugRender(); 
-  ECS_ITR2(itr, kPhysicsComponent, kCharacterComponent);
+  ECS_ITR3(itr, kPhysicsComponent, kCharacterComponent, kAnimComponent);
   while (itr.Next()) {
     physics::Particle2d* p =
       physics::FindParticle2d(itr.c.physics->particle_id);
     CharacterComponent* c = itr.c.character;
+    animation::FSM* fsm = FindFSM(itr.c.anim->fsm_id);
     ecs::Entity* player = Player();
     if (player && player->id == c->entity_id) {
       Rectf paabb = p->aabb();
       bool mirror = c->facing.x >= 0.f ? false : true;
       b8 anim_reset = false;
       WeaponComponent* w = ecs::GetWeaponComponent(player);
+#if 0
       if (w && !util::FrameCooldownReady(&w->cooldown)) {
         anim_reset = animation::SetLabel("attack_one", character_sprite);
       } else if (!p->on_ground) {
@@ -226,11 +228,12 @@ Render()
         }
       }
       if (anim_reset) c->anim_frame = 0; 
+#endif
       v2f end = p->position + c->aim_dir * 100.f;
       rgg::RenderLine(p->position, end, v4f(1.f, 0.f, 0.f, 0.25f));
       rgg::RenderTexture(
             kRender.character_id,
-            animation::Update(character_sprite, &c->anim_frame),
+            fsm->Frame().rect(),
             Rectf(paabb.x - 18.f, paabb.y,
                   character_sprite->width,
                   character_sprite->height), mirror);

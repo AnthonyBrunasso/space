@@ -22,14 +22,13 @@ struct AnimFrame {
 typedef std::function<b8(u32)> TransitionFunc;
 
 enum FSMNodeFlags {
-  // If set animation will not reset to the first frame when reaching the last.
-  kFSMNodeNoCycle = 0,
 };
 
 struct FSMNodeData {
   std::vector<AnimFrame> frames;
   std::vector<std::pair<u32, TransitionFunc>> transition;
   u32 flags = 0;
+  u32 stop_on_frame = UINT32_MAX;
 };
 
 struct FSMBuilder {
@@ -54,6 +53,14 @@ struct FSMBuilder {
   Flag(u32 flags)
   {
     node_data->flags |= flags;
+    return *this;
+  }
+
+  FSMBuilder&
+  StopOnFrame(u32 frame)
+  {
+    assert(frame < node_data->frames.size());
+    node_data->stop_on_frame = frame;
     return *this;
   }
 
@@ -102,6 +109,12 @@ struct FSM {
         return;
       }
     }
+
+    if (nd.stop_on_frame != UINT32_MAX &&
+        current_frame == nd.stop_on_frame) {
+      return;
+    }
+
     ++ticks_in_frame;
     if (current_frame == u32(-1) ||
         ticks_in_frame > nd.frames[current_frame].length) {

@@ -30,7 +30,7 @@ AnimInitAdventurerFSM(animation::FSM* fsm, u32 entity_id)
     return p->on_ground != 0;
   };
 
-  static auto attacking = [](u32 entity_id) {
+  static auto is_attacking = [](u32 entity_id) {
     ecs::Entity* entity = ecs::FindEntity(entity_id);
     if (!entity) return false;
     CharacterComponent* character = ecs::GetCharacterComponent(entity);
@@ -42,7 +42,7 @@ AnimInitAdventurerFSM(animation::FSM* fsm, u32 entity_id)
       .Frame(50.f * 1.f, 0.f, 50.f, 37.f, 25)
       .Frame(50.f * 2.f, 0.f, 50.f, 37.f, 25)
       .Frame(50.f * 3.f, 0.f, 50.f, 37.f, 25)
-      .Transition(kAdventurerAnimAttackOne, attacking)
+      .Transition(kAdventurerAnimAttackOne, is_attacking)
       .Transition(
           kAdventurerAnimWalk,
           [](u32 entity_id) {
@@ -58,7 +58,7 @@ AnimInitAdventurerFSM(animation::FSM* fsm, u32 entity_id)
       .Frame(50.f * 4.f, 37.f, 50.f, 37.f, 6)
       .Frame(50.f * 5.f, 37.f, 50.f, 37.f, 6)
       .Frame(50.f * 6.f, 37.f, 50.f, 37.f, 6)
-      .Transition(kAdventurerAnimAttackOne, attacking)
+      .Transition(kAdventurerAnimAttackOne, is_attacking)
       .Transition(
           kAdventurerAnimIdle,
           [](u32 entity_id) {
@@ -75,7 +75,7 @@ AnimInitAdventurerFSM(animation::FSM* fsm, u32 entity_id)
       .Frame(50.f * 1.f, 37.f * 3.f, 50.f, 37.f, 6)
       .Frame(50.f * 2.f, 37.f * 3.f, 50.f, 37.f, 6)
       .Flag(animation::kFSMNodeStopOnFinalFrame)
-      .Transition(kAdventurerAnimAttackOne, attacking)
+      .Transition(kAdventurerAnimAttackOne, is_attacking)
       .Transition(kAdventurerAnimIdle, on_ground)
       .Transition(
           kAdventurerAnimDoubleJump,
@@ -99,7 +99,7 @@ AnimInitAdventurerFSM(animation::FSM* fsm, u32 entity_id)
       .Frame(50.f * 1.f, 37.f * 3.f, 50.f, 37.f, 6)
       .Frame(50.f * 2.f, 37.f * 3.f, 50.f, 37.f, 6)
       .Flag(animation::kFSMNodeStopOnFinalFrame)
-      .Transition(kAdventurerAnimAttackOne, attacking)
+      .Transition(kAdventurerAnimAttackOne, is_attacking)
       .Transition(kAdventurerAnimIdle, on_ground);
 
   fsm->Node(kAdventurerAnimAttackOne)
@@ -112,7 +112,7 @@ AnimInitAdventurerFSM(animation::FSM* fsm, u32 entity_id)
       .Frame(50.f * 6.f, 37.f * 6.f, 50.f, 37.f, 5)
       .Flag(animation::kFSMNodePlayUntilComplete)
       .Flag(animation::kFSMNodeCantMove)
-      .Transition(kAdventurerAnimAttackTwo, attacking)
+      .Transition(kAdventurerAnimAttackTwo, is_attacking)
       .Transition(kAdventurerAnimIdle, on_ground)
       .Transition(kAdventurerAnimSingleJump, in_air);
 
@@ -123,7 +123,7 @@ AnimInitAdventurerFSM(animation::FSM* fsm, u32 entity_id)
       .Frame(50.f * 3.f, 37.f * 7.f, 50.f, 37.f, 5)
       .Flag(animation::kFSMNodePlayUntilComplete)
       .Flag(animation::kFSMNodeCantMove)
-      .Transition(kAdventurerAnimAttackThree, attacking)
+      .Transition(kAdventurerAnimAttackThree, is_attacking)
       .Transition(kAdventurerAnimIdle, on_ground)
       .Transition(kAdventurerAnimSingleJump, in_air);
 

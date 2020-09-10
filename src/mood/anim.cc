@@ -68,8 +68,6 @@ AnimInitAdventurerFSM(animation::FSM* fsm, u32 entity_id)
       .Transition(kAdventurerAnimSingleJump, in_air);
 
   fsm->Node(kAdventurerAnimSingleJump)
-      .Frame(50.f * 0.f, 37.f * 2.f, 50.f, 37.f, 3)
-      .Frame(50.f * 1.f, 37.f * 2.f, 50.f, 37.f, 4)
       .Frame(50.f * 2.f, 37.f * 2.f, 50.f, 37.f, 5)
       .Frame(50.f * 3.f, 37.f * 2.f, 50.f, 37.f, 5)
       .Frame(50.f * 1.f, 37.f * 3.f, 50.f, 37.f, 6)

@@ -57,6 +57,13 @@ static Stats kGameStats;
 static char kUIBuffer[64];
 
 void
+SetFramerate(u64 fr)
+{
+  kGameState.framerate = fr;
+  kGameState.frame_target_usec = 1000.f * 1000.f / kGameState.framerate;
+}
+
+void
 DebugUI()
 {
   v2f screen = window::GetWindowSize();
@@ -98,6 +105,22 @@ DebugUI()
     imui::Text("Window Size");
     snprintf(kUIBuffer, sizeof(kUIBuffer), "%.0fx%.0f", screen.x, screen.y);
     imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(right_align);
+    imui::Text("Game Speed");
+    if (imui::Text("60 ", debug_options).clicked) {
+      SetFramerate(60);
+    }
+    if (imui::Text("30 ", debug_options).clicked) {
+      SetFramerate(30);
+    }
+    if (imui::Text("10 ", debug_options).clicked) {
+      SetFramerate(10);
+    }
+    if (imui::Text("5 ", debug_options).clicked) {
+      SetFramerate(5);
+    }
     imui::NewLine();
     imui::End();
   }
@@ -238,7 +261,7 @@ main(s32 argc, char** argv)
   // Reset State
   StatsInit(&kGameStats);
   kGameState.game_updates = 0;
-  kGameState.frame_target_usec = 1000.f * 1000.f / kGameState.framerate;
+  SetFramerate(kGameState.framerate);
   printf("Client target usec %lu\n", kGameState.frame_target_usec);
 
   // If vsync is enabled, force the clock_init to align with clock_sync

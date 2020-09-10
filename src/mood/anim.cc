@@ -14,11 +14,10 @@ enum AdventurerAnimState {
   kAdventurerAnimNumStates   = 7,
 };
 
-u32
-AnimInitAdventurerFSM(animation::FSM* fsm, u32 entity_id)
+void
+AnimInitAdventurerFSM(animation::FSM* fsm)
 {
   fsm->Initialize(kAdventurerAnimNumStates, kAdventurerAnimIdle);
-  fsm->entity_id = entity_id;
 
   static auto in_air = [](u32 entity_id) {
     GET_PARTICLE_OR_RETURN(p, entity_id, return false);
@@ -136,8 +135,6 @@ AnimInitAdventurerFSM(animation::FSM* fsm, u32 entity_id)
       .Flag(animation::kFSMNodeCantMove)
       .Transition(kAdventurerAnimIdle, on_ground)
       .Transition(kAdventurerAnimSingleJump, in_air);
-
-  return fsm->id;
 }
 
 void
@@ -145,7 +142,7 @@ AnimUpdate()
 {
   ECS_ITR1(itr, kAnimComponent);
   while (itr.Next()) {
-    itr.c.anim->fsm.Update();
+    itr.c.anim->fsm.Update(itr.e->id);
   }
 }
 

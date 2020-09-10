@@ -96,7 +96,7 @@ struct FSM {
   }
 
   void
-  Update()
+  Update(u32 entity_id)
   {
     assert(current_state < node_data.size());
     const FSMNodeData& nd = node_data[current_state];
@@ -163,8 +163,6 @@ struct FSM {
       }
     }
   }
-
-  u32 id = 0;
 
   std::vector<FSMNodeData> node_data;
 

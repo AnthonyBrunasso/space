@@ -304,9 +304,11 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
       }
 
       if (event.controller.right_trigger) {
-        SBIT(player->character_flags, kCharacterFireWeapon);
+        PlayerAttack();
+        //SBIT(player->character_flags, kCharacterFireWeapon);
       } else {
-        CBIT(player->character_flags, kCharacterFireWeapon);
+        PlayerStopAttack();
+        //CBIT(player->character_flags, kCharacterFireWeapon);
       }
 
       if (event.controller.left_trigger) {

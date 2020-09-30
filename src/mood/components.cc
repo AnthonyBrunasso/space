@@ -12,7 +12,8 @@ enum TypeId : u64 {
   kSpawnerComponent = 6,
   kProjectileWeaponComponent = 7,
   kAnimComponent = 8,
-  kComponentCount = 9,
+  kMeleeWeaponComponent = 9,
+  kComponentCount = 10,
 }; 
 
 const char*
@@ -28,6 +29,7 @@ TypeName(TypeId type_id)
     case kSpawnerComponent: return "Spawner";
     case kProjectileWeaponComponent: return "ProjectileWeapon";
     case kAnimComponent: return "Anim";
+    case kMeleeWeaponComponent: return "Melee";
     default: return "Unknown";
   }
   return "Unknown";
@@ -136,20 +138,25 @@ struct AnimComponent {
   animation::FSM fsm;
 };
 
+struct MeleeWeaponComponent {
+  u32 entity_id = 0;
+};
+
 }
 
 namespace ecs {
 
 struct Components {
-  mood::PhysicsComponent*          physics    = nullptr;
-  mood::AIComponent*               ai         = nullptr;
-  mood::CharacterComponent*        character  = nullptr;
-  mood::DeathComponent*            death      = nullptr;
-  mood::ProjectileComponent*       projectile = nullptr;
-  mood::ObstacleComponent*         obstacle   = nullptr;
-  mood::SpawnerComponent*          spawner    = nullptr;
-  mood::ProjectileWeaponComponent* weapon     = nullptr;
-  mood::AnimComponent*       anim       = nullptr;
+  mood::PhysicsComponent*          physics           = nullptr;
+  mood::AIComponent*               ai                = nullptr;
+  mood::CharacterComponent*        character         = nullptr;
+  mood::DeathComponent*            death             = nullptr;
+  mood::ProjectileComponent*       projectile        = nullptr;
+  mood::ObstacleComponent*         obstacle          = nullptr;
+  mood::SpawnerComponent*          spawner           = nullptr;
+  mood::ProjectileWeaponComponent* projectile_weapon = nullptr;
+  mood::AnimComponent*             anim              = nullptr;
+  mood::MeleeWeaponComponent*      melee_weapon      = nullptr;
 };
 
 }
@@ -202,6 +209,10 @@ GetComponents(u64 tid)
       static ecs::ComponentStorage f(256, sizeof(AnimComponent));
       return &f;
     } break;
+    case kMeleeWeaponComponent: {
+      static ecs::ComponentStorage f(64, sizeof(MeleeWeaponComponent));
+      return &f;
+    } break;
     default: {
       assert(!"Unknown component type");
     } break;
@@ -218,6 +229,7 @@ DECLARE_COMPONENT(ObstacleComponent, kObstacleComponent);
 DECLARE_COMPONENT(SpawnerComponent, kSpawnerComponent);
 DECLARE_COMPONENT(ProjectileWeaponComponent, kProjectileWeaponComponent);
 DECLARE_COMPONENT(AnimComponent, kAnimComponent);
+DECLARE_COMPONENT(MeleeWeaponComponent, kMeleeWeaponComponent);
 
 physics::Particle2d*
 GetParticle(ecs::Entity* ent)

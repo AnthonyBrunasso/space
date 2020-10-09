@@ -47,19 +47,28 @@ CharacterUpdate()
         CBIT(particle->flags, physics::kParticleIgnoreGravity);
       }
 
-      ProjectileWeaponComponent* weapon =
+      ProjectileWeaponComponent* projectile_weapon =
           ecs::GetProjectileWeaponComponent(itr.e);
 
-      if (weapon && FLAGGED(c->character_flags, kCharacterFireWeapon)) {
-        if (util::FrameCooldownReady(&weapon->cooldown)) {
-          util::FrameCooldownReset(&weapon->cooldown);
+      if (projectile_weapon &&
+          FLAGGED(c->character_flags, kCharacterFireWeapon)) {
+        if (util::FrameCooldownReady(&projectile_weapon->cooldown)) {
+          util::FrameCooldownReset(&projectile_weapon->cooldown);
           ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
-                           c->entity_id, *weapon);
+                           c->entity_id, *projectile_weapon);
         }
       }
-      //if (weapon && FLAGGED(c->character_flags, kCharacterFireSecondary)) {
-      //  if (util::FrameCooldownReady(&weapon->cooldown)) {
-      //    util::FrameCooldownReset(&weapon->cooldown);
+
+      MeleeWeaponComponent* melee_weapon =
+          ecs::GetMeleeWeaponComponent(itr.e);
+
+      if (melee_weapon &&
+          FLAGGED(c->character_flags, kCharacterAttackMelee)) {
+        printf("shmack!\n");
+      }
+      //if (projectile_weapon && FLAGGED(c->character_flags, kCharacterFireSecondary)) {
+      //  if (util::FrameCooldownReady(&projectile_weapon->cooldown)) {
+      //    util::FrameCooldownReset(&projectile_weapon->cooldown);
       //    ProjectileCreate(particle->position + v2f(0.f, 0.f), c->aim_dir,
       //                     c->entity_id, kProjectileGrenade);
       //  }

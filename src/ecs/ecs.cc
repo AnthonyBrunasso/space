@@ -23,42 +23,43 @@ struct Entity {
 
 DECLARE_HASH_ARRAY(Entity, ENTITY_COUNT);
 
-struct ComponentStorage {
+class ComponentStorage {
+ public:
   ComponentStorage(u32 n, u32 sz)
   {
-    bytes = memory::PushBytes(n * sz);
-    assert(bytes != nullptr);
-    sizeof_element = sz;
-    max_size = n;
+    bytes_ = memory::PushBytes(n * sz);
+    assert(bytes_ != nullptr);
+    sizeof_element_ = sz;
+    max_size_ = n;
   }
 
   u8*
   Assign()
   {
-    assert(size < max_size);
-    u32 idx = size * sizeof_element;
-    ++size;
-    return &bytes[idx];
+    assert(size_ < max_size_);
+    u32 idx = size_ * sizeof_element_;
+    ++size_;
+    return &bytes_[idx];
   }
 
   u8*
   Get(u32 idx)
   {
-    assert(idx < max_size);
-    return &bytes[idx * sizeof_element];
+    assert(idx < max_size_);
+    return &bytes_[idx * sizeof_element_];
   }
 
   // Sorts last element in list returning the sorted element.
   u8*
   SortLastElement()
   {
-    assert(size > 0);
-    if (size == 1) {
-      return Get(size - 1);
+    assert(size_ > 0);
+    if (size_ == 1) {
+      return Get(size_ - 1);
     }
-    u8* ptr = Get(size - 1);
+    u8* ptr = Get(size_ - 1);
     u32 tid = *((u32*)ptr);
-    s32 nelem = size - 2;
+    s32 nelem = size_ - 2;
     // TODO: This probably would be faster if I found the position of where
     // this element should go, memoved everything up and put it there.
     while (nelem >= 0) {
@@ -70,7 +71,7 @@ struct ComponentStorage {
       // Swap bytes between nelem_ptr and ptr.
       // Creating the loop allows the compiler to vectorize the byte swapping
       // which ends up being faster than 3 memcpys.
-      for (u32 i = 0; i < sizeof_element; ++i) {
+      for (u32 i = 0; i < sizeof_element_; ++i) {
         u8 b = *ptr;
         *ptr = *nelem_ptr;
         *nelem_ptr = b;
@@ -86,7 +87,7 @@ struct ComponentStorage {
   Find(u32 id)
   {
     s32 l = 0;
-    s32 r = size - 1;
+    s32 r = size_ - 1;
     while (l <= r) {
       s32 m = l + (r - l) / 2;
       u8* bytes = Get(m);
@@ -101,32 +102,45 @@ struct ComponentStorage {
   void
   Erase(u32 id)
   {
-    if (size == 0) return;
-    if (size == 1) {
-      memset(bytes, 0, sizeof_element);
+    if (size_ == 0) return;
+    if (size_ == 1) {
+      memset(bytes_, 0, sizeof_element_);
       return;
     }
     u8* elem = Find(id);
     if (!elem) return;
-    u8* nelem = elem + sizeof_element;
-    u8* end = &bytes[(size - 1) * sizeof_element + sizeof_element];
-    memmove(elem, elem + sizeof_element, end - nelem);
-    --size;
-    memset(Get(size), 0, sizeof_element);
+    u8* nelem = elem + sizeof_element_;
+    u8* end = &bytes_[(size_ - 1) * sizeof_element_ + sizeof_element_];
+    memmove(elem, elem + sizeof_element_, end - nelem);
+    --size_;
+    memset(Get(size_), 0, sizeof_element_);
   }
 
   void
   Clear()
   {
-    if (size == 0) return;
-    memset(bytes, 0,  sizeof_element * size);
-    size = 0;
+    if (size_ == 0) return;
+    memset(bytes_, 0,  sizeof_element_ * size_);
+    size_ = 0;
   }
 
-  u8* bytes = nullptr;
-  u32 sizeof_element = 0;
-  u32 size = 0;
-  u32 max_size = 0;
+  u32
+  size() const
+  {
+    return size_;
+  }
+
+  u32
+  max_size() const
+  {
+    return max_size_;
+  }
+
+ private:
+  u8* bytes_ = nullptr;
+  u32 sizeof_element_ = 0;
+  u32 size_ = 0;
+  u32 max_size_ = 0;
 };
 
 // Users must defined this function.
@@ -219,8 +233,8 @@ struct EntityItr {
       match = true;
       u8* ptrs[N];
       for (u32 i = 0; i < N; ++i) {
-        if (idx[i] >= comps[i]->max_size) return false;
-        if (idx[i] >= comps[i]->size) return false;
+        if (idx[i] >= comps[i]->max_size()) return false;
+        if (idx[i] >= comps[i]->size()) return false;
         ptrs[i] = comps[i]->Get(idx[i]);
       }
       // First element in component structs is an entity id... Hopefully!

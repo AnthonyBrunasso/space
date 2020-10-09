@@ -1,13 +1,16 @@
 #pragma once
 
+namespace rgg {
+
+void
+DebugPushRect(const Rectf& rect, const v4f& color);
+
+}
+
 namespace mood {
 
-void RenderCreateEffect(Rectf rect, v4f color, u32 ttl, r32 rotate_delta);
-
-struct GCharacter {
-};
-
-static GCharacter kCharacter;
+void
+RenderCreateEffect(Rectf rect, v4f color, u32 ttl, r32 rotate_delta);
 
 void
 CharacterInitialize()
@@ -64,7 +67,7 @@ CharacterUpdate()
 
       if (melee_weapon &&
           FLAGGED(c->character_flags, kCharacterAttackMelee)) {
-        printf("shmack!\n");
+        rgg::DebugPushRect(Rectf(particle->position, 10.f, 10.f), rgg::kRed);
       }
       //if (projectile_weapon && FLAGGED(c->character_flags, kCharacterFireSecondary)) {
       //  if (util::FrameCooldownReady(&projectile_weapon->cooldown)) {

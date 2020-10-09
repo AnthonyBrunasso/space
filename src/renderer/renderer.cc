@@ -895,7 +895,7 @@ DebugPushSphere(const v3f& position, r32 radius, const v4f& color)
 } 
 
 void
-DebugPushCube(const Cubef& cube, const v4f& color, b8 fill = false)
+DebugPushCube(const Cubef& cube, const v4f& color, b8 fill)
 {
   DebugCube* dcube = UseDebugCube();
   dcube->cube = cube;
@@ -904,8 +904,14 @@ DebugPushCube(const Cubef& cube, const v4f& color, b8 fill = false)
 }
 
 void
+DebugPushCube(const Cubef& cube, const v4f& color)
+{
+  DebugPushCube(cube, color, false);
+}
+
+void
 DebugPushPoint(const v3f& position, r32 radius, const v4f& color,
-               DebugType type = kDebugWorld)
+               DebugType type)
 {
   DebugPoint* dpoint = UseDebugPoint();
   dpoint->position = position;
@@ -915,13 +921,24 @@ DebugPushPoint(const v3f& position, r32 radius, const v4f& color,
 }
 
 void
-DebugPushRect(const Rectf& rect, const v4f& color,
-              DebugType type = kDebugWorld)
+DebugPushPoint(const v3f& position, r32 radius, const v4f& color)
+{
+  DebugPushPoint(position, radius, color, kDebugWorld);
+}
+
+
+void
+DebugPushRect(const Rectf& rect, const v4f& color, DebugType type)
 {
   DebugRect* drect = UseDebugRect();
   drect->rect = rect;
   drect->color = color;
   drect->type = type;
+}
+
+
+void DebugPushRect(const Rectf& rect, const v4f& color) {
+  DebugPushRect(rect, color, kDebugWorld);
 }
 
 }  // namespace rgg

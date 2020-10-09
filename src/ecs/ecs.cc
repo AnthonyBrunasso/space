@@ -14,7 +14,7 @@ struct Entity {
   u32 id = 0;
   u64 components_mask = 0;
 
-  bool
+  b8
   Has(u64 type_id) const
   {
     return FLAGGED(components_mask, type_id);
@@ -143,7 +143,7 @@ DeleteEntity(Entity* ent, u32 max_comps = 64)
 {
   // If the entity has any components left attached to it - delete them.
   if (ent->components_mask) {
-    for (int i = 0; i < max_comps; ++i) {
+    for (s32 i = 0; i < max_comps; ++i) {
       if (FLAGGED(ent->components_mask, i)) {
         GetComponents(i)->Erase(ent->id);
       }
@@ -212,8 +212,8 @@ struct EntityItr {
     ++idx[min_idx];
   }
 
-  bool Next() {
-    bool match = true;
+  b8 Next() {
+    b8 match = true;
     u32 id;
     while(1) {
       match = true;

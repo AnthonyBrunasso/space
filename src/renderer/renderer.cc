@@ -751,6 +751,13 @@ RenderCube(const Cubef& cube, const v4f& color)
 }
 
 void
+RenderCube(const Cubef& cube, const Quatf& orientation, const v4f& color) {
+  Render3dWithRotation(cube.pos, v3f(cube.width, cube.height, cube.depth),
+                       orientation, color, kRGG.cube_vao_reference,
+                       kCubeVertCount);
+}
+
+void
 RenderCone(v3f pos, v3f scale, const v4f& color)
 {
   Render3d(pos, scale, color, kRGG.cone_vao_reference, kConeVertCount);
@@ -803,6 +810,22 @@ RenderLineCube(const Cubef& cube, const v4f& color)
   RenderLine(front_bottom_left, front_bottom_right, color);
   RenderLine(front_bottom_right, front_top_right, color);
   RenderLine(front_top_left, front_top_right, color);
+}
+
+void
+RenderLineHexagon(const v3f& center, r32 size, const v4f& color)
+{
+  v3f points[6];
+  for (s32 i = 1; i <= 6; ++i) {
+    points[i - 1] = v3f(math::HexCorner(center.xy(), 5.f, i));
+    points[i - 1].z = center.z;
+  }
+  RenderLine(points[5], points[0], color);
+  RenderLine(points[0], points[1], color);
+  RenderLine(points[1], points[2], color);
+  RenderLine(points[2], points[3], color);
+  RenderLine(points[3], points[4], color);
+  RenderLine(points[4], points[5], color);
 }
 
 void

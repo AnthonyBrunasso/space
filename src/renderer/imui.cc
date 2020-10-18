@@ -373,6 +373,7 @@ Render(u32 tag)
 {
   glDisable(GL_DEPTH_TEST);
   auto dims = window::GetWindowSize();
+  // printf("dims(%.2f, %.2f)\n", dims.x, dims.y);
   rgg::ModifyObserver mod(math::Ortho2(dims.x, 0.0f, dims.y, 0.0f, 0.0f, 0.0f),
                           math::Identity());
 
@@ -414,26 +415,26 @@ Render(u32 tag)
 
   for (int i = 0; i < kUsedButton[tag]; ++i) {
     Button* button = &kButton[tag][i];
-    SetScissorWithPane(*button->pane, dims, false);
+    //SetScissorWithPane(*button->pane, dims, false);
     rgg::RenderLineRectangle(button->rect, button->color);
   }
 
   for (int i = 0; i < kUsedButtonCircle[tag]; ++i) {
     ButtonCircle* button = &kButtonCircle[tag][i];
-    SetScissorWithPane(*button->pane, dims,
-                       button->options.ignore_scissor_test);
+    //SetScissorWithPane(*button->pane, dims,
+    //                   button->options.ignore_scissor_test);
     rgg::RenderCircle(button->position, button->radius, button->color);
   }
 
   for (int i = 0; i < kUsedTexture[tag]; ++i) {
     Texture* texture = &kTexture[tag][i];
-    SetScissorWithPane(*texture->pane, dims, false);
+    //SetScissorWithPane(*texture->pane, dims, false);
     rgg::RenderTexture(texture->texture_id, texture->subrect, texture->rect);
   }
 
   for (int i = 0; i < kUsedCheckbox[tag]; ++i) {
     Checkbox* cb = &kCheckbox[tag][i];
-    SetScissorWithPane(*cb->pane, dims, false);
+    //SetScissorWithPane(*cb->pane, dims, false);
     rgg::RenderLineRectangle(cb->rect, kCheckboxColor);
     if (cb->checked) {
       Rectf crect(cb->rect);
@@ -454,13 +455,13 @@ Render(u32 tag)
 
   for (int i = 0; i < kUsedText[tag]; ++i) {
     Text* text = &kText[tag][i];
-    SetScissorWithPane(*text->pane, dims, text->options.ignore_scissor_test);
+    //SetScissorWithPane(*text->pane, dims, text->options.ignore_scissor_test);
     rgg::RenderText(text->msg, text->pos, kTextScale, text->color);
   }
 
   for (int i = 0; i < kUsedLine[tag]; ++i) {
     Line* line = &kLine[tag][i];
-    SetScissorWithPane(*line->pane, dims, false);
+    //SetScissorWithPane(*line->pane, dims, false);
     if (line->type == kHorizontal) {
       v2f end(line->start.x + line->pane->rect.width, line->start.y);
       rgg::RenderLine(line->start, end, line->color);
@@ -469,12 +470,12 @@ Render(u32 tag)
 
   for (int i = 0; i < kUsedProgressBar[tag]; ++i) {
     ProgressBar* pb = &kProgressBar[tag][i];
-    SetScissorWithPane(*pb->pane, dims, false);
+    //SetScissorWithPane(*pb->pane, dims, false);
     rgg::RenderProgressBar(
         pb->rect, 0.f, pb->current_progress, pb->max_progress, pb->fill_color,
         pb->outline_color);
   }
-  glScissor(0, 0, dims.x, dims.y);
+  //glScissor(0, 0, dims.x, dims.y);
   glEnable(GL_DEPTH_TEST);
 }
 

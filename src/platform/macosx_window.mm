@@ -134,7 +134,7 @@ Create(const char* name, s32 width, s32 height, b8 fullscreen)
                    NSClosableWindowMask |
                    NSWindowStyleMaskResizable;
   kWindow.nsview = [[OpenGLView alloc]
-                  initWithFrame:NSMakeRect(0,0, width, height)];
+                  initWithFrame:NSMakeRect(0, 0, width, height)];
 
   kWindow.nswindow = [[BaseWindow alloc]
                       initWithContentRect:[kWindow.nsview frame]
@@ -176,6 +176,7 @@ Create(const char* name, s32 width, s32 height, b8 fullscreen)
 s32
 Create(const char* name, const CreateInfo& create_info)
 {
+  printf("Creating window %i %i\n", create_info.window_width, create_info.window_height);
   return Create(name, create_info.window_width, create_info.window_height,
                 create_info.fullscreen);
 }

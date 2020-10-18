@@ -155,15 +155,7 @@ main(s32 argc, char** argv)
     const v2f cursor = window::GetCursorPosition();
     imui::MousePosition(cursor, imui::kEveryoneTag);
 
-        
-    // Render
-    //rgg::RenderLineCube(Cubef(v3f(10.f, 30.f, -100.f), v3f(10.f, 10.f, 10.f)),
-    //                    v4f(1.f, 0.f, 0.f, 1.f));
-
-    rgg::RenderSphere(v3f(0.f, 5.f, -100.f), v3f(5.f, 5.f, 5.f),
-                      v4f(0.f, 0.3f, 0.7f, 1.f));
-
-    rgg::RenderText("Test", v2f(300.f, 300.f), 1.f, rgg::kWhite);
+    rgg::RenderLineHexagon(v3f(0.f, 0.f, -50.f), 5.f, rgg::kWhite);
 
     // Execute game code.
     DebugUI();

@@ -12,6 +12,9 @@ Render()
 
   char buffer[64];
 
+  glClearColor(0.f, 0.f, 1.f, 1.f);
+
+
   imui::PaneOptions pane_options;
   static b8 show = true;
   static v2f pos(300, 300);
@@ -135,8 +138,8 @@ main(int argc, char** argv)
 {
   memory::Initialize(MiB(64));
   window::CreateInfo create_info;
-  create_info.window_width = 1920;
-  create_info.window_height = 1080;
+  create_info.window_width = 1280;
+  create_info.window_height = 720;
   window::Create("UI Test", create_info);
 
   if (!rgg::Initialize()) {
@@ -179,6 +182,7 @@ main(int argc, char** argv)
           }
         } break;
         case MOUSE_DOWN: {
+          printf("mouse(%.2f, %.2f)\n", event.position.x, event.position.y);
           imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
         } break;
         case MOUSE_UP: {

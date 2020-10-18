@@ -1,6 +1,8 @@
 // Singleplayer game template.
 #define SINGLE_PLAYER
 
+#include <vector>
+
 #include "math/math.cc"
 
 #include "audio/audio.cc"
@@ -115,10 +117,8 @@ main(s32 argc, char** argv)
   kGameState.frame_target_usec = 1000.f * 1000.f / kGameState.framerate;
   printf("Client target usec %lu\n", kGameState.frame_target_usec);
 
-  // If vsync is enabled, force the clock_init to align with clock_sync
-  // TODO: We should also enforce framerate is equal to refresh rate
-  window::SwapBuffers();
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  std::vector<v2f> grids = {{0.f, 0.f}, {1.f, 0.f}, {0.f, 1.f}, {-1.f, 1.f},
+                            {-1.f, 0.f}, {0.f, -1.f}, {1.f, -1.f}};
 
   while (1) {
     platform::ClockStart(&game_clock);
@@ -155,7 +155,12 @@ main(s32 argc, char** argv)
     const v2f cursor = window::GetCursorPosition();
     imui::MousePosition(cursor, imui::kEveryoneTag);
 
-    rgg::RenderLineHexagon(v3f(0.f, 0.f, -50.f), 5.f, rgg::kWhite);
+    //rgg::RenderLineHexagon(v3f(0.f, 0.f, -50.f), 5.f, rgg::kWhite);
+    for (const auto& g : grids) {
+      v2f world = math::AxialToWorld(g, 5.f);
+      rgg::RenderLineHexagon(v3f(world.x, world.y, -50.f), 5.f, rgg::kWhite);
+      rgg::RenderCube(Cubef(world.x, world.y, -50.f, 1.f, 1.f, 1.f), rgg::kWhite);
+    }
 
     // Execute game code.
     DebugUI();

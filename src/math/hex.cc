@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 namespace math {
 
 static const r32 kSqrt3 = sqrt(3.f);
@@ -64,6 +66,38 @@ r32
 HexAxialDistance(const v2f& a, const v2f& b)
 {
   return HexCubeDistance(HexAxialToCube(a), HexAxialToCube(b));
+}
+
+std::vector<v2f>
+HexAxialRange(s32 n)
+{
+  std::vector<v2f> range;
+  for (int x = -n; x <= n; ++x) {
+    for (int y = -n; y <= n; ++y) {
+      for (int z = -n; z <= n; ++z) {
+        if (x + y + z == 0) {
+          range.push_back(HexCubeToAxial(v3f(x, y, z)));
+        }
+      }
+    }
+  }
+  return range;
+}
+
+std::vector<v3f>
+HexCubeRange(s32 n)
+{
+  std::vector<v3f> range;
+  for (int x = -n; x <= n; ++x) {
+    for (int y = -n; y <= n; ++y) {
+      for (int z = -n; z <= n; ++z) {
+        if (x + y + z == 0) {
+          range.emplace_back(x, y, z);
+        }
+      }
+    }
+  }
+  return range;
 }
 
 }  // namespace math

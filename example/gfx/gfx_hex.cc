@@ -128,6 +128,8 @@ main(s32 argc, char** argv)
   rgg::GetObserver()->projection =
       rgg::DefaultPerspective(window::GetWindowSize());
 
+  std::vector<v2f> grids = math::HexAxialRange(10);
+
   bool mouse_down = false;
   v2f mouse_start;
 
@@ -192,9 +194,7 @@ main(s32 argc, char** argv)
 
     rgg::GetObserver()->view = camera.View();
 
-    RenderHexGridCoord(v2f(0.f, 0.f));
-    for (int i = 0; i < 6; ++i) {
-      v2f g = math::kHexAxialNeighbors[i];
+    for (auto g : grids) {
       RenderHexGridCoord(g);
     }
 

@@ -88,6 +88,14 @@ DebugUI()
   }
 }
 
+void
+RenderHexGridCoord(v2f cord)
+{
+  v2f world = math::AxialToWorld(cord, 5.f);
+  rgg::RenderLineHexagon(v3f(world.x, world.y, -50.f), 5.f, rgg::kWhite);
+  rgg::RenderCube(Cubef(world.x, world.y, -50.f, 1.f, 1.f, 1.f), rgg::kWhite);
+}
+
 s32
 main(s32 argc, char** argv)
 {
@@ -115,9 +123,6 @@ main(s32 argc, char** argv)
   kGameState.frame_target_usec = 1000.f * 1000.f / kGameState.framerate;
   printf("Client target usec %lu\n", kGameState.frame_target_usec);
 
-  std::vector<v2f> grids = {{0.f, 0.f}, {1.f, 0.f}, {0.f, 1.f}, {-1.f, 1.f},
-                            {-1.f, 0.f}, {0.f, -1.f}, {1.f, -1.f}};
-
   rgg::Camera camera(v3f(0.f, 0.f, 0.f), v3f(0.f, 1.f, 0.f));
 
   rgg::GetObserver()->projection =
@@ -125,6 +130,12 @@ main(s32 argc, char** argv)
 
   bool mouse_down = false;
   v2f mouse_start;
+
+  for (int i = 0; i < 6; ++i) {
+    v2f a = math::kAxialNeighbors[i];
+    v3f c = math::AxialToCube(a);
+    Printv3f(c);
+  }
 
   while (1) {
     platform::ClockStart(&game_clock);
@@ -187,11 +198,10 @@ main(s32 argc, char** argv)
 
     rgg::GetObserver()->view = camera.View();
 
-    //rgg::RenderLineHexagon(v3f(0.f, 0.f, -50.f), 5.f, rgg::kWhite);
-    for (const auto& g : grids) {
-      v2f world = math::AxialToWorld(g, 5.f);
-      rgg::RenderLineHexagon(v3f(world.x, world.y, -50.f), 5.f, rgg::kWhite);
-      rgg::RenderCube(Cubef(world.x, world.y, -50.f, 1.f, 1.f, 1.f), rgg::kWhite);
+    RenderHexGridCoord(v2f(0.f, 0.f));
+    for (int i = 0; i < 6; ++i) {
+      v2f g = math::kAxialNeighbors[i];
+      RenderHexGridCoord(g);
     }
 
     // Execute game code.

@@ -194,14 +194,6 @@ main(s32 argc, char** argv)
       rgg::RenderCube(Cubef(world.x, world.y, -50.f, 1.f, 1.f, 1.f), rgg::kWhite);
     }
 
-    v3f in_front = camera.position() + camera.forward() * 10.f;
-
-    rgg::RenderLineCube(Cubef(in_front, v3f(1.f, 1.f, 1.f)), rgg::kRed);
-
-    rgg::RenderLine(in_front, in_front + camera.right(), rgg::kRed);
-    rgg::RenderLine(in_front, in_front + camera.up(), rgg::kGreen);
-    rgg::RenderLine(in_front, in_front + camera.forward(), rgg::kBlue);
-
     // Execute game code.
     DebugUI();
 

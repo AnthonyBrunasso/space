@@ -88,6 +88,16 @@ struct Camera {
     return math::LookAt(position_, position_ + forward_, up_);
   }
 
+  void
+  DebugRender()
+  {
+    v3f in_front = position() + forward() * 10.f;
+    rgg::RenderLineCube(Cubef(in_front, v3f(1.f, 1.f, 1.f)), rgg::kRed);
+    rgg::RenderLine(in_front, in_front + right(), rgg::kRed);
+    rgg::RenderLine(in_front, in_front + up(), rgg::kGreen);
+    rgg::RenderLine(in_front, in_front + forward(), rgg::kBlue);
+  }
+
  private:
   void
   Update()

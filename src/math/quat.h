@@ -28,6 +28,7 @@ struct Quat {
     angle_degrees = new_angle;
     axis = Normalize(new_axis);
     r32 angle_radians = (angle_degrees)*PI / 180.0f;
+    //printf("DEGREES: %.2f\n", angle_degrees);
     w = cos(angle_radians / 2.0f);
     x = sin(angle_radians / 2.0f) * axis.x;
     y = sin(angle_radians / 2.0f) * axis.y;
@@ -46,21 +47,21 @@ struct Quat {
   Forward() const
   {
     return v3f(-2.f * x * z + 2.f * w * y, -2.f * y * z - 2.f * w * x,
-                 -1.f + 2.f * x * x + 2.f * y * y);
+               -1.f + 2.f * x * x + 2.f * y * y);
   }
 
   v3f
   Up() const
   {
     return v3f(2.f * x * y + 2.f * w * z, 1.f - 2.f * x * x - 2.f * z * z,
-                 2.f * y * z - 2.f * w * x);
+               2.f * y * z - 2.f * w * x);
   }
 
   v3f
   Left() const
   {
     return v3f(-2.f * x * z + 2.f * w * y, -2.f * y * z - 2.f * w * x,
-                 -1.f + 2.f * x * x + 2.f * y * y);
+               -1.f + 2.f * x * x + 2.f * y * y);
   }
 
   T w;

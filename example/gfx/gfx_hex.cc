@@ -6,6 +6,7 @@
 #include "math/math.cc"
 
 #include "audio/audio.cc"
+#include "renderer/camera.cc"
 #include "renderer/renderer.cc"
 #include "renderer/imui.cc"
 
@@ -108,9 +109,6 @@ main(s32 argc, char** argv)
     return 1;
   }
 
-  rgg::GetObserver()->projection =
-      rgg::DefaultPerspective(window::GetWindowSize());
-
   // Reset State
   StatsInit(&kGameStats);
   kGameState.game_updates = 0;
@@ -119,6 +117,14 @@ main(s32 argc, char** argv)
 
   std::vector<v2f> grids = {{0.f, 0.f}, {1.f, 0.f}, {0.f, 1.f}, {-1.f, 1.f},
                             {-1.f, 0.f}, {0.f, -1.f}, {1.f, -1.f}};
+
+  rgg::Camera camera(v3f(0.f, 0.f, 0.f), v3f(0.f, 1.f, 0.f));
+
+  rgg::GetObserver()->projection =
+      rgg::DefaultPerspective(window::GetWindowSize());
+
+  bool mouse_down = false;
+  v2f mouse_start;
 
   while (1) {
     platform::ClockStart(&game_clock);
@@ -136,17 +142,33 @@ main(s32 argc, char** argv)
             case 27 /* ESC */: {
               exit(1);
             } break;
+            case 'w': {
+              camera.TranslateAlongY(1.f);
+            } break;
+            case 'a': {
+              camera.TranslateAlongX(-1.f);
+            } break;
+            case 's': {
+              camera.TranslateAlongY(-1.f);
+            } break;
+            case 'd': {
+              camera.TranslateAlongX(1.f);
+            } break;
           }
-        case MOUSE_DOWN:
+        } break;
+        case MOUSE_DOWN: {
+          mouse_down = true;
           imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
-          break;
-        case MOUSE_UP:
+          mouse_start = event.position;
+        } break;
+        case MOUSE_UP: {
+          mouse_down = false;
           imui::MouseUp(event.position, event.button, imui::kEveryoneTag);
-          break;
-        case MOUSE_WHEEL:
+        } break;
+        case MOUSE_WHEEL: {
           imui::MouseWheel(event.wheel_delta, imui::kEveryoneTag);
-          break;
-        }
+          camera.Zoom(event.wheel_delta);
+        } break;
       }
     }
    
@@ -155,12 +177,30 @@ main(s32 argc, char** argv)
     const v2f cursor = window::GetCursorPosition();
     imui::MousePosition(cursor, imui::kEveryoneTag);
 
+    if (mouse_down) {
+      v2f diff = cursor - mouse_start;
+      if (fabs(diff.x) > 0.f || fabs(diff.y) > 0.f) {
+        camera.PitchYawDelta(diff.yx() * 0.1f);
+        mouse_start = cursor;
+      }
+    }
+
+    rgg::GetObserver()->view = camera.View();
+
     //rgg::RenderLineHexagon(v3f(0.f, 0.f, -50.f), 5.f, rgg::kWhite);
     for (const auto& g : grids) {
       v2f world = math::AxialToWorld(g, 5.f);
       rgg::RenderLineHexagon(v3f(world.x, world.y, -50.f), 5.f, rgg::kWhite);
       rgg::RenderCube(Cubef(world.x, world.y, -50.f, 1.f, 1.f, 1.f), rgg::kWhite);
     }
+
+    v3f in_front = camera.position() + camera.forward() * 10.f;
+
+    rgg::RenderLineCube(Cubef(in_front, v3f(1.f, 1.f, 1.f)), rgg::kRed);
+
+    rgg::RenderLine(in_front, in_front + camera.right(), rgg::kRed);
+    rgg::RenderLine(in_front, in_front + camera.up(), rgg::kGreen);
+    rgg::RenderLine(in_front, in_front + camera.forward(), rgg::kBlue);
 
     // Execute game code.
     DebugUI();

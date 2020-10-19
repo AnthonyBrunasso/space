@@ -127,6 +127,12 @@ struct Vec2 {
     return !(*this == rhs);
   }
 
+  Vec2<T>
+  yx() const
+  {
+    return Vec2<T>(y, x);
+  }
+
   T x;
   T y;
 };
@@ -588,6 +594,12 @@ v2f
 Vabs(const v2f& v)
 {
   return v2f(fabs(v.x), fabs(v.y));
+}
+
+v3f
+to_v3f(const v2f& v)
+{
+  return v3f(v.x, v.y, 0.f);
 }
 
 void

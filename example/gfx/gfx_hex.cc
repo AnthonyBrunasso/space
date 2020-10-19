@@ -91,7 +91,7 @@ DebugUI()
 void
 RenderHexGridCoord(v2f cord)
 {
-  v2f world = math::AxialToWorld(cord, 5.f);
+  v2f world = math::HexAxialToWorld(cord, 5.f);
   rgg::RenderLineHexagon(v3f(world.x, world.y, -50.f), 5.f, rgg::kWhite);
   rgg::RenderCube(Cubef(world.x, world.y, -50.f, 1.f, 1.f, 1.f), rgg::kWhite);
 }
@@ -130,12 +130,6 @@ main(s32 argc, char** argv)
 
   bool mouse_down = false;
   v2f mouse_start;
-
-  for (int i = 0; i < 6; ++i) {
-    v2f a = math::kAxialNeighbors[i];
-    v3f c = math::AxialToCube(a);
-    Printv3f(c);
-  }
 
   while (1) {
     platform::ClockStart(&game_clock);
@@ -200,7 +194,7 @@ main(s32 argc, char** argv)
 
     RenderHexGridCoord(v2f(0.f, 0.f));
     for (int i = 0; i < 6; ++i) {
-      v2f g = math::kAxialNeighbors[i];
+      v2f g = math::kHexAxialNeighbors[i];
       RenderHexGridCoord(g);
     }
 

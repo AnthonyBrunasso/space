@@ -5,11 +5,11 @@ namespace math {
 static const r32 kSqrt3 = sqrt(3.f);
 static const r32 kSqrt3Div2 = kSqrt3 / 2.f;
 
-static v2f kAxialNeighbors[6] = {
+static v2f kHexAxialNeighbors[6] = {
   {1.f, 0.f}, {0.f, 1.f}, {-1.f, 1.f}, {-1.f, 0.f}, {0.f, -1.f}, {1.f, -1.f}
 };
 
-static v3f kCubeNeighbors[6] = {
+static v3f kHexCubeNeighbors[6] = {
   {1.f,0.f,-1.f}, {0.f,1.f,-1.f}, {-1.f,1.f,0.f},
   {-1.f,0.f,1.f}, {0.f,-1.f,1.f}, {1.f,-1.f,0.f},
 };
@@ -22,36 +22,48 @@ HexCorner(const v2f& center, r32 size, s32 corner)
 }
 
 v2f
-CubeToAxial(const v3f& cube)
+HexCubeToAxial(const v3f& cube)
 {
   return v2f(cube.x, cube.z);
 }
 
 v3f
-AxialToCube(const v2f& axial)
+HexAxialToCube(const v2f& axial)
 {
   return v3f(axial.x, axial.y, -axial.x - axial.y);
 }
 
 v2f
-AxialToWorld(const v2f& axial, r32 size)
+HexAxialToWorld(const v2f& axial, r32 size)
 {
   return v2f(size * (kSqrt3 * axial.x + kSqrt3Div2 * axial.y),
              size * (3.f / 2.f * axial.y));
 }
 
 v2f
-AxialNeighbor(const v2f& axial, s32 i)
+HexAxialNeighbor(const v2f& axial, s32 i)
 {
   assert(i >= 0 && i < 6);
-  return axial + kAxialNeighbors[i];
+  return axial + kHexAxialNeighbors[i];
 }
 
 v3f
-CubeNeighbor(const v3f& cube, s32 i)
+HexCubeNeighbor(const v3f& cube, s32 i)
 {
   assert(i >= 0 && i < 6);
-  return cube + kCubeNeighbors[i];
+  return cube + kHexCubeNeighbors[i];
+}
+
+r32
+HexCubeDistance(const v3f& a, const v3f& b)
+{
+  return (abs(a.x - b.x) + abs(a.y - b.y) + abs(a.z - b.z)) / 2.f;
+}
+
+r32
+HexAxialDistance(const v2f& a, const v2f& b)
+{
+  return HexCubeDistance(HexAxialToCube(a), HexAxialToCube(b));
 }
 
 }  // namespace math

@@ -133,6 +133,10 @@ main(s32 argc, char** argv)
   bool mouse_down = false;
   v2f mouse_start;
 
+  v3f wri(1.f, 0.f, 0.f);
+  v3f wup(0.f, 1.f, 0.f);
+  v3f wfo(0.f, 0.f, -1.f);
+
   while (1) {
     platform::ClockStart(&game_clock);
 
@@ -150,16 +154,16 @@ main(s32 argc, char** argv)
               exit(1);
             } break;
             case 'w': {
-              camera.TranslateAlongY(1.f);
+              camera.Translate(v3f(0.f, 1.f, 0.f), wri, wup, wfo);
             } break;
             case 'a': {
-              camera.TranslateAlongX(-1.f);
+              camera.Translate(v3f(-1.f, 0.f, 0.f), wri, wup, wfo);
             } break;
             case 's': {
-              camera.TranslateAlongY(-1.f);
+              camera.Translate(v3f(0.f, -1.f, 0.f), wri, wup, wfo);
             } break;
             case 'd': {
-              camera.TranslateAlongX(1.f);
+              camera.Translate(v3f(1.f, 0.f, 0.f), wri, wup, wfo);
             } break;
           }
         } break;
@@ -197,6 +201,8 @@ main(s32 argc, char** argv)
     for (auto g : grids) {
       RenderHexGridCoord(g);
     }
+
+    camera.DebugRender();
 
     // Execute game code.
     DebugUI();

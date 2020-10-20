@@ -41,21 +41,20 @@ struct Camera {
   }
 
   void
-  TranslateAlongX(r32 delta)
+  Translate(const v3f& delta)
   {
-    position_ += right_ * delta;
+    position_ += right_ * delta.x;
+    position_ += up_ * delta.y;
+    position_ += forward_ * delta.z;
   }
 
   void
-  TranslateAlongY(r32 delta)
+  Translate(const v3f& delta, const v3f& right,
+            const v3f& up, const v3f& forward)
   {
-    position_ += up_ * delta;
-  }
-
-  void
-  TranslateAlongZ(r32 delta)
-  {
-    position_ += forward_ * delta;
+    position_ += right * delta.x;
+    position_ += up * delta.y;
+    position_ += forward * delta.z;
   }
 
   const v3f&
@@ -91,7 +90,7 @@ struct Camera {
   void
   DebugRender()
   {
-    v3f in_front = position() + forward() * 10.f;
+    v3f in_front = position_ + forward_ * 10.f;
     rgg::RenderLineCube(Cubef(in_front, v3f(1.f, 1.f, 1.f)), rgg::kRed);
     rgg::RenderLine(in_front, in_front + right(), rgg::kRed);
     rgg::RenderLine(in_front, in_front + up(), rgg::kGreen);

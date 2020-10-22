@@ -32,7 +32,7 @@ HexCubeToAxial(const v3f& cube)
 v3f
 HexAxialToCube(const v2f& axial)
 {
-  return v3f(axial.x, axial.y, -axial.x - axial.y);
+  return v3f(axial.x, -axial.x - axial.y, axial.y);
 }
 
 v2f
@@ -98,6 +98,41 @@ HexCubeRange(s32 n)
     }
   }
   return range;
+}
+
+v3f
+HexCubeRound(const v3f& cube)
+{
+  r32 rx = roundf(cube.x);
+  r32 ry = roundf(cube.y);
+  r32 rz = roundf(cube.z);
+
+  r32 xdiff = fabs(rx - cube.x);
+  r32 ydiff = fabs(ry - cube.y);
+  r32 zdiff = fabs(rz - cube.z);
+
+  if (xdiff > ydiff && xdiff > zdiff) {
+    rx = -ry - rz;
+  } else if (ydiff > zdiff) {
+    ry = -rx - rz;
+  } else {
+    rz = -rx - ry;
+  }
+  return v3f(rx, ry, rz);
+}
+
+v2f
+HexAxialRound(const v2f& axial)
+{
+  return HexCubeToAxial(HexCubeRound(HexAxialToCube(axial)));
+}
+
+v2f
+HexWorldToAxial(const v2f& p, r32 size)
+{
+  return HexAxialRound(
+      v2f((sqrt(3.f) / 3.f * p.x - 1.f / 3.f * p.y) / size,
+          (2.f / 3.f * p.y) / size));
 }
 
 }  // namespace math

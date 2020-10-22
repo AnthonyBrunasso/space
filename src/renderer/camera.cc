@@ -87,6 +87,28 @@ struct Camera {
     return math::LookAt(position_, position_ + forward_, up_);
   }
 
+  v3f
+  RayFromScreen(const v2f& point, const v2f& viewport)
+  {
+    v4f ray_clip(
+        math::ScaleRange(point.x, 0.f, viewport.x, -1.f, 1.f),
+        math::ScaleRange(point.y, 0.f, viewport.y, -1.f, 1.f),
+        -1.f, 1.f);
+    v4f ray_eye = math::Inverse(kObserver.projection) * ray_clip;
+    ray_eye = v4f(ray_eye.x, ray_eye.y, -1.f, 0.f);
+    Mat4f camera_inv = math::Inverse(View());
+    return math::Normalize((camera_inv * ray_eye).xyz());
+  }
+
+  v3f
+  RayFromScreenToWorld(const v2f& point, const v2f& viewport, r32 plane_z)
+  {
+    v3f ray = RayFromScreen(point, viewport);
+    v3f n(0.f, 0.f, 1.f);
+    r32 t = -(math::Dot(position_, n) + plane_z) / math::Dot(ray, n);
+    return position_ + ray * t;
+  }
+
   void
   DebugRender()
   {

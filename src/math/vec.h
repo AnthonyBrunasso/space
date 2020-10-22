@@ -609,6 +609,12 @@ Printv3f(v3f v)
 }
 
 void
+Printv4f(v4f v)
+{
+  printf("%.5f,%.5f,%.5f,%.5f\n", v.x, v.y, v.z, v.w);
+}
+
+void
 Printv3i(v3i v)
 {
   printf("%i,%i,%i\n", v.x, v.y, v.z);

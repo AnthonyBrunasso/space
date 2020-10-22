@@ -582,6 +582,12 @@ to_v2f(const v2i& v)
   return v2f((r32)v.x, (r32)v.y);
 }
 
+v3f
+to_v3f(const v3i& v)
+{
+  return v3f((r32)v.x, (r32)v.y, (r32)v.z);
+}
+
 bool
 IsZero(v2f v)
 {

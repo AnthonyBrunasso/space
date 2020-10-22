@@ -7,13 +7,12 @@ namespace math {
 static const r32 kSqrt3 = sqrt(3.f);
 static const r32 kSqrt3Div2 = kSqrt3 / 2.f;
 
-static v2f kHexAxialNeighbors[6] = {
-  {1.f, 0.f}, {0.f, 1.f}, {-1.f, 1.f}, {-1.f, 0.f}, {0.f, -1.f}, {1.f, -1.f}
+static v2i kHexAxialNeighbors[6] = {
+  {1, 0}, {0, 1}, {-1, 1}, {-1, 0}, {0, -1}, {1, -1}
 };
 
-static v3f kHexCubeNeighbors[6] = {
-  {1.f,0.f,-1.f}, {0.f,1.f,-1.f}, {-1.f,1.f,0.f},
-  {-1.f,0.f,1.f}, {0.f,-1.f,1.f}, {1.f,-1.f,0.f},
+static v3i kHexCubeNeighbors[6] = {
+  {1,0,-1}, {0,1,-1}, {-1,1,0}, {-1,0,1}, {0,-1,1}, {1,-1,0},
 };
 
 v2f
@@ -23,60 +22,66 @@ HexCorner(const v2f& center, r32 size, s32 corner)
   return center + Rotate(v2f(size, 0.f), corner * 60.f - 30.f);
 }
 
-v2f
-HexCubeToAxial(const v3f& cube)
+v2i
+HexCubeToAxial(const v3i& cube)
 {
-  return v2f(cube.x, cube.z);
+  return v2i(cube.x, cube.z);
+}
+
+v3i
+HexAxialToCube(const v2i& axial)
+{
+  return v3i(axial.x, -axial.x - axial.y, axial.y);
 }
 
 v3f
-HexAxialToCube(const v2f& axial)
+HexAxialToCubef(const v2f& axial)
 {
   return v3f(axial.x, -axial.x - axial.y, axial.y);
 }
 
 v2f
-HexAxialToWorld(const v2f& axial, r32 size)
+HexAxialToWorld(const v2i& axial, r32 size)
 {
   return v2f(size * (kSqrt3 * axial.x + kSqrt3Div2 * axial.y),
              size * (3.f / 2.f * axial.y));
 }
 
-v2f
-HexAxialNeighbor(const v2f& axial, s32 i)
+v2i
+HexAxialNeighbor(const v2i& axial, s32 i)
 {
   assert(i >= 0 && i < 6);
   return axial + kHexAxialNeighbors[i];
 }
 
-v3f
-HexCubeNeighbor(const v3f& cube, s32 i)
+v3i
+HexCubeNeighbor(const v3i& cube, s32 i)
 {
   assert(i >= 0 && i < 6);
   return cube + kHexCubeNeighbors[i];
 }
 
 r32
-HexCubeDistance(const v3f& a, const v3f& b)
+HexCubeDistance(const v3i& a, const v3i& b)
 {
   return (abs(a.x - b.x) + abs(a.y - b.y) + abs(a.z - b.z)) / 2.f;
 }
 
 r32
-HexAxialDistance(const v2f& a, const v2f& b)
+HexAxialDistance(const v2i& a, const v2i& b)
 {
   return HexCubeDistance(HexAxialToCube(a), HexAxialToCube(b));
 }
 
-std::vector<v2f>
+std::vector<v2i>
 HexAxialRange(s32 n)
 {
-  std::vector<v2f> range;
+  std::vector<v2i> range;
   for (int x = -n; x <= n; ++x) {
     for (int y = -n; y <= n; ++y) {
       for (int z = -n; z <= n; ++z) {
         if (x + y + z == 0) {
-          range.push_back(HexCubeToAxial(v3f(x, y, z)));
+          range.push_back(HexCubeToAxial(v3i(x, y, z)));
         }
       }
     }
@@ -84,10 +89,10 @@ HexAxialRange(s32 n)
   return range;
 }
 
-std::vector<v3f>
+std::vector<v3i>
 HexCubeRange(s32 n)
 {
-  std::vector<v3f> range;
+  std::vector<v3i> range;
   for (int x = -n; x <= n; ++x) {
     for (int y = -n; y <= n; ++y) {
       for (int z = -n; z <= n; ++z) {
@@ -100,7 +105,7 @@ HexCubeRange(s32 n)
   return range;
 }
 
-v3f
+v3i
 HexCubeRound(const v3f& cube)
 {
   r32 rx = roundf(cube.x);
@@ -118,16 +123,16 @@ HexCubeRound(const v3f& cube)
   } else {
     rz = -rx - ry;
   }
-  return v3f(rx, ry, rz);
+  return v3i((s32)rx, (s32)ry, (s32)rz);
 }
 
-v2f
+v2i
 HexAxialRound(const v2f& axial)
 {
-  return HexCubeToAxial(HexCubeRound(HexAxialToCube(axial)));
+  return HexCubeToAxial(HexCubeRound(HexAxialToCubef(axial)));
 }
 
-v2f
+v2i
 HexWorldToAxial(const v2f& p, r32 size)
 {
   return HexAxialRound(

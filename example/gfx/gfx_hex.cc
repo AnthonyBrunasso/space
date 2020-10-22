@@ -89,7 +89,7 @@ DebugUI()
 }
 
 void
-RenderHexGridCoord(v2f cord, bool color_swap = false)
+RenderHexGridCoord(v2i cord, bool color_swap = false)
 {
   v2f world = math::HexAxialToWorld(cord, 5.f);
   v4f color = rgg::kWhite;
@@ -130,7 +130,7 @@ main(s32 argc, char** argv)
   rgg::GetObserver()->projection =
       rgg::DefaultPerspective(window::GetWindowSize());
 
-  std::vector<v2f> grids = math::HexAxialRange(10);
+  std::vector<v2i> grids = math::HexAxialRange(10);
 
   bool mouse_down = false;
   v2f mouse_start;
@@ -202,7 +202,7 @@ main(s32 argc, char** argv)
 
     v3f p = camera.RayFromScreenToWorld(cursor, window::GetWindowSize(), 50.f);
 
-    v2f picked = HexWorldToAxial(p.xy(), 5.f);
+    v2i picked = HexWorldToAxial(p.xy(), 5.f);
 
     for (auto g : grids) {
       if (g == picked) {
@@ -212,7 +212,7 @@ main(s32 argc, char** argv)
       }
     }
 
-    rgg::RenderCube(Cubef(p, 1.f, 1.f, 1.f), rgg::kGreen);
+    //rgg::RenderCube(Cubef(p, 1.f, 1.f, 1.f), rgg::kGreen);
 
     //camera.DebugRender();
 

@@ -6,6 +6,7 @@ namespace math {
 
 static const r32 kSqrt3 = sqrt(3.f);
 static const r32 kSqrt3Div2 = kSqrt3 / 2.f;
+static const r32 kSqrt3Div3 = sqrt(3.f) / 3.f;
 
 static v2i kHexAxialNeighbors[6] = {
   {1, 0}, {0, 1}, {-1, 1}, {-1, 0}, {0, -1}, {1, -1}
@@ -136,7 +137,7 @@ v2i
 HexWorldToAxial(const v2f& p, r32 size)
 {
   return HexAxialRound(
-      v2f((sqrt(3.f) / 3.f * p.x - 1.f / 3.f * p.y) / size,
+      v2f((kSqrt3Div3 * p.x - 1.f / 3.f * p.y) / size,
           (2.f / 3.f * p.y) / size));
 }
 

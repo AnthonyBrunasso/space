@@ -92,10 +92,15 @@ void
 RenderHexGridCoord(v2i cord, bool color_swap = false)
 {
   v2f world = math::HexAxialToWorld(cord, 5.f);
-  v4f color = rgg::kWhite;
-  if (color_swap) color = rgg::kRed;
-  rgg::RenderLineHexagon(v3f(world.x, world.y, -50.f), 5.f, color);
-  rgg::RenderCube(Cubef(world.x, world.y, -50.f, 1.f, 1.f, 1.f), color);
+  rgg::RenderHexagon(v3f(world.x, world.y, -50.f), v3f(1.f, 1.f, 1.f),
+                       v4f(.2f, .2f, .2f, 1.f));
+  rgg::RenderLineHexagon(v3f(world.x, world.y, -50.f), 5.f, rgg::kWhite);
+  //rgg::RenderCube(Cubef(world.x, world.y, -50.f, 1.f, 1.f, 1.f), rgg::kWhite);
+  if (color_swap) {
+    rgg::RenderLineHexagon(v3f(world.x, world.y, -49.5f), 5.f, rgg::kRed);
+    rgg::RenderLineHexagon(v3f(world.x, world.y, -49.0f), 5.f, rgg::kRed);
+    rgg::RenderLineHexagon(v3f(world.x, world.y, -48.5f), 5.f, rgg::kRed);
+  }
 }
 
 s32
@@ -104,6 +109,7 @@ main(s32 argc, char** argv)
   platform::Clock game_clock;
 
   if (!memory::Initialize(MiB(64))) {
+    return 1;
   }
 
   if (!window::Create("Game", kGameState.window_create_info)) {
@@ -205,13 +211,10 @@ main(s32 argc, char** argv)
     v2i picked = HexWorldToAxial(p.xy(), 5.f);
 
     for (auto g : grids) {
-      if (g == picked) {
-        RenderHexGridCoord(g, true);
-      } else {
-        RenderHexGridCoord(g);
-      }
+      RenderHexGridCoord(g, g == picked);
     }
 
+    
     //rgg::RenderCube(Cubef(p, 1.f, 1.f, 1.f), rgg::kGreen);
 
     //camera.DebugRender();

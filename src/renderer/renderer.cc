@@ -80,6 +80,7 @@ struct RGG {
   GLuint cube_vao_reference;
   GLuint cone_vao_reference;
   GLuint sphere_vao_reference;
+  GLuint hex_vao_reference;
 
   s32 meter_size = 50;
 };
@@ -113,6 +114,8 @@ struct DebugRect {
   v4f color;
   DebugType type;
 };
+
+constexpr s32 kHexVertCount = 18;
 
 DECLARE_ARRAY(DebugSphere, 8);
 DECLARE_ARRAY(DebugCube, 128);
@@ -393,6 +396,33 @@ Initialize()
   
   kRGG.sphere_vao_reference = gl::CreateGeometryVAOWithNormals(
       kSphereVertCount * 3, kSphereVerts, kSphereVertNorms);
+
+  v2f hc[6];
+  for (int i = 1; i < 7; ++i) {
+    hc[i - 1] = math::HexCorner(v2f(0.f, 0.f), 5.f, i);
+  }
+
+
+  r32 kHexVerts[56] = {
+    0.f, 0.f, 0.f, hc[0].x, hc[0].y, 0.f, hc[5].x, hc[5].y, 0.f,
+    0.f, 0.f, 0.f, hc[5].x, hc[5].y, 0.f, hc[4].x, hc[4].y, 0.f,
+    0.f, 0.f, 0.f, hc[4].x, hc[4].y, 0.f, hc[3].x, hc[3].y, 0.f,
+    0.f, 0.f, 0.f, hc[3].x, hc[3].y, 0.f, hc[2].x, hc[2].y, 0.f,
+    0.f, 0.f, 0.f, hc[2].x, hc[2].y, 0.f, hc[1].x, hc[1].y, 0.f,
+    0.f, 0.f, 0.f, hc[1].x, hc[1].y, 0.f, hc[0].x, hc[0].y, 0.f,
+  };
+
+  r32 kHexVertNorms[56] = {
+    0.f, 0.f, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f,
+    0.f, 0.f, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f,
+    0.f, 0.f, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f,
+    0.f, 0.f, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f,
+    0.f, 0.f, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f,
+    0.f, 0.f, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f,
+  };
+
+  kRGG.hex_vao_reference = gl::CreateGeometryVAOWithNormals(
+      kHexVertCount * 3, kHexVerts, kHexVertNorms);
 
   if (!SetupTexture()) {
     printf("Failed to setup Texture.\n");
@@ -755,6 +785,12 @@ RenderCube(const Cubef& cube, const Quatf& orientation, const v4f& color) {
   Render3dWithRotation(cube.pos, v3f(cube.width, cube.height, cube.depth),
                        orientation, color, kRGG.cube_vao_reference,
                        kCubeVertCount);
+}
+
+void
+RenderHexagon(const v3f& pos, const v3f& scale, const v4f& color)
+{
+  Render3d(pos, scale, color, kRGG.hex_vao_reference, kHexVertCount);
 }
 
 void

@@ -1,6 +1,7 @@
 // Singleplayer game template.
 #define SINGLE_PLAYER
 
+#include <optional>
 #include <vector>
 
 #include "math/math.cc"
@@ -31,6 +32,11 @@ struct State {
 
 static State kGameState;
 static Stats kGameStats;
+
+static v2i kHighlighted;
+
+static std::optional<v2i> kLeftClick;
+static std::optional<v2i> kRightClick;
 
 #define UIBUFFER_SIZE 64
 static char kUIBuffer[UIBUFFER_SIZE];
@@ -78,6 +84,13 @@ DebugUI()
     snprintf(kUIBuffer, sizeof(kUIBuffer), "%.0fx%.0f", screen.x, screen.y);
     imui::Text(kUIBuffer);
     imui::NewLine();
+    imui::SameLine();
+    imui::Width(right_align);
+    imui::Text("Grid Location");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "[%i %i]", kHighlighted.x,
+             kHighlighted.y);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
     imui::End();
   }
 
@@ -92,8 +105,16 @@ void
 RenderHexGridCoord(v2i cord, bool color_swap = false)
 {
   v2f world = math::HexAxialToWorld(cord, 5.f);
-  rgg::RenderHexagon(v3f(world.x, world.y, -50.f), v3f(1.f, 1.f, 1.f),
+  if (kLeftClick && *kLeftClick == cord) {
+    rgg::RenderHexagon(v3f(world.x, world.y, -50.f), v3f(1.f, 1.f, 1.f),
+                       rgg::kRed);
+  } else if (kRightClick && *kRightClick == cord) {
+    rgg::RenderHexagon(v3f(world.x, world.y, -50.f), v3f(1.f, 1.f, 1.f),
+                       rgg::kGreen);
+  } else {
+    rgg::RenderHexagon(v3f(world.x, world.y, -50.f), v3f(1.f, 1.f, 1.f),
                        v4f(.2f, .2f, .2f, 1.f));
+  } 
   rgg::RenderLineHexagon(v3f(world.x, world.y, -50.f), 5.f, rgg::kWhite);
   //rgg::RenderCube(Cubef(world.x, world.y, -50.f, 1.f, 1.f, 1.f), rgg::kWhite);
   if (color_swap) {
@@ -179,6 +200,18 @@ main(s32 argc, char** argv)
           mouse_down = true;
           imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
           mouse_start = event.position;
+          switch (event.button) {
+            case BUTTON_LEFT: {
+              v3f p = camera.RayFromScreenToWorld(
+                  event.position, window::GetWindowSize(), 50.f);
+              kLeftClick = HexWorldToAxial(p.xy(), 5.f);
+            } break;
+            case BUTTON_RIGHT: {
+              v3f p = camera.RayFromScreenToWorld(
+                  event.position, window::GetWindowSize(), 50.f);
+              kRightClick = HexWorldToAxial(p.xy(), 5.f);
+            } break;
+          }
         } break;
         case MOUSE_UP: {
           mouse_down = false;
@@ -209,6 +242,7 @@ main(s32 argc, char** argv)
     v3f p = camera.RayFromScreenToWorld(cursor, window::GetWindowSize(), 50.f);
 
     v2i picked = HexWorldToAxial(p.xy(), 5.f);
+    kHighlighted = picked;
 
     for (auto g : grids) {
       RenderHexGridCoord(g, g == picked);

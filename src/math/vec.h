@@ -209,6 +209,8 @@ struct Vec3 {
 
   Vec3(const Vec2<T>& v2) : x(v2.x), y(v2.y), z(0.f) {}
 
+  Vec3(const Vec2<T>& v2, T z) : x(v2.x), y(v2.y), z(z) {}
+
   void
   operator+=(const Vec3<T>& rhs)
   {

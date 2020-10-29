@@ -12,14 +12,15 @@ struct Path {
   s32 size;
 };
 
+struct PathmapNode {
+  v2i from;
+  u32 depth = 0;
+  b8 checked = false;
+};
+
 struct Search {
-  struct PathMapNode {
-    v2i from;
-    u32 depth = 0;
-    b8 checked = false;
-  };
   // Visited Nodes
-  PathMapNode path_map[kMapMaxWidth][kMapMaxHeight];
+  PathmapNode path_map[kMapMaxWidth][kMapMaxHeight];
   // BFS queue.
   v2i queue[kMapMaxWidth * kMapMaxHeight];
   s32 queue_size;

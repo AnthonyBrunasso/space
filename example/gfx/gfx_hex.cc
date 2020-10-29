@@ -1,6 +1,7 @@
 // Singleplayer game template.
 #define SINGLE_PLAYER
 
+#include <cassert>
 #include <optional>
 #include <vector>
 
@@ -10,6 +11,7 @@
 #include "renderer/camera.cc"
 #include "renderer/renderer.cc"
 #include "renderer/imui.cc"
+#include "4x/hex_map.cc"
 
 struct State {
   // Game and render updates per second
@@ -41,16 +43,20 @@ static std::optional<v2i> kRightClick;
 #define UIBUFFER_SIZE 64
 static char kUIBuffer[UIBUFFER_SIZE];
 
+constexpr u32 kHexMapSize = 10;
+
+using namespace fourx;
+
 void
-DebugUI()
+DebugUI(HexMap& hex_map)
 {
   v2f screen = window::GetWindowSize();
   {
-    static b8 enable_debug = false;
+    static b8 enable_debug = true;
     static v2f diagnostics_pos(3.f, screen.y);
     static r32 right_align = 130.f;
     imui::PaneOptions options;
-    options.max_width = 315.f;
+    options.max_width = 415.f;
     imui::Begin("Diagnostics", imui::kEveryoneTag, options, &diagnostics_pos,
                 &enable_debug);
     imui::TextOptions debug_options;
@@ -87,41 +93,50 @@ DebugUI()
     imui::SameLine();
     imui::Width(right_align);
     imui::Text("Grid Location");
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "[%i %i]", kHighlighted.x,
-             kHighlighted.y);
+    std::optional<v2i> to = GetHexMapv2i(kHighlighted, kHexMapSize);
+    if (to) {
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "[%i %i] -> [%i %i] -> [%i]",
+               kHighlighted.x, kHighlighted.y, to->x, to->y,
+               GetHexMapIndex(kHighlighted, kHexMapSize));
+      imui::Text(kUIBuffer);
+    } else {
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "[%i %i] -> [NULL] -> [%i]",
+               kHighlighted.x, kHighlighted.y,
+               GetHexMapIndex(kHighlighted, kHexMapSize));
+      imui::Text(kUIBuffer);
+    }
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(right_align);
+    imui::Text("Tile");
+    HexTile* tile = hex_map.tile(kHighlighted);
+    if (tile) {
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "[%i %i]",
+               kHighlighted.x, kHighlighted.y);
+    } else {
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "[NULL]");
+    }
     imui::Text(kUIBuffer);
     imui::NewLine();
-    imui::End();
-  }
 
-  {
-    static b8 enable_debug = false;
-    static v2f ui_pos(300.f, screen.y);
-    imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
+    imui::End();
   }
 }
 
 void
-RenderHexGridCoord(v2i cord, bool color_swap = false)
+RenderHexGridCoord(v2i cord)
 {
   v2f world = math::HexAxialToWorld(cord, 5.f);
   if (kLeftClick && *kLeftClick == cord) {
-    rgg::RenderHexagon(v3f(world.x, world.y, -50.f), v3f(1.f, 1.f, 1.f),
-                       rgg::kRed);
+    rgg::RenderHexagon(v3f(world, -50.f), v3f(1.f, 1.f, 1.f), rgg::kRed);
   } else if (kRightClick && *kRightClick == cord) {
-    rgg::RenderHexagon(v3f(world.x, world.y, -50.f), v3f(1.f, 1.f, 1.f),
-                       rgg::kGreen);
+    rgg::RenderHexagon(v3f(world, -50.f), v3f(1.f, 1.f, 1.f), rgg::kGreen);
   } else {
-    rgg::RenderHexagon(v3f(world.x, world.y, -50.f), v3f(1.f, 1.f, 1.f),
+    rgg::RenderHexagon(v3f(world, -50.f), v3f(1.f, 1.f, 1.f),
                        v4f(.2f, .2f, .2f, 1.f));
   } 
-  rgg::RenderLineHexagon(v3f(world.x, world.y, -50.f), 5.f, rgg::kWhite);
-  //rgg::RenderCube(Cubef(world.x, world.y, -50.f, 1.f, 1.f, 1.f), rgg::kWhite);
-  if (color_swap) {
-    rgg::RenderLineHexagon(v3f(world.x, world.y, -49.5f), 5.f, rgg::kRed);
-    rgg::RenderLineHexagon(v3f(world.x, world.y, -49.0f), 5.f, rgg::kRed);
-    rgg::RenderLineHexagon(v3f(world.x, world.y, -48.5f), 5.f, rgg::kRed);
-  }
+  rgg::RenderLineHexagon(v3f(world, -49.9f), 5.f, rgg::kWhite);
+
 }
 
 s32
@@ -157,7 +172,7 @@ main(s32 argc, char** argv)
   rgg::GetObserver()->projection =
       rgg::DefaultPerspective(window::GetWindowSize());
 
-  std::vector<v2i> grids = math::HexAxialRange(10);
+  HexMap hex_map(kHexMapSize);
 
   bool mouse_down = false;
   v2f mouse_start;
@@ -193,6 +208,10 @@ main(s32 argc, char** argv)
             } break;
             case 'd': {
               camera.Translate(v3f(1.f, 0.f, 0.f), wri, wup, wfo);
+            } break;
+            case 'c': {
+              kLeftClick = std::nullopt;
+              kRightClick = std::nullopt;
             } break;
           }
         } break;
@@ -244,17 +263,29 @@ main(s32 argc, char** argv)
     v2i picked = HexWorldToAxial(p.xy(), 5.f);
     kHighlighted = picked;
 
-    for (auto g : grids) {
-      RenderHexGridCoord(g, g == picked);
+    for (const auto& t : hex_map.tiles()) {
+      RenderHexGridCoord(t.grid_pos);
     }
 
+    v2f world = math::HexAxialToWorld(picked, 5.f);
+    rgg::RenderLineHexagon(v3f(world, -49.5f), 5.f, rgg::kRed);
+    rgg::RenderLineHexagon(v3f(world, -49.0f), 5.f, rgg::kRed);
+    rgg::RenderLineHexagon(v3f(world, -48.5f), 5.f, rgg::kRed);
+
+    if (kLeftClick && kRightClick) {
+      std::optional<v2i> lpath = GetHexMapv2i(*kLeftClick, kHexMapSize);
+      std::optional<v2i> rpath = GetHexMapv2i(*kRightClick, kHexMapSize);
+      if (lpath && rpath) {
+        //printf("LOOKING FOR PATH\n");
+      }
+    }
     
     //rgg::RenderCube(Cubef(p, 1.f, 1.f, 1.f), rgg::kGreen);
 
     //camera.DebugRender();
 
     // Execute game code.
-    DebugUI();
+    DebugUI(hex_map);
 
     rgg::DebugRenderPrimitives();
 

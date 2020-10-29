@@ -49,14 +49,14 @@ HexAxialToWorld(const v2i& axial, r32 size)
 }
 
 v2i
-HexAxialNeighbor(const v2i& axial, s32 i)
+HexAxialNeighbor(const v2i& axial, u32 i)
 {
-  assert(i >= 0 && i < 6);
+  assert(i < 6);
   return axial + kHexAxialNeighbors[i];
 }
 
 v3i
-HexCubeNeighbor(const v3i& cube, s32 i)
+HexCubeNeighbor(const v3i& cube, u32 i)
 {
   assert(i >= 0 && i < 6);
   return cube + kHexCubeNeighbors[i];

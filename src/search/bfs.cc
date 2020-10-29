@@ -11,10 +11,18 @@ enum BfsIteratorFlag {
 
 typedef b8 IsBlockedCallback(const v2i&);
 typedef v2i NeighborCallback(const v2i&, u32);
+typedef PathmapNode* GetPathmapNode(const v2i&);
+
+PathmapNode*
+GetPathmapNodeDefault(const v2i& v)
+{
+  return &kSearch.path_map[v.x][v.y];
+}
 
 struct BfsIterator {
   IsBlockedCallback* blocked_callback = nullptr;
   NeighborCallback* neighbor_callback = nullptr;
+  GetPathmapNode* get_pathmap_node = GetPathmapNodeDefault;
   u32 max_neighbor;
   v2i current;
   v2i map_size;
@@ -32,7 +40,7 @@ struct BfsIterator {
 INLINE b8
 IsInMap(const v2i& pos, const v2i& map_size)
 {
-  return pos.x < map_size.x && pos.y < map_size.y && pos.x >= 0 && pos.y >= 0;
+  return true;
 }
 
 INLINE b8
@@ -65,37 +73,45 @@ BfsStart(BfsIterator* itr)
 INLINE b8
 BfsStep(const v2i& from, BfsIterator* itr)
 {
-  const auto& path_map = kSearch.path_map;
   const s32 neighbor_index = itr->neighbor_index;
+  printf("%s from [%i %i] idx %i\n", __func__, from.x, from.y, neighbor_index);
   v2i neighbor = itr->neighbor_callback(from, neighbor_index);
 
   itr->queue_index = (neighbor_index + 1) / itr->max_neighbor;
   itr->neighbor_index += 1;
+  if (itr->neighbor_index >= itr->max_neighbor) itr->neighbor_index = 0;
   itr->current = neighbor;
-  itr->depth = path_map[from.x][from.y].depth + 1;
+  auto* pnode = itr->get_pathmap_node(from);
+  printf("%s From [%i %i] is [%s]\n",
+         __func__, from.x, from.y,
+         pnode == nullptr ? "NULL" : "SET");
+  if (!pnode) return false;
+  itr->depth = pnode->depth + 1;
 
-  return IsValidPos(itr) && !path_map[neighbor.x][neighbor.y].checked;
+  return IsValidPos(itr) && !pnode->checked;
 }
 
 INLINE b8
 BfsNext(BfsIterator* itr)
 {
+  printf("%s 1\n", __func__);
   auto& queue = kSearch.queue;
   auto& path_map = kSearch.path_map;
   s32& qsz = kSearch.queue_size;
   while (itr->queue_index < qsz) {
+    printf("%s 2\n", __func__);
     v2i from = queue[itr->queue_index];
     if (BfsStep(from, itr)) {
       if (itr->blocked_callback(itr->current)) continue;
       if (FLAGGED(itr->flags, kAvoidBlockedDiagnol)) {
         b8 right_tile_blocked = IsInMap(from + v2i(1, 0), itr->map_size) &&
-                                  itr->blocked_callback(from + v2i(1, 0));
+                                itr->blocked_callback(from + v2i(1, 0));
         b8 left_tile_blocked = IsInMap(from + v2i(-1, 0), itr->map_size) &&
-                                 itr->blocked_callback(from + v2i(-1, 0));
+                               itr->blocked_callback(from + v2i(-1, 0));
         b8 bottom_tile_blocked = IsInMap(from + v2i(0, -1), itr->map_size) &&
-                                   itr->blocked_callback(from + v2i(0, -1));
+                                 itr->blocked_callback(from + v2i(0, -1));
         b8 top_tile_blocked = IsInMap(from + v2i(0, 1), itr->map_size) &&
-                                        itr->blocked_callback(from + v2i(0, 1));
+                                      itr->blocked_callback(from + v2i(0, 1));
         if (itr->current.x == from.x + 1 && itr->current.y == from.y + 1 &&
             (right_tile_blocked || top_tile_blocked)) {
           continue;
@@ -113,9 +129,12 @@ BfsNext(BfsIterator* itr)
           continue;
         }
       }
-      Search::PathMapNode* node = &path_map[itr->current.x][itr->current.y];
+      PathmapNode* node = itr->get_pathmap_node(itr->current);
+      printf("Node is %i %i is [%s]\n", itr->current.x, itr->current.y,
+             node == nullptr ? "NULL" : "SET");
+      if (!node) return false;
       node->from = from;
-      node->depth = path_map[from.x][from.y].depth + 1;
+      node->depth = itr->get_pathmap_node(from)->depth + 1;
       node->checked = true;
       queue[qsz++] = itr->current;
       break;
@@ -133,14 +152,16 @@ BfsPathTo(BfsIterator* itr, const v2i& end)
   auto& path_map = kSearch.path_map;
   BfsStart(itr);
   s32 i = 0;
+  printf("%s\n", __func__);
   while (BfsNext(itr)) {
     // A depth value greater than 0 means the end node was expanded.
-    if (path_map[end.x][end.y].depth) {
+    if (itr->get_pathmap_node(end)->depth) {
       break;
     }
   }
 
-  if (!path_map[end.x][end.y].depth) return nullptr;
+  auto* node = itr->get_pathmap_node(end);
+  if (!node || !node->depth) return nullptr;
 
   kPath = {};
   auto& path = kPath.queue;
@@ -148,7 +169,7 @@ BfsPathTo(BfsIterator* itr, const v2i& end)
   path[psz++] = end;
   while (path[psz - 1] != start) {
     auto& prev = path[psz - 1];
-    path[psz++] = kSearch.path_map[prev.x][prev.y].from;
+    path[psz++] = itr->get_pathmap_node(prev)->from;
   }
   // Reverse it
   for (s32 i = 0, last = psz - 1; i < last; ++i, --last) {

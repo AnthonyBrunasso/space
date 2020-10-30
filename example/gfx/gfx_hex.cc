@@ -93,18 +93,9 @@ DebugUI(HexMap& hex_map)
     imui::SameLine();
     imui::Width(right_align);
     imui::Text("Grid Location");
-    std::optional<v2i> to = GetHexMapv2i(kHighlighted, kHexMapSize);
-    if (to) {
-      snprintf(kUIBuffer, sizeof(kUIBuffer), "[%i %i] -> [%i %i] -> [%i]",
-               kHighlighted.x, kHighlighted.y, to->x, to->y,
-               GetHexMapIndex(kHighlighted, kHexMapSize));
-      imui::Text(kUIBuffer);
-    } else {
-      snprintf(kUIBuffer, sizeof(kUIBuffer), "[%i %i] -> [NULL] -> [%i]",
-               kHighlighted.x, kHighlighted.y,
-               GetHexMapIndex(kHighlighted, kHexMapSize));
-      imui::Text(kUIBuffer);
-    }
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "[%i %i]",
+             kHighlighted.x, kHighlighted.y);
+    imui::Text(kUIBuffer);
     imui::NewLine();
     imui::SameLine();
     imui::Width(right_align);
@@ -112,13 +103,11 @@ DebugUI(HexMap& hex_map)
     HexTile* tile = hex_map.tile(kHighlighted);
     if (tile) {
       snprintf(kUIBuffer, sizeof(kUIBuffer), "[%i %i]",
-               kHighlighted.x, kHighlighted.y);
+               tile->grid_pos.x, tile->grid_pos.y);
     } else {
       snprintf(kUIBuffer, sizeof(kUIBuffer), "[NULL]");
     }
     imui::Text(kUIBuffer);
-    imui::NewLine();
-
     imui::End();
   }
 }
@@ -230,6 +219,7 @@ main(s32 argc, char** argv)
                   event.position, window::GetWindowSize(), 50.f);
               kRightClick = HexWorldToAxial(p.xy(), 5.f);
             } break;
+            default: break;
           }
         } break;
         case MOUSE_UP: {
@@ -240,6 +230,7 @@ main(s32 argc, char** argv)
           imui::MouseWheel(event.wheel_delta, imui::kEveryoneTag);
           camera.Zoom(event.wheel_delta);
         } break;
+        default: break;
       }
     }
    
@@ -272,11 +263,13 @@ main(s32 argc, char** argv)
     rgg::RenderLineHexagon(v3f(world, -49.0f), 5.f, rgg::kRed);
     rgg::RenderLineHexagon(v3f(world, -48.5f), 5.f, rgg::kRed);
 
-    if (kLeftClick && kRightClick) {
-      std::optional<v2i> lpath = GetHexMapv2i(*kLeftClick, kHexMapSize);
-      std::optional<v2i> rpath = GetHexMapv2i(*kRightClick, kHexMapSize);
-      if (lpath && rpath) {
-        //printf("LOOKING FOR PATH\n");
+    if (kLeftClick) {
+      std::vector<HexTile*> tiles = hex_map.Bfs(*kLeftClick, 2);
+      for (const auto& t : tiles) {
+        v2f w = math::HexAxialToWorld(t->grid_pos, 5.f);
+        rgg::RenderLineHexagon(v3f(w, -49.5f), 5.f, rgg::kGreen);
+        rgg::RenderLineHexagon(v3f(w, -49.0f), 5.f, rgg::kGreen);
+        rgg::RenderLineHexagon(v3f(w, -48.5f), 5.f, rgg::kGreen);
       }
     }
     

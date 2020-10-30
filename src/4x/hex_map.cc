@@ -27,6 +27,7 @@ namespace fourx {
 struct HexTile {
   HexTile(const v2i& grid_pos) : grid_pos(grid_pos) {}
   v2i grid_pos;
+  b8 blocked = false;
 };
 
 
@@ -71,8 +72,9 @@ class HexMap {
         HexTile* neighbor = tile(grid);
         if (!neighbor) continue;
         if (seen.find(neighbor->grid_pos) != seen.end()) continue;
-        queue.push({neighbor, t.second + 1});
         seen.insert(neighbor->grid_pos);
+        if (neighbor->blocked) continue;
+        queue.push({neighbor, t.second + 1});
         results.push_back(neighbor);
       }
     }
@@ -97,8 +99,9 @@ class HexMap {
         HexTile* neighbor = tile(grid);
         if (!neighbor) continue;
         if (seen.find(neighbor->grid_pos) != seen.end()) continue;
-        queue.push(neighbor);
         seen.insert(neighbor->grid_pos);
+        if (neighbor->blocked) continue;
+        queue.push(neighbor);
         path_map[neighbor->grid_pos] = t->grid_pos;
         if (neighbor->grid_pos == end) {
           ClearQueue(queue);

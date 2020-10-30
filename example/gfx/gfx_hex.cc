@@ -99,21 +99,26 @@ DebugUI(HexMap& hex_map)
     imui::NewLine();
     imui::SameLine();
     imui::Width(right_align);
-    imui::Text("Tile");
-    HexTile* tile = hex_map.tile(kHighlighted);
-    if (tile) {
-      snprintf(kUIBuffer, sizeof(kUIBuffer), "[%i %i]",
-               tile->grid_pos.x, tile->grid_pos.y);
-    } else {
-      snprintf(kUIBuffer, sizeof(kUIBuffer), "[NULL]");
+    if (kLeftClick) {
+      imui::Text("Tile");
+      HexTile* tile = hex_map.tile(*kLeftClick);
+      if (tile) {
+        snprintf(kUIBuffer, sizeof(kUIBuffer), "[%i %i]",
+                 tile->grid_pos.x, tile->grid_pos.y);
+      } else {
+        snprintf(kUIBuffer, sizeof(kUIBuffer), "[NULL]");
+      }
+      imui::Text(kUIBuffer);
+      if (tile) {
+        imui::Checkbox(16.f, 16.f, &tile->blocked);
+      }
     }
-    imui::Text(kUIBuffer);
     imui::End();
   }
 }
 
 void
-RenderHexGridCoord(v2i cord)
+RenderHexGridCoord(HexMap& hex_map, v2i cord)
 {
   v2f world = math::HexAxialToWorld(cord, 5.f);
   if (kLeftClick && *kLeftClick == cord) {
@@ -125,7 +130,11 @@ RenderHexGridCoord(v2i cord)
                        v4f(.2f, .2f, .2f, 1.f));
   } 
   rgg::RenderLineHexagon(v3f(world, -49.9f), 5.f, rgg::kWhite);
-
+  HexTile* tile = hex_map.tile(cord);
+  if (!tile) return;
+  if (tile->blocked) {
+    rgg::RenderCube(Cubef(v3f(world, -50.f), 2.5f, 2.5f, 2.5f), rgg::kRed);
+  }
 }
 
 s32
@@ -208,16 +217,21 @@ main(s32 argc, char** argv)
           mouse_down = true;
           imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
           mouse_start = event.position;
+          imui::MousePosition(event.position, imui::kEveryoneTag);
           switch (event.button) {
             case BUTTON_LEFT: {
-              v3f p = camera.RayFromScreenToWorld(
-                  event.position, window::GetWindowSize(), 50.f);
-              kLeftClick = HexWorldToAxial(p.xy(), 5.f);
+              if (!imui::MouseInUI(imui::kEveryoneTag)) {
+                v3f p = camera.RayFromScreenToWorld(
+                    event.position, window::GetWindowSize(), 50.f);
+                kLeftClick = HexWorldToAxial(p.xy(), 5.f);
+              }
             } break;
             case BUTTON_RIGHT: {
-              v3f p = camera.RayFromScreenToWorld(
-                  event.position, window::GetWindowSize(), 50.f);
-              kRightClick = HexWorldToAxial(p.xy(), 5.f);
+              if (!imui::MouseInUI(imui::kEveryoneTag)) {
+                v3f p = camera.RayFromScreenToWorld(
+                    event.position, window::GetWindowSize(), 50.f);
+                kRightClick = HexWorldToAxial(p.xy(), 5.f);
+              }
             } break;
             default: break;
           }
@@ -255,7 +269,7 @@ main(s32 argc, char** argv)
     kHighlighted = picked;
 
     for (const auto& t : hex_map.tiles()) {
-      RenderHexGridCoord(t.grid_pos);
+      RenderHexGridCoord(hex_map, t.grid_pos);
     }
 
     v2f world = math::HexAxialToWorld(picked, 5.f);

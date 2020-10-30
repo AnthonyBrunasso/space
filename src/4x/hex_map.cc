@@ -29,6 +29,15 @@ struct HexTile {
   v2i grid_pos;
 };
 
+
+template <typename T>
+void
+ClearQueue(std::queue<T>& q)
+{
+  std::queue<T> empty;
+  std::swap(q, empty);
+}
+
 class HexMap {
  public:
   explicit
@@ -68,6 +77,47 @@ class HexMap {
       }
     }
     return results;
+  }
+
+  std::vector<HexTile*>
+  BfsPathTo(const v2i& start, const v2i& end)
+  {
+    HexTile* start_tile = tile(start);
+    if (!start_tile) return {};
+    std::queue<HexTile*> queue;
+    std::unordered_map<v2i, v2i> path_map;
+    std::unordered_set<v2i> seen;
+    queue.push(start_tile);
+    while (!queue.empty()) {
+      HexTile* t = queue.front();
+      queue.pop();
+      seen.insert(t->grid_pos);
+      for (s32 i = 0; i < 6; ++i) {
+        v2i grid = math::HexAxialNeighbor(t->grid_pos, i);
+        HexTile* neighbor = tile(grid);
+        if (!neighbor) continue;
+        if (seen.find(neighbor->grid_pos) != seen.end()) continue;
+        queue.push(neighbor);
+        seen.insert(neighbor->grid_pos);
+        path_map[neighbor->grid_pos] = t->grid_pos;
+        if (neighbor->grid_pos == end) {
+          ClearQueue(queue);
+          break;
+        }
+      }
+    }
+
+    // Missing end node means a path was never found.
+    auto enditr = path_map.find(end);
+    if (enditr == path_map.end()) return {};
+
+    std::vector<HexTile*> path;
+    path.push_back(tile(enditr->first));
+    while (path.back()->grid_pos != start) {
+      path.push_back(tile(path_map[path.back()->grid_pos]));
+    }
+    std::reverse(path.begin(), path.end());
+    return path;
   }
 
   HexTile*

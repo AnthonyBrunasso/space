@@ -272,6 +272,16 @@ main(s32 argc, char** argv)
         rgg::RenderLineHexagon(v3f(w, -48.5f), 5.f, rgg::kGreen);
       }
     }
+
+    if (kLeftClick && kRightClick) {
+      std::vector<HexTile*> path =
+          hex_map.BfsPathTo(*kLeftClick, *kRightClick);
+      for (const auto& t : path) {
+        v2f w = math::HexAxialToWorld(t->grid_pos, 5.f);
+        rgg::RenderCube(Cubef(v3f(w, -50.f), 1.f, 1.f, 1.f),
+                        v4f(.2f, .2f, 1.f, 1.f));
+      }
+    }
     
     //rgg::RenderCube(Cubef(p, 1.f, 1.f, 1.f), rgg::kGreen);
 

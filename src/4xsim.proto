@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+message SimulationStepRequest {
+  string foo = 1;
+}
+
+message SimulationStepResponse {
+  bool foo = 1;
+}
+
+service SimulationService {
+  rpc Step(SimulationStepRequest) returns (SimulationStepResponse);
+}

@@ -1,4 +1,6 @@
-file(GLOB proto_files "proto/*.proto")
+file(GLOB proto_files "*.proto")
+
+message("${proto_files}")
 
 # Generates all the compilable proto files "*.pb.h, *.pb.cc" before protoc runs
 # so the file list can be added as dependencies to the service executable.

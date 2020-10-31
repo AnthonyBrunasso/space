@@ -5,7 +5,7 @@
 
 #include "4xsim.grpc.pb.h"
 
-ABSL_FLAG(std::string, address, "127.0.0.1:5327",
+ABSL_FLAG(std::string, address, "127.0.0.1:3878",
           "Address to run the server on.");
 
 class SimulationServer : public SimulationService::Service

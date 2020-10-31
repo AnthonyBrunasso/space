@@ -15,3 +15,5 @@ mkdir build
 cd build
 /snap/bin/cmake ../
 make 4xserver
+./bin/4xserver --address=0.0.0.0:3878
+<add rule to firewall to allow traffic from 3878>

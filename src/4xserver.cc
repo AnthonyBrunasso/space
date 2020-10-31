@@ -5,18 +5,31 @@
 
 #include "4xsim.grpc.pb.h"
 
+
 ABSL_FLAG(std::string, address, "127.0.0.1:3878",
           "Address to run the server on.");
 
-class SimulationServer : public SimulationService::Service
+std::vector<std::string> kPlayers;
+
+class SimulationServer : public fourx::proto::SimulationService::Service
 {
  public:
   grpc::Status
-  Step(grpc::ServerContext* context,
-       const SimulationStepRequest* request,
-       SimulationStepResponse* response) override
+  PlayerJoin(grpc::ServerContext* context,
+             const fourx::proto::PlayerJoinRequest* request,
+             fourx::proto::PlayerJoinResponse* response) override
   {
-    response->set_foo("Hello Client...");
+    for (const auto& player_name : kPlayers) {
+      if (request->name() == player_name) {
+        return grpc::Status(
+            grpc::INVALID_ARGUMENT,
+            "Player with same name already exists in game.");
+      }
+    }
+    kPlayers.push_back(request->name());
+    for (const auto& player_name : kPlayers) {
+      response->add_players()->set_name(player_name);
+    }
     return grpc::Status::OK;
   }
 };

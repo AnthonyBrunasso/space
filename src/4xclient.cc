@@ -18,14 +18,14 @@ main(int argc, char** argv)
   std::string server_address = absl::GetFlag(FLAGS_address);
   std::shared_ptr<grpc::Channel> client_channel =
       grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials());
-  std::unique_ptr<SimulationService::Stub> client_stub =
-      SimulationService::NewStub(client_channel);
+  std::unique_ptr<fourx::proto::SimulationService::Stub> client_stub =
+      fourx::proto::SimulationService::NewStub(client_channel);
 
-  SimulationStepRequest request;
-  request.set_foo("test");
-  SimulationStepResponse response;
+  fourx::proto::PlayerJoinRequest request;
+  request.set_name("Anthony");
+  fourx::proto::PlayerJoinResponse response;
   grpc::ClientContext context;
-  grpc::Status status = client_stub->Step(&context, request, &response);
+  grpc::Status status = client_stub->PlayerJoin(&context, request, &response);
   if (!status.ok()) {
     printf("RPC failed with status %s\n", status.error_message().c_str());
     return 1;

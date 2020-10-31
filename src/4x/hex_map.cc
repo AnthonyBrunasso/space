@@ -4,6 +4,8 @@
 #include <unordered_set>
 #include <queue>
 
+#include "math/vec.h"
+
 // Blergh
 namespace std {
 

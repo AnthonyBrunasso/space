@@ -5,7 +5,7 @@ message SimulationStepRequest {
 }
 
 message SimulationStepResponse {
-  bool foo = 1;
+  string foo = 1;
 }
 
 service SimulationService {

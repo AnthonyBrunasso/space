@@ -1,0 +1,17 @@
+TODO: Make a deployment script.
+
+sudo apt install snapd
+sudo snap install cmake --classic
+sudo apt-get install g++
+sudo apt-get install make
+sudo apt-get install git
+cd ~/.ssh/
+ssh-keygen -o
+<add ssh key to private git repo>
+cd ~/
+git clone git@github.com:AnthonyBrunasso/space.git
+cd space
+mkdir build
+cd build
+/snap/bin/cmake ../
+make 4xserver

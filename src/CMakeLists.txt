@@ -46,6 +46,9 @@ endforeach()
 
 include_directories(SYSTEM "${PROJECT_BINARY_DIR}/generated")
 
+# Setup MSVC parallelized builds
+add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
+
 add_executable(4xserver ${proto_src} ${grpc_src} 4xserver.cc)
 # image_service need not link protoc / grpc_cpp_plugin but it does require them
 # built in order to successfully complete code generation.

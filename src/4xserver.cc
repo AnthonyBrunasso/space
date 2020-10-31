@@ -3,7 +3,7 @@
 #include "grpcpp/server.h"
 #include "grpcpp/server_builder.h"
 
-#include "proto/4xsim.grpc.pb.h"
+#include "4xsim.grpc.pb.h"
 
 ABSL_FLAG(std::string, address, "127.0.0.1:5327",
           "Address to run the server on.");
@@ -16,6 +16,7 @@ class SimulationServer : public SimulationService::Service
        const SimulationStepRequest* request,
        SimulationStepResponse* response) override
   {
+    response->set_foo("Hello Client...");
     return grpc::Status::OK;
   }
 };

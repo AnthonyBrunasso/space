@@ -61,7 +61,7 @@ add_dependencies(4xclient protoc grpc_cpp_plugin)
 target_link_libraries(4xclient grpc++ absl::strings absl_flags absl_flags_parse)
 
 if (APPLE)
-  target_link_libraries(4xclient "-framework OpenGL" "-framework AppKit" "-framework OpenAL" "-mmacosx-version-min=10.7")
+  target_link_libraries(4xclient "-framework OpenGL" "-framework AppKit" "-framework OpenAL" "-mmacosx-version-min=10.15")
 endif()
 
 add_executable(4xcli ${proto_src} ${grpc_src} 4xcli.cc)

@@ -1,35 +1,44 @@
 #pragma once
 
+#include "4x/hex_map.cc"
+
 namespace fourx {
 
 struct Player {
   std::string name;
+  s32 id = -1;
 };
 
 struct Sim {
-  std::vector<Player> players;
+  std::unordered_map<s32, Player> players;
 };
 
 static Sim kSim;
 
 const std::vector<Player>&
-players()
+sim_players()
 {
   return kSim.players;
 }
 
-bool
-PlayerJoin(const proto::PlayerJoinRequest& request)
+s32
+SimPlayerJoin(const proto::PlayerJoin& request)
 {
   for (const auto& player : players()) {
     if (request.name() == player.name) {
-      return false;
+      return -1;
     }
   }
   Player player;
   player.name = request.name();
-  kSim.players.push_back(player);
-  return true;
+  player.id = request.id();
+  kSim.players[player.id] = player;
+  return player.id;
+}
+
+s32
+SimMapCreate()
+{
 }
 
 }  // namespace fourx

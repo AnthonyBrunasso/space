@@ -11,7 +11,7 @@
 #include "renderer/camera.cc"
 #include "renderer/renderer.cc"
 #include "renderer/imui.cc"
-#include "4x/hex_map.cc"
+#include "4x/sim.cc"
 
 struct State {
   // Game and render updates per second
@@ -36,9 +36,6 @@ static State kGameState;
 static Stats kGameStats;
 
 static v2i kHighlighted;
-
-static std::optional<v2i> kLeftClick;
-static std::optional<v2i> kRightClick;
 
 #define UIBUFFER_SIZE 64
 static char kUIBuffer[UIBUFFER_SIZE];
@@ -99,20 +96,6 @@ DebugUI(HexMap& hex_map)
     imui::NewLine();
     imui::SameLine();
     imui::Width(right_align);
-    if (kLeftClick) {
-      imui::Text("Tile");
-      HexTile* tile = hex_map.tile(*kLeftClick);
-      if (tile) {
-        snprintf(kUIBuffer, sizeof(kUIBuffer), "[%i %i]",
-                 tile->grid_pos.x, tile->grid_pos.y);
-      } else {
-        snprintf(kUIBuffer, sizeof(kUIBuffer), "[NULL]");
-      }
-      imui::Text(kUIBuffer);
-      if (tile) {
-        imui::Checkbox(16.f, 16.f, &tile->blocked);
-      }
-    }
     imui::End();
   }
 }
@@ -121,14 +104,8 @@ void
 RenderHexGridCoord(HexMap& hex_map, v2i cord)
 {
   v2f world = math::HexAxialToWorld(cord, 5.f);
-  if (kLeftClick && *kLeftClick == cord) {
-    rgg::RenderHexagon(v3f(world, -50.f), v3f(1.f, 1.f, 1.f), rgg::kRed);
-  } else if (kRightClick && *kRightClick == cord) {
-    rgg::RenderHexagon(v3f(world, -50.f), v3f(1.f, 1.f, 1.f), rgg::kGreen);
-  } else {
-    rgg::RenderHexagon(v3f(world, -50.f), v3f(1.f, 1.f, 1.f),
-                       v4f(.2f, .2f, .2f, 1.f));
-  } 
+  rgg::RenderHexagon(v3f(world, -50.f), v3f(1.f, 1.f, 1.f),
+                     v4f(.2f, .2f, .2f, 1.f));
   rgg::RenderLineHexagon(v3f(world, -49.9f), 5.f, rgg::kWhite);
   HexTile* tile = hex_map.tile(cord);
   if (!tile) return;
@@ -207,10 +184,6 @@ main(s32 argc, char** argv)
             case 'd': {
               camera.Translate(v3f(1.f, 0.f, 0.f), wri, wup, wfo);
             } break;
-            case 'c': {
-              kLeftClick = std::nullopt;
-              kRightClick = std::nullopt;
-            } break;
           }
         } break;
         case MOUSE_DOWN: {
@@ -220,18 +193,8 @@ main(s32 argc, char** argv)
           imui::MousePosition(event.position, imui::kEveryoneTag);
           switch (event.button) {
             case BUTTON_LEFT: {
-              if (!imui::MouseInUI(imui::kEveryoneTag)) {
-                v3f p = camera.RayFromScreenToWorld(
-                    event.position, window::GetWindowSize(), 50.f);
-                kLeftClick = HexWorldToAxial(p.xy(), 5.f);
-              }
             } break;
             case BUTTON_RIGHT: {
-              if (!imui::MouseInUI(imui::kEveryoneTag)) {
-                v3f p = camera.RayFromScreenToWorld(
-                    event.position, window::GetWindowSize(), 50.f);
-                kRightClick = HexWorldToAxial(p.xy(), 5.f);
-              }
             } break;
             default: break;
           }
@@ -276,31 +239,7 @@ main(s32 argc, char** argv)
     rgg::RenderLineHexagon(v3f(world, -49.5f), 5.f, rgg::kRed);
     rgg::RenderLineHexagon(v3f(world, -49.0f), 5.f, rgg::kRed);
     rgg::RenderLineHexagon(v3f(world, -48.5f), 5.f, rgg::kRed);
-
-    if (kLeftClick) {
-      std::vector<HexTile*> tiles = hex_map.Bfs(*kLeftClick, 2);
-      for (const auto& t : tiles) {
-        v2f w = math::HexAxialToWorld(t->grid_pos, 5.f);
-        rgg::RenderLineHexagon(v3f(w, -49.5f), 5.f, rgg::kGreen);
-        rgg::RenderLineHexagon(v3f(w, -49.0f), 5.f, rgg::kGreen);
-        rgg::RenderLineHexagon(v3f(w, -48.5f), 5.f, rgg::kGreen);
-      }
-    }
-
-    if (kLeftClick && kRightClick) {
-      std::vector<HexTile*> path =
-          hex_map.BfsPathTo(*kLeftClick, *kRightClick);
-      for (const auto& t : path) {
-        v2f w = math::HexAxialToWorld(t->grid_pos, 5.f);
-        rgg::RenderCube(Cubef(v3f(w, -50.f), 1.f, 1.f, 1.f),
-                        v4f(.2f, .2f, 1.f, 1.f));
-      }
-    }
     
-    //rgg::RenderCube(Cubef(p, 1.f, 1.f, 1.f), rgg::kGreen);
-    //camera.DebugRender();
-    //Execute game code.
-
     DebugUI(hex_map);
 
     rgg::DebugRenderPrimitives();

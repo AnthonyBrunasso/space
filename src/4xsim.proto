@@ -2,17 +2,40 @@ syntax = "proto3";
 
 package fourx.proto;
 
-// A request to join a game.
-message PlayerJoinRequest {
+message PlayerJoin {
   string name = 1;
+  // Do not provide id on request. Use it from the SimulationSync.
+  int32 id = 2;
 }
 
-// A list of all the players in the game - including the caller
-// given their JoinPlayerRequest succeeded.
+message SimulationStepRequest {
+  // Leave blank if unknown.
+  int32 player_id = 1;
+  oneof step {
+    PlayerJoin player_join = 2;
+  }
+}
+
 message PlayerJoinResponse {
-  repeated PlayerJoinRequest players = 1;
+  int32 player_id = 1;
+}
+
+// Some steps may have response data.
+message SimulationStepResponse {
+  oneof response {
+    PlayerJoinResponse player_join_response = 1;
+  }
+}
+
+message SimulationSyncRequest {
+  int32 player_id = 1; 
+}
+
+message SimulationSyncResponse {
+  repeated SimulationStepRequest steps = 1;
 }
 
 service SimulationService {
-  rpc PlayerJoin(PlayerJoinRequest) returns (PlayerJoinResponse) {}
+  rpc Step(SimulationStepRequest) returns (SimulationStepResponse) {}
+  rpc Sync(SimulationSyncRequest) returns (SimulationSyncResponse) {}
 }

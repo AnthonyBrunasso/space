@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.15)
 project(4x)
 
 set(CMAKE_CXX_STANDARD 17)
+if (APPLE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ObjC++ -stdlib=libc++")
+endif()
 
 # Use bin as the directory for all executables.
 # This will make protoc easy to find.

@@ -11,6 +11,15 @@ ABSL_FLAG(std::string, address, "127.0.0.1:3878",
 
 std::vector<std::string> kPlayers;
 
+template <typename T>
+void
+LogRequest(const T* request)
+{
+  printf("[REQUEST] %s:\n%s\n",
+         request->GetTypeName().c_str(),
+         request->DebugString().c_str());
+}
+
 class SimulationServer : public fourx::proto::SimulationService::Service
 {
  public:
@@ -19,7 +28,7 @@ class SimulationServer : public fourx::proto::SimulationService::Service
              const fourx::proto::PlayerJoinRequest* request,
              fourx::proto::PlayerJoinResponse* response) override
   {
-    printf("[REQUEST] %s\n", request->DebugString().c_str());
+    LogRequest(request);
     for (const auto& player_name : kPlayers) {
       if (request->name() == player_name) {
         return grpc::Status(

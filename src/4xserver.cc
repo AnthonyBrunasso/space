@@ -29,6 +29,10 @@ class SimulationServer : public fourx::proto::SimulationService::Service
              fourx::proto::PlayerJoinResponse* response) override
   {
     LogRequest(request);
+    if (request->name().empty()) {
+      return grpc::Status(grpc::INVALID_ARGUMENT,
+                          "Player name must be non empty.");
+    }
     for (const auto& player_name : kPlayers) {
       if (request->name() == player_name) {
         return grpc::Status(

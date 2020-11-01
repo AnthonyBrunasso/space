@@ -19,6 +19,7 @@ class SimulationServer : public fourx::proto::SimulationService::Service
              const fourx::proto::PlayerJoinRequest* request,
              fourx::proto::PlayerJoinResponse* response) override
   {
+    printf("[REQUEST] %s\n", request->DebugString().c_str());
     for (const auto& player_name : kPlayers) {
       if (request->name() == player_name) {
         return grpc::Status(

@@ -27,7 +27,7 @@ main(int argc, char** argv)
   grpc::ClientContext context;
   grpc::Status status = client_stub->PlayerJoin(&context, request, &response);
   if (!status.ok()) {
-    printf("RPC failed with status %s\n", status.error_message().c_str());
+    printf("FAILURE: %s\n", status.error_message().c_str());
     return 1;
   }
 

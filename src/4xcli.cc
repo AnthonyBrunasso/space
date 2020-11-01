@@ -45,7 +45,6 @@ Sync(fourx::proto::SimulationService::Stub* stub)
     return;
   }
   printf("Server responded with %s\n", response.DebugString().c_str());
-
 }
 
 void
@@ -81,6 +80,10 @@ main(int argc, char** argv)
       fourx::proto::SimulationService::NewStub(client_channel);
   if (absl::GetFlag(FLAGS_player_join)) {
     JoinPlayer(client_stub.get());
+  }
+
+  if (absl::GetFlag(FLAGS_sync)) {
+    Sync(client_stub.get());
   }
   return 0;
 }

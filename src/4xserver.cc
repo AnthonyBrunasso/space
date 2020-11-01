@@ -73,13 +73,15 @@ class ServerState {
     if (player.sequence_number >= steps.size() - 1) {
       return steps;
     }
-    for (int i = player.sequence_number; i < steps.size(); ++i) {
+    for (int i = player.sequence_number; i < steps_.size(); ++i) {
       const SimulationStepRequest& step = steps_[i];
       // This step has already been processed on the client.
-      if (step.player_id() != player_id) continue;
-      steps.push_back(step);
+      if (step.player_id() == player_id ||
+          step.player_id() == kInvalidPlayer) {
+        steps.push_back(step);
+      }
     }
-    player.sequence_number = players_.size() - 1;
+    player.sequence_number = players_.size();
     return steps;
   }
 
@@ -103,8 +105,7 @@ class SimulationServer : public fourx::proto::SimulationService::Service
 {
  public:
   grpc::Status
-  Step(grpc::ServerContext* context,
-       const SimulationStepRequest* request,
+  Step(grpc::ServerContext* context, const SimulationStepRequest* request,
        SimulationStepResponse* response) override
   {
     LogRequest(request);
@@ -121,13 +122,14 @@ class SimulationServer : public fourx::proto::SimulationService::Service
       }
       s32 id = state_.AddPlayer(join.name());
       response->mutable_player_join_response()->set_player_id(id);
+    } else {
+      state_.PushStep(*request);
     }
     return grpc::Status::OK;
   }
 
   grpc::Status
-  Sync(grpc::ServerContext* context,
-       const SimulationSyncRequest* request,
+  Sync(grpc::ServerContext* context, const SimulationSyncRequest* request,
        SimulationSyncResponse* response) override
   {
     LogRequest(request);

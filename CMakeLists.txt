@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.15)
 project(4x)
 
 set(CMAKE_CXX_STANDARD 17)
+if (WIN32)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi /GL /GR- /nologo /Bt /EHsc /std:c++latest /fp:strict")
+endif()
+
 if (APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ObjC++ -stdlib=libc++")
 endif()

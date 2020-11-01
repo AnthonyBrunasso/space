@@ -7,7 +7,6 @@
 
 #include "math/math.cc"
 
-#include "audio/audio.cc"
 #include "renderer/camera.cc"
 #include "renderer/renderer.cc"
 #include "renderer/imui.cc"
@@ -101,6 +100,27 @@ DebugUI(HexMap& hex_map)
 }
 
 void
+LogPanel()
+{
+  v2f screen = window::GetWindowSize();
+  imui::PaneOptions pane_options;
+  pane_options.width = pane_options.max_width = 450.f;
+  pane_options.height = pane_options.max_height = 160.f;
+  pane_options.enable_console_mode = true;
+  imui::TextOptions text_options;
+  static v2f pos(screen.x - pane_options.width, pane_options.height);
+  static b8 show = true;
+  imui::Begin("Console Log", imui::kEveryoneTag, pane_options, &pos, &show);
+  //for (int i = 0, imax = LogCount(); i < imax; ++i) {
+  //  const char* log_msg = ReadLog(i);
+  //  if (!log_msg) continue;
+  //  imui::Text(log_msg, text_options);
+  //}
+  imui::End();
+
+}
+
+void
 RenderHexGridCoord(HexMap& hex_map, v2i cord)
 {
   v2f world = math::HexAxialToWorld(cord, 5.f);
@@ -128,11 +148,6 @@ main(s32 argc, char** argv)
   }
 
   if (!rgg::Initialize()) {
-    return 1;
-  }
-
-  if (!audio::Initialize()) {
-    printf("Unable to initialize audio system.\n");
     return 1;
   }
 

@@ -559,9 +559,9 @@ SetupGLFunctions() {
 void
 SetupXboxController()
 {
-  HMODULE xinput_library = LoadLibrary(L"xinput1_4.dll");
+  HMODULE xinput_library = LoadLibraryW(L"xinput1_4.dll");
   if (!xinput_library) {
-    xinput_library = LoadLibrary(L"xinput9_1_0.dll");
+    xinput_library = LoadLibraryW(L"xinput9_1_0.dll");
   }
   if (!xinput_library) {
     return;

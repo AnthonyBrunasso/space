@@ -17,12 +17,12 @@ WalkDirectory(const char* dir, FileCallback* file_callback)
 {
   u32 len = strlen(dir);
   assert(dir[len - 1] == '/');
-  WIN32_FIND_DATA ffd;
+  WIN32_FIND_DATAW ffd;
   wchar_t wtext[MAX_PATH] = {};
   mbstowcs(wtext, dir, len);
   wtext[len] = '*';
 
-  HANDLE h_find = FindFirstFile(wtext, &ffd);
+  HANDLE h_find = FindFirstFileW(wtext, &ffd);
 
   if (h_find == INVALID_HANDLE_VALUE) {
     printf("Dir not found %s\n", dir);
@@ -39,7 +39,7 @@ WalkDirectory(const char* dir, FileCallback* file_callback)
     strcat(full_name, filename);
     file_callback(full_name);
   }
-  while (FindNextFile(h_find, &ffd) != 0);
+  while (FindNextFileW(h_find, &ffd) != 0);
 
   FindClose(h_find);
 }

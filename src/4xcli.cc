@@ -5,6 +5,8 @@
 
 #include "4xsim.grpc.pb.h"
 
+#include "4x/client_connection.cc"
+
 #include <memory>
 
 ABSL_FLAG(std::string, address, "127.0.0.1:3878",
@@ -28,7 +30,7 @@ using fourx::proto::SimulationSyncResponse;
 using fourx::proto::PlayerJoin;
 
 void
-Sync(fourx::proto::SimulationService::Stub* stub)
+Sync()
 {
   int player_id = absl::GetFlag(FLAGS_player_id);
   if (!player_id) {
@@ -37,18 +39,14 @@ Sync(fourx::proto::SimulationService::Stub* stub)
   }
   SimulationSyncRequest sync;
   sync.set_player_id(player_id);
-  grpc::ClientContext context;
+  fourx::ClientPushSyncRequest(sync);
   SimulationSyncResponse response;
-  grpc::Status status = stub->Sync(&context, sync, &response);
-  if (!status.ok()) {
-    printf("FAILURE: %s\n", status.error_message().c_str());
-    return;
-  }
+  while (!fourx::ClientPopSyncResponse(&response));
   printf("Server responded with %s\n", response.DebugString().c_str());
 }
 
 void
-JoinPlayer(fourx::proto::SimulationService::Stub* stub)
+JoinPlayer()
 {
   const std::string& name = absl::GetFlag(FLAGS_player_name);
   if (name.empty()) {
@@ -59,13 +57,9 @@ JoinPlayer(fourx::proto::SimulationService::Stub* stub)
   join.set_name(name);
   SimulationStepRequest step_request;
   *step_request.mutable_player_join() = join;
-  grpc::ClientContext context;
+  fourx::ClientPushStepRequest(step_request);
   SimulationStepResponse response;
-  grpc::Status status = stub->Step(&context, step_request, &response);
-  if (!status.ok()) {
-    printf("FAILURE: %s\n", status.error_message().c_str());
-    return;
-  }
+  while (!fourx::ClientPopStepResponse(&response));
   printf("Server responded with %s\n", response.DebugString().c_str());
 }
 
@@ -74,16 +68,14 @@ main(int argc, char** argv)
 {
   absl::ParseCommandLine(argc, argv);
   std::string server_address = absl::GetFlag(FLAGS_address);
-  std::shared_ptr<grpc::Channel> client_channel =
-      grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials());
-  std::unique_ptr<fourx::proto::SimulationService::Stub> client_stub =
-      fourx::proto::SimulationService::NewStub(client_channel);
+  fourx::ClientStartConnection(server_address);
   if (absl::GetFlag(FLAGS_player_join)) {
-    JoinPlayer(client_stub.get());
+    JoinPlayer();
   }
 
   if (absl::GetFlag(FLAGS_sync)) {
-    Sync(client_stub.get());
+    Sync();
   }
+  fourx::ClientStopConnection();
   return 0;
 }

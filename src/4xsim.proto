@@ -8,11 +8,22 @@ message PlayerJoin {
   int32 id = 2;
 }
 
+message MapCreate {
+  // Size that the map should be measured as tiles from origin to edge.
+  // So a size of 10 would create a hex grid 20 units along its horizontal
+  // and diagonal axis - considering axial coordinates.
+  int32 size = 1;
+}
+
+message SimStart {}
+
 message SimulationStepRequest {
   // Leave blank if unknown.
   int32 player_id = 1;
   oneof step {
     PlayerJoin player_join = 2;
+    MapCreate map_create = 3;
+    SimStart sim_start = 4;
   }
 }
 

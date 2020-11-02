@@ -2,15 +2,26 @@
 #define SINGLE_PLAYER
 
 #include <cassert>
+#include <chrono>
 #include <optional>
+#include <thread>
 #include <vector>
+
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
 
 #include "math/math.cc"
 
+#include "4xsim.grpc.pb.h"
 #include "renderer/camera.cc"
 #include "renderer/renderer.cc"
 #include "renderer/imui.cc"
 #include "4x/sim.cc"
+#include "4x/server.cc"
+
+ABSL_FLAG(std::string, address, "127.0.0.1:3878",
+          "If unspecified will spawn the server locally - otherwise this is "
+          "assumed a multiplayer game.");
 
 struct State {
   // Game and render updates per second
@@ -36,15 +47,31 @@ static Stats kGameStats;
 
 static v2i kHighlighted;
 
+static std::thread* kServerThread;
+
 #define UIBUFFER_SIZE 64
 static char kUIBuffer[UIBUFFER_SIZE];
 
 constexpr u32 kHexMapSize = 10;
 
-using namespace fourx;
+void
+MaybeStartGameServer()
+{
+  if (kServerThread) {
+    printf("Game server already spawned.\n");
+    return;
+  }
+
+  std::string address = absl::GetFlag(FLAGS_address);
+  if (address.find("127.0.0.1") != std::string::npos) {
+    kServerThread = new std::thread(fourx::RunServer, address);
+    // Give her a moment to boot up.
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+}
 
 void
-DebugUI(HexMap& hex_map)
+DebugUI(fourx::HexMap& hex_map)
 {
   v2f screen = window::GetWindowSize();
   {
@@ -121,22 +148,61 @@ LogPanel()
 }
 
 void
-RenderHexGridCoord(HexMap& hex_map, v2i cord)
+RenderHexGridCoord(fourx::HexMap& hex_map, v2i cord)
 {
   v2f world = math::HexAxialToWorld(cord, 5.f);
   rgg::RenderHexagon(v3f(world, -50.f), v3f(1.f, 1.f, 1.f),
                      v4f(.2f, .2f, .2f, 1.f));
   rgg::RenderLineHexagon(v3f(world, -49.9f), 5.f, rgg::kWhite);
-  HexTile* tile = hex_map.tile(cord);
+  fourx::HexTile* tile = hex_map.tile(cord);
   if (!tile) return;
   if (tile->blocked) {
     rgg::RenderCube(Cubef(v3f(world, -50.f), 2.5f, 2.5f, 2.5f), rgg::kRed);
   }
 }
 
+void
+UpdateGame(const v2f& cursor, b8 mouse_down, v2f& mouse_start, rgg::Camera& camera)
+{
+  if (mouse_down) {
+    v2f diff = cursor - mouse_start;
+    if (fabs(diff.x) > 0.f || fabs(diff.y) > 0.f) {
+      camera.PitchYawDelta(diff.yx() * 0.1f);
+      mouse_start = cursor;
+    }
+  }
+}
+
+void
+RenderGame(const v2f& cursor, rgg::Camera& camera, fourx::HexMap& hex_map)
+{
+  rgg::GetObserver()->view = camera.View();
+
+  v3f p = camera.RayFromScreenToWorld(cursor, window::GetWindowSize(), 50.f);
+  v2i picked = HexWorldToAxial(p.xy(), 5.f);
+  kHighlighted = picked;
+
+  for (const auto& t : hex_map.tiles()) {
+    RenderHexGridCoord(hex_map, t.grid_pos);
+  }
+
+  v2f world = math::HexAxialToWorld(picked, 5.f);
+  rgg::RenderLineHexagon(v3f(world, -49.5f), 5.f, rgg::kRed);
+  rgg::RenderLineHexagon(v3f(world, -49.0f), 5.f, rgg::kRed);
+  rgg::RenderLineHexagon(v3f(world, -48.5f), 5.f, rgg::kRed);
+
+  DebugUI(hex_map);
+
+  rgg::DebugRenderPrimitives();
+  imui::Render(imui::kEveryoneTag);
+  window::SwapBuffers();
+}
+
 s32
 main(s32 argc, char** argv)
 {
+  MaybeStartGameServer();
+
   platform::Clock game_clock;
 
   if (!memory::Initialize(MiB(64))) {
@@ -162,14 +228,10 @@ main(s32 argc, char** argv)
   rgg::GetObserver()->projection =
       rgg::DefaultPerspective(window::GetWindowSize());
 
-  HexMap hex_map(kHexMapSize);
+  fourx::HexMap hex_map(kHexMapSize);
 
   bool mouse_down = false;
   v2f mouse_start;
-
-  v3f wri(1.f, 0.f, 0.f);
-  v3f wup(0.f, 1.f, 0.f);
-  v3f wfo(0.f, 0.f, -1.f);
 
   while (1) {
     platform::ClockStart(&game_clock);
@@ -188,24 +250,28 @@ main(s32 argc, char** argv)
               exit(1);
             } break;
             case 'w': {
-              camera.Translate(v3f(0.f, 1.f, 0.f), wri, wup, wfo);
+              camera.Translate(v3f(0.f, 1.f, 0.f), v3f(1.f, 0.f, 0.f),
+                               v3f(0.f, 1.f, 0.f), v3f(0.f, 0.f, -1.f));
             } break;
             case 'a': {
-              camera.Translate(v3f(-1.f, 0.f, 0.f), wri, wup, wfo);
+              camera.Translate(v3f(-1.f, 0.f, 0.f), v3f(1.f, 0.f, 0.f),
+                               v3f(0.f, 1.f, 0.f), v3f(0.f, 0.f, -1.f));
             } break;
             case 's': {
-              camera.Translate(v3f(0.f, -1.f, 0.f), wri, wup, wfo);
+              camera.Translate(v3f(0.f, -1.f, 0.f), v3f(1.f, 0.f, 0.f),
+                               v3f(0.f, 1.f, 0.f), v3f(0.f, 0.f, -1.f));
             } break;
             case 'd': {
-              camera.Translate(v3f(1.f, 0.f, 0.f), wri, wup, wfo);
+              camera.Translate(v3f(1.f, 0.f, 0.f), v3f(1.f, 0.f, 0.f),
+                               v3f(0.f, 1.f, 0.f), v3f(0.f, 0.f, -1.f));
             } break;
           }
         } break;
         case MOUSE_DOWN: {
-          mouse_down = true;
           imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
           mouse_start = event.position;
           imui::MousePosition(event.position, imui::kEveryoneTag);
+          if (!imui::MouseInUI(imui::kEveryoneTag)) mouse_down = true;
           switch (event.button) {
             case BUTTON_LEFT: {
             } break;
@@ -231,37 +297,8 @@ main(s32 argc, char** argv)
     const v2f cursor = window::GetCursorPosition();
     imui::MousePosition(cursor, imui::kEveryoneTag);
 
-    if (mouse_down) {
-      v2f diff = cursor - mouse_start;
-      if (fabs(diff.x) > 0.f || fabs(diff.y) > 0.f) {
-        camera.PitchYawDelta(diff.yx() * 0.1f);
-        mouse_start = cursor;
-      }
-    }
-
-    rgg::GetObserver()->view = camera.View();
-
-    v3f p = camera.RayFromScreenToWorld(cursor, window::GetWindowSize(), 50.f);
-
-    v2i picked = HexWorldToAxial(p.xy(), 5.f);
-    kHighlighted = picked;
-
-    for (const auto& t : hex_map.tiles()) {
-      RenderHexGridCoord(hex_map, t.grid_pos);
-    }
-
-    v2f world = math::HexAxialToWorld(picked, 5.f);
-    rgg::RenderLineHexagon(v3f(world, -49.5f), 5.f, rgg::kRed);
-    rgg::RenderLineHexagon(v3f(world, -49.0f), 5.f, rgg::kRed);
-    rgg::RenderLineHexagon(v3f(world, -48.5f), 5.f, rgg::kRed);
-    
-    DebugUI(hex_map);
-
-    rgg::DebugRenderPrimitives();
-
-    imui::Render(imui::kEveryoneTag);
-    
-    window::SwapBuffers();
+    UpdateGame(cursor, mouse_down, mouse_start, camera);
+    RenderGame(cursor, camera, hex_map);
 
     const u64 elapsed_usec = platform::ClockEnd(&game_clock);
     StatsAdd(elapsed_usec, &kGameStats);

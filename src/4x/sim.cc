@@ -4,5 +4,19 @@
 
 namespace fourx {
 
+void
+SimPlayerJoin(const proto::PlayerJoin& player_join)
+{
+}
+
+void
+SimMapCreate(const proto::MapCreate& map_create)
+{
+}
+
+void
+SimStart(const proto::SimStart& sim_start)
+{
+}
 
 }  // namespace fourx

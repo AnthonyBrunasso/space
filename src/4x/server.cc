@@ -85,7 +85,7 @@ class ServerState {
         steps.push_back(step);
       }
     }
-    player.sequence_number = players_.size();
+    player.sequence_number = steps_.size();
     return steps;
   }
 
@@ -139,7 +139,6 @@ class SimulationServer : public fourx::proto::SimulationService::Service
   Sync(grpc::ServerContext* context, const SimulationSyncRequest* request,
        SimulationSyncResponse* response) override
   {
-    LogRequest(request);
     if (request->player_id() == kInvalidPlayer) {
       return grpc::Status(grpc::INVALID_ARGUMENT, "Invalid player id.");
     }

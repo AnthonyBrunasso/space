@@ -7,6 +7,7 @@ namespace fourx {
 void
 SimPlayerJoin(const proto::PlayerJoin& player_join)
 {
+  printf(".......SimPlayerJoin.......\n");
 }
 
 void

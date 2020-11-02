@@ -16,17 +16,22 @@
 #include "renderer/camera.cc"
 #include "renderer/renderer.cc"
 #include "renderer/imui.cc"
-#include "4x/client_connection.cc"
+#include "util/cooldown.cc"
 #include "4x/sim.cc"
+#include "4x/client_connection.cc"
 #include "4x/server.cc"
 
 ABSL_FLAG(std::string, address, "127.0.0.1:3878",
           "If unspecified will spawn the server locally - otherwise this is "
           "assumed a multiplayer game.");
 
+ABSL_FLAG(std::string, name, "Anthony", "Name to join server with.");
+
 struct State {
   // Game and render updates per second
   u64 framerate = 60;
+  // Number of times per second to sync off the network
+  u64 net_syncs_per_second = 3;
   // Calculated available microseconds per game_update
   u64 frame_target_usec;
   // Estimate of gime passed since game start.
@@ -41,6 +46,8 @@ struct State {
   window::CreateInfo window_create_info;
   // Id to music.
   u32 music_id;
+  // How often to sync the simulation off the network.
+  util::FrameCooldown net_sync_cooldown;
 };
 
 static State kGameState;
@@ -49,6 +56,8 @@ static Stats kGameStats;
 static v2i kHighlighted;
 
 static std::thread* kServerThread;
+
+static s32 kLocalPlayerId = 0;
 
 #define UIBUFFER_SIZE 64
 static char kUIBuffer[UIBUFFER_SIZE];
@@ -163,6 +172,47 @@ RenderHexGridCoord(fourx::HexMap& hex_map, v2i cord)
 }
 
 void
+InitializeGame()
+{
+  // Send out join game request.
+  fourx::proto::PlayerJoin join;
+  join.set_name(absl::GetFlag(FLAGS_name));
+  fourx::proto::SimulationStepRequest step_request;
+  *step_request.mutable_player_join() = join;
+  fourx::ClientPushStepRequest(step_request);
+
+  kGameState.net_sync_cooldown.frame =
+      kGameState.framerate / kGameState.net_syncs_per_second;
+  FrameCooldownInitialize(&kGameState.net_sync_cooldown);
+}
+
+void
+PollAndExecuteNetworkEvents()
+{
+  fourx::proto::SimulationStepResponse step_response;
+  while (fourx::ClientPopStepResponse(&step_response)) {
+    if (step_response.has_player_join_response()) {
+      kLocalPlayerId = step_response.player_join_response().player_id();
+    }
+  }
+
+  if (kLocalPlayerId &&
+      util::FrameCooldownReady(&kGameState.net_sync_cooldown)) {
+    fourx::SimulationSyncRequest sync;
+    sync.set_player_id(kLocalPlayerId);
+    fourx::ClientPushSyncRequest(sync);
+    util::FrameCooldownReset(&kGameState.net_sync_cooldown);
+  }
+
+  fourx::SimulationSyncResponse response;
+  while (fourx::ClientPopSyncResponse(&response)) {
+    if (response.steps_size() > 0) {
+      printf("Received response %s\n", response.DebugString().c_str());
+    }
+  }
+}
+
+void
 UpdateGame(const v2f& cursor, b8 mouse_down, v2f& mouse_start, rgg::Camera& camera)
 {
   if (mouse_down) {
@@ -219,6 +269,8 @@ main(s32 argc, char** argv)
   if (!rgg::Initialize()) {
     return 1;
   }
+
+  InitializeGame();
 
   // Reset State
   StatsInit(&kGameStats);
@@ -294,6 +346,8 @@ main(s32 argc, char** argv)
         default: break;
       }
     }
+
+    PollAndExecuteNetworkEvents();
    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -315,6 +369,7 @@ main(s32 argc, char** argv)
 
     kGameState.game_time_usec += platform::ClockEnd(&game_clock);
     kGameState.game_updates++;
+    util::FrameCooldownUpdate();
   }
 
   return 0;

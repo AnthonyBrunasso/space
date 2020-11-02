@@ -16,6 +16,7 @@
 #include "renderer/camera.cc"
 #include "renderer/renderer.cc"
 #include "renderer/imui.cc"
+#include "4x/client_connection.cc"
 #include "4x/sim.cc"
 #include "4x/server.cc"
 
@@ -202,6 +203,8 @@ s32
 main(s32 argc, char** argv)
 {
   MaybeStartGameServer();
+
+  fourx::ClientStartConnection(absl::GetFlag(FLAGS_address));
 
   platform::Clock game_clock;
 

@@ -74,7 +74,7 @@ inline int TARGET("rdrnd") RDRND(unsigned long long *p)
     if (_rdrand64_step(p)) return 1;
   return 0;
 }
-
+#if 0
 inline uint32_t bswap_32(uint32_t input)
 {
   return __bswap_32(input);
@@ -84,3 +84,4 @@ inline uint16_t bswap_16(uint16_t input)
 {
   return __bswap_16(input);
 }
+#endif

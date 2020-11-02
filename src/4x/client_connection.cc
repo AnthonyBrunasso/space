@@ -1,6 +1,10 @@
 #pragma once
 
 #include <queue>
+#include <thread>
+
+#include "grpcpp/channel.h"
+#include "grpcpp/create_channel.h"
 
 #include "4xsim.pb.h"
 
@@ -51,8 +55,7 @@ struct Connection {
   Queue<proto::SimulationSyncResponse> sync_response_queue;
   std::shared_ptr<grpc::Channel> channel;
   std::unique_ptr<fourx::proto::SimulationService::Stub> stub;
-  std::atomic<bool> run;
-  std::atomic<bool> client_started = false;
+  std::atomic<bool> run = false;
 };
 
 static Connection kConnection;
@@ -65,7 +68,6 @@ StartClient(const std::string& address)
       grpc::CreateChannel(address, grpc::InsecureChannelCredentials());
   std::unique_ptr<fourx::proto::SimulationService::Stub> client_stub =
       fourx::proto::SimulationService::NewStub(client_channel);
-  kConnection.client_started = true;
   kConnection.run = true;
   while (kConnection.run) {
     if (kConnection.step_queue.Size() > 0) {
@@ -101,7 +103,7 @@ void
 ClientStartConnection(const std::string& address)
 {
   kClientThread = new std::thread(StartClient, address);
-  while (!kConnection.client_started);
+  while (!kConnection.run);
 }
 
 void

@@ -1,7 +1,5 @@
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
-#include "grpcpp/channel.h"
-#include "grpcpp/create_channel.h"
 
 #include "4xsim.grpc.pb.h"
 

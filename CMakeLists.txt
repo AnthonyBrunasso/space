@@ -2,9 +2,11 @@ cmake_minimum_required(VERSION 3.15)
 
 project(4x)
 
+# Use ninja / nasm on windows for not crap build / link times.
 set(CMAKE_CXX_STANDARD 17)
+
 if (WIN32)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi /GL /GR- /nologo /Bt /EHsc /std:c++latest /fp:strict")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /nologo /EHsc /fp:strict")
 endif()
 
 if (APPLE)

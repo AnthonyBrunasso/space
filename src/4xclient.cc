@@ -64,6 +64,14 @@ static char kUIBuffer[UIBUFFER_SIZE];
 
 constexpr u32 kHexMapSize = 10;
 
+bool
+IsSinglePlayer()
+{
+  static bool is_single =
+      absl::GetFlag(FLAGS_address).find("127.0.0.1") != std::string::npos;
+  return is_single;
+}
+
 void
 MaybeStartGameServer()
 {
@@ -73,7 +81,7 @@ MaybeStartGameServer()
   }
 
   std::string address = absl::GetFlag(FLAGS_address);
-  if (address.find("127.0.0.1") != std::string::npos) {
+  if (IsSinglePlayer()) {
     kServerThread = new std::thread(fourx::RunServer, address);
     // Give her a moment to boot up.
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -207,7 +215,9 @@ PollAndExecuteNetworkEvents()
   fourx::SimulationSyncResponse response;
   while (fourx::ClientPopSyncResponse(&response)) {
     if (response.steps_size() > 0) {
-      printf("Received response %s\n", response.DebugString().c_str());
+      for (const auto& step : response.steps()) {
+        fourx::SimExecute(step);
+      }
     }
   }
 }

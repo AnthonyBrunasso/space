@@ -223,6 +223,29 @@ PollAndExecuteNetworkEvents()
 }
 
 void
+InitializeGameOncePlayerIdEstablished()
+{
+  static b8 kInitializeOnce = false;
+  if (!kLocalPlayerId) return;
+  if (kInitializeOnce) return;
+
+  // Leaving out a player id will force this client to handle updating the
+  // simulation when it receives its response from the server.
+  {
+    fourx::proto::SimulationStepRequest step_request;
+    step_request.mutable_map_create()->set_size(10);
+    fourx::ClientPushStepRequest(step_request);
+  }
+
+  {
+    fourx::proto::SimulationStepRequest step_request;
+    step_request.mutable_sim_start();
+    fourx::ClientPushStepRequest(step_request);
+  }
+  kInitializeOnce = true;
+}
+
+void
 UpdateGame(const v2f& cursor, b8 mouse_down, v2f& mouse_start, rgg::Camera& camera)
 {
   if (mouse_down) {
@@ -312,6 +335,7 @@ main(s32 argc, char** argv)
         case KEY_DOWN: {
           switch (event.key) {
             case 27 /* ESC */: {
+              fourx::ClientStopConnection();
               exit(1);
             } break;
             case 'w': {
@@ -358,6 +382,8 @@ main(s32 argc, char** argv)
     }
 
     PollAndExecuteNetworkEvents();
+
+    InitializeGameOncePlayerIdEstablished();
    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

@@ -89,9 +89,35 @@ class ServerState {
     return steps;
   }
 
+  b8
+  is_map_created() const
+  {
+    return is_map_created_;
+  }
+
+  void
+  set_is_map_created(bool val)
+  {
+    is_map_created_ = val;
+  }
+
+  b8
+  is_game_started() const
+  {
+    return is_game_started_;
+  }
+
+  void
+  StartGame()
+  {
+    is_game_started_ = true;
+  }
+
  private:
   std::unordered_map<u32, ServerPlayer> players_;
   std::vector<SimulationStepRequest> steps_;
+  b8 is_map_created_ = false;
+  b8 is_game_started_ = false;
   s32 auto_increment_id_ = 1;
 };
 
@@ -116,21 +142,42 @@ class SimulationServer : public fourx::proto::SimulationService::Service
        SimulationStepResponse* response) override
   {
     LogRequest(request);
-    if (request->has_player_join()) {
-      PlayerJoin join = request->player_join();
-      if (join.name().empty()) {
-        return grpc::Status(grpc::INVALID_ARGUMENT,
-                            "Player name must be non empty.");
+    switch (request->step_case()) {
+      case proto::SimulationStepRequest::kPlayerJoin: {
+        PlayerJoin join = request->player_join();
+        if (join.name().empty()) {
+          return grpc::Status(grpc::INVALID_ARGUMENT,
+                              "Player name must be non empty.");
+        }
+        ServerPlayer* splayer = state_.FindPlayerByName(join.name());
+        if (splayer) {
+          return grpc::Status(grpc::INVALID_ARGUMENT,
+                              "Player exists with same name.");
+        }
+        s32 id = state_.AddPlayer(join.name());
+        response->mutable_player_join_response()->set_player_id(id);
+      } break;
+      case proto::SimulationStepRequest::kMapCreate: {
+        // Only create the game if it hasn't started yet. This will effectively
+        // ignore map creation requests that come in after the first.
+        if (!state_.is_map_created()) {
+          state_.PushStep(*request);
+          state_.set_is_map_created(true);
+        }
+      } break;
+      case proto::SimulationStepRequest::kSimStart: {
+        if (!state_.is_map_created()) {
+          return grpc::Status(grpc::INVALID_ARGUMENT,
+                              "Map has not been created yet.");                 
+        }
+        if (!state_.is_game_started()) {
+          state_.PushStep(*request);
+          state_.StartGame();
+        }
+      } break;
+      default: {
+        state_.PushStep(*request);
       }
-      ServerPlayer* splayer = state_.FindPlayerByName(join.name());
-      if (splayer) {
-        return grpc::Status(grpc::INVALID_ARGUMENT,
-                            "Player exists with same name.");
-      }
-      s32 id = state_.AddPlayer(join.name());
-      response->mutable_player_join_response()->set_player_id(id);
-    } else {
-      state_.PushStep(*request);
     }
     return grpc::Status::OK;
   }

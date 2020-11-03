@@ -11,9 +11,26 @@ struct Player {
 
 struct Sim {
   std::unordered_map<s32, Player> players;
+  b8 is_game_started = false;
 };
 
 static Sim kSim;
+
+std::vector<const Player*>
+SimGetPlayers()
+{
+  std::vector<const Player*> players;
+  for (const auto& player : kSim.players) {
+    players.push_back(&player.second);
+  }
+  return players;
+}
+
+b8
+SimIsGameStarted()
+{
+  return kSim.is_game_started;
+}
 
 Player*
 SimPlayer(s32 id)
@@ -34,6 +51,7 @@ SimPlayerJoin(const proto::PlayerJoin& player_join)
   Player player;
   player.id = player_join.id();
   player.name = player_join.name();
+  kSim.players[player.id] = player;
   printf("[SIM] player %s joined the game\n", player.name.c_str()); 
 }
 
@@ -46,6 +64,7 @@ SimMapCreate(const proto::MapCreate& map_create)
 void
 SimStart(const proto::SimStart& sim_start)
 {
+  kSim.is_game_started = true;
   printf("[SIM] start\n"); 
 }
 

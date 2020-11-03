@@ -166,6 +166,37 @@ LogPanel()
 }
 
 void
+SimUI()
+{
+  v2f screen = window::GetWindowSize();
+  static b8 enable_players_ui = true;
+  static v2f diagnostics_pos(screen.x - 415.f, screen.y);
+  static r32 right_align = 130.f;
+  imui::PaneOptions options;
+  options.width = options.max_width = 415.f;
+  imui::Begin("Players", imui::kEveryoneTag, options, &diagnostics_pos,
+              &enable_players_ui);
+  std::vector<const fourx::Player*> players = fourx::SimGetPlayers();
+  for (const fourx::Player* player : players) {
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%i: %s",
+             player->id, player->name.c_str());
+    imui::Text(kUIBuffer);
+  }
+  if (!fourx::SimIsGameStarted()) {
+    imui::Space(imui::kVertical, 10.f);
+    imui::TextOptions toptions;
+    toptions.color = rgg::kGreen;
+    toptions.highlight_color = rgg::kRed;
+    if (imui::Text("Start Game", toptions).clicked) {
+      fourx::proto::SimulationStepRequest step_request;
+      step_request.mutable_sim_start();
+      fourx::ClientPushStepRequest(step_request);
+    }
+  }
+  imui::End();
+}
+
+void
 RenderHexGridCoord(fourx::HexMap& hex_map, v2i cord)
 {
   v2f world = math::HexAxialToWorld(cord, 5.f);
@@ -237,7 +268,8 @@ InitializeGameOncePlayerIdEstablished()
     fourx::ClientPushStepRequest(step_request);
   }
 
-  {
+  // Single player games start immediately
+  if (IsSinglePlayer()) {
     fourx::proto::SimulationStepRequest step_request;
     step_request.mutable_sim_start();
     fourx::ClientPushStepRequest(step_request);
@@ -276,6 +308,7 @@ RenderGame(const v2f& cursor, rgg::Camera& camera, fourx::HexMap& hex_map)
   rgg::RenderLineHexagon(v3f(world, -48.5f), 5.f, rgg::kRed);
 
   DebugUI(hex_map);
+  SimUI();
 
   rgg::DebugRenderPrimitives();
   imui::Render(imui::kEveryoneTag);

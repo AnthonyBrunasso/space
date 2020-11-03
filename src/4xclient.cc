@@ -285,6 +285,8 @@ RenderGame(const v2f& cursor, rgg::Camera& camera, fourx::HexMap& hex_map)
 s32
 main(s32 argc, char** argv)
 {
+  absl::ParseCommandLine(argc, argv);
+
   MaybeStartGameServer();
 
   fourx::ClientStartConnection(absl::GetFlag(FLAGS_address));

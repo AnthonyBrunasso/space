@@ -123,7 +123,6 @@ SimStart(const proto::SimStart& sim_start)
 void
 SimUnitCreate(const proto::UnitCreate& unit_create)
 {
-  printf("[SIM] unit create: %s\n", unit_create.DebugString().c_str());
   static s32 kUnitId = 1;
   Unit unit;
   unit.id = kUnitId++;
@@ -136,7 +135,6 @@ SimUnitCreate(const proto::UnitCreate& unit_create)
 void
 SimUnitMove(const proto::UnitMove& unit_move)
 {
-  printf("[SIM] unit move: %s\n", unit_move.DebugString().c_str());
   Unit* unit = SimUnit(unit_move.unit_id());
   if (!unit) {
     printf("[SIM ERROR] unit does not exist.\n");
@@ -156,6 +154,8 @@ SimUnitMove(const proto::UnitMove& unit_move)
 void
 SimExecute(const proto::SimulationStepRequest& request)
 {
+  printf("[SIM] %s: %s\n", request.GetTypeName().c_str(),
+         request.DebugString().c_str());
   switch (request.step_case()) {
     case proto::SimulationStepRequest::kPlayerJoin: {
       SimPlayerJoin(request.player_join());

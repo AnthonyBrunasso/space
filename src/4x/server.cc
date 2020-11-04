@@ -80,10 +80,9 @@ class ServerState {
     for (int i = player.sequence_number; i < steps_.size(); ++i) {
       const SimulationStepRequest& step = steps_[i];
       // This step has already been processed on the client.
-      if (step.player_id() == player_id ||
-          step.player_id() == kInvalidPlayer) {
-        steps.push_back(step);
-      }
+      if (step.player_id() != kInvalidPlayer &&
+          step.player_id() == player_id) continue;
+      steps.push_back(step);
     }
     player.sequence_number = steps_.size();
     return steps;

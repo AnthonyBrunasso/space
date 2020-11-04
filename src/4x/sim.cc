@@ -13,6 +13,7 @@ struct Unit {
   s32 id;
   s32 player_id;
   v2i grid_pos;
+  s32 action_points;
 };
 
 struct Sim {
@@ -61,11 +62,31 @@ SimPlayer(s32 id)
   return &found->second;
 }
 
+Unit*
+SimUnit(s32 id)
+{
+  for (Unit& unit : kSim.units) {
+    if (unit.id == id) {
+      return &unit;
+    }
+  }
+  return nullptr;
+}
+
 Player*
 SimActivePlayer()
 {
   if (!kSim.active_player_id) return nullptr;
   return SimPlayer(kSim.active_player_id);
+}
+
+void
+SimAllPlayersDone()
+{
+  printf("[SIM] all players done\n");
+  for (Unit& unit : kSim.units) {
+    unit.action_points = 1;
+  }
 }
 
 void
@@ -108,7 +129,28 @@ SimUnitCreate(const proto::UnitCreate& unit_create)
   unit.id = kUnitId++;
   unit.player_id = unit_create.player_id();
   unit.grid_pos = v2i(unit_create.grid_x(), unit_create.grid_y());
+  unit.action_points = 1;
   kSim.units.push_back(unit);
+}
+
+void
+SimUnitMove(const proto::UnitMove& unit_move)
+{
+  printf("[SIM] unit move: %s\n", unit_move.DebugString().c_str());
+  Unit* unit = SimUnit(unit_move.unit_id());
+  if (!unit) {
+    printf("[SIM ERROR] unit does not exist.\n");
+    return;
+  }
+  unit->grid_pos = v2i(unit_move.to_grid_x(), unit_move.to_grid_y());
+  unit->action_points = 0;
+
+  // TODO: This is temp.
+  ++kSim.active_player_id;
+  if (kSim.active_player_id > kSim.players.size()) {
+    kSim.active_player_id = 1;
+    SimAllPlayersDone();
+  }
 }
 
 void
@@ -126,6 +168,13 @@ SimExecute(const proto::SimulationStepRequest& request)
     } break;
     case proto::SimulationStepRequest::kUnitCreate: {
       SimUnitCreate(request.unit_create());
+    } break;
+    case proto::SimulationStepRequest::kUnitMove: {
+      if (request.player_id() != kSim.active_player_id) {
+        printf("[SIM ERROR] unit tried to move out of turn.\n");
+        return;
+      }
+      SimUnitMove(request.unit_move());
     } break;
     default: break;
   }

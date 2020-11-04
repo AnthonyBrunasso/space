@@ -23,6 +23,12 @@ message UnitCreate {
   int32 grid_y = 3;
 }
 
+message UnitMove {
+  int32 unit_id = 1;
+  int32 to_grid_x = 2;
+  int32 to_grid_y = 3;
+}
+
 message SimulationStepRequest {
   // Leave blank if unknown.
   int32 player_id = 1;
@@ -31,6 +37,7 @@ message SimulationStepRequest {
     MapCreate map_create = 3;
     SimStart sim_start = 4;
     UnitCreate unit_create = 5;
+    UnitMove unit_move = 6;
   }
 }
 

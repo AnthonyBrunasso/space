@@ -315,6 +315,30 @@ UpdateGame(const v2f& cursor, b8 mouse_down, v2f& mouse_start, rgg::Camera& came
       camera.PitchYawDelta(diff.yx() * 0.1f);
       mouse_start = cursor;
     }
+
+    fourx::Player* player = fourx::SimPlayer(kLocalPlayerId);
+    if (fourx::SimActivePlayer() == player) {
+      for (const fourx::Unit& unit : fourx::SimGetUnits()) {
+        if (unit.action_points <= 0) continue;
+        if (unit.player_id == player->id) {
+          std::vector<fourx::HexTile*> tiles =
+              fourx::SimGetMap()->Bfs(unit.grid_pos, 1);
+          for (const auto* t : tiles) {
+            v2f tworld = math::HexAxialToWorld(t->grid_pos, 5.f);
+            if (kHighlighted == t->grid_pos) {
+              fourx::proto::SimulationStepRequest step_request;
+              step_request.set_player_id(player->id);
+              fourx::proto::UnitMove* move = step_request.mutable_unit_move();
+              move->set_unit_id(unit.id);
+              move->set_to_grid_x(kHighlighted.x);
+              move->set_to_grid_y(kHighlighted.y);
+              fourx::SimExecute(step_request);
+              fourx::ClientPushStepRequest(step_request);
+            }
+          }
+        }
+      }
+    }
   }
 }
 
@@ -325,10 +349,7 @@ RenderGame(const v2f& cursor, rgg::Camera& camera, fourx::HexMap* hex_map)
 
   rgg::GetObserver()->view = camera.View();
 
-  v3f p = camera.RayFromScreenToWorld(cursor, window::GetWindowSize(), 50.f);
-  v2i picked = HexWorldToAxial(p.xy(), 5.f);
-  kHighlighted = picked;
-
+  
   for (const auto& t : hex_map->tiles()) {
     RenderHexGridCoord(*hex_map, t.grid_pos);
   }
@@ -343,10 +364,25 @@ RenderGame(const v2f& cursor, rgg::Camera& camera, fourx::HexMap* hex_map)
     }
   }
 
-  v2f world = math::HexAxialToWorld(picked, 5.f);
+  v2f world = math::HexAxialToWorld(kHighlighted, 5.f);
   rgg::RenderLineHexagon(v3f(world, -49.5f), 5.f, rgg::kRed);
   rgg::RenderLineHexagon(v3f(world, -49.0f), 5.f, rgg::kRed);
   rgg::RenderLineHexagon(v3f(world, -48.5f), 5.f, rgg::kRed);
+
+  fourx::Player* player = fourx::SimPlayer(kLocalPlayerId);
+  if (fourx::SimActivePlayer() == player) {
+    for (const fourx::Unit& unit : fourx::SimGetUnits()) {
+      if (unit.action_points <= 0) continue;
+      if (unit.player_id == player->id) {
+        std::vector<fourx::HexTile*> tiles =
+            fourx::SimGetMap()->Bfs(unit.grid_pos, 1);
+        for (const auto* t : tiles) {
+          v2f tworld = math::HexAxialToWorld(t->grid_pos, 5.f);
+          rgg::RenderLineHexagon(v3f(tworld, -49.5f), 5.f, rgg::kGreen);
+        }
+      }
+    }
+  }
 
   DebugUI(*hex_map);
   SimUI();
@@ -441,6 +477,7 @@ main(s32 argc, char** argv)
           if (!imui::MouseInUI(imui::kEveryoneTag)) mouse_down = true;
           switch (event.button) {
             case BUTTON_LEFT: {
+             
             } break;
             case BUTTON_RIGHT: {
             } break;
@@ -467,6 +504,10 @@ main(s32 argc, char** argv)
 
     const v2f cursor = window::GetCursorPosition();
     imui::MousePosition(cursor, imui::kEveryoneTag);
+
+    v3f p = camera.RayFromScreenToWorld(cursor, window::GetWindowSize(), 50.f);
+    v2i picked = HexWorldToAxial(p.xy(), 5.f);
+    kHighlighted = picked;
 
     UpdateGame(cursor, mouse_down, mouse_start, camera);
     RenderGame(cursor, camera, fourx::SimGetMap());

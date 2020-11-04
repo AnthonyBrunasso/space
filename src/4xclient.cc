@@ -27,6 +27,14 @@ ABSL_FLAG(std::string, address, "127.0.0.1:3878",
 
 ABSL_FLAG(std::string, name, "Anthony", "Name to join server with.");
 
+ABSL_FLAG(u64, wwidth, 1920, "Width of window.");
+
+ABSL_FLAG(u64, wheight, 1080, "Width of window.");
+
+ABSL_FLAG(u64, wx, UINT64_MAX, "X position of where the window starts.");
+
+ABSL_FLAG(u64, wy, UINT64_MAX, "Y position of where the window starts.");
+
 struct State {
   // Game and render updates per second
   u64 framerate = 60;
@@ -329,7 +337,10 @@ main(s32 argc, char** argv)
   if (!memory::Initialize(MiB(64))) {
     return 1;
   }
-
+  kGameState.window_create_info.window_width = absl::GetFlag(FLAGS_wwidth);
+  kGameState.window_create_info.window_height = absl::GetFlag(FLAGS_wheight);
+  kGameState.window_create_info.window_pos_x = absl::GetFlag(FLAGS_wx);
+  kGameState.window_create_info.window_pos_y = absl::GetFlag(FLAGS_wy);
   if (!window::Create("Game", kGameState.window_create_info)) {
     return 1;
   }

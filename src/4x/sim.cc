@@ -93,6 +93,12 @@ void
 SimUnitCreate(const proto::UnitCreate& unit_create)
 {
   printf("[SIM] unit create: %s\n", unit_create.DebugString().c_str());
+  static s32 kUnitId = 1;
+  Unit unit;
+  unit.id = kUnitId++;
+  unit.player_id = unit_create.player_id();
+  unit.grid_pos = v2i(unit_create.grid_x(), unit_create.grid_y());
+  kSim.units.push_back(unit);
 }
 
 void

@@ -323,6 +323,16 @@ RenderGame(const v2f& cursor, rgg::Camera& camera, fourx::HexMap* hex_map)
   for (const auto& t : hex_map->tiles()) {
     RenderHexGridCoord(*hex_map, t.grid_pos);
   }
+  
+  const auto& units = fourx::SimGetUnits();
+  for (const auto& u : units) {
+    v2f world = math::HexAxialToWorld(u.grid_pos, 5.f);
+    if (u.player_id == 1) {
+      rgg::RenderCube(Cubef(v3f(world, -48.5f), 2.5f, 2.5f, 2.5f), rgg::kRed);
+    } else {
+      rgg::RenderCube(Cubef(v3f(world, -48.5f), 2.5f, 2.5f, 2.5f), rgg::kBlue);
+    }
+  }
 
   v2f world = math::HexAxialToWorld(picked, 5.f);
   rgg::RenderLineHexagon(v3f(world, -49.5f), 5.f, rgg::kRed);

@@ -126,6 +126,14 @@ class HexMap {
   }
 
   HexTile*
+  RandomTile()
+  {
+    auto random_it =
+        std::next(std::begin(tile_map_), rand() % tile_map_.size());
+    return random_it->second;
+  }
+
+  HexTile*
   tile(const v2i& grid)
   {
     auto found = tile_map_.find(grid);

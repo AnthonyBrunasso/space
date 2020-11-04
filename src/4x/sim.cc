@@ -9,8 +9,16 @@ struct Player {
   std::string name;
 };
 
+struct Unit {
+  s32 id;
+  s32 player_id;
+  v2i grid_pos;
+};
+
 struct Sim {
   std::unordered_map<s32, Player> players;
+  std::vector<Unit> units;
+  std::unique_ptr<HexMap> hex_map;
   b8 is_game_started = false;
 };
 
@@ -24,6 +32,18 @@ SimGetPlayers()
     players.push_back(&player.second);
   }
   return players;
+}
+
+const std::vector<Unit>&
+SimGetUnits()
+{
+  return kSim.units;
+}
+
+HexMap*
+SimGetMap()
+{
+  return kSim.hex_map.get();
 }
 
 b8
@@ -58,7 +78,8 @@ SimPlayerJoin(const proto::PlayerJoin& player_join)
 void
 SimMapCreate(const proto::MapCreate& map_create)
 {
-  printf("[SIM] create map size: %i\n", map_create.size()); 
+  kSim.hex_map = std::make_unique<HexMap>(map_create.size());
+  printf("[SIM] map created size %i\n", map_create.size());
 }
 
 void
@@ -66,6 +87,12 @@ SimStart(const proto::SimStart& sim_start)
 {
   kSim.is_game_started = true;
   printf("[SIM] start\n"); 
+}
+
+void
+SimUnitCreate(const proto::UnitCreate& unit_create)
+{
+  printf("[SIM] unit create: %s\n", unit_create.DebugString().c_str());
 }
 
 void
@@ -80,6 +107,9 @@ SimExecute(const proto::SimulationStepRequest& request)
     } break;
     case proto::SimulationStepRequest::kSimStart: {
       SimStart(request.sim_start());
+    } break;
+    case proto::SimulationStepRequest::kUnitCreate: {
+      SimUnitCreate(request.unit_create());
     } break;
     default: break;
   }

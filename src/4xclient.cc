@@ -256,6 +256,18 @@ PollAndExecuteNetworkEvents()
     if (response.steps_size() > 0) {
       for (const auto& step : response.steps()) {
         fourx::SimExecute(step);
+        // TODO: This is for testing.
+        if (step.has_map_create() && fourx::SimGetMap()) {
+          assert(kLocalPlayerId);
+          fourx::SimulationStepRequest request;
+          auto* unit_create = request.mutable_unit_create();
+          srand(kLocalPlayerId);
+          fourx::HexTile* r = fourx::SimGetMap()->RandomTile();
+          unit_create->set_grid_x(r->grid_pos.x);
+          unit_create->set_grid_y(r->grid_pos.y);
+          unit_create->set_player_id(kLocalPlayerId);
+          fourx::ClientPushStepRequest(request);
+        }
       }
     }
   }
@@ -298,16 +310,18 @@ UpdateGame(const v2f& cursor, b8 mouse_down, v2f& mouse_start, rgg::Camera& came
 }
 
 void
-RenderGame(const v2f& cursor, rgg::Camera& camera, fourx::HexMap& hex_map)
+RenderGame(const v2f& cursor, rgg::Camera& camera, fourx::HexMap* hex_map)
 {
+  if (!hex_map) return;
+
   rgg::GetObserver()->view = camera.View();
 
   v3f p = camera.RayFromScreenToWorld(cursor, window::GetWindowSize(), 50.f);
   v2i picked = HexWorldToAxial(p.xy(), 5.f);
   kHighlighted = picked;
 
-  for (const auto& t : hex_map.tiles()) {
-    RenderHexGridCoord(hex_map, t.grid_pos);
+  for (const auto& t : hex_map->tiles()) {
+    RenderHexGridCoord(*hex_map, t.grid_pos);
   }
 
   v2f world = math::HexAxialToWorld(picked, 5.f);
@@ -315,7 +329,7 @@ RenderGame(const v2f& cursor, rgg::Camera& camera, fourx::HexMap& hex_map)
   rgg::RenderLineHexagon(v3f(world, -49.0f), 5.f, rgg::kRed);
   rgg::RenderLineHexagon(v3f(world, -48.5f), 5.f, rgg::kRed);
 
-  DebugUI(hex_map);
+  DebugUI(*hex_map);
   SimUI();
 
   rgg::DebugRenderPrimitives();
@@ -357,12 +371,11 @@ main(s32 argc, char** argv)
   kGameState.frame_target_usec = 1000.f * 1000.f / kGameState.framerate;
   printf("Client target usec %lu\n", kGameState.frame_target_usec);
 
-  rgg::Camera camera(v3f(0.f, 0.f, 0.f), v3f(0.f, 1.f, 0.f));
+  rgg::Camera camera(v3f(0.f, -80.f, 0.f), v3f(0.f, 1.f, 0.f));
+  camera.PitchYawDelta(45.f, 0.f);
 
   rgg::GetObserver()->projection =
       rgg::DefaultPerspective(window::GetWindowSize());
-
-  fourx::HexMap hex_map(kHexMapSize);
 
   bool mouse_down = false;
   v2f mouse_start;
@@ -437,7 +450,7 @@ main(s32 argc, char** argv)
     imui::MousePosition(cursor, imui::kEveryoneTag);
 
     UpdateGame(cursor, mouse_down, mouse_start, camera);
-    RenderGame(cursor, camera, hex_map);
+    RenderGame(cursor, camera, fourx::SimGetMap());
 
     const u64 elapsed_usec = platform::ClockEnd(&game_clock);
     StatsAdd(elapsed_usec, &kGameStats);

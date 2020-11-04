@@ -179,16 +179,25 @@ SimUI()
   v2f screen = window::GetWindowSize();
   static b8 enable_players_ui = true;
   static v2f diagnostics_pos(screen.x - 415.f, screen.y);
-  static r32 right_align = 130.f;
   imui::PaneOptions options;
   options.width = options.max_width = 415.f;
   imui::Begin("Players", imui::kEveryoneTag, options, &diagnostics_pos,
               &enable_players_ui);
   std::vector<const fourx::Player*> players = fourx::SimGetPlayers();
   for (const fourx::Player* player : players) {
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "%i: %s",
-             player->id, player->name.c_str());
-    imui::Text(kUIBuffer);
+    imui::SameLine();
+    if (player == fourx::SimActivePlayer()) {
+      imui::TextOptions toptions;
+      toptions.color = rgg::kGreen;
+      imui::Text(std::to_string(player->id).c_str(), toptions);
+    } else {
+      imui::TextOptions toptions;
+      toptions.color = rgg::kRed;
+      imui::Text(std::to_string(player->id).c_str(), toptions);
+    }
+    imui::Text(": ");
+    imui::Text(player->name.c_str());
+    imui::NewLine();
   }
   if (!fourx::SimIsGameStarted()) {
     imui::Space(imui::kVertical, 10.f);

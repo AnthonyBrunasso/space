@@ -19,6 +19,7 @@ struct Sim {
   std::unordered_map<s32, Player> players;
   std::vector<Unit> units;
   std::unique_ptr<HexMap> hex_map;
+  s32 active_player_id = 0;
   b8 is_game_started = false;
 };
 
@@ -60,6 +61,13 @@ SimPlayer(s32 id)
   return &found->second;
 }
 
+Player*
+SimActivePlayer()
+{
+  if (!kSim.active_player_id) return nullptr;
+  return SimPlayer(kSim.active_player_id);
+}
+
 void
 SimPlayerJoin(const proto::PlayerJoin& player_join)
 {
@@ -86,7 +94,9 @@ void
 SimStart(const proto::SimStart& sim_start)
 {
   kSim.is_game_started = true;
-  printf("[SIM] start\n"); 
+  kSim.active_player_id = 1;
+  printf("[SIM] start active player is %s\n",
+         SimPlayer(kSim.active_player_id)->name.c_str()); 
 }
 
 void

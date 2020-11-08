@@ -1,50 +1,10 @@
-#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <string>
-#include <sstream>
+#include <vector>
 
-struct Token {
-  enum Type {
-    kLiteral,    // 5 23
-    kOperator,   // + - * /
-    kSeperator,  // ( ) , ; 
-  };
-  // Points to the starting location of the identifier.
-  const char* identifier_ptr;
-  // Length of the identifier.
-  int identifier_size;
-  // Type of token see Token::Type.
-  Type type;
-  union {
-    int literal;
-    char op;
-    char seperator;
-  };
-
-  std::string DebugString() const {
-    std::ostringstream str;
-    str << "[identifier(\"";
-    str.write(identifier_ptr, identifier_size);
-    str << "\"), ";
-    switch (type) {
-      case kLiteral: {
-        str << "literal(" << literal << ")]";
-      } break;
-      case kOperator: {
-        str << "operator(" << op << ")]";
-      } break;
-      case kSeperator: {
-        str << "seperator('" << seperator << "')]";
-      } break;
-      default: assert(!"Missing type in Token::DebugString");
-    }
-    return str.str();
-  }
-};
-
-const char* kExample_1 = "13 + 3 - (5 * 2)";
+namespace alng {
 
 inline bool IsLiteral(char c) {
   return c > '0' && c < '9';
@@ -81,7 +41,7 @@ bool ParseToken(const char* txt, int txt_size, Token* token, int* idx) {
   while (IsLiteral(txt[*idx])) {
     AdvanceTokenizer(txt, token, idx);
     if ((*idx) >= txt_size || !IsLiteral(txt[*idx])) {
-      token->type = Token::kLiteral;
+      token->type = Token::kIntLiteral;
       char* end;
       token->literal = strtol(token->identifier_ptr, &end, 10);
       return true;
@@ -110,16 +70,17 @@ bool ParseToken(const char* txt, int txt_size, Token* token, int* idx) {
   return false;
 }
 
-int main(int argc, char** argv) {
-  int len = strlen(kExample_1);
+std::vector<Token> Tokenize(const char* txt) {
+  std::vector<Token> tokens;
+  int len = strlen(txt);
   int idx = 0;
-  SkipWhitespace(kExample_1, len, &idx);
-
+  SkipWhitespace(txt, len, &idx);
   Token token;
-  while (ParseToken(kExample_1, len, &token, &idx)) {
-    printf("%s\n", token.DebugString().c_str());
-    SkipWhitespace(kExample_1, len, &idx);
+  while (ParseToken(txt, len, &token, &idx)) {
+    SkipWhitespace(txt, len, &idx);
+    tokens.push_back(token);
   }
-  
-  return 0;
+  return tokens;
+}
+
 }

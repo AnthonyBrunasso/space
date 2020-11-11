@@ -2,7 +2,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
-#include <vector>
 
 namespace alng {
 
@@ -18,12 +17,8 @@ inline bool IsSeperator(char c) {
   return c == '(' || c == ')' || c == ',' || c == ';';
 }
 
-void AdvanceTokenizer(const char* txt, Token* token, int* idx) {
-  if (!token->identifier_ptr) {
-    token->identifier_ptr = &txt[*idx];
-  }
-  ++token->identifier_size;
-  ++(*idx);
+inline bool IsWhitespace(char c) {
+  return c == ' ' || c == '\n' || c == '\t';
 }
 
 class Lexer {
@@ -43,41 +38,39 @@ class Lexer {
 
   void SkipWhitespace() {
     if (!has_input()) return;
-    while (has_input() && text_[cursor_] == ' ') {
+    while (has_input() && IsWhitespace(text_[cursor_])) {
       ++cursor_;
     }
   }
 
   bool AdvanceCursor(Token* token) {
     if (!has_input()) return false;
+    SkipWhitespace();
     *token = {};
     while (IsLiteral(character())) {
-      AdvanceTokenizer(text_, token, &cursor_);
+      SetAndAdvance(token);
       if (cursor_ >= text_size_ || !IsLiteral(character())) {
         char* end;
         token->type = Token::kIntLiteral;
         token->literal = strtol(token->identifier_ptr, &end, 10);
-        SkipWhitespace();
         return true;
       }
     }
 
     while (IsOperator(character())) {
-      AdvanceTokenizer(text_, token, &cursor_);
+      SetAndAdvance(token);
       if (cursor_ >= text_size_ || !IsOperator(character())) {
         token->type = Token::kOperator;
         token->op = *token->identifier_ptr;
-        SkipWhitespace();
         return true;
       }
     }
 
     while (IsSeperator(character())) {
-      AdvanceTokenizer(text_, token, &cursor_);
+      SetAndAdvance(token);
       if (cursor_ >= text_size_ || !IsSeperator(character())) {
         token->type = Token::kSeperator;
         token->seperator = *token->identifier_ptr;
-        SkipWhitespace();
         return true;
       }
     }
@@ -87,6 +80,14 @@ class Lexer {
   }
 
  private:
+  void SetAndAdvance(Token* token) {
+    if (!token->identifier_ptr) {
+      token->identifier_ptr = &text_[cursor_];
+    }
+    ++token->identifier_size;
+    ++cursor_;
+  }
+
   const char* text_;
   int text_size_;
   int cursor_;

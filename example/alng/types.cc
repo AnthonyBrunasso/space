@@ -8,11 +8,22 @@
 
 namespace alng {
 
+int GetOperatorPrecedence(char op) {
+  switch (op) {
+    case '+': return 1;
+    case '-': return 1;
+    case '*': return 2;
+    case '/': return 2;
+    default: assert(!"No operator precedence set.");
+  };
+  return 0;
+}
+
 struct Token {
   enum Type {
-    kIntLiteral,    // 5 23
-    kOperator,   // + - * /
-    kSeperator,  // ( ) , ; 
+    kIntLiteral,  // 5 23
+    kOperator,    // + - * /
+    kSeperator,   // ( ) , ; 
   };
   // Points to the starting location of the identifier.
   const char* identifier_ptr;
@@ -61,63 +72,49 @@ struct ASTExpression {
   };
 
   Type type = kNull;
-  
-  std::variant<int, std::vector<ASTExpression>> data;
 
-  int& int_literal() {
-    return std::get<0>(data);
-  }
-
-  std::vector<ASTExpression>& children() {
-    return std::get<1>(data);
-  }
-
-  int int_literal() const {
-    return std::get<0>(data);
-  }
-
-  const std::vector<ASTExpression>& children() const {
-    return std::get<1>(data);
-  }
+  int value;
+  std::vector<ASTExpression> children;
 
   std::string DebugString(int lvl = 0) const {
     std::ostringstream str;
-    str.write(" ", lvl * 2);
+    // TODO: This probably needs to change.
+    for (int i = 0; i < lvl * 2; ++i) str << " ";
     switch (type) {
       case kNull: {
         str << "Node(NULL)" << std::endl;
       } break;
       case kIntLiteral: {
-        str << "Node(Literal int_value: " << int_literal() << ")"
+        str << "Node(Literal int_value: " << value << ")"
             << std::endl;
       } break;
       case kArithmeticAdd: {
         str << "Node(Arithmetic ADD)" << std::endl;
-        for (const auto& child : children()) {
+        for (const auto& child : children) {
           str << child.DebugString(lvl + 1);
         }
       } break;
       case kArithmeticSubtract: {
         str << "Node(Arithmetic SUBTRACT)" << std::endl;
-        for (const auto& child : children()) {
+        for (const auto& child : children) {
           str << child.DebugString(lvl + 1);
         }
       } break;
       case kArithmeticMultiply: {
         str << "Node(Arithmetic MULTIPLY)" << std::endl;
-        for (const auto& child : children()) {
+        for (const auto& child : children) {
           str << child.DebugString(lvl + 1);
         }
       } break;
       case kArithmeticDivide: {
         str << "Node(Arithmetic DIVIDE)" << std::endl;
-        for (const auto& child : children()) {
+        for (const auto& child : children) {
           str << child.DebugString(lvl + 1);
         }
       } break;
       case kSubexpression: {
         str << "Node(Subexpression)" << std::endl;
-        for (const auto& child : children()) {
+        for (const auto& child : children) {
           str << child.DebugString(lvl + 1);
         }
       } break;

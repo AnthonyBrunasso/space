@@ -44,8 +44,8 @@ class Lexer {
   }
 
   bool AdvanceCursor(Token* token) {
-    if (!has_input()) return false;
     SkipWhitespace();
+    if (!has_input()) return false;
     *token = {};
     while (IsLiteral(character())) {
       SetAndAdvance(token);

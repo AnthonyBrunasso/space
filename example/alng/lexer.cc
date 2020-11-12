@@ -79,6 +79,18 @@ class Lexer {
     return false;
   }
 
+  void Reset() {
+    cursor_ = 0;
+  }
+
+  int cursor() const {
+    return cursor_;
+  }
+
+  int set_cursor(int cursor) {
+    cursor_ = cursor;
+  }
+
  private:
   void SetAndAdvance(Token* token) {
     if (!token->identifier_ptr) {

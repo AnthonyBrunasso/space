@@ -59,22 +59,29 @@ struct Token {
   }
 };
 
+struct ASTNode;
 
-struct ASTExpression {
+struct ASTArithmeticParams {
+  char op;
+  ASTNode* lhs;
+  ASTNode* rhs;
+};
+
+struct ASTNode {
   enum Type {
     kNull,
     kIntLiteral,
-    kArithmeticAdd,
-    kArithmeticSubtract,
-    kArithmeticMultiply,
-    kArithmeticDivide,
+    kArithmetic,
     kSubexpression,
   };
 
   Type type = kNull;
 
-  int value;
-  std::vector<ASTExpression> children;
+  union {
+    int int_literal;
+    ASTArithmeticParams arithmetic_params;
+    ASTNode* subexpression;
+  };
 
   std::string DebugString(int lvl = 0) const {
     std::ostringstream str;
@@ -85,40 +92,24 @@ struct ASTExpression {
         str << "Node(NULL)" << std::endl;
       } break;
       case kIntLiteral: {
-        str << "Node(Literal int_value: " << value << ")"
+        str << "Node(Literal int_literal: " << int_literal << ")"
             << std::endl;
       } break;
-      case kArithmeticAdd: {
-        str << "Node(Arithmetic ADD)" << std::endl;
-        for (const auto& child : children) {
-          str << child.DebugString(lvl + 1);
+      case kArithmetic: {
+        str << "Node(Arithmetic operator: "
+            << arithmetic_params.op << ")" << std::endl;
+        if (arithmetic_params.lhs) {
+          str << arithmetic_params.lhs->DebugString(lvl + 1);
         }
-      } break;
-      case kArithmeticSubtract: {
-        str << "Node(Arithmetic SUBTRACT)" << std::endl;
-        for (const auto& child : children) {
-          str << child.DebugString(lvl + 1);
-        }
-      } break;
-      case kArithmeticMultiply: {
-        str << "Node(Arithmetic MULTIPLY)" << std::endl;
-        for (const auto& child : children) {
-          str << child.DebugString(lvl + 1);
-        }
-      } break;
-      case kArithmeticDivide: {
-        str << "Node(Arithmetic DIVIDE)" << std::endl;
-        for (const auto& child : children) {
-          str << child.DebugString(lvl + 1);
+        if (arithmetic_params.rhs) {
+          str << arithmetic_params.rhs->DebugString(lvl + 1);
         }
       } break;
       case kSubexpression: {
         str << "Node(Subexpression)" << std::endl;
-        for (const auto& child : children) {
-          str << child.DebugString(lvl + 1);
-        }
+        str << subexpression->DebugString(lvl + 1);
       } break;
-      default: assert(!"Missing type in ASTExpression::DebugString");
+      default: assert(!"Missing type in ASTNode::DebugString");
     }
     return str.str();
   }

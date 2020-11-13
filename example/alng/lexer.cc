@@ -6,7 +6,7 @@
 namespace alng {
 
 inline bool IsLiteral(char c) {
-  return c > '0' && c < '9';
+  return c >= '0' && c <= '9';
 }
 
 inline bool IsOperator(char c) {
@@ -52,7 +52,7 @@ class Lexer {
       if (cursor_ >= text_size_ || !IsLiteral(character())) {
         char* end;
         token->type = Token::kIntLiteral;
-        token->literal = strtol(token->identifier_ptr, &end, 10);
+        token->int_literal = strtol(token->identifier_ptr, &end, 10);
         return true;
       }
     }
@@ -87,7 +87,7 @@ class Lexer {
     return cursor_;
   }
 
-  int set_cursor(int cursor) {
+  void set_cursor(int cursor) {
     cursor_ = cursor;
   }
 

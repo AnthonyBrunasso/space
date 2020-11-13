@@ -15,60 +15,81 @@ void ASTSwapNodes(ASTNode* l, ASTNode* r) {
   *r = t;
 }
 
-bool ASTParse(Lexer* lexer, ASTNode** root_node, ASTNode* curr_node, int priority) {
+ASTNode* ASTCreateNode(const Token& token) {
+  ASTNode* node = UseASTNode();
+  switch (token.type) {
+    case Token::kIntLiteral: {
+      node->type = ASTNode::kIntLiteral;
+      node->int_literal = token.int_literal;
+    } break;
+    case Token::kOperator: {
+      node->type = ASTNode::kArithmetic;
+      node->arithmetic_params.op = token.op;
+      node->arithmetic_params.lhs = nullptr;
+      node->arithmetic_params.rhs = nullptr;
+    } break;
+    case Token::kSeperator:
+    default: assert(!"Implement ASTCreateNode");
+  }
+  return node;
+}
+
+bool ASTInsertNode(Lexer* lexer, ASTNode** root_node) {
   Token token;
   int cursor = lexer->cursor();
-  while (lexer->AdvanceCursor(&token)) {
-    switch (token.type) {
-      case Token::kIntLiteral: {
-        if (!(*root_node)) {
-          *root_node = UseASTNode();
-          (*root_node)->type = ASTNode::kIntLiteral;
-          (*root_node)->int_literal = token.literal;
-          curr_node = *root_node;
-        } else {
-          // TODO: Check that curr is an appropriate node for this operation.
-          if (curr_node->type == ASTNode::kArithmetic) {
-            assert(curr_node->arithmetic_params.lhs);
-            ASTNode* rhs = UseASTNode();
-            rhs->type = ASTNode::kIntLiteral;
-            rhs->int_literal = token.literal;
-            curr_node->arithmetic_params.rhs = rhs;
-          }
-        }
-      } break;
-      case Token::kOperator: {
-        if (!root_node) assert(!"Bad expression can't begin with operator");
-        // TODO: Check that curr is an appropriate node for this operation.
-        int precedence = GetOperatorPrecedence(token.op);
-        if (precedence > priority) {
-          lexer->set_cursor(cursor);
-          if (!ASTParse(lexer, &curr_node->arithmetic_params.rhs,
-                        curr_node->arithmetic_params.rhs, precedence)) {
-            return false;
-          }
-          return true;
-        } else {
-          ASTNode* new_node = UseASTNode();
-          new_node->type = ASTNode::kArithmetic;
-          new_node->arithmetic_params.op = token.op;
-          ASTSwapNodes(new_node, curr_node);
-          // curr_node is now the arithmetic expression.
-          curr_node->arithmetic_params.lhs = new_node;
-          curr_node->arithmetic_params.rhs = nullptr;
-        } 
-      } break;
-      case Token::kSeperator: {
-      } break;
-    }
-    cursor = lexer->cursor();
+  if (!lexer->AdvanceCursor(&token)) return false;
+  ASTNode* node = ASTCreateNode(token);
+  if (!(*root_node)) {
+    *root_node = node;
+    return true;
   }
-  return true;
+
+  // Root is a literal like and new node is arithmetic: "2 + 3 + 4"
+  if ((*root_node)->type == ASTNode::kIntLiteral &&
+      node->type == ASTNode::kArithmetic) {
+    node->arithmetic_params.lhs = *root_node;
+    *root_node = node;
+    return true;
+  }
+
+  // Simple case that the root is arithmetic and is missing its rhs param.
+  if ((*root_node)->type == ASTNode::kArithmetic &&
+      node->type == ASTNode::kIntLiteral) {
+    if (!(*root_node)->arithmetic_params.rhs) {
+      (*root_node)->arithmetic_params.rhs = node;
+    } else {
+      (*root_node)->arithmetic_params.rhs->arithmetic_params.rhs = node;
+    }
+    return true;
+  }
+
+  // Replace root - effectively add a lower precendence op / rotate tree.
+  if ((*root_node)->type == ASTNode::kArithmetic &&
+      ASTGetPrecedence(node) == 1) {
+    node->arithmetic_params.lhs = *root_node;
+    *root_node = node;
+    return true;
+  }
+
+  // Traverse into rhs of tree, pushing higher precedence op down.
+  if ((*root_node)->type == ASTNode::kArithmetic &&
+      ASTGetPrecedence(node) == 2) {
+    if ((*root_node)->arithmetic_params.rhs) {
+      ASTNode* t = (*root_node)->arithmetic_params.rhs;
+      (*root_node)->arithmetic_params.rhs = node;
+      node->arithmetic_params.lhs = t;
+    }
+    return true;
+  }
+
+  return false;
 }
 
 bool ASTParse(Lexer* lexer, ASTNode** root_node) {
   lexer->Reset();
-  if (!ASTParse(lexer, root_node, nullptr, 1)) return false;
+  while (lexer->has_input()) {
+    if (!ASTInsertNode(lexer, root_node)) return false;
+  }
   return true;
 }
 

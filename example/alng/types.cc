@@ -8,17 +8,6 @@
 
 namespace alng {
 
-int GetOperatorPrecedence(char op) {
-  switch (op) {
-    case '+': return 1;
-    case '-': return 1;
-    case '*': return 2;
-    case '/': return 2;
-    default: assert(!"No operator precedence set.");
-  };
-  return 0;
-}
-
 struct Token {
   enum Type {
     kIntLiteral,  // 5 23
@@ -33,7 +22,7 @@ struct Token {
   Type type;
   union {
     // TODO: Change to int_literal
-    int literal;
+    int int_literal;
     char op;
     char seperator;
   };
@@ -45,7 +34,7 @@ struct Token {
     str << "\"), ";
     switch (type) {
       case kIntLiteral: {
-        str << "literal(" << literal << ")]";
+        str << "int_literal(" << int_literal << ")]";
       } break;
       case kOperator: {
         str << "operator(" << op << ")]";
@@ -114,5 +103,27 @@ struct ASTNode {
     return str.str();
   }
 };
+
+int ASTGetPrecedence(const ASTNode* node) {
+  switch (node->type) {
+    case ASTNode::kNull: {
+      return 0;
+    } break;
+    case ASTNode::kIntLiteral: {
+      return 0;
+    } break;
+    case ASTNode::kArithmetic: {
+      switch (node->arithmetic_params.op) {
+        case '+': return 1;
+        case '-': return 1;
+        case '*': return 2;
+        case '/': return 2;
+      }
+    } break;
+    case ASTNode::kSubexpression: {
+    } break;
+  }
+  return 0;
+}
 
 }

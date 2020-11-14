@@ -34,14 +34,14 @@ ASTNode* ASTCreateNode(const Token& token) {
   return node;
 }
 
-bool ASTInsertNode(Lexer* lexer, ASTNode** root_node) {
+bool ASTInsertMathematicalExpr(Lexer* lexer, ASTNode** root_node) {
   Token token;
   int cursor = lexer->cursor();
   if (!lexer->AdvanceCursor(&token)) return false;
 
   if (token.type == Token::kSeperator && token.seperator == '(') {
     ASTNode* subexpr_root = nullptr;
-    while (ASTInsertNode(lexer, &subexpr_root));
+    while (ASTInsertMathematicalExpr(lexer, &subexpr_root));
     if (!(*root_node)) *root_node = subexpr_root;
     else {
       if ((*root_node)->type == ASTNode::kArithmetic) {
@@ -113,7 +113,7 @@ bool ASTInsertNode(Lexer* lexer, ASTNode** root_node) {
 bool ASTParse(Lexer* lexer, ASTNode** root_node) {
   lexer->Reset();
   while (lexer->has_input()) {
-    if (!ASTInsertNode(lexer, root_node)) return false;
+    if (!ASTInsertMathematicalExpr(lexer, root_node)) return false;
   }
   return true;
 }

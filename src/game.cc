@@ -136,8 +136,8 @@ main(s32 argc, char** argv)
       rgg::DefaultPerspective(window::GetWindowSize());
 
 
-  kRect1 = Rectf(0.f, 0.f, 10.f, 10.f);
-  kRect2 = Rectf(-40.f, 10.f, 10.f, 10.f);
+  kRect1 = Rectf(0.f, 0.f, 3.f, 12.f);
+  kRect2 = Rectf(-40.f, 10.f, 13.f, 5.f);
 
   while (1) {
     platform::ClockStart(&game_clock);

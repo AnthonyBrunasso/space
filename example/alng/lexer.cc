@@ -66,13 +66,11 @@ class Lexer {
       }
     }
 
-    while (IsSeperator(character())) {
+    if (IsSeperator(character())) {
       SetAndAdvance(token);
-      if (cursor_ >= text_size_ || !IsSeperator(character())) {
-        token->type = Token::kSeperator;
-        token->seperator = *token->identifier_ptr;
-        return true;
-      }
+      token->type = Token::kSeperator;
+      token->seperator = *token->identifier_ptr;
+      return true;
     }
 
     if (has_input()) printf("Unknown char %c\n", character());

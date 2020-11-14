@@ -42,12 +42,30 @@ void Test_5() {
   assert(alng::ASTEvaluate(root) == 157);
 }
 
+void Test_6() {
+  const char* kExample = "4 * (6 / (1 + 2)) - 3 + 5 * (2 - 4)";
+  alng::Lexer lexer(kExample, strlen(kExample));
+  alng::ASTNode* root = nullptr;
+  alng::ASTParse(&lexer, &root);
+  assert(alng::ASTEvaluate(root) == -5);
+}
+
+void Test_7() {
+  const char* kExample = "(3 - 2)";
+  alng::Lexer lexer(kExample, strlen(kExample));
+  alng::ASTNode* root = nullptr;
+  alng::ASTParse(&lexer, &root);
+  assert(alng::ASTEvaluate(root) == 1);
+}
+
 void RunAllTests() {
   Test_1();
   Test_2();
   Test_3();
   Test_4();
   Test_5();
+  Test_6();
+  Test_7();
 }
 
 int main(int argc, char** argv) {

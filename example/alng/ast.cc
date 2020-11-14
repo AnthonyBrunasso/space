@@ -7,7 +7,7 @@
 
 namespace alng {
 
-DECLARE_ARRAY(ASTNode, 128);
+DECLARE_ARRAY(ASTNode, 256);
 
 void ASTSwapNodes(ASTNode* l, ASTNode* r) {
   ASTNode t = *l;
@@ -38,6 +38,31 @@ bool ASTInsertNode(Lexer* lexer, ASTNode** root_node) {
   Token token;
   int cursor = lexer->cursor();
   if (!lexer->AdvanceCursor(&token)) return false;
+
+  if (token.type == Token::kSeperator && token.seperator == '(') {
+    ASTNode* subexpr_root = nullptr;
+    while (ASTInsertNode(lexer, &subexpr_root));
+    if (!(*root_node)) *root_node = subexpr_root;
+    else {
+      if ((*root_node)->type == ASTNode::kArithmetic) {
+        if (!(*root_node)->arithmetic_params.lhs) {
+          (*root_node)->arithmetic_params.lhs = subexpr_root;
+        } else if (!(*root_node)->arithmetic_params.rhs) {
+          (*root_node)->arithmetic_params.rhs = subexpr_root;
+        } else {
+          // TODO: This is probably not going to work in all cases.
+          (*root_node)->arithmetic_params.rhs->arithmetic_params.rhs =
+              subexpr_root;
+        }
+      }
+    }
+    return true;
+  }
+
+  if (token.type == Token::kSeperator && token.seperator == ')') {
+    return false; 
+  }
+
   ASTNode* node = ASTCreateNode(token);
   if (!(*root_node)) {
     *root_node = node;

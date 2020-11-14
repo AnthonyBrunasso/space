@@ -72,7 +72,7 @@ struct ASTNode {
     ASTNode* subexpression;
   };
 
-  std::string DebugString(int lvl = 0) const {
+  std::string DebugString(int lvl = 0, bool recurse = true) const {
     std::ostringstream str;
     // TODO: This probably needs to change.
     for (int i = 0; i < lvl * 2; ++i) str << " ";
@@ -87,18 +87,21 @@ struct ASTNode {
       case kArithmetic: {
         str << "Node(Arithmetic operator: "
             << arithmetic_params.op << ")" << std::endl;
-        if (arithmetic_params.lhs) {
+        if (arithmetic_params.lhs && recurse) {
           str << arithmetic_params.lhs->DebugString(lvl + 1);
         }
-        if (arithmetic_params.rhs) {
+        if (arithmetic_params.rhs && recurse) {
           str << arithmetic_params.rhs->DebugString(lvl + 1);
         }
       } break;
       case kSubexpression: {
         str << "Node(Subexpression)" << std::endl;
-        str << subexpression->DebugString(lvl + 1);
+        if (recurse) str << subexpression->DebugString(lvl + 1);
       } break;
-      default: assert(!"Missing type in ASTNode::DebugString");
+      default: {
+        printf("TYPE %i\n", type);
+        assert(!"Missing type in ASTNode::DebugString");
+      }
     }
     return str.str();
   }

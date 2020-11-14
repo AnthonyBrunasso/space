@@ -11,11 +11,11 @@ void Test_1() {
 }
 
 void Test_2() {
-  const char* kExample = "13 + 3 - 7";
+  const char* kExample = "1 * (3 + 2 / 1 * (1 + 3)) * 3 - 1 + (6 / 2 + 1 * (2 + 1 * (3 + 1)))";
   alng::Lexer lexer(kExample, strlen(kExample));
   alng::ASTNode* root = nullptr;
   alng::ASTParse(&lexer, &root);
-  assert(alng::ASTEvaluate(root) == 9);
+  assert(alng::ASTEvaluate(root) == 41);
 }
 
 void Test_3() {

@@ -2,10 +2,7 @@
 
 #include <vector>
 
-const char* kExample = "3 + 5 * (2 - 4)";
-                     // 4 * (6 / 3) - 3
-                     // 4 * 2 - 3
-                     // 5
+const char* kExample = "1 * (3 + 2 / 1 * (1 + 3)) * 3 - 1 + (6 / 2 + 1 * (2 + 1 * (3 + 1)))";
 
 // add
 //   3

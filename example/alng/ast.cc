@@ -90,7 +90,7 @@ bool ASTInsertMathematicalExpr(Lexer* lexer, ASTNode** root_node) {
 
   // Replace root - effectively add a lower precendence op / rotate tree.
   if ((*root_node)->type == ASTNode::kArithmetic &&
-      ASTGetPrecedence(node) == 1) {
+      ASTGetPrecedence(node) <= ASTGetPrecedence(*root_node)) {
     node->arithmetic_params.lhs = *root_node;
     *root_node = node;
     return true;
@@ -98,7 +98,7 @@ bool ASTInsertMathematicalExpr(Lexer* lexer, ASTNode** root_node) {
 
   // Traverse into rhs of tree, pushing higher precedence op down.
   if ((*root_node)->type == ASTNode::kArithmetic &&
-      ASTGetPrecedence(node) == 2) {
+      ASTGetPrecedence(node) >= ASTGetPrecedence(*root_node)) {
     if ((*root_node)->arithmetic_params.rhs) {
       ASTNode* t = (*root_node)->arithmetic_params.rhs;
       (*root_node)->arithmetic_params.rhs = node;

@@ -5,6 +5,7 @@
 
 #include "audio/audio.cc"
 #include "renderer/renderer.cc"
+#include "renderer/camera.cc"
 #include "renderer/imui.cc"
 
 struct State {
@@ -32,12 +33,15 @@ static Stats kGameStats;
 #define UIBUFFER_SIZE 64
 static char kUIBuffer[UIBUFFER_SIZE];
 
+static Rectf kRect1;
+static Rectf kRect2;
+
 void
 DebugUI()
 {
   v2f screen = window::GetWindowSize();
   {
-    static b8 enable_debug = false;
+    static b8 enable_debug = true;
     static v2f diagnostics_pos(3.f, screen.y);
     static r32 right_align = 130.f;
     imui::PaneOptions options;
@@ -75,14 +79,23 @@ DebugUI()
     snprintf(kUIBuffer, sizeof(kUIBuffer), "%.0fx%.0f", screen.x, screen.y);
     imui::Text(kUIBuffer);
     imui::NewLine();
+    imui::SameLine();
+    imui::Width(right_align);
+    imui::Text("Rect Distance");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "%f",
+             math::DistanceBetween(kRect2, kRect1));
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+
     imui::End();
   }
-
+#if 0
   {
     static b8 enable_debug = false;
     static v2f ui_pos(300.f, screen.y);
     imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
   }
+#endif
 }
 
 s32
@@ -106,9 +119,6 @@ main(s32 argc, char** argv)
     return 1;
   }
 
-  rgg::GetObserver()->projection =
-      rgg::DefaultPerspective(window::GetWindowSize());
-
   // Reset State
   StatsInit(&kGameStats);
   kGameState.game_updates = 0;
@@ -119,6 +129,15 @@ main(s32 argc, char** argv)
   // TODO: We should also enforce framerate is equal to refresh rate
   window::SwapBuffers();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  rgg::Camera camera(v3f(0.f, 0.f, 100.f), v3f(0.f, 1.f, 0.f));
+
+  rgg::GetObserver()->projection =
+      rgg::DefaultPerspective(window::GetWindowSize());
+
+
+  kRect1 = Rectf(0.f, 0.f, 10.f, 10.f);
+  kRect2 = Rectf(-40.f, 10.f, 10.f, 10.f);
 
   while (1) {
     platform::ClockStart(&game_clock);
@@ -137,9 +156,13 @@ main(s32 argc, char** argv)
               exit(1);
             } break;
           }
-        case MOUSE_DOWN:
+        case MOUSE_DOWN: {
           imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
-          break;
+          v3f world = camera.RayFromScreenToWorld(
+              event.position, window::GetWindowSize(), 0.f);
+          kRect2.x = world.x;
+          kRect2.y = world.y;
+        } break;
         case MOUSE_UP:
           imui::MouseUp(event.position, event.button, imui::kEveryoneTag);
           break;
@@ -155,15 +178,15 @@ main(s32 argc, char** argv)
     const v2f cursor = window::GetCursorPosition();
     imui::MousePosition(cursor, imui::kEveryoneTag);
 
+    rgg::GetObserver()->view = camera.View();
+
         
     // Render
     //rgg::RenderLineCube(Cubef(v3f(10.f, 30.f, -100.f), v3f(10.f, 10.f, 10.f)),
     //                    v4f(1.f, 0.f, 0.f, 1.f));
 
-    rgg::RenderSphere(v3f(0.f, 5.f, -100.f), v3f(5.f, 5.f, 5.f),
-                      v4f(0.f, 0.3f, 0.7f, 1.f));
-
-    rgg::RenderText("Test", v2f(300.f, 300.f), 1.f, rgg::kWhite);
+    rgg::RenderRectangle(kRect1, 0.f, 0.f, v4f(0.f, .2f, .8f, 1.f));
+    rgg::RenderRectangle(kRect2, 0.f, 0.f, v4f(0.f, .8f, .2f, 1.f));
 
     // Execute game code.
     DebugUI();

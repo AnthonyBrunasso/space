@@ -215,4 +215,52 @@ IsContainedInRect(const Rectf& a, const Rectf& b)
   return true;
 }
 
+r32
+DistanceBetween(const Rectf& a, const Rectf& b)
+{
+  v2f atl = a.Min() + v2f(0.f, a.height);
+  v2f abl = a.Min();
+  v2f atr = a.Min() + v2f(a.width, a.height);
+  v2f abr = a.Min() + v2f(a.width, 0.f);
+
+  v2f btl = b.Min() + v2f(0.f, b.height);
+  v2f bbl = b.Min();
+  v2f btr = b.Min() + v2f(b.width, b.height);
+  v2f bbr = b.Min() + v2f(b.width, 0.f);
+
+  if (abr.x < btl.x && abr.y > btl.y) {
+    return Length(abr - btl);
+  }
+
+  if (abl.x > btr.x && abl.y > btr.y) {
+    return Length(abl - btr);
+  }
+
+  if (atr.x < bbl.x && atr.y < bbl.y) {
+    return Length(atr - bbl);
+  }
+
+  if (atl.x > bbr.x && atl.y < bbr.y) {
+    return Length(atl - bbr);
+  }
+
+  if (abl.x > bbr.x) {
+    return abl.x - bbr.x;
+  }
+
+  if (abr.x < bbl.x) {
+    return bbl.x - abr.x;
+  }
+
+  if (abr.y > btr.y) {
+    return abr.y - btr.y;
+  }
+
+  if (atr.y < bbr.y) {
+    return bbr.y - atr.y;
+  }
+
+  return 0.f;
+}
+
 }  // namespace math

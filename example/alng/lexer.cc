@@ -10,7 +10,7 @@ inline bool IsLiteral(char c) {
 }
 
 inline bool IsOperator(char c) {
-  return c == '+' || c == '-' || c == '*' || c == '/';
+  return c == '+' || c == '-' || c == '*' || c == '/' || c == '=';
 }
 
 inline bool IsSeperator(char c) {
@@ -19,6 +19,12 @@ inline bool IsSeperator(char c) {
 
 inline bool IsWhitespace(char c) {
   return c == ' ' || c == '\n' || c == '\t';
+}
+
+inline bool IsValidSymbolCharacter(char c) {
+  if (c > 'a' && c < 'z') return true;
+  if (c > 'A' && c < 'Z') return true;
+  return false;
 }
 
 class Lexer {
@@ -41,6 +47,47 @@ class Lexer {
     while (has_input() && IsWhitespace(text_[cursor_])) {
       ++cursor_;
     }
+  }
+
+  bool IfTypeSetToken(Token* token) {
+    if (cursor_ >= text_size_) return false;
+    if (cursor_ + 4 <= text_size_ &&
+        strncmp(&text_[cursor_], "int ", 4) == 0) {
+      token->identifier_ptr = &text_[cursor_];
+      token->identifier_size = 3;
+      token->alg_type = AlgType::kInt;
+      cursor_ += 4;
+      return true;
+    }
+    if (cursor_ + 5 <= text_size_ &&
+        strncmp(&text_[cursor_], "uint ", 5) == 0) {
+      token->identifier_ptr = &text_[cursor_];
+      token->identifier_size = 4;
+      token->alg_type = AlgType::kUint;
+      cursor_ += 5;
+      return true;
+    }
+    if (cursor_ + 5 <= text_size_ &&
+        strncmp(&text_[cursor_], "char ", 5) == 0) {
+      token->identifier_ptr = &text_[cursor_];
+      token->identifier_size = 4;
+      token->alg_type = AlgType::kChar;
+      cursor_ += 5;
+      return true;
+    }
+    return false;
+  }
+
+  bool IfSymbolSetToken(Token* token) {
+    char c = character();
+    if (!IsValidSymbolCharacter(c)) return false;
+    if (IsSeperator(c) || IsOperator(c) || IsLiteral(c)) return false;
+    token->identifier_ptr = &text_[cursor_];
+    while (cursor_ <= text_size_ && IsValidSymbolCharacter(character())) {
+      ++token->identifier_size;
+      ++cursor_;
+    }
+    return true;
   }
 
   bool AdvanceCursor(Token* token) {
@@ -70,6 +117,16 @@ class Lexer {
       SetAndAdvance(token);
       token->type = Token::kSeperator;
       token->seperator = *token->identifier_ptr;
+      return true;
+    }
+
+    if (IfTypeSetToken(token)) {
+      token->type = Token::kType;
+      return true;
+    }
+
+    if (IfSymbolSetToken(token)) {
+      token->type = Token::kSymbol;
       return true;
     }
 

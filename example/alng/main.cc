@@ -2,7 +2,9 @@
 
 #include <vector>
 
-const char* kExample = "1 * (3 + 2 / 1 * (1 + 3)) * 3 - 1 + (6 / 2 + 1 * (2 + 1 * (3 + 1)))";
+const char* kExample = R"(
+  int x = 3;
+)";
 
 // add
 //   3
@@ -15,9 +17,13 @@ const char* kExample = "1 * (3 + 2 / 1 * (1 + 3)) * 3 - 1 + (6 / 2 + 1 * (2 + 1 
 
 int main(int argc, char** argv) {
   alng::Lexer lexer(kExample, strlen(kExample));
-  alng::ASTNode* root = nullptr;
-  alng::ASTParse(&lexer, &root);
-  if (root) printf("%s\n", root->DebugString().c_str());
-  if (root) printf("evaluates to %i\n", alng::ASTEvaluate(root));
+  alng::Token token;
+  while (lexer.AdvanceCursor(&token)) {
+    printf("token: %s\n", token.DebugString().c_str());
+  }
+  //alng::ASTNode* root = nullptr;
+  //alng::ASTParse(&lexer, &root);
+  //if (root) printf("%s\n", root->DebugString().c_str());
+  //if (root) printf("evaluates to %i\n", alng::ASTEvaluate(root));
   return 0;
 }

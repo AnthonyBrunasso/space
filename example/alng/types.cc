@@ -8,11 +8,19 @@
 
 namespace alng {
 
+enum AlgType {
+  kInt,
+  kUint,
+  kChar
+};
+
 struct Token {
   enum Type {
     kIntLiteral,  // 5 23
-    kOperator,    // + - * /
+    kOperator,    // + - * / =
     kSeperator,   // ( ) , ; 
+    kType,        // int uint float char
+    kSymbol,      // variable name, function name, struct name, etc
   };
   // Points to the starting location of the identifier.
   const char* identifier_ptr;
@@ -21,10 +29,10 @@ struct Token {
   // Type of token see Token::Type.
   Type type;
   union {
-    // TODO: Change to int_literal
     int int_literal;
     char op;
     char seperator;
+    AlgType alg_type;
   };
 
   std::string DebugString() const {
@@ -41,6 +49,23 @@ struct Token {
       } break;
       case kSeperator: {
         str << "seperator('" << seperator << "')]";
+      } break;
+      case kType: {
+        str << "type(";
+        switch (alg_type) {
+          case kInt: {
+            str << "int)]";
+          } break;
+          case kUint: {
+            str << "uint)]";
+          } break;
+          case kChar: {
+            str << "char)]";
+          } break;
+        }
+      } break;
+      case kSymbol: {
+        str << "symbol]";
       } break;
       default: assert(!"Missing type in Token::DebugString");
     }

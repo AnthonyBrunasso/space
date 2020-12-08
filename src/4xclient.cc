@@ -246,6 +246,12 @@ void
 PollAndExecuteNetworkEvents()
 {
   fourx::proto::SimulationStepResponse step_response;
+  // Handle specific step responses. Not all step requests return responses.
+  // Ones that do mean the server had something specific to inform the client
+  // before a sync request. Player join is one of those requests since the
+  // server has authoritative knowledge of all connected clients it is the
+  // only one that can assign a unique player id. That player id is needed
+  // before syncs can happen.
   while (fourx::ClientPopStepResponse(&step_response)) {
     if (step_response.has_player_join_response()) {
       kLocalPlayerId = step_response.player_join_response().player_id();

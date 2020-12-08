@@ -69,23 +69,21 @@ class ServerState {
     return server_player.id;
   }
 
-  std::vector<SimulationStepRequest>
-  SyncPlayer(s32 player_id)
+  void
+  SyncPlayer(s32 player_id, SimulationSyncResponse* response)
   {
-    std::vector<SimulationStepRequest> steps;
     ServerPlayer& player = players_[player_id];
-    if (player.sequence_number >= steps.size() - 1) {
-      return steps;
+    if (player.sequence_number >= steps_.size()) {
+      return;
     }
     for (int i = player.sequence_number; i < steps_.size(); ++i) {
       const SimulationStepRequest& step = steps_[i];
       // This step has already been processed on the client.
       if (step.player_id() != kInvalidPlayer &&
           step.player_id() == player_id) continue;
-      steps.push_back(step);
+      *response->add_steps() = step;
     }
     player.sequence_number = steps_.size();
-    return steps;
   }
 
   b8
@@ -191,11 +189,7 @@ class SimulationServer : public fourx::proto::SimulationService::Service
     if (!state_.FindPlayer(request->player_id())) {
       return grpc::Status(grpc::INVALID_ARGUMENT, "Invalid player id.");
     }
-    std::vector<SimulationStepRequest> steps =
-      state_.SyncPlayer(request->player_id());
-    for (const auto& step : steps) {
-      *response->add_steps() = step;
-    }
+    state_.SyncPlayer(request->player_id(), response);
     return grpc::Status::OK;
   }
 

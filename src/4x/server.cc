@@ -76,7 +76,7 @@ class ServerState {
     if (player.sequence_number >= steps_.size()) {
       return;
     }
-    for (int i = player.sequence_number; i < steps_.size(); ++i) {
+    for (s32 i = player.sequence_number; i < steps_.size(); ++i) {
       const SimulationStepRequest& step = steps_[i];
       // This step has already been processed on the client.
       if (step.player_id() != kInvalidPlayer &&
@@ -93,7 +93,7 @@ class ServerState {
   }
 
   void
-  set_is_map_created(bool val)
+  set_is_map_created(b8 val)
   {
     is_map_created_ = val;
   }

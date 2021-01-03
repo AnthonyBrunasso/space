@@ -271,7 +271,8 @@ PollAndExecuteNetworkEvents()
     if (response.steps_size() > 0) {
       for (const auto& step : response.steps()) {
         fourx::SimExecute(step);
-        // TODO: This is for testing.
+        // TODO: This is for testing - This would be how players get spawned
+        // to random hex tiles.
         if (step.has_map_create() && fourx::SimGetMap()) {
           assert(kLocalPlayerId);
           fourx::SimulationStepRequest request;

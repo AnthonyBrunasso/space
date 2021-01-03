@@ -10,7 +10,7 @@ if (WIN32)
 endif()
 
 if (APPLE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ObjC++ -stdlib=libc++ -Wformat")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ObjC++ -stdlib=libc++ -Wformat -Wno-deprecated-declarations")
 endif()
 
 # Use bin as the directory for all executables.

@@ -29,6 +29,7 @@
 #define WIN_ATTACH_DEBUGGER 0
 #define DEBUG_PHYSICS 0
 #define DEBUG_UI 1
+#define PLATFORMER_CAMERA 1
 
 struct State {
   // Game and render updates per second

@@ -157,6 +157,7 @@ Create(const char* name, s32 width, s32 height, b8 fullscreen)
   }
 
   [kWindow.gl_context makeCurrentContext];
+  // https://developer.apple.com/documentation/appkit/nsview/1414938-wantsbestresolutionopenglsurface?language=objc
   [kWindow.nsview setWantsBestResolutionOpenGLSurface:NO];
   [kWindow.gl_context setView:kWindow.nsview];
 

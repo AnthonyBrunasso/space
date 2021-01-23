@@ -223,7 +223,7 @@ Render()
       rgg::RenderTexture(
             kTextureCharacterId,
             itr.c.anim->fsm.Frame().rect(),
-            Rectf(paabb.x - 18.f, paabb.y,
+            Rectf(paabb.x - kCharacterAaabbTextureOffset, paabb.y,
                   character_sprite->width,
                   character_sprite->height), mirror);
       if (kRenderAabb) rgg::RenderLineRectangle(paabb, rgg::kRed);

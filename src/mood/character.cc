@@ -26,6 +26,7 @@ CharacterUpdate()
         physics::FindParticle2d(itr.c.physics->particle_id);
     CharacterComponent* c = itr.c.character;
     AnimComponent* anim = ecs::GetAnimComponent(itr.e);
+    Rectf caabb = particle->aabb();
     // Move character.
     if (particle) {
       if (FLAGGED(c->character_flags, kCharacterMove)) {
@@ -67,10 +68,17 @@ CharacterUpdate()
 
       if (melee_weapon &&
           FLAGGED(c->character_flags, kCharacterAttackMelee)) {
-        Rectf attack_area = c.anim->fsm.Frame().rect();
-        attack_area.x += c.p->aabb().x;
-        attack_area.y += c.p->aabb().y;
-        rgg::DebugPushRect(attack_area, rgg::kRed);
+        rgg::Texture* ct = rgg::GetTexture(c->texture_id);
+        animation::Sprite* character_sprite = rgg::GetSprite(c->texture_id);
+        // Should help if we forgot to assign a texture_id to a character.
+        assert(ct != nullptr);
+        Rectf ar(caabb.x - kCharacterAaabbTextureOffset, caabb.y,
+                 character_sprite->width, character_sprite->height);
+        if (c->aim_dir.x > 0.f) {
+          rgg::DebugPushRect(ar.RightHalf(), rgg::kRed);
+        } else {
+          rgg::DebugPushRect(ar.LeftHalf(), rgg::kRed);
+        }
       }
       //if (projectile_weapon && FLAGGED(c->character_flags, kCharacterFireSecondary)) {
       //  if (util::FrameCooldownReady(&projectile_weapon->cooldown)) {

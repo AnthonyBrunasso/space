@@ -86,6 +86,18 @@ struct Rectf {
     poly.vertex[3] += center;
     return poly;
   }
+
+  Rectf
+  RightHalf()
+  {
+    return Rectf(x + width / 2.f, y, width / 2.f, height);
+  }
+
+  Rectf
+  LeftHalf()
+  {
+    return Rectf(x, y, width / 2.f, height);
+  }
 };
 
 namespace math

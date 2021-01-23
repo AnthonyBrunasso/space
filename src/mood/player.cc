@@ -72,6 +72,7 @@ PlayerCreate(v2f position)
   kPlayer.id = player_entity->id;
   CharacterComponent* player_comp =
       ecs::AssignCharacterComponent(player_entity);
+  player_comp->texture_id = kTextureCharacterId;
   PhysicsComponent* physics_comp =
       ecs::AssignPhysicsComponent(player_entity);
   AnimComponent* anim_comp =

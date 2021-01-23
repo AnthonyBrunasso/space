@@ -67,7 +67,10 @@ CharacterUpdate()
 
       if (melee_weapon &&
           FLAGGED(c->character_flags, kCharacterAttackMelee)) {
-        rgg::DebugPushRect(Rectf(particle->position, 10.f, 10.f), rgg::kRed);
+        Rectf attack_area = c.anim->fsm.Frame().rect();
+        attack_area.x += c.p->aabb().x;
+        attack_area.y += c.p->aabb().y;
+        rgg::DebugPushRect(attack_area, rgg::kRed);
       }
       //if (projectile_weapon && FLAGGED(c->character_flags, kCharacterFireSecondary)) {
       //  if (util::FrameCooldownReady(&projectile_weapon->cooldown)) {

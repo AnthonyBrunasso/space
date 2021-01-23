@@ -477,13 +477,13 @@ MapEditor(v2f screen)
   imui::Space(imui::kHorizontal, 5.f);
   imui::Text("Items");
   imui::SameLine();
-  animation::Sprite* terrain_sprite = rgg::GetSprite(kRender.terrain_id);
+  animation::Sprite* terrain_sprite = rgg::GetSprite(kTextureTerrainId);
   for (int i = 0; i < terrain_sprite->label_size; ++i) {
     animation::SetLabel(i, terrain_sprite);
-    if (imui::Texture(32.f, 32.f, kRender.terrain_id,
+    if (imui::Texture(32.f, 32.f, kTextureTerrainId,
                       animation::Rect(terrain_sprite)).clicked) {
       kInteraction.selection.type = kSelectionTile;
-      kInteraction.selection.texture_id = kRender.terrain_id;
+      kInteraction.selection.texture_id = kTextureTerrainId;
       kInteraction.selection.subrect = animation::Rect(terrain_sprite);
       strcpy(kInteraction.selection.label_name,
              animation::LabelName(terrain_sprite));
@@ -492,13 +492,13 @@ MapEditor(v2f screen)
   }
   imui::NewLine();
   imui::SameLine();
-  animation::Sprite* tiles_sprite = rgg::GetSprite(kRender.tiles_id);
+  animation::Sprite* tiles_sprite = rgg::GetSprite(kTextureTilesId);
   for (int i = 0; i < tiles_sprite->label_size; ++i) {
     animation::SetLabel(i, tiles_sprite);
-    if (imui::Texture(32.f, 32.f, kRender.tiles_id,
+    if (imui::Texture(32.f, 32.f, kTextureTilesId,
                       animation::Rect(tiles_sprite)).clicked) {
       kInteraction.selection.type = kSelectionTile;
-      kInteraction.selection.texture_id = kRender.tiles_id;
+      kInteraction.selection.texture_id = kTextureTilesId;
       kInteraction.selection.subrect = animation::Rect(tiles_sprite);
       strcpy(kInteraction.selection.label_name,
              animation::LabelName(tiles_sprite));
@@ -508,14 +508,13 @@ MapEditor(v2f screen)
   imui::NewLine();
   imui::Space(imui::kVertical, 5.f);
   imui::SameLine();
-  animation::Sprite* wall_tiles_sprite =
-      rgg::GetSprite(kRender.wall_tiles_id);
+  animation::Sprite* wall_tiles_sprite = rgg::GetSprite(kTextureWallTilesId);
   for (int i = 0; i < wall_tiles_sprite->label_size; ++i) {
     animation::SetLabel(i, wall_tiles_sprite);
-    if (imui::Texture(32.f, 32.f, kRender.wall_tiles_id,
+    if (imui::Texture(32.f, 32.f, kTextureWallTilesId,
                       animation::Rect(wall_tiles_sprite)).clicked) {
       kInteraction.selection.type = kSelectionTile;
-      kInteraction.selection.texture_id = kRender.wall_tiles_id;
+      kInteraction.selection.texture_id = kTextureWallTilesId;
       kInteraction.selection.subrect = animation::Rect(wall_tiles_sprite);
       strcpy(kInteraction.selection.label_name,
              animation::LabelName(wall_tiles_sprite));
@@ -524,20 +523,20 @@ MapEditor(v2f screen)
   }
   imui::NewLine();
   imui::SameLine();
-  animation::Sprite* character_sprite = rgg::GetSprite(kRender.character_id);
-  if (imui::Texture(32.f, 32.f, kRender.character_id,
+  animation::Sprite* character_sprite = rgg::GetSprite(kTextureCharacterId);
+  if (imui::Texture(32.f, 32.f, kTextureCharacterId,
                     animation::Rect(character_sprite)).clicked) {
     kInteraction.selection.type = kSelectionSpawner;
-    kInteraction.selection.texture_id = kRender.character_id;
+    kInteraction.selection.texture_id = kTextureCharacterId;
     kInteraction.selection.subrect = animation::Rect(character_sprite);
     kInteraction.selection.spawner_type = kSpawnerPlayer;
   }
   imui::Space(imui::kHorizontal, 5.f);
-  animation::Sprite* snail_sprite = rgg::GetSprite(kRender.snail_id);
-  if (imui::Texture(32.f, 32.f, kRender.snail_id,
+  animation::Sprite* snail_sprite = rgg::GetSprite(kTextureSnailId);
+  if (imui::Texture(32.f, 32.f, kTextureSnailId,
                     animation::Rect(snail_sprite)).clicked) {
     kInteraction.selection.type = kSelectionSpawner;
-    kInteraction.selection.texture_id = kRender.snail_id;
+    kInteraction.selection.texture_id = kTextureSnailId;
     kInteraction.selection.subrect = animation::Rect(snail_sprite);
     kInteraction.selection.spawner_type = kSpawnerSnail;
   }

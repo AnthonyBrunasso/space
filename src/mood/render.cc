@@ -39,16 +39,6 @@ DECLARE_ARRAY(Effect, 64);
 DECLARE_ARRAY(PixelLine, 64);
 DECLARE_ARRAY(Texture, 256);
 
-struct Render {
-  u32 snail_id;
-  u32 character_id;
-  u32 terrain_id;
-  u32 tiles_id;
-  u32 wall_tiles_id;
-};
-
-static Render kRender;
-
 static b8 kRenderAabb = false;
 static b8 kRenderSpawner = false;
 static b8 kRenderGrid = false;
@@ -71,22 +61,22 @@ RenderInitialize()
   rgg::TextureInfo info;
   info.min_filter = GL_NEAREST;
   info.mag_filter = GL_NEAREST;
-  kRender.snail_id =
+  kTextureSnailId =
       rgg::LoadTextureAndSprite("asset/snail.tga", "asset/snail.anim", info);
-  assert(kRender.snail_id);
-  kRender.character_id  =
+  assert(kTextureSnailId);
+  kTextureCharacterId  =
       rgg::LoadTextureAndSprite("asset/adventurer.tga", "asset/adventurer.anim",
                                 info);
-  assert(kRender.character_id);
-  kRender.terrain_id = rgg::LoadTextureAndSprite(
+  assert(kTextureCharacterId);
+  kTextureTerrainId = rgg::LoadTextureAndSprite(
       "asset/firsttry-Sheet.tga", "asset/sheet.anim", info);
-  assert(kRender.terrain_id);
-  kRender.tiles_id = rgg::LoadTextureAndSprite(
+  assert(kTextureTerrainId);
+  kTextureTilesId = rgg::LoadTextureAndSprite(
       "asset/tiles.tga", "asset/tiles.anim", info);
-  assert(kRender.tiles_id);
-  kRender.wall_tiles_id = rgg::LoadTextureAndSprite(
+  assert(kTextureTilesId);
+  kTextureWallTilesId = rgg::LoadTextureAndSprite(
       "asset/wall_tiles.tga", "asset/wall_tiles.anim", info);
-  assert(kRender.wall_tiles_id);
+  assert(kTextureWallTilesId);
 }
 
 void
@@ -196,8 +186,8 @@ Render()
     }
   }
 
-  animation::Sprite* character_sprite = rgg::GetSprite(kRender.character_id);
-  animation::Sprite* snail_sprite = rgg::GetSprite(kRender.snail_id);
+  animation::Sprite* character_sprite = rgg::GetSprite(kTextureCharacterId);
+  animation::Sprite* snail_sprite = rgg::GetSprite(kTextureSnailId);
   //physics::DebugRender(); 
   ECS_ITR3(itr, kPhysicsComponent, kCharacterComponent, kAnimComponent);
   while (itr.Next()) {
@@ -231,7 +221,7 @@ Render()
       rgg::RenderLine(p->position, end, v4f(1.f, 0.f, 0.f, 0.25f));
 #endif
       rgg::RenderTexture(
-            kRender.character_id,
+            kTextureCharacterId,
             itr.c.anim->fsm.Frame().rect(),
             Rectf(paabb.x - 18.f, paabb.y,
                   character_sprite->width,
@@ -254,7 +244,7 @@ Render()
           // TODO: How should I handle this?
           bool mirror = p->velocity.x >= 0.f ? true : false;
           rgg::RenderTexture(
-              kRender.snail_id,
+              kTextureSnailId,
               animation::Update(snail_sprite, &c->anim_frame),
               Rectf(paabb.x - 8.f, paabb.y - 17.f,
                     snail_sprite->width,

@@ -53,6 +53,14 @@ constexpr r32 kScreenHeight = 1080;
 constexpr r32 kTileWidth = 16.f;
 constexpr r32 kTileHeight = 16.f;
 
+// Texture ids the game supports, set to 0 until game starts.
+// Afterwards should probably be considered constant??
+u32 kTextureCharacterId = 0;
+u32 kTextureSnailId = 0;
+u32 kTextureTerrainId = 0;
+u32 kTextureTilesId = 0;
+u32 kTextureWallTilesId = 0;
+
 enum CollisionMask {
   // Collide with everything.
   kCollisionMaskNone = 0,

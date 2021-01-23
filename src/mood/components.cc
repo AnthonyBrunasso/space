@@ -75,6 +75,8 @@ struct CharacterComponent {
   r32 move_multiplier = 0.f;
   // Speed at which the character should move.
   r32 move_acceleration = kPlayerAcceleration;
+  // Non-zero if the character has a texture associated with it.
+  u32 texture_id = 0;
   // How long the character must wait before they can perform a double jump.
   util::FrameCooldown double_jump_cooldown;
 };

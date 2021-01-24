@@ -31,7 +31,7 @@ TypeName(TypeId type_id)
     case kProjectileWeaponComponent: return "ProjectileWeapon";
     case kAnimComponent: return "Anim";
     case kMeleeWeaponComponent: return "Melee";
-    case kDamageComponent: return "Melee";
+    case kDamageComponent: return "Damage";
     default: return "Unknown";
   }
   return "Unknown";

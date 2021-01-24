@@ -41,7 +41,7 @@ AnimInitAdventurerFSM(animation::FSM* fsm)
       .Frame(50.f * 1.f, 0.f, 50.f, 37.f, 25)
       .Frame(50.f * 2.f, 0.f, 50.f, 37.f, 25)
       .Frame(50.f * 3.f, 0.f, 50.f, 37.f, 25)
-      .Transition(kAdventurerAnimAttackOne, is_attacking)
+      .Transition(kAdventurerAnimAttackTwo, is_attacking)
       .Transition(
           kAdventurerAnimWalk,
           [](u32 entity_id) {
@@ -57,7 +57,7 @@ AnimInitAdventurerFSM(animation::FSM* fsm)
       .Frame(50.f * 4.f, 37.f, 50.f, 37.f, 6)
       .Frame(50.f * 5.f, 37.f, 50.f, 37.f, 6)
       .Frame(50.f * 6.f, 37.f, 50.f, 37.f, 6)
-      .Transition(kAdventurerAnimAttackOne, is_attacking)
+      .Transition(kAdventurerAnimAttackTwo, is_attacking)
       .Transition(
           kAdventurerAnimIdle,
           [](u32 entity_id) {
@@ -72,7 +72,7 @@ AnimInitAdventurerFSM(animation::FSM* fsm)
       .Frame(50.f * 1.f, 37.f * 3.f, 50.f, 37.f, 6)
       .Frame(50.f * 2.f, 37.f * 3.f, 50.f, 37.f, 6)
       .Flag(animation::kFSMNodeStopOnFinalFrame)
-      .Transition(kAdventurerAnimAttackOne, is_attacking)
+      .Transition(kAdventurerAnimAttackTwo, is_attacking)
       .Transition(kAdventurerAnimIdle, on_ground)
       .Transition(
           kAdventurerAnimDoubleJump,
@@ -96,7 +96,7 @@ AnimInitAdventurerFSM(animation::FSM* fsm)
       .Frame(50.f * 1.f, 37.f * 3.f, 50.f, 37.f, 6)
       .Frame(50.f * 2.f, 37.f * 3.f, 50.f, 37.f, 6)
       .Flag(animation::kFSMNodeStopOnFinalFrame)
-      .Transition(kAdventurerAnimAttackOne, is_attacking)
+      .Transition(kAdventurerAnimAttackTwo, is_attacking)
       .Transition(kAdventurerAnimIdle, on_ground);
 
   fsm->Node(kAdventurerAnimAttackOne)

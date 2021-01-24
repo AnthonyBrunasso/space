@@ -52,6 +52,11 @@ __PlayerObstacleCollision(CharacterComponent* character,
   }
 }
 
+void
+__CharacterDamageCollision(CharacterComponent* character, DamageComponent* damage) {
+  if (character->entity_id == damage->from_entity) return;
+  character->health -= damage->damage;
+}
 #if 0
 void
 __PlayerCharacterCollision(Character* player, Character* character)
@@ -102,6 +107,15 @@ CollisionUpdate()
                   e1, e2);
         if (c && o) {
           __PlayerObstacleCollision(c, o);
+        }
+      }
+
+      {
+        GET_COMBO(CharacterComponent, c, kCharacterComponent,
+                  DamageComponent, d, kDamageComponent,
+                  e1, e2);
+        if (c && d) {
+          __CharacterDamageCollision(c, d);
         }
       }
     }

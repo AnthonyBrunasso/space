@@ -75,19 +75,32 @@ SimUpdate()
 
   AnimUpdate();
 
-  // Cleanup entities marked to die at the end of each simulation update
-  // frame. Particle for physics system will be destroyed at the top of the
-  // next integration step.
-  ECS_ITR1(itr, kDeathComponent);
-  while (itr.Next()) {
-    // Just in case an entity got multiple death components.
-    if (!itr.e) continue;
-    if (itr.e->Has(kPhysicsComponent)) {
-      physics::DeleteParticle2d(ecs::GetPhysicsComponent(itr.e)->particle_id);
+  {
+    ECS_ITR1(itr, kDamageComponent);
+    while (itr.Next()) {
+      if (!itr.e) continue;
+      if (itr.c.damage->ttl) --itr.c.damage->ttl; 
+      if (itr.c.damage->ttl == 0) {
+        ecs::AssignDeathComponent(itr.e);
+      }
     }
-    ecs::DeleteEntity(itr.e, kComponentCount);
   }
-  ecs::GetComponents(kDeathComponent)->Clear();
+
+  {
+    // Cleanup entities marked to die at the end of each simulation update
+    // frame. Particle for physics system will be destroyed at the top of the
+    // next integration step.
+    ECS_ITR1(itr, kDeathComponent);
+    while (itr.Next()) {
+      // Just in case an entity got multiple death components.
+      if (!itr.e) continue;
+      if (itr.e->Has(kPhysicsComponent)) {
+        physics::DeleteParticle2d(ecs::GetPhysicsComponent(itr.e)->particle_id);
+      }
+      ecs::DeleteEntity(itr.e, kComponentCount);
+    }
+    ecs::GetComponents(kDeathComponent)->Clear();
+  }
 
   // TODO: Not entirely sure why this is needed. Without this - sometimes
   // physics geometry can get into an invalid state where things tunnel

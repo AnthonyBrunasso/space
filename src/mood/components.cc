@@ -13,7 +13,8 @@ enum TypeId : u64 {
   kProjectileWeaponComponent = 7,
   kAnimComponent = 8,
   kMeleeWeaponComponent = 9,
-  kComponentCount = 10,
+  kDamageComponent = 10,
+  kComponentCount = 11,
 }; 
 
 const char*
@@ -30,6 +31,7 @@ TypeName(TypeId type_id)
     case kProjectileWeaponComponent: return "ProjectileWeapon";
     case kAnimComponent: return "Anim";
     case kMeleeWeaponComponent: return "Melee";
+    case kDamageComponent: return "Melee";
     default: return "Unknown";
   }
   return "Unknown";
@@ -125,7 +127,7 @@ struct ProjectileWeaponComponent {
   // How many frames the projectile should last for.
   r32 projectile_ttl = kProjectileTtl;
   // Damage that a projectile from this weapon will do.
-  r32 projectile_damage = 3.f;
+  r32 projectile_damage = .5f;
   // Cooldown that lets character fire their weapon.
   util::FrameCooldown cooldown;
   // Projectile will be randomly offset by an angle between
@@ -144,6 +146,16 @@ struct MeleeWeaponComponent {
   u32 entity_id = 0;
 };
 
+// Applies damage over the entire area given by the physics particle.
+struct DamageComponent {
+  u32 entity_id = 0;
+  u32 ttl = 0;
+  // Can be negative to apply a heal.
+  r32 damage = 0;
+  // Entity that created this damage source.
+  u32 from_entity = 0; 
+};
+
 }
 
 namespace ecs {
@@ -159,6 +171,7 @@ struct Components {
   mood::ProjectileWeaponComponent* projectile_weapon = nullptr;
   mood::AnimComponent*             anim              = nullptr;
   mood::MeleeWeaponComponent*      melee_weapon      = nullptr;
+  mood::DamageComponent*           damage            = nullptr;
 };
 
 }
@@ -215,6 +228,10 @@ GetComponents(u64 tid)
       static ecs::ComponentStorage f(64, sizeof(MeleeWeaponComponent));
       return &f;
     } break;
+    case kDamageComponent: {
+      static ecs::ComponentStorage f(128, sizeof(DamageComponent));
+      return &f;
+    } break;
     default: {
       assert(!"Unknown component type");
     } break;
@@ -232,6 +249,7 @@ DECLARE_COMPONENT(SpawnerComponent, kSpawnerComponent);
 DECLARE_COMPONENT(ProjectileWeaponComponent, kProjectileWeaponComponent);
 DECLARE_COMPONENT(AnimComponent, kAnimComponent);
 DECLARE_COMPONENT(MeleeWeaponComponent, kMeleeWeaponComponent);
+DECLARE_COMPONENT(DamageComponent, kDamageComponent);
 
 physics::Particle2d*
 GetParticle(ecs::Entity* ent)

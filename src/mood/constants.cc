@@ -63,7 +63,7 @@ u32 kTextureWallTilesId = 0;
 
 // These constants are the pixel amount that the texture should be offset
 // to roughly aline with the character.
-constexpr r32 kCharacterAaabbTextureOffset = 18.f;
+constexpr r32 kCharacterAaabbTextureOffset = 20.f;
 
 enum CollisionMask {
   // Collide with everything.

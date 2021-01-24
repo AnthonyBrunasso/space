@@ -189,12 +189,13 @@ Render()
   animation::Sprite* character_sprite = rgg::GetSprite(kTextureCharacterId);
   animation::Sprite* snail_sprite = rgg::GetSprite(kTextureSnailId);
   //physics::DebugRender(); 
-  ECS_ITR3(itr, kPhysicsComponent, kCharacterComponent, kAnimComponent);
+  ECS_ITR2(itr, kPhysicsComponent, kCharacterComponent);
   while (itr.Next()) {
     physics::Particle2d* p =
       physics::FindParticle2d(itr.c.physics->particle_id);
     CharacterComponent* c = itr.c.character;
     ecs::Entity* player = Player();
+    AnimComponent* anim = ecs::GetAnimComponent(itr.e);
     if (player && player->id == c->entity_id) {
       Rectf paabb = p->aabb();
       bool mirror = c->facing.x >= 0.f ? false : true;
@@ -220,12 +221,14 @@ Render()
       v2f end = p->position + c->aim_dir * 100.f;
       rgg::RenderLine(p->position, end, v4f(1.f, 0.f, 0.f, 0.25f));
 #endif
-      rgg::RenderTexture(
-            kTextureCharacterId,
-            itr.c.anim->fsm.Frame().rect(),
-            Rectf(paabb.x - kCharacterAaabbTextureOffset, paabb.y,
-                  character_sprite->width,
-                  character_sprite->height), mirror);
+      if (anim) {
+        rgg::RenderTexture(
+              kTextureCharacterId,
+              anim->fsm.Frame().rect(),
+              Rectf(paabb.x - kCharacterAaabbTextureOffset, paabb.y,
+                    character_sprite->width,
+                    character_sprite->height), mirror);
+      }
       if (kRenderAabb) rgg::RenderLineRectangle(paabb, rgg::kRed);
       continue;
     }
@@ -243,17 +246,19 @@ Render()
           Rectf paabb = p->aabb();
           // TODO: How should I handle this?
           bool mirror = p->velocity.x >= 0.f ? true : false;
-          rgg::RenderTexture(
-              kTextureSnailId,
-              animation::Update(snail_sprite, &c->anim_frame),
-              Rectf(paabb.x - 8.f, paabb.y - 17.f,
-                    snail_sprite->width,
-                    snail_sprite->height), mirror);
+          if (anim) {
+            rgg::RenderTexture(
+                kTextureSnailId,
+                animation::Update(snail_sprite, &c->anim_frame),
+                Rectf(paabb.x - 8.f, paabb.y - 17.f,
+                      snail_sprite->width,
+                      snail_sprite->height), mirror);
+          }
           if (kRenderAabb) rgg::RenderLineRectangle(paabb, rgg::kRed);
         } break;
         case kBehaviorSimpleFlying: {
           rgg::RenderCircle(
-              p->position, p->aabb().width / 2.f, v4f(1.f, 0.f, 0.f, 1.f));
+              p->position, p->aabb().width / 2.f, v4f(1.f, 0.f, 0.f, .5f));
         } break;
       }
     }

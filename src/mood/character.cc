@@ -75,10 +75,25 @@ CharacterUpdate()
         Rectf ar(caabb.x - kCharacterAaabbTextureOffset, caabb.y,
                  character_sprite->width, character_sprite->height);
         if (c->aim_dir.x > 0.f) {
-          rgg::DebugPushRect(ar.RightHalf(), rgg::kRed);
+          //rgg::DebugPushRect(ar.RightHalf(), rgg::kGreen);
+          ar = ar.RightHalf();
         } else {
-          rgg::DebugPushRect(ar.LeftHalf(), rgg::kRed);
+          //rgg::DebugPushRect(ar.LeftHalf(), rgg::kGreen);
+          ar = ar.LeftHalf();
         }
+        
+        ecs::Entity* damage_entity = ecs::UseEntity();
+        PhysicsComponent* physics_comp = ecs::AssignPhysicsComponent(damage_entity); 
+        physics::Particle2d* particle =  physics::CreateParticle2d(
+          ar.Center(), v2f(ar.width, ar.height), damage_entity->id);
+        SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
+        SBIT(particle->flags, physics::kParticleIgnoreGravity);
+        physics_comp->particle_id = particle->id;
+        DamageComponent* damage_comp = ecs::AssignDamageComponent(damage_entity);
+        // Arround for a single update.
+        damage_comp->ttl = 1;
+        damage_comp->from_entity = itr.e->id;
+        damage_comp->damage = 100.f;
       }
       //if (projectile_weapon && FLAGGED(c->character_flags, kCharacterFireSecondary)) {
       //  if (util::FrameCooldownReady(&projectile_weapon->cooldown)) {

@@ -389,6 +389,8 @@ EntityViewer(v2f screen)
     if (imui::Text(kUIBuffer, toptions).highlighted) {
       physics::Particle2d* particle = ecs::GetParticle(e);
       if (particle) {
+        printf("%.2f %.2f %.2f %.2f\n",
+particle->aabb().x, particle->aabb().y, particle->aabb().width, particle->aabb().height);
         rgg::DebugPushRect(particle->aabb(), rgg::kRed);
       }
     }

@@ -62,7 +62,7 @@ SpawnerUpdate()
         case kSpawnerFlying: {
           AICreate(p->position + v2f(math::Random(-1000.f, 1000.f),
                                      math::Random(100.f, 200.f)),
-                   v2f(15.f, 15.f), kBehaviorSimpleFlying);
+                   v2f(62.f, 43.f), kBehaviorSimpleFlying);
         } break;
         default: {
           printf("%s Unknown spawner type.", __FUNCTION__);

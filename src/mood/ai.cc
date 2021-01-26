@@ -33,6 +33,8 @@ AICreate(v2f pos, v2f dims, CharacterAIBehavior behavior)
       case kBehaviorSimpleFlying: {
         SBIT(particle->flags, physics::kParticleIgnoreGravity);
         SBIT(particle->flags, physics::kParticleIgnoreCollisionResolution);
+        AnimComponent* anim_comp = ecs::AssignAnimComponent(ai_entity);
+        AnimInitFireSpiritFSM(&anim_comp->fsm);
       } break;
       default: break;
     };

@@ -66,6 +66,8 @@ RenderInitialize()
   assert(kTextureSnailId);
   kTextureCharacterId  = rgg::LoadTexture("asset/adventurer.tga", info);
   assert(kTextureCharacterId);
+  kTextureFireSpiritId = rgg::LoadTexture("asset/fire_spirit.tga", info);
+  assert(kTextureFireSpiritId);
   // TODO: Remove Sprite sheet. Use fsm?
   kTextureTerrainId = rgg::LoadTextureAndSprite(
       "asset/firsttry-Sheet.tga", "asset/sheet.anim", info);
@@ -241,16 +243,20 @@ Render()
     if (BB_GET(ai->blackboard, kAIBbType, behavior)) {
       switch (*behavior) {
         case kBehaviorSimple: {
-          Rectf paabb = p->aabb();
           // TODO: How should I handle this?
           bool mirror = p->velocity.x >= 0.f ? true : false;
           if (anim) {
             assert(!"Implement snail in new animation system or delete it...");
-          if (kRenderAabb) rgg::RenderLineRectangle(paabb, rgg::kRed);
+          }
+          if (kRenderAabb) rgg::RenderLineRectangle(aabb, rgg::kRed);
         } break;
         case kBehaviorSimpleFlying: {
-          rgg::RenderCircle(
-              p->position, p->aabb().width / 2.f, v4f(1.f, 0.f, 0.f, .5f));
+          rgg::RenderTexture(
+              kTextureFireSpiritId,
+              anim->fsm.Frame().rect(),
+              aabb);
+          //rgg::RenderCircle(
+          //    p->position, p->aabb().width / 2.f, v4f(1.f, 0.f, 0.f, .5f));
         } break;
       }
     }

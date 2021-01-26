@@ -14,66 +14,77 @@ enum AdventurerAnimState {
   kAdventurerAnimNumStates   = 7,
 };
 
+static r32 kAdventurerWidth = 50.f;
+static r32 kAdventurerHeight = 37.f;
+
+enum FireSpiritAnimState {
+  kFireSpiritAnimIdle = 0,
+  kFireSpiritAnimNumStates = 1,
+};
+
+static r32 kFireSpiritWidth = 62.f;
+static r32 kFireSpiritHeight = 43.f;
+
+bool EntityInAir(u32 entity_id) {
+  GET_PARTICLE_OR_RETURN(p, entity_id, return false);
+  return !p->on_ground;
+}
+
+bool EntityOnGround(u32 entity_id) {
+  GET_PARTICLE_OR_RETURN(p, entity_id, return false);
+  return p->on_ground != 0;
+}
+
+bool EntityAttacking(u32 entity_id) {
+  ecs::Entity* entity = ecs::FindEntity(entity_id);
+  if (!entity) return false;
+  CharacterComponent* character = ecs::GetCharacterComponent(entity);
+  return FLAGGED(character->character_flags, kCharacterAttackMelee);
+}
+
 void
 AnimInitAdventurerFSM(animation::FSM* fsm)
 {
   fsm->Initialize(kAdventurerAnimNumStates, kAdventurerAnimIdle);
 
-  static auto in_air = [](u32 entity_id) {
-    GET_PARTICLE_OR_RETURN(p, entity_id, return false);
-    return !p->on_ground;
-  };
-
-  static auto on_ground = [](u32 entity_id) {
-    GET_PARTICLE_OR_RETURN(p, entity_id, return false);
-    return p->on_ground != 0;
-  };
-
-  static auto is_attacking = [](u32 entity_id) {
-    ecs::Entity* entity = ecs::FindEntity(entity_id);
-    if (!entity) return false;
-    CharacterComponent* character = ecs::GetCharacterComponent(entity);
-    return FLAGGED(character->character_flags, kCharacterAttackMelee);
-  };
-
   fsm->Node(kAdventurerAnimIdle)
-      .Frame(50.f * 0.f, 0.f, 50.f, 37.f, 25)
-      .Frame(50.f * 1.f, 0.f, 50.f, 37.f, 25)
-      .Frame(50.f * 2.f, 0.f, 50.f, 37.f, 25)
-      .Frame(50.f * 3.f, 0.f, 50.f, 37.f, 25)
-      .Transition(kAdventurerAnimAttackTwo, is_attacking)
+      .Frame(kAdventurerWidth * 0.f, 0.f, kAdventurerWidth, kAdventurerHeight, 25)
+      .Frame(kAdventurerWidth * 1.f, 0.f, kAdventurerWidth, kAdventurerHeight, 25)
+      .Frame(kAdventurerWidth * 2.f, 0.f, kAdventurerWidth, kAdventurerHeight, 25)
+      .Frame(kAdventurerWidth * 3.f, 0.f, kAdventurerWidth, kAdventurerHeight, 25)
+      .Transition(kAdventurerAnimAttackTwo, EntityAttacking)
       .Transition(
           kAdventurerAnimWalk,
           [](u32 entity_id) {
             GET_PARTICLE_OR_RETURN(p, entity_id, return false);
             return fabs(p->velocity.x) > 0.f;
           })
-      .Transition(kAdventurerAnimSingleJump, in_air);
+      .Transition(kAdventurerAnimSingleJump, EntityInAir);
 
   fsm->Node(kAdventurerAnimWalk)
-      .Frame(50.f * 1.f, 37.f, 50.f, 37.f, 6)
-      .Frame(50.f * 2.f, 37.f, 50.f, 37.f, 6)
-      .Frame(50.f * 3.f, 37.f, 50.f, 37.f, 6)
-      .Frame(50.f * 4.f, 37.f, 50.f, 37.f, 6)
-      .Frame(50.f * 5.f, 37.f, 50.f, 37.f, 6)
-      .Frame(50.f * 6.f, 37.f, 50.f, 37.f, 6)
-      .Transition(kAdventurerAnimAttackTwo, is_attacking)
+      .Frame(kAdventurerWidth * 1.f, kAdventurerHeight, kAdventurerWidth, kAdventurerHeight, 6)
+      .Frame(kAdventurerWidth * 2.f, kAdventurerHeight, kAdventurerWidth, kAdventurerHeight, 6)
+      .Frame(kAdventurerWidth * 3.f, kAdventurerHeight, kAdventurerWidth, kAdventurerHeight, 6)
+      .Frame(kAdventurerWidth * 4.f, kAdventurerHeight, kAdventurerWidth, kAdventurerHeight, 6)
+      .Frame(kAdventurerWidth * 5.f, kAdventurerHeight, kAdventurerWidth, kAdventurerHeight, 6)
+      .Frame(kAdventurerWidth * 6.f, kAdventurerHeight, kAdventurerWidth, kAdventurerHeight, 6)
+      .Transition(kAdventurerAnimAttackTwo, EntityAttacking)
       .Transition(
           kAdventurerAnimIdle,
           [](u32 entity_id) {
             GET_PARTICLE_OR_RETURN(p, entity_id, return false);
             return p->velocity.x == 0.f;
           })
-      .Transition(kAdventurerAnimSingleJump, in_air);
+      .Transition(kAdventurerAnimSingleJump, EntityInAir);
 
   fsm->Node(kAdventurerAnimSingleJump)
-      .Frame(50.f * 2.f, 37.f * 2.f, 50.f, 37.f, 5)
-      .Frame(50.f * 3.f, 37.f * 2.f, 50.f, 37.f, 5)
-      .Frame(50.f * 1.f, 37.f * 3.f, 50.f, 37.f, 6)
-      .Frame(50.f * 2.f, 37.f * 3.f, 50.f, 37.f, 6)
+      .Frame(kAdventurerWidth * 2.f, kAdventurerHeight * 2.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 3.f, kAdventurerHeight * 2.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 1.f, kAdventurerHeight * 3.f, kAdventurerWidth, kAdventurerHeight, 6)
+      .Frame(kAdventurerWidth * 2.f, kAdventurerHeight * 3.f, kAdventurerWidth, kAdventurerHeight, 6)
       .Flag(animation::kFSMNodeStopOnFinalFrame)
-      .Transition(kAdventurerAnimAttackTwo, is_attacking)
-      .Transition(kAdventurerAnimIdle, on_ground)
+      .Transition(kAdventurerAnimAttackTwo, EntityAttacking)
+      .Transition(kAdventurerAnimIdle, EntityOnGround)
       .Transition(
           kAdventurerAnimDoubleJump,
           [](u32 entity_id) {
@@ -88,53 +99,65 @@ AnimInitAdventurerFSM(animation::FSM* fsm)
           });
 
   fsm->Node(kAdventurerAnimDoubleJump)
-      .Frame(50.f * 3.f, 37.f * 2.f, 50.f, 37.f, 5)
-      .Frame(50.f * 4.f, 37.f * 2.f, 50.f, 37.f, 5)
-      .Frame(50.f * 5.f, 37.f * 2.f, 50.f, 37.f, 5)
-      .Frame(50.f * 6.f, 37.f * 2.f, 50.f, 37.f, 5)
-      .Frame(50.f * 0.f, 37.f * 3.f, 50.f, 37.f, 6)
-      .Frame(50.f * 1.f, 37.f * 3.f, 50.f, 37.f, 6)
-      .Frame(50.f * 2.f, 37.f * 3.f, 50.f, 37.f, 6)
+      .Frame(kAdventurerWidth * 3.f, kAdventurerHeight * 2.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 4.f, kAdventurerHeight * 2.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 5.f, kAdventurerHeight * 2.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 6.f, kAdventurerHeight * 2.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 0.f, kAdventurerHeight * 3.f, kAdventurerWidth, kAdventurerHeight, 6)
+      .Frame(kAdventurerWidth * 1.f, kAdventurerHeight * 3.f, kAdventurerWidth, kAdventurerHeight, 6)
+      .Frame(kAdventurerWidth * 2.f, kAdventurerHeight * 3.f, kAdventurerWidth, kAdventurerHeight, 6)
       .Flag(animation::kFSMNodeStopOnFinalFrame)
-      .Transition(kAdventurerAnimAttackTwo, is_attacking)
-      .Transition(kAdventurerAnimIdle, on_ground);
+      .Transition(kAdventurerAnimAttackTwo, EntityAttacking)
+      .Transition(kAdventurerAnimIdle, EntityOnGround);
 
   fsm->Node(kAdventurerAnimAttackOne)
-      .Frame(50.f * 0.f, 37.f * 6.f, 50.f, 37.f, 5)
-      .Frame(50.f * 1.f, 37.f * 6.f, 50.f, 37.f, 5)
-      .Frame(50.f * 2.f, 37.f * 6.f, 50.f, 37.f, 5)
-      .Frame(50.f * 3.f, 37.f * 6.f, 50.f, 37.f, 5)
-      .Frame(50.f * 4.f, 37.f * 6.f, 50.f, 37.f, 5)
-      .Frame(50.f * 5.f, 37.f * 6.f, 50.f, 37.f, 5)
-      .Frame(50.f * 6.f, 37.f * 6.f, 50.f, 37.f, 5)
+      .Frame(kAdventurerWidth * 0.f, kAdventurerHeight * 6.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 1.f, kAdventurerHeight * 6.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 2.f, kAdventurerHeight * 6.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 3.f, kAdventurerHeight * 6.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 4.f, kAdventurerHeight * 6.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 5.f, kAdventurerHeight * 6.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 6.f, kAdventurerHeight * 6.f, kAdventurerWidth, kAdventurerHeight, 5)
       .Flag(animation::kFSMNodePlayUntilComplete)
       .Flag(animation::kFSMNodeCantMove)
-      .Transition(kAdventurerAnimAttackTwo, is_attacking)
-      .Transition(kAdventurerAnimIdle, on_ground)
-      .Transition(kAdventurerAnimSingleJump, in_air);
+      .Transition(kAdventurerAnimAttackTwo, EntityAttacking)
+      .Transition(kAdventurerAnimIdle, EntityOnGround)
+      .Transition(kAdventurerAnimSingleJump, EntityInAir);
 
   fsm->Node(kAdventurerAnimAttackTwo)
-      .Frame(50.f * 0.f, 37.f * 7.f, 50.f, 37.f, 5)
-      .Frame(50.f * 1.f, 37.f * 7.f, 50.f, 37.f, 5)
-      .Frame(50.f * 2.f, 37.f * 7.f, 50.f, 37.f, 5)
-      .Frame(50.f * 3.f, 37.f * 7.f, 50.f, 37.f, 5)
+      .Frame(kAdventurerWidth * 0.f, kAdventurerHeight * 7.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 1.f, kAdventurerHeight * 7.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 2.f, kAdventurerHeight * 7.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 3.f, kAdventurerHeight * 7.f, kAdventurerWidth, kAdventurerHeight, 5)
       .Flag(animation::kFSMNodePlayUntilComplete)
       .Flag(animation::kFSMNodeCantMove)
-      .Transition(kAdventurerAnimAttackThree, is_attacking)
-      .Transition(kAdventurerAnimIdle, on_ground)
-      .Transition(kAdventurerAnimSingleJump, in_air);
+      .Transition(kAdventurerAnimAttackThree, EntityAttacking)
+      .Transition(kAdventurerAnimIdle, EntityOnGround)
+      .Transition(kAdventurerAnimSingleJump, EntityInAir);
 
   fsm->Node(kAdventurerAnimAttackThree)
-      .Frame(50.f * 4.f, 37.f * 7.f, 50.f, 37.f, 5)
-      .Frame(50.f * 5.f, 37.f * 7.f, 50.f, 37.f, 5)
-      .Frame(50.f * 6.f, 37.f * 7.f, 50.f, 37.f, 5)
-      .Frame(50.f * 0.f, 37.f * 8.f, 50.f, 37.f, 5)
-      .Frame(50.f * 1.f, 37.f * 8.f, 50.f, 37.f, 5)
-      .Frame(50.f * 2.f, 37.f * 8.f, 50.f, 37.f, 5)
+      .Frame(kAdventurerWidth * 4.f, kAdventurerHeight * 7.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 5.f, kAdventurerHeight * 7.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 6.f, kAdventurerHeight * 7.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 0.f, kAdventurerHeight * 8.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 1.f, kAdventurerHeight * 8.f, kAdventurerWidth, kAdventurerHeight, 5)
+      .Frame(kAdventurerWidth * 2.f, kAdventurerHeight * 8.f, kAdventurerWidth, kAdventurerHeight, 5)
       .Flag(animation::kFSMNodePlayUntilComplete)
       .Flag(animation::kFSMNodeCantMove)
-      .Transition(kAdventurerAnimIdle, on_ground)
-      .Transition(kAdventurerAnimSingleJump, in_air);
+      .Transition(kAdventurerAnimIdle, EntityOnGround)
+      .Transition(kAdventurerAnimSingleJump, EntityInAir);
+}
+
+void
+AnimInitFireSpiritFSM(animation::FSM* fsm)
+{
+  fsm->Initialize(kFireSpiritAnimNumStates, kFireSpiritAnimIdle);
+
+  fsm->Node(kAdventurerAnimIdle)
+      .Frame(kFireSpiritWidth * 0.f, 0.f, kFireSpiritWidth, kFireSpiritHeight, 25)
+      .Frame(kFireSpiritWidth * 1.f, 0.f, kFireSpiritWidth, kFireSpiritHeight, 25)
+      .Frame(kFireSpiritWidth * 2.f, 0.f, kFireSpiritWidth, kFireSpiritHeight, 25)
+      .Frame(kFireSpiritWidth * 3.f, 0.f, kFireSpiritWidth, kFireSpiritHeight, 25);
 }
 
 void

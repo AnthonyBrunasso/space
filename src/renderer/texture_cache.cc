@@ -15,6 +15,25 @@ struct TextureFileToId {
 DECLARE_HASH_ARRAY(TextureHandle, TEXTURE_MAX);
 DECLARE_HASH_MAP_STR(TextureFileToId, TEXTURE_MAX);
 
+
+u32
+LoadTexture(const char* texture_file, const TextureInfo& texture_info)
+{
+  u32 len = strlen(texture_file);
+  TextureFileToId* loaded_file_to_id = FindTextureFileToId(texture_file, len);
+  if (loaded_file_to_id) return loaded_file_to_id->id;
+  assert(kUsedTextureHandle < TEXTURE_MAX);
+  TextureHandle* t = UseTextureHandle();
+  if (!LoadTGA(texture_file, texture_info, &t->texture)) {
+    printf("Unable to load %s\n", texture_file);
+    return 0;
+  }
+  TextureFileToId* file_to_id = UseTextureFileToId(texture_file, len);
+  file_to_id->id = t->id;
+  return t->id; 
+}
+
+// TODO: Deprecate sprite file... I use anim fsm now.
 u32
 LoadTextureAndSprite(const char* texture_file, const char* sprite_file,
                      const TextureInfo& texture_info)

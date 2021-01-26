@@ -64,10 +64,9 @@ RenderInitialize()
   kTextureSnailId =
       rgg::LoadTextureAndSprite("asset/snail.tga", "asset/snail.anim", info);
   assert(kTextureSnailId);
-  kTextureCharacterId  =
-      rgg::LoadTextureAndSprite("asset/adventurer.tga", "asset/adventurer.anim",
-                                info);
+  kTextureCharacterId  = rgg::LoadTexture("asset/adventurer.tga", info);
   assert(kTextureCharacterId);
+  // TODO: Remove Sprite sheet. Use fsm?
   kTextureTerrainId = rgg::LoadTextureAndSprite(
       "asset/firsttry-Sheet.tga", "asset/sheet.anim", info);
   assert(kTextureTerrainId);
@@ -186,8 +185,6 @@ Render()
     }
   }
 
-  animation::Sprite* character_sprite = rgg::GetSprite(kTextureCharacterId);
-  animation::Sprite* snail_sprite = rgg::GetSprite(kTextureSnailId);
   //physics::DebugRender(); 
   ECS_ITR2(itr, kPhysicsComponent, kCharacterComponent);
   while (itr.Next()) {
@@ -202,6 +199,7 @@ Render()
       b8 anim_reset = false;
       ProjectileWeaponComponent* w = ecs::GetProjectileWeaponComponent(player);
 #if 0
+      animation::Sprite* character_sprite = rgg::GetSprite(kTextureCharacterId);
       if (w && !util::FrameCooldownReady(&w->cooldown)) {
         anim_reset = animation::SetLabel("attack_one", character_sprite);
       } else if (!p->on_ground) {
@@ -226,8 +224,8 @@ Render()
               kTextureCharacterId,
               anim->fsm.Frame().rect(),
               Rectf(paabb.x - kCharacterAaabbTextureOffset, paabb.y,
-                    character_sprite->width,
-                    character_sprite->height), mirror);
+                    anim->fsm.Frame().rect().width,
+                    anim->fsm.Frame().rect().height), mirror);
       }
       if (kRenderAabb) rgg::RenderLineRectangle(paabb, rgg::kRed);
       continue;
@@ -247,13 +245,7 @@ Render()
           // TODO: How should I handle this?
           bool mirror = p->velocity.x >= 0.f ? true : false;
           if (anim) {
-            rgg::RenderTexture(
-                kTextureSnailId,
-                animation::Update(snail_sprite, &c->anim_frame),
-                Rectf(paabb.x - 8.f, paabb.y - 17.f,
-                      snail_sprite->width,
-                      snail_sprite->height), mirror);
-          }
+            assert(!"Implement snail in new animation system or delete it...");
           if (kRenderAabb) rgg::RenderLineRectangle(paabb, rgg::kRed);
         } break;
         case kBehaviorSimpleFlying: {

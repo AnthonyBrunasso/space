@@ -689,6 +689,28 @@ Render3d(const v3f& pos, const v3f& scale, const v4f& color, GLuint vao,
 }
 
 void
+Render3d(const v3f& pos, const v3f& scale, const v4f& color, GLuint vao,
+         s32 verts, const Mat4f& perspective)
+{
+  glUseProgram(kRGG.geometry_program_3d.reference);
+  glBindVertexArray(vao);
+  Mat4f model = math::Model(pos, scale);
+  glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y, color.z,
+              color.w);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.projection_uniform, 1, GL_FALSE,
+                     &perspective.data_[0]);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.view_uniform, 1, GL_FALSE,
+                     &kObserver.view.data_[0]);
+  glUniformMatrix4fv(kRGG.geometry_program_3d.model_uniform, 1, GL_FALSE,
+                     &model.data_[0]);
+  glUniform3f(kRGG.geometry_program_3d.light_position_world_uniform,
+              kObserver.position.x, kObserver.position.y,
+              kObserver.position.z);
+  SetDefaultSurfaceMaterial();
+  glDrawArrays(GL_TRIANGLES, 0, verts);
+}
+
+void
 Render3dWithRotation(const v3f& pos, const v3f& scale, const Quatf& quat,
                      const v4f& color, GLuint vao, s32 verts)
 {
@@ -778,6 +800,13 @@ RenderCube(const Cubef& cube, const v4f& color)
 {
   Render3d(cube.pos, v3f(cube.width, cube.height, cube.depth), color,
            kRGG.cube_vao_reference, kCubeVertCount);
+}
+
+void
+RenderCube(const Cubef& cube, const v4f& color, const Mat4f& perspective)
+{
+  Render3d(cube.pos, v3f(cube.width, cube.height, cube.depth), color,
+           kRGG.cube_vao_reference, kCubeVertCount, perspective);
 }
 
 void

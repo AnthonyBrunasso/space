@@ -127,12 +127,33 @@ main(s32 argc, char** argv)
   rgg::GetObserver()->projection =
       rgg::DefaultPerspective(window::GetWindowSize());
 
+  v3f plane_position = v3f(10.f, -100.f, 0.f);
+  v3f plane_size = v3f(100.f, 100.f, 1000.f);
+
+  v3f platform_position = v3f(10.f, -51.f, -600.f);
+  v3f platform_size = v3f(100.f, 1.f, 30.f);
+
+  r32 fov = 64.f;
+  v2f dims = window::GetWindowSize();
+  r32 znear = 1.f;
+  r32 zfar = 1000.f;
+  Mat4f adjust = math::Perspective(fov, dims.x / dims.y, znear, zfar);
+
+  window::SetCursorPosition(v2f(dims.x / 2.f, dims.y / 2.f));
+
+  v2f prev_mouse_pos = window::GetCursorPosition();
+
+  v3f right = v3f(1.f, 0.f, 0.f);
+  v3f up = v3f(0.f, 1.f, 0.f);
+  v3f forward = v3f(0.f, 0.f, -1.f);
 
   while (1) {
     platform::ClockStart(&game_clock);
 
     imui::ResetTag(imui::kEveryoneTag);
     rgg::DebugReset();
+
+    rgg::GetObserver()->position = camera.position();
 
     if (window::ShouldClose()) break;
 
@@ -144,9 +165,27 @@ main(s32 argc, char** argv)
             case 27 /* ESC */: {
               exit(1);
             } break;
-
+            case 'w': {
+              camera.Translate(v3f(0.f, 0.f, 10.f), camera.right(), up, camera.forward());
+            } break;
+            case 'a': {
+              camera.Translate(v3f(-10.f, 0.f, 0.f), camera.right(), up, camera.forward());
+            } break;
+            case 's': {
+              camera.Translate(v3f(0.f, 0.f, -10.f), camera.right(), up, camera.forward());
+            } break;
+            case 'd': {
+              camera.Translate(v3f(10.f, 0.f, 0.f), camera.right(), up, camera.forward());
+            } break;
+            case 'z': {
+              fov += 1.f;
+              adjust = math::Perspective(fov, dims.x / dims.y, znear, zfar);
+            } break;
+            case 'x': {
+              fov -= 1.f;
+              adjust = math::Perspective(fov, dims.x / dims.y, znear, zfar);
+            } break;
           }
-
         } break;
         case MOUSE_DOWN: {
           imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
@@ -161,6 +200,14 @@ main(s32 argc, char** argv)
         } break;
       }
     }
+
+    v2f cur_mouse_position = window::GetCursorPosition();
+
+    v2f delta = cur_mouse_position - prev_mouse_pos;
+
+    camera.PitchYawDelta(delta.y * .1f, delta.x * .1f);
+
+    //printf("delta %.2f %.2f\n", delta.x, delta.y);
    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -170,9 +217,9 @@ main(s32 argc, char** argv)
     rgg::GetObserver()->view = camera.View();
         
     // Render
-    rgg::RenderLineCube(Cubef(v3f(10.f, 30.f, -100.f), v3f(10.f, 10.f, 10.f)),
-                        v4f(1.f, 0.f, 0.f, 1.f));
 
+    rgg::RenderCube(Cubef(plane_position, plane_size), v4f(1.f, 0.f, 0.f, 1.f));
+    rgg::RenderCube(Cubef(platform_position, platform_size), v4f(0.f, 1.f, 0.f, 1.f), adjust);
 
     // Execute game code.
     DebugUI();
@@ -195,6 +242,14 @@ main(s32 argc, char** argv)
 
     kGameState.game_time_usec += platform::ClockEnd(&game_clock);
     kGameState.game_updates++;
+
+    prev_mouse_pos = cur_mouse_position;
+
+    // Reset cursor position every 10 frames I guess.
+    //if (kGameState.game_updates % 60 == 0) {
+      //window::SetCursorPosition(v2f(dims.x / 2.f, dims.y / 2.f));
+      //cur_mouse_position = prev_mouse_pos = window::GetCursorPosition();
+    //}
   }
 
   return 0;

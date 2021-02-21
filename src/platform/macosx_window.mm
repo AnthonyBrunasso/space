@@ -297,6 +297,15 @@ GetCursorPosition()
   return v2f(pos.x, pos.y);
 }
 
+void
+SetCursorPosition(v2f pos)
+{
+  CGPoint pt;
+  pt.x = pos.x;
+  pt.y = pos.y;
+  CGWarpMouseCursorPosition(pt);
+}
+
 const char*
 GetBinaryPath()
 {

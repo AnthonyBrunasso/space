@@ -68,18 +68,20 @@ CharacterUpdate()
 
       if (melee_weapon &&
           FLAGGED(c->character_flags, kCharacterAttackMelee)) {
-        rgg::Texture* ct = rgg::GetTexture(c->texture_id);
-        animation::Sprite* character_sprite = rgg::GetSprite(c->texture_id);
+        //rgg::Texture* ct = rgg::GetTexture(c->texture_id);
+        //animation::Sprite* character_sprite = rgg::GetSprite(c->texture_id);
         // Should help if we forgot to assign a texture_id to a character.
-        assert(ct != nullptr);
+        AnimComponent* anim = ecs::GetAnimComponent(itr.e);
+        assert(anim != nullptr);
+        Rectf arect = anim->fsm.Frame().rect();
         Rectf ar(caabb.x - kCharacterAaabbTextureOffset, caabb.y,
-                 character_sprite->width, character_sprite->height);
+                 arect.width, arect.height);
         if (c->aim_dir.x > 0.f) {
-          //rgg::DebugPushRect(ar.RightHalf(), rgg::kGreen);
           ar = ar.RightHalf();
+          rgg::DebugPushRect(ar, rgg::kRed);
         } else {
-          //rgg::DebugPushRect(ar.LeftHalf(), rgg::kGreen);
           ar = ar.LeftHalf();
+          rgg::DebugPushRect(ar, rgg::kGreen);
         }
         
         ecs::Entity* damage_entity = ecs::UseEntity();

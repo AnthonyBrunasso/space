@@ -98,6 +98,12 @@ struct Rectf {
   {
     return Rectf(x, y, width / 2.f, height);
   }
+
+  void
+  DebugPrint()
+  {
+    printf("Rectf(x:%.2f, y:%.2f, width:%.2f, height:%.2f)\n", x, y, width, height);
+  }
 };
 
 namespace math

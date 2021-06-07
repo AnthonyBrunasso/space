@@ -1,6 +1,6 @@
 #pragma once
 
-/*
+#if 1
 
 #include "common/common.cc"
 #include "renderer.cc"
@@ -319,7 +319,7 @@ CameraRayFromMouseToWorld(const v2f& screen, r32 plane_z)
 
 }
 
-*/
+#else
 
 
 namespace rgg
@@ -465,3 +465,5 @@ struct Camera {
 };
 
 }
+
+#endif

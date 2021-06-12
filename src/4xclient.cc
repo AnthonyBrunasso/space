@@ -279,8 +279,13 @@ PollAndExecuteNetworkEvents()
           auto* unit_create = request.mutable_unit_create();
           srand(kLocalPlayerId);
           fourx::HexTile* r = fourx::SimGetMap()->RandomTile();
-          unit_create->set_grid_x(r->grid_pos.x);
-          unit_create->set_grid_y(r->grid_pos.y);
+          if (kLocalPlayerId == 0) {
+            unit_create->set_grid_x(0);
+            unit_create->set_grid_y(0);
+          } else if (kLocalPlayerId == 1) {
+            unit_create->set_grid_x(1);
+            unit_create->set_grid_y(0);
+          }
           unit_create->set_player_id(kLocalPlayerId);
           fourx::ClientPushStepRequest(request);
         }
@@ -433,8 +438,8 @@ main(s32 argc, char** argv)
   kGameState.frame_target_usec = 1000.f * 1000.f / kGameState.framerate;
   printf("Client target usec %lu\n", kGameState.frame_target_usec);
 
-  rgg::Camera camera(v3f(0.f, -80.f, 0.f), v3f(0.f, 1.f, 0.f));
-  camera.PitchYawDelta(45.f, 0.f);
+  rgg::Camera camera(v3f(0.f, -30.f, 60.f), v3f(0.f, 1.f, 0.f));
+  camera.PitchYawDelta(15.f, 0.f);
 
   rgg::GetObserver()->projection =
       rgg::DefaultPerspective(window::GetWindowSize());

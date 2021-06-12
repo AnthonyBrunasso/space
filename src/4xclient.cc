@@ -214,6 +214,27 @@ SimUI()
 }
 
 void
+ControlUI()
+{
+  v2f screen = window::GetWindowSize();
+  static b8 enable_control_ui = true;
+  static v2f control_pos(screen.x - 415.f, 115.f);
+  imui::PaneOptions options;
+  options.width = options.max_width = 415.f;
+  options.height = 315.f;
+  imui::Begin("Control", imui::kEveryoneTag, options, &control_pos, &enable_control_ui);
+  imui::TextOptions toptions;
+  toptions.highlight_color = rgg::kRed;
+  if (imui::Text("Create City", toptions).clicked) {
+      fourx::proto::SimulationStepRequest step_request;
+      step_request.set_player_id(kLocalPlayerId);
+      fourx::proto::CityCreate* city_create = step_request.mutable_city_create();
+      fourx::ClientPushStepRequest(step_request);
+  }
+  imui::End();
+}
+
+void
 RenderHexGridCoord(fourx::HexMap& hex_map, v2i cord)
 {
   v2f world = math::HexAxialToWorld(cord, 5.f);
@@ -254,6 +275,7 @@ PollAndExecuteNetworkEvents()
   // before syncs can happen.
   while (fourx::ClientPopStepResponse(&step_response)) {
     if (step_response.has_player_join_response()) {
+      // printf("Setting local player id: %i\n", step_response.player_join_response().player_id());
       kLocalPlayerId = step_response.player_join_response().player_id();
     }
   }
@@ -398,6 +420,7 @@ RenderGame(const v2f& cursor, rgg::Camera& camera, fourx::HexMap* hex_map)
 
   DebugUI(*hex_map);
   SimUI();
+  ControlUI();
 
   rgg::DebugRenderPrimitives();
   imui::Render(imui::kEveryoneTag);

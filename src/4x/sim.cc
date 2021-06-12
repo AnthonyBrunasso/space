@@ -152,6 +152,12 @@ SimUnitMove(const proto::UnitMove& unit_move)
 }
 
 void
+SimCityCreate(const proto::CityCreate& city_create)
+{
+  printf("[SIM] %s\n", city_create.DebugString().c_str());
+}
+
+void
 SimExecute(const proto::SimulationStepRequest& request)
 {
   printf("[SIM] %s: %s\n", request.GetTypeName().c_str(),
@@ -175,6 +181,14 @@ SimExecute(const proto::SimulationStepRequest& request)
         return;
       }
       SimUnitMove(request.unit_move());
+    } break;
+    case proto::SimulationStepRequest::kCityCreate: {
+      if (request.player_id() != kSim.active_player_id) {
+        printf("[SIM ERROR] player tried to create city out of turn. [active: %i id: %i]\n",
+               kSim.active_player_id, request.player_id());
+        return;
+      }
+      SimCityCreate(request.city_create());
     } break;
     default: break;
   }

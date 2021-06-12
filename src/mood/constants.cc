@@ -32,6 +32,9 @@ constexpr r32 kParticleWidth = 1.5f;
 constexpr r32 kParticleHeight = 1.5f;
 constexpr r32 kParticleTTL = 50;
 
+// Map editor constants.
+constexpr r32 kCameraSpeed = 10.f;
+
 // Camera constants.
 constexpr r32 kCameraYOffset = 30.f;
 

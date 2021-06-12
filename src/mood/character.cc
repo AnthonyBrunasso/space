@@ -33,8 +33,7 @@ CharacterUpdate()
         if (c->move_dir.x > 0.f) {
           particle->acceleration.x = (c->move_acceleration * c->move_multiplier);
         } else if (c->move_dir.x < 0.f) {
-          particle->acceleration.x =
-              -(c->move_acceleration * c->move_multiplier);
+          particle->acceleration.x = -(c->move_acceleration * c->move_multiplier);
         }
       }
 
@@ -66,11 +65,7 @@ CharacterUpdate()
       MeleeWeaponComponent* melee_weapon =
           ecs::GetMeleeWeaponComponent(itr.e);
 
-      if (melee_weapon &&
-          FLAGGED(c->character_flags, kCharacterAttackMelee)) {
-        //rgg::Texture* ct = rgg::GetTexture(c->texture_id);
-        //animation::Sprite* character_sprite = rgg::GetSprite(c->texture_id);
-        // Should help if we forgot to assign a texture_id to a character.
+      if (melee_weapon && FLAGGED(c->character_flags, kCharacterAttackMelee)) {
         AnimComponent* anim = ecs::GetAnimComponent(itr.e);
         assert(anim != nullptr);
         Rectf arect = anim->fsm.Frame().rect();

@@ -97,6 +97,14 @@ CameraLerpToPositionXY(const v2f& position, r32 t)
 }
 
 v3f
+CameraLerpPosition()
+{
+  Camera* c = CameraGetCurrent();
+  if (!c) return v3f(0.f, 0.f, 0.f);
+  return c->lerp_to;
+}
+
+v3f
 CameraPosition()
 {
   Camera* c = CameraGetCurrent();

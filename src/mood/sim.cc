@@ -23,6 +23,7 @@ static char kCurrentMapName[64] = "asset/test.map";
 static u32 kMapNum = 0;
 static b8 kFreezeGame = false;
 static b8 kEnableEnemies = true;
+static b8 kEditMode = false;
 
 #include "mood/ai.cc"
 

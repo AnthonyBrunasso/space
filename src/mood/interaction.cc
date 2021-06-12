@@ -119,6 +119,9 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
         case 27 /* ESC */: {
           exit(1);
         } break;
+        case 92 /* BACKSLASH */: {
+          kEditMode = !kEditMode;
+        } break;
         case '0': {
           if (kInteraction.selection.last_particle) {
             kInteraction.selection.last_particle->dims.x += kTileHeight / 2.f;
@@ -159,14 +162,26 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
           PlayerAttack();
         } break;
         case 0 /* ARROW UP */: {
+          if (kEditMode) {
+            rgg::CameraMove(v2f(0.f, kCameraSpeed));
+          }
           PlayerJump();
         } break;
         case 3 /* ARROW RIGHT */: {
+          if (kEditMode) {
+            rgg::CameraMove(v2f(kCameraSpeed, 0.f));
+          }
           PlayerMove(v2f(kPlayerAcceleration, 0.f), 1.f);
         } break;
         case 1 /* ARROW DOWN */: {
+          if (kEditMode) {
+            rgg::CameraMove(v2f(0.f, -kCameraSpeed));
+          }
         } break;
         case 2 /* ARROW LEFT */: {
+          if (kEditMode) {
+            rgg::CameraMove(v2f(-kCameraSpeed, 0.f));
+          }
           PlayerMove(v2f(-kPlayerAcceleration, 0.f), 1.f);
         } break;
         case 's': {
@@ -190,6 +205,7 @@ ProcessPlatformEvent(const PlatformEvent& event, const v2f cursor)
         case 1 /* ARROW DOWN */: {
         } break;
         case 2 /* ARROW LEFT */: {
+          
           PlayerStopMove();
         } break;
         case 's': {
@@ -458,6 +474,14 @@ MapEditor(v2f screen)
   }
   imui::Space(imui::kHorizontal, 5.f);
   imui::Checkbox(16.f, 16.f, &kFreezeGame);
+  imui::NewLine();
+  imui::SameLine();
+  imui::Width(160.f);
+  if (imui::Text("Edit mode", toptions).clicked) {
+    kEditMode = !kEditMode;
+  }
+  imui::Space(imui::kHorizontal, 5.f);
+  imui::Checkbox(16.f, 16.f, &kEditMode);
   imui::NewLine();
   imui::SameLine();
   imui::Width(160.f);

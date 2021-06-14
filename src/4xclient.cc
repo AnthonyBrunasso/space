@@ -240,13 +240,18 @@ ControlUI()
   imui::Begin("Control", imui::kEveryoneTag, options, &control_pos, &enable_control_ui);
   imui::TextOptions toptions;
   toptions.highlight_color = rgg::kRed;
-  if (imui::Text("Create City", toptions).clicked) {
-      fourx::proto::SimulationStepRequest step_request;
-      step_request.set_player_id(kLocalPlayerId);
-      fourx::proto::CityCreate* city_create = step_request.mutable_city_create();
-      city_create->set_player_id(kLocalPlayerId);
-      fourx::SimExecute(step_request);
-      fourx::ClientPushStepRequest(step_request);
+  if (imui::Text("Create City", toptions).clicked && kInteraction.selected_unit_id != fourx::kInvalidUnit) {
+      fourx::Unit* unit = fourx::SimUnit(kInteraction.selected_unit_id);
+      if (unit) {
+        fourx::proto::SimulationStepRequest step_request;
+        step_request.set_player_id(kLocalPlayerId);
+        fourx::proto::CityCreate* city_create = step_request.mutable_city_create();
+        city_create->set_player_id(kLocalPlayerId);
+        city_create->set_grid_x(unit->grid_pos.x);
+        city_create->set_grid_y(unit->grid_pos.y);
+        fourx::SimExecute(step_request);
+        fourx::ClientPushStepRequest(step_request);
+      }
   }
   imui::End();
 }

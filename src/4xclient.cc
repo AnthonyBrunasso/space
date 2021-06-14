@@ -423,7 +423,12 @@ RenderGame(const v2f& cursor, rgg::Camera& camera, fourx::HexMap* hex_map)
     if (c.player_id != 1) {
       color = rgg::kBlue;
     }
-    rgg::RenderCube(Cubef(v3f(world, -48.5f), 1.5f, 1.5f, 3.5f), color);
+    rgg::RenderCube(Cubef(v3f(world + v2f(1.f, 2.f), -48.5f), 1.5f, 1.5f, 5.5f), color);
+    rgg::RenderCube(Cubef(v3f(world + v2f(-1.f, 1.f), -48.5f), 1.5f, 1.5f, 3.75f), color);
+    rgg::RenderCube(Cubef(v3f(world + v2f(-.5f, -1.f), -48.5f), .5f, .5f, .5f), color);
+    rgg::RenderCube(Cubef(v3f(world + v2f(.5f, -.75f), -48.5f), .5f, .5f, .5f), color);
+    rgg::RenderCube(Cubef(v3f(world + v2f(-1.f, -1.75f), -48.5f), .5f, .5f, .5f), color);
+    rgg::RenderCube(Cubef(v3f(world + v2f(1.f, -1.85f), -48.5f), .5f, .5f, .5f), color);
   }
 
   v2f world = math::HexAxialToWorld(kHighlighted, 5.f);

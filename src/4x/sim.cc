@@ -210,8 +210,8 @@ SimCityCreate(const proto::CityCreate& city_create)
       unit_on_grid = unit.id;
       break;
     }
-
   }
+
   if (unit_on_grid == kInvalidUnit) {
     printf("[SIM ERROR] unit not found on grid position %i %i\n",
            city_create.grid_x(), city_create.grid_y());
@@ -223,7 +223,6 @@ SimCityCreate(const proto::CityCreate& city_create)
   step_request.set_player_id(kSim.active_player_id);
   proto::UnitDestroy* unit_destroy = step_request.mutable_unit_destroy();
   unit_destroy->set_unit_id(unit_on_grid);
-  ClientPushStepRequest(step_request);
   SimExecute(step_request);
 
   City city;

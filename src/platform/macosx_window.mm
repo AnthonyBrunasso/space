@@ -126,7 +126,7 @@ CreateOpenGLContext()
 
 
 s32
-Create(const char* name, s32 width, s32 height, b8 fullscreen)
+Create(const char* name, const CreateInfo& create_info)
 {
   kWindow.gl_context = CreateOpenGLContext();
 
@@ -134,7 +134,7 @@ Create(const char* name, s32 width, s32 height, b8 fullscreen)
                    NSClosableWindowMask |
                    NSWindowStyleMaskResizable;
   kWindow.nsview = [[OpenGLView alloc]
-                  initWithFrame:NSMakeRect(0, 0, width, height)];
+                  initWithFrame:NSMakeRect(0, 0, create_info.window_width, create_info.window_height)];
 
   kWindow.nswindow = [[BaseWindow alloc]
                       initWithContentRect:[kWindow.nsview frame]
@@ -146,10 +146,14 @@ Create(const char* name, s32 width, s32 height, b8 fullscreen)
   [kWindow.nswindow setTitle:[NSString stringWithUTF8String:name]];
   [kWindow.nswindow setContentView:kWindow.nsview];
   [kWindow.nswindow makeFirstResponder:kWindow.nsview];
-  [kWindow.nswindow center];
+  if (create_info.window_pos_x != UINT64_MAX && create_info.window_pos_y != UINT64_MAX) {
+    [kWindow.nswindow setFrame:CGRectMake(create_info.window_pos_x, create_info.window_pos_y, [kWindow.nswindow frame].size.width , [kWindow.nswindow frame].size.height) display:YES];
+  } else {
+    [kWindow.nswindow center];
+  }
   [kWindow.nswindow makeKeyAndOrderFront:nil];
   [kWindow.nswindow setAcceptsMouseMovedEvents:YES];
-  if (fullscreen) {
+  if (create_info.fullscreen) {
     [kWindow.nswindow
         setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
     [kWindow.nswindow toggleFullScreen:nil];
@@ -175,13 +179,13 @@ Create(const char* name, s32 width, s32 height, b8 fullscreen)
   return 1;
 }
 
-s32
-Create(const char* name, const CreateInfo& create_info)
-{
-  printf("Creating window %i %i\n", create_info.window_width, create_info.window_height);
-  return Create(name, create_info.window_width, create_info.window_height,
-                create_info.fullscreen);
-}
+//s32
+//Create(const char* name, const CreateInfo& create_info)
+//{
+//  printf("Creating window %i %i\n", create_info.window_width, create_info.window_height);
+//  return Create(name, create_info.window_width, create_info.window_height,
+//                create_info.fullscreen);
+//}
 
 void
 SetEventPosition(NSEvent* nsevent, PlatformEvent* event)

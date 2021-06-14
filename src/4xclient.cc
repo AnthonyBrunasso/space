@@ -326,12 +326,23 @@ InitializeGameOncePlayerIdEstablished()
     fourx::ClientPushStepRequest(step_request);
   }
 
+  // Spawn one unit for the player - this is probably the settler.
+  {
+    fourx::proto::SimulationStepRequest step_request;
+    fourx::proto::UnitCreate* unit_create = step_request.mutable_unit_create();
+    unit_create->set_player_id(kLocalPlayerId);
+    unit_create->set_grid_x(0);
+    unit_create->set_grid_y(0);
+    fourx::ClientPushStepRequest(step_request);
+  }
+
   // Single player games start immediately
   if (IsSinglePlayer()) {
     fourx::proto::SimulationStepRequest step_request;
     step_request.mutable_sim_start();
     fourx::ClientPushStepRequest(step_request);
   }
+
   kInitializeOnce = true;
 }
 
@@ -342,22 +353,7 @@ SelectInactiveUnit(const fourx::Player* player)
     if (unit.action_points <= 0) continue;
     if (unit.player_id != player->id) continue;
     kInteraction.selected_unit_id = unit.id;
-    printf("Unit %i selected...\n", kInteraction.selected_unit_id);
-    /*std::vector<fourx::HexTile*> tiles =
-      fourx::SimGetMap()->Bfs(unit.grid_pos, 1);
-    for (const auto* t : tiles) {
-      v2f tworld = math::HexAxialToWorld(t->grid_pos, 5.f);
-      if (kHighlighted == t->grid_pos) {
-        fourx::proto::SimulationStepRequest step_request;
-        step_request.set_player_id(player->id);
-        fourx::proto::UnitMove* move = step_request.mutable_unit_move();
-        move->set_unit_id(unit.id);
-        move->set_to_grid_x(kHighlighted.x);
-        move->set_to_grid_y(kHighlighted.y);
-        fourx::SimExecute(step_request);
-        fourx::ClientPushStepRequest(step_request);
-      }
-    }*/
+    printf("[CLIENT] Unit %i selected\n", kInteraction.selected_unit_id);
   }
 }
 
@@ -370,10 +366,29 @@ UpdateGame(const v2f& cursor, b8 mouse_down, v2f& mouse_start, rgg::Camera& came
       camera.PitchYawDelta(diff.yx() * 0.1f);
       mouse_start = cursor;
     }
+  }
 
-    fourx::Player* player = fourx::SimPlayer(kLocalPlayerId);
-    if (fourx::SimActivePlayer() != player) return;
-    if (!kInteraction.selected_unit_id) SelectInactiveUnit(player);
+  fourx::Player* player = fourx::SimPlayer(kLocalPlayerId);
+  if (fourx::SimActivePlayer() != player) return;
+  if (!kInteraction.selected_unit_id) SelectInactiveUnit(player);
+
+  if (mouse_down && kInteraction.selected_unit_id) {
+    fourx::Unit* unit = fourx::SimUnit(kInteraction.selected_unit_id);
+    std::vector<fourx::HexTile*> tiles =
+        fourx::SimGetMap()->Bfs(unit->grid_pos, 1);
+    for (const auto* t : tiles) {
+      v2f tworld = math::HexAxialToWorld(t->grid_pos, 5.f);
+      if (kHighlighted == t->grid_pos) {
+        fourx::proto::SimulationStepRequest step_request;
+        step_request.set_player_id(player->id);
+        fourx::proto::UnitMove* move = step_request.mutable_unit_move();
+        move->set_unit_id(kInteraction.selected_unit_id);
+        move->set_to_grid_x(kHighlighted.x);
+        move->set_to_grid_y(kHighlighted.y);
+        fourx::SimExecute(step_request);
+        fourx::ClientPushStepRequest(step_request);
+      }
+    }
   }
 }
 

@@ -79,8 +79,7 @@ class ServerState {
     for (s32 i = player.sequence_number; i < steps_.size(); ++i) {
       const SimulationStepRequest& step = steps_[i];
       // This step has already been processed on the client.
-      if (step.player_id() != kInvalidPlayer &&
-          step.player_id() == player_id) continue;
+      if (step.player_id() != kInvalidPlayer && step.player_id() == player_id) continue;
       *response->add_steps() = step;
     }
     player.sequence_number = steps_.size();

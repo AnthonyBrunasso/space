@@ -11,6 +11,7 @@ struct Player {
 };
 
 constexpr s32 kInvalidUnit = 0;
+constexpr s32 kInvalidCity = 0;
 
 struct Unit {
   s32 id = kInvalidUnit;
@@ -19,9 +20,16 @@ struct Unit {
   s32 action_points;
 };
 
+struct City {
+  s32 id = kInvalidCity;
+  s32 player_id;
+  v2i grid_pos;
+};
+
 struct Sim {
   std::unordered_map<s32, Player> players;
   std::vector<Unit> units;
+  std::vector<City> cities;
   std::unique_ptr<HexMap> hex_map;
   s32 active_player_id = 0;
   s32 turn = 0;
@@ -29,6 +37,8 @@ struct Sim {
 };
 
 static Sim kSim;
+
+void SimExecute(const proto::SimulationStepRequest& request);
 
 std::vector<const Player*>
 SimGetPlayers()
@@ -44,6 +54,12 @@ const std::vector<Unit>&
 SimGetUnits()
 {
   return kSim.units;
+}
+
+const std::vector<City>&
+SimGetCities()
+{
+  return kSim.cities;
 }
 
 HexMap*
@@ -72,6 +88,17 @@ SimUnit(s32 id)
   for (Unit& unit : kSim.units) {
     if (unit.id == id) {
       return &unit;
+    }
+  }
+  return nullptr;
+}
+
+City*
+SimCity(s32 id)
+{
+  for (City& city : kSim.cities) {
+    if (city.id == id) {
+      return &city;
     }
   }
   return nullptr;
@@ -149,9 +176,61 @@ SimUnitMove(const proto::UnitMove& unit_move)
 }
 
 void
+SimUnitDestroy(const proto::UnitDestroy& unit_destroy)
+{
+  Unit* unit = SimUnit(unit_destroy.unit_id());
+  if (!unit) {
+    printf("[SIM ERROR] unit does not exist.\n");
+    return;
+  }
+  s32 destroy_i = -1;
+  for (s32 i = 0; i < kSim.units.size(); ++i) {
+    if (kSim.units[i].id == unit_destroy.unit_id()) {
+      destroy_i = i;
+      break;
+    }
+  }
+  if (destroy_i == -1) {
+    printf("[SIM ERROR] unit with id %i does not exist.\n", unit_destroy.unit_id());
+    return;
+  }
+  kSim.units.erase(kSim.units.begin() + destroy_i);
+}
+
+void
 SimCityCreate(const proto::CityCreate& city_create)
 {
-  printf("[SIM] %s\n", city_create.DebugString().c_str());
+  static s32 kCityId = 1;
+  s32 unit_on_grid = kInvalidUnit;
+  // To create a city there must be a unit on this tile.
+  for (const auto& unit : kSim.units) {
+    if (unit.grid_pos.x == city_create.grid_x() &&
+        unit.grid_pos.y == city_create.grid_y() &&
+        unit.player_id == city_create.player_id()) {
+      unit_on_grid = unit.id;
+      break;
+    }
+
+  }
+  if (unit_on_grid == kInvalidUnit) {
+    printf("[SIM ERROR] unit not found on grid position %i %i\n",
+           city_create.grid_x(), city_create.grid_y());
+    return;
+  }
+
+  // Destroy the unit on the tile of this city.
+  proto::SimulationStepRequest step_request;
+  step_request.set_player_id(kSim.active_player_id);
+  proto::UnitDestroy* unit_destroy = step_request.mutable_unit_destroy();
+  unit_destroy->set_unit_id(unit_on_grid);
+  ClientPushStepRequest(step_request);
+  SimExecute(step_request);
+
+  City city;
+  city.id = kCityId++;
+  city.player_id = city_create.player_id();
+  city.grid_pos = v2i(city_create.grid_x(), city_create.grid_y());
+  kSim.cities.push_back(city);
 }
 
 bool
@@ -185,6 +264,9 @@ SimExecute(const proto::SimulationStepRequest& request)
     } break;
     case proto::SimulationStepRequest::kUnitCreate: {
       SimUnitCreate(request.unit_create());
+    } break;
+    case proto::SimulationStepRequest::kUnitDestroy: {
+      SimUnitDestroy(request.unit_destroy());
     } break;
     case proto::SimulationStepRequest::kUnitMove: {
       if (request.player_id() != kSim.active_player_id) {

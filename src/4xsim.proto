@@ -23,6 +23,10 @@ message UnitCreate {
   int32 grid_y = 3;
 }
 
+message UnitDestroy {
+  int32 unit_id = 1;
+}
+
 message UnitMove {
   int32 unit_id = 1;
   int32 to_grid_x = 2;
@@ -30,8 +34,9 @@ message UnitMove {
 }
 
 message CityCreate {
-  int32 grid_x = 1;
-  int32 grid_y = 2;
+  int32 player_id = 1;
+  int32 grid_x = 2;
+  int32 grid_y = 3;
 }
 
 message SimulationStepRequest {
@@ -43,7 +48,8 @@ message SimulationStepRequest {
     SimStart sim_start = 4;
     UnitCreate unit_create = 5;
     UnitMove unit_move = 6;
-    CityCreate city_create = 7;
+    UnitDestroy unit_destroy = 7;
+    CityCreate city_create = 8;
   }
 }
 

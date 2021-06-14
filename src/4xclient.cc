@@ -17,8 +17,8 @@
 #include "renderer/renderer.cc"
 #include "renderer/imui.cc"
 #include "util/cooldown.cc"
-#include "4x/sim.cc"
 #include "4x/client_connection.cc"
+#include "4x/sim.cc"
 #include "4x/server.cc"
 
 ABSL_FLAG(std::string, address, "127.0.0.1:3878",
@@ -243,6 +243,8 @@ ControlUI()
       fourx::proto::SimulationStepRequest step_request;
       step_request.set_player_id(kLocalPlayerId);
       fourx::proto::CityCreate* city_create = step_request.mutable_city_create();
+      city_create->set_player_id(kLocalPlayerId);
+      fourx::SimExecute(step_request);
       fourx::ClientPushStepRequest(step_request);
   }
   imui::End();
@@ -407,11 +409,21 @@ RenderGame(const v2f& cursor, rgg::Camera& camera, fourx::HexMap* hex_map)
   const auto& units = fourx::SimGetUnits();
   for (const auto& u : units) {
     v2f world = math::HexAxialToWorld(u.grid_pos, 5.f);
-    if (u.player_id == 1) {
-      rgg::RenderCube(Cubef(v3f(world, -48.5f), 2.5f, 2.5f, 2.5f), rgg::kRed);
-    } else {
-      rgg::RenderCube(Cubef(v3f(world, -48.5f), 2.5f, 2.5f, 2.5f), rgg::kBlue);
+    v4f color = rgg::kRed;
+    if (u.player_id != 1) {
+      color = rgg::kBlue;
     }
+    rgg::RenderCube(Cubef(v3f(world, -48.5f), 2.5f, 2.5f, 2.5f), color);
+  }
+
+  const auto& cities = fourx::SimGetCities();
+  for (const auto& c : cities) {
+    v2f world = math::HexAxialToWorld(c.grid_pos, 5.f);
+    v4f color = rgg::kRed;
+    if (c.player_id != 1) {
+      color = rgg::kBlue;
+    }
+    rgg::RenderCube(Cubef(v3f(world, -48.5f), 1.5f, 1.5f, 3.5f), color);
   }
 
   v2f world = math::HexAxialToWorld(kHighlighted, 5.f);

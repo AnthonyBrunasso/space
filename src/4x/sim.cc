@@ -1,6 +1,7 @@
 #pragma once
 
 #include "4x/hex_map.cc"
+#include "4x/log.cc"
 
 namespace fourx {
 
@@ -9,8 +10,10 @@ struct Player {
   std::string name;
 };
 
+constexpr s32 kInvalidUnit = 0;
+
 struct Unit {
-  s32 id;
+  s32 id = kInvalidUnit;
   s32 player_id;
   v2i grid_pos;
   s32 action_points;
@@ -21,6 +24,7 @@ struct Sim {
   std::vector<Unit> units;
   std::unique_ptr<HexMap> hex_map;
   s32 active_player_id = 0;
+  s32 turn = 0;
   b8 is_game_started = false;
 };
 
@@ -142,19 +146,26 @@ SimUnitMove(const proto::UnitMove& unit_move)
   }
   unit->grid_pos = v2i(unit_move.to_grid_x(), unit_move.to_grid_y());
   unit->action_points = 0;
-
-  // TODO: This is temp.
-  ++kSim.active_player_id;
-  if (kSim.active_player_id > kSim.players.size()) {
-    kSim.active_player_id = 1;
-    SimAllPlayersDone();
-  }
 }
 
 void
 SimCityCreate(const proto::CityCreate& city_create)
 {
   printf("[SIM] %s\n", city_create.DebugString().c_str());
+}
+
+bool
+SimIsPlayerDone()
+{
+  if (!kSim.is_game_started) return false;
+  Player* player = SimPlayer(kSim.active_player_id);
+  assert(player != nullptr); // Should never happen?
+  if (!player) return false;
+  for (const Unit& unit : kSim.units) {
+    if (unit.player_id != player->id) continue;
+    if (unit.action_points != 0) return false;
+  }
+  return true;
 }
 
 void
@@ -191,6 +202,17 @@ SimExecute(const proto::SimulationStepRequest& request)
       SimCityCreate(request.city_create());
     } break;
     default: break;
+  }
+
+  if (SimIsPlayerDone()) {
+    printf("[SIM] Player %i end\n", kSim.active_player_id);
+    ++kSim.active_player_id;
+    if (kSim.active_player_id > kSim.players.size()) {
+      ++kSim.turn;
+      kSim.active_player_id = 1;
+      SimAllPlayersDone();
+    }
+    printf("[SIM] Player %i start\n", kSim.active_player_id);
   }
 }
 

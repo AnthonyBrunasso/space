@@ -77,7 +77,7 @@ static s32 kLocalPlayerId = 0;
 #define UIBUFFER_SIZE 64
 static char kUIBuffer[UIBUFFER_SIZE];
 
-constexpr u32 kHexMapSize = 10;
+constexpr u32 kHexMapSize = 20;
 
 fourx::proto::SimulationStepRequest
 CreateStepRequest()
@@ -240,18 +240,20 @@ ControlUI()
   imui::Begin("Control", imui::kEveryoneTag, options, &control_pos, &enable_control_ui);
   imui::TextOptions toptions;
   toptions.highlight_color = rgg::kRed;
-  if (imui::Text("Create City", toptions).clicked && kInteraction.selected_unit_id != fourx::kInvalidUnit) {
-      fourx::Unit* unit = fourx::SimUnit(kInteraction.selected_unit_id);
-      if (unit) {
-        fourx::proto::SimulationStepRequest step_request;
-        step_request.set_player_id(kLocalPlayerId);
-        fourx::proto::CityCreate* city_create = step_request.mutable_city_create();
-        city_create->set_player_id(kLocalPlayerId);
-        city_create->set_grid_x(unit->grid_pos.x);
-        city_create->set_grid_y(unit->grid_pos.y);
-        fourx::SimExecute(step_request);
-        fourx::ClientPushStepRequest(step_request);
-      }
+  if (kInteraction.selected_unit_id != fourx::kInvalidUnit) {
+    if (imui::Text("Create City", toptions).clicked) {
+        fourx::Unit* unit = fourx::SimUnit(kInteraction.selected_unit_id);
+        if (unit) {
+          fourx::proto::SimulationStepRequest step_request;
+          step_request.set_player_id(kLocalPlayerId);
+          fourx::proto::CityCreate* city_create = step_request.mutable_city_create();
+          city_create->set_player_id(kLocalPlayerId);
+          city_create->set_grid_x(unit->grid_pos.x);
+          city_create->set_grid_y(unit->grid_pos.y);
+          fourx::SimExecute(step_request);
+          fourx::ClientPushStepRequest(step_request);
+        }
+    }
   }
   imui::End();
 }
@@ -262,7 +264,7 @@ RenderHexGridCoord(fourx::HexMap& hex_map, v2i cord)
   v2f world = math::HexAxialToWorld(cord, 5.f);
   rgg::RenderHexagon(v3f(world, -50.f), v3f(1.f, 1.f, 1.f),
                      v4f(.2f, .2f, .2f, 1.f));
-  rgg::RenderLineHexagon(v3f(world, -49.9f), 5.f, rgg::kWhite);
+  rgg::RenderLineHexagon(v3f(world, -49.9f), 5.f, v4f(.4f, .4f, .4f, 1.f));
   fourx::HexTile* tile = hex_map.tile(cord);
   if (!tile) return;
   if (tile->blocked) {
@@ -330,7 +332,7 @@ InitializeGameOncePlayerIdEstablished()
   // simulation when it receives its response from the server.
   {
     fourx::proto::SimulationStepRequest step_request;
-    step_request.mutable_map_create()->set_size(10);
+    step_request.mutable_map_create()->set_size(kHexMapSize);
     fourx::ClientPushStepRequest(step_request);
   }
 
@@ -368,6 +370,12 @@ SelectInactiveUnit(const fourx::Player* player)
 void
 UpdateGame(const v2f& cursor, b8 mouse_down, v2f& mouse_start, rgg::Camera& camera)
 {
+  // If the unit is gone unset the selection.
+  if (kInteraction.selected_unit_id != fourx::kInvalidUnit) {
+    fourx::Unit* unit = fourx::SimUnit(kInteraction.selected_unit_id);
+    if (!unit) kInteraction.selected_unit_id = fourx::kInvalidUnit;
+  }
+
   if (mouse_down) {
     v2f diff = cursor - mouse_start;
     if (fabs(diff.x) > 0.f || fabs(diff.y) > 0.f) {
@@ -380,7 +388,7 @@ UpdateGame(const v2f& cursor, b8 mouse_down, v2f& mouse_start, rgg::Camera& came
   if (fourx::SimActivePlayer() != player) return;
   if (!kInteraction.selected_unit_id) SelectInactiveUnit(player);
 
-  if (mouse_down && kInteraction.selected_unit_id) {
+  if (mouse_down && kInteraction.selected_unit_id != fourx::kInvalidUnit) {
     fourx::Unit* unit = fourx::SimUnit(kInteraction.selected_unit_id);
     std::vector<fourx::HexTile*> tiles =
         fourx::SimGetMap()->Bfs(unit->grid_pos, 1);

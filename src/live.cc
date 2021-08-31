@@ -2,11 +2,19 @@
 #define SINGLE_PLAYER
 
 #include "math/math.cc"
-
-#include "audio/audio.cc"
 #include "renderer/renderer.cc"
 #include "renderer/camera.cc"
 #include "renderer/imui.cc"
+#include "animation/fsm.cc"
+
+#include "live/constants.cc"
+
+#include <vector>
+
+#define WIN_ATTACH_DEBUGGER 0
+#define DEBUG_PHYSICS 0
+#define DEBUG_UI 0
+#define PLATFORMER_CAMERA 1
 
 struct State {
   // Game and render updates per second
@@ -25,23 +33,46 @@ struct State {
   window::CreateInfo window_create_info;
   // Id to music.
   u32 music_id;
+  // Game clock.
+  platform::Clock game_clock;
+};
+
+struct Entity {
+  Entity(v2f pos, v2f bounds) : pos(pos), bounds(bounds) {}
+  v2f pos;
+  v2f bounds;
+
+  Rectf rect() const { return Rectf(pos, bounds); }
+};
+
+struct Tree : public Entity {
+  Tree(v2f pos) : Entity(pos, v2f(live::kTreeWidth, live::kTreeHeight)) {}
+};
+
+struct Game {
+  std::vector<Tree> trees;
 };
 
 static State kGameState;
 static Stats kGameStats;
 
-#define UIBUFFER_SIZE 64
-static char kUIBuffer[UIBUFFER_SIZE];
+static Game kGame;
 
-static Rectf kRect1;
-static Rectf kRect2;
+static char kUIBuffer[64];
+
+void
+SetFramerate(u64 fr)
+{
+  kGameState.framerate = fr;
+  kGameState.frame_target_usec = 1000.f * 1000.f / kGameState.framerate;
+}
 
 void
 DebugUI()
 {
   v2f screen = window::GetWindowSize();
   {
-    static b8 enable_debug = true;
+    static b8 enable_debug = false;
     static v2f diagnostics_pos(3.f, screen.y);
     static r32 right_align = 130.f;
     imui::PaneOptions options;
@@ -81,31 +112,102 @@ DebugUI()
     imui::NewLine();
     imui::SameLine();
     imui::Width(right_align);
-    imui::Text("Rect Distance");
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "%f",
-             math::DistanceBetween(kRect2, kRect1));
+    imui::Text("Camera Pos");
+    v3f cpos = rgg::CameraPosition();
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "(%.0f, %.0f)", cpos.x, cpos.y);
     imui::Text(kUIBuffer);
     imui::NewLine();
-
+    imui::SameLine();
+    imui::Width(right_align);
+    imui::Text("Game Speed");
+    if (imui::Text("60 ", debug_options).clicked) {
+      SetFramerate(60);
+    }
+    if (imui::Text("30 ", debug_options).clicked) {
+      SetFramerate(30);
+    }
+    if (imui::Text("10 ", debug_options).clicked) {
+      SetFramerate(10);
+    }
+    if (imui::Text("5 ", debug_options).clicked) {
+      SetFramerate(5);
+    }
+    imui::NewLine();
     imui::End();
   }
-#if 0
+
   {
+#if DEBUG_UI
     static b8 enable_debug = false;
     static v2f ui_pos(300.f, screen.y);
     imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
-  }
 #endif
+  }
+}
+
+void
+GameInitialize(const v2f& dims)
+{
+  rgg::GetObserver()->projection =
+    math::Ortho(dims.x, 0.f, dims.y, 0.f, -1.f, 1.f);
+
+
+  kGame.trees.push_back(Tree(v2f(0.f, 0.f)));
+}
+
+bool
+GameUpdate()
+{
+  return true;
+}
+
+void
+GameRender(v2f dims)
+{
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClearColor(.1f, .1f, .13f, 1.f);
+
+  DebugUI();
+
+  for (const Tree& tree : kGame.trees) {
+    rgg::RenderRectangle(tree.rect(), v4f(0.f, 1.f, 0.f, 1.f));
+  }
+
+  rgg::DebugRenderUIPrimitives();
+  imui::Render(imui::kEveryoneTag);
+  window::SwapBuffers();
+}
+
+void
+ProcessPlatformEvent(const PlatformEvent& event) {
+  rgg::CameraUpdateEvent(event);
+  switch(event.type) {
+    case MOUSE_DOWN: {
+      if (event.button == BUTTON_LEFT) {
+        imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
+      }
+    } break;
+    case MOUSE_UP: {
+      imui::MouseUp(event.position, event.button, imui::kEveryoneTag);
+    } break;
+    default: break;
+  }
 }
 
 s32
 main(s32 argc, char** argv)
 {
-  platform::Clock game_clock;
-
+#ifdef _WIN32
+#if WIN_ATTACH_DEBUGGER
+  while (!IsDebuggerPresent()) {};
+#endif
+#endif
   if (!memory::Initialize(MiB(64))) {
+    return 1;
   }
 
+  kGameState.window_create_info.window_width = live::kScreenWidth;
+  kGameState.window_create_info.window_height = live::kScreenHeight;
   if (!window::Create("Game", kGameState.window_create_info)) {
     return 1;
   }
@@ -114,85 +216,46 @@ main(s32 argc, char** argv)
     return 1;
   }
 
+  const v2f dims = window::GetWindowSize();
+  GameInitialize(dims);
+  
+  // main thread affinity set to core 0
+  if (platform::thread_affinity_count() > 1) {
+    platform::thread_affinity_usecore(0);
+    printf("Game thread may run on %d cores\n",
+           platform::thread_affinity_count());
+  }
+
   // Reset State
   StatsInit(&kGameStats);
   kGameState.game_updates = 0;
-  kGameState.frame_target_usec = 1000.f * 1000.f / kGameState.framerate;
+  SetFramerate(kGameState.framerate);
   printf("Client target usec %lu\n", kGameState.frame_target_usec);
 
   // If vsync is enabled, force the clock_init to align with clock_sync
   // TODO: We should also enforce framerate is equal to refresh rate
   window::SwapBuffers();
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  rgg::Camera camera(v3f(0.f, 0.f, 100.f), v3f(0.f, 1.f, 0.f));
-
-  rgg::GetObserver()->projection =
-      rgg::DefaultPerspective(window::GetWindowSize());
-
-
-  kRect1 = Rectf(0.f, 0.f, 3.f, 12.f);
-  kRect2 = Rectf(-40.f, 10.f, 13.f, 5.f);
 
   while (1) {
-    platform::ClockStart(&game_clock);
+    platform::ClockStart(&kGameState.game_clock);
 
     imui::ResetTag(imui::kEveryoneTag);
     rgg::DebugReset();
 
     if (window::ShouldClose()) break;
 
-    PlatformEvent event;
-    while (window::PollEvent(&event)) {
-      switch(event.type) {
-        case KEY_DOWN: {
-          switch (event.key) {
-            case 27 /* ESC */: {
-              exit(1);
-            } break;
-          }
-        case MOUSE_DOWN: {
-          imui::MouseDown(event.position, event.button, imui::kEveryoneTag);
-          v3f world = camera.RayFromScreenToWorld(
-              event.position, window::GetWindowSize(), 0.f);
-          kRect2.x = world.x;
-          kRect2.y = world.y;
-        } break;
-        case MOUSE_UP:
-          imui::MouseUp(event.position, event.button, imui::kEveryoneTag);
-          break;
-        case MOUSE_WHEEL:
-          imui::MouseWheel(event.wheel_delta, imui::kEveryoneTag);
-          break;
-        }
-      }
-    }
-   
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     const v2f cursor = window::GetCursorPosition();
     imui::MousePosition(cursor, imui::kEveryoneTag);
 
-    rgg::GetObserver()->view = camera.View();
+    PlatformEvent event;
+    while (window::PollEvent(&event)) {
+      ProcessPlatformEvent(event);
+    }
 
-        
-    // Render
-    //rgg::RenderLineCube(Cubef(v3f(10.f, 30.f, -100.f), v3f(10.f, 10.f, 10.f)),
-    //                    v4f(1.f, 0.f, 0.f, 1.f));
+    GameUpdate();
+    GameRender(dims);  
 
-    rgg::RenderRectangle(kRect1, 0.f, 0.f, v4f(0.f, .2f, .8f, 1.f));
-    rgg::RenderRectangle(kRect2, 0.f, 0.f, v4f(0.f, .8f, .2f, 1.f));
-
-    // Execute game code.
-    DebugUI();
-
-    rgg::DebugRenderPrimitives();
-
-    imui::Render(imui::kEveryoneTag);
-    
-    window::SwapBuffers();
-
-    const u64 elapsed_usec = platform::ClockEnd(&game_clock);
+    const u64 elapsed_usec = platform::ClockEnd(&kGameState.game_clock);
     StatsAdd(elapsed_usec, &kGameStats);
 
     if (kGameState.frame_target_usec > elapsed_usec) {
@@ -202,7 +265,7 @@ main(s32 argc, char** argv)
       while (platform::ClockEnd(&wait_clock) < wait_usec) {}
     }
 
-    kGameState.game_time_usec += platform::ClockEnd(&game_clock);
+    kGameState.game_time_usec += platform::ClockEnd(&kGameState.game_clock);
     kGameState.game_updates++;
   }
 

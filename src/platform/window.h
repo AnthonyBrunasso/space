@@ -9,6 +9,12 @@
 // Notably this module creates a single window and does not intend
 // on supporting making multiple.
 
+constexpr s32 KEY_ESC = 27;
+constexpr s32 KEY_ARROW_UP = 0;
+constexpr s32 KEY_ARROW_RIGHT = 3;
+constexpr s32 KEY_ARROW_DOWN = 1;
+constexpr s32 KEY_ARROW_LEFT = 2;
+
 enum PlatformEventType {
   NOT_IMPLEMENTED,  // Event does not have translation implemented yet.
   MOUSE_DOWN,

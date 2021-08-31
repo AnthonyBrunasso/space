@@ -114,7 +114,7 @@ DebugUI()
     imui::Width(right_align);
     imui::Text("Camera Pos");
     v3f cpos = rgg::CameraPosition();
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "(%.0f, %.0f)", cpos.x, cpos.y);
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "(%.0f, %.0f, %.0f)", cpos.x, cpos.y, cpos.z);
     imui::Text(kUIBuffer);
     imui::NewLine();
     imui::SameLine();
@@ -151,6 +151,11 @@ GameInitialize(const v2f& dims)
   rgg::GetObserver()->projection =
     math::Ortho(dims.x, 0.f, dims.y, 0.f, -1.f, 1.f);
 
+  rgg::Camera camera;
+  camera.position = v3f(0.f, 0.f, 0.f);
+  camera.dir = v3f(0.f, 0.f, -1.f);
+  camera.up = v3f(0.f, 1.f, 0.f);
+  rgg::CameraInit(camera);
 
   kGame.trees.push_back(Tree(v2f(0.f, 0.f)));
 }
@@ -158,6 +163,8 @@ GameInitialize(const v2f& dims)
 bool
 GameUpdate()
 {
+  rgg::CameraUpdate();
+  rgg::GetObserver()->view = rgg::CameraView();
   return true;
 }
 
@@ -182,6 +189,25 @@ void
 ProcessPlatformEvent(const PlatformEvent& event) {
   rgg::CameraUpdateEvent(event);
   switch(event.type) {
+    case KEY_DOWN: {
+      switch (event.key) {
+        case KEY_ESC: {
+          exit(1);
+        } break;
+        case KEY_ARROW_UP: {
+          rgg::CameraMove(v2f(0.f, live::kCameraSpeed));
+        } break;
+        case KEY_ARROW_RIGHT: {
+          rgg::CameraMove(v2f(live::kCameraSpeed, 0.f));
+        } break;
+        case KEY_ARROW_DOWN: {
+          rgg::CameraMove(v2f(0.f, -live::kCameraSpeed));
+        } break;
+        case KEY_ARROW_LEFT: {
+          rgg::CameraMove(v2f(-live::kCameraSpeed, 0.f));
+        } break;
+      }
+    } break;
     case MOUSE_DOWN: {
       if (event.button == BUTTON_LEFT) {
         imui::MouseDown(event.position, event.button, imui::kEveryoneTag);

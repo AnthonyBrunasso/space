@@ -233,10 +233,10 @@ Render()
       continue;
     }
     Rectf aabb = p->aabb();
-    r32 r_width = aabb.width * kEnemyHealthWidthPercent;
-    Rectf pb_rect(aabb.x, aabb.Max().y + 1.f, r_width, kEnemyHealthHeight);
-    rgg::RenderProgressBar(pb_rect, 0.f, c->health, c->max_health,
-                           v4f(1.f, 0.f, 0.f, .7f), v4f(.8f, .8f, .8f, .5f));
+    //r32 r_width = aabb.width * kEnemyHealthWidthPercent;
+    //Rectf pb_rect(aabb.x, aabb.Max().y + 1.f, r_width, kEnemyHealthHeight);
+    //rgg::RenderProgressBar(pb_rect, 0.f, c->health, c->max_health,
+    //                       v4f(1.f, 0.f, 0.f, .7f), v4f(.8f, .8f, .8f, .5f));
     const u32* behavior = nullptr;
     AIComponent* ai = ecs::GetAIComponent(itr.e);
     if (!ai) continue;

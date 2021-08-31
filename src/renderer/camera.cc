@@ -1,6 +1,6 @@
 #pragma once
 
-#if 0
+#if 1
 
 #include "common/common.cc"
 #include "renderer.cc"

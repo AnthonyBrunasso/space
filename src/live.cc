@@ -49,8 +49,13 @@ struct Tree : public Entity {
   Tree(v2f pos) : Entity(pos, v2f(live::kTreeWidth, live::kTreeHeight)) {}
 };
 
+struct Character : public Entity {
+  Character(v2f pos) : Entity(pos, v2f(live::kCharacterWidth, live::kCharacterHeight)) {}
+};
+
 struct Game {
   std::vector<Tree> trees;
+  std::vector<Character> characters;
 };
 
 static State kGameState;
@@ -158,6 +163,10 @@ GameInitialize(const v2f& dims)
   rgg::CameraInit(camera);
 
   kGame.trees.push_back(Tree(v2f(0.f, 0.f)));
+  kGame.trees.push_back(Tree(v2f(15.f, 8.f)));
+  kGame.trees.push_back(Tree(v2f(-8.f, -12.5f)));
+  kGame.trees.push_back(Tree(v2f(-4.f, 20.f)));
+  kGame.characters.push_back(Character(v2f(-80.f, 100.f)));
 }
 
 bool
@@ -178,6 +187,10 @@ GameRender(v2f dims)
 
   for (const Tree& tree : kGame.trees) {
     rgg::RenderRectangle(tree.rect(), v4f(0.f, 1.f, 0.f, 1.f));
+  }
+
+  for (const Character& character : kGame.characters) {
+    rgg::RenderCircle(character.pos, character.rect().width / 2.f, v4f(1.f, 0.f, 0.f, 1.f));
   }
 
   rgg::DebugRenderUIPrimitives();

@@ -24,58 +24,14 @@ struct Character : public Entity {
 };
 
 #include "live/order.cc"
+#include "live/interaction.cc"
 
 struct Sim {
   std::vector<Tree> trees;
   std::vector<Character> characters;
 };
 
-struct Interaction {
-  b8 left_mouse_down = false;
-  v2f left_mouse_start;
-
-  Rectf selection_rect()
-  {
-    v2f cursor = window::GetCursorPosition();
-    v2f wpos = rgg::CameraRayFromMouseToWorld(cursor, 1.f).xy();
-    return math::MakeRect(left_mouse_start, wpos);
-  }
-};
-
 static Sim kSim;
-static Interaction  kInteraction;
-
-void
-SimProcessPlatformEvent(const PlatformEvent& event)
-{
-  switch (event.type) {
-    case MOUSE_DOWN: {
-      if (event.button == BUTTON_LEFT) {
-        v2f wpos = rgg::CameraRayFromMouseToWorld(event.position, 1.f).xy();
-        //OrderCreateMove(wpos);
-        kInteraction.left_mouse_down = true;
-        kInteraction.left_mouse_start = wpos;
-      }
-    } break;
-    case MOUSE_UP: {
-      if (event.button == BUTTON_LEFT) {
-        v2f wpos = rgg::CameraRayFromMouseToWorld(event.position, 1.f).xy();
-        printf("(%.2f %.2f) (%.2f %.2f)\n",
-               kInteraction.left_mouse_start.x, 
-               kInteraction.left_mouse_start.y, 
-               wpos.x, wpos.y);
-        kInteraction.left_mouse_down = false;
-      }
-    } break;
-    case NOT_IMPLEMENTED:
-    case MOUSE_WHEEL:
-    case KEY_DOWN:
-    case KEY_UP:
-    case MOUSE_POSITION:
-    case XBOX_CONTROLLER:
-    deafult: break;
-  }
-}
 
 void
 SimInitialize()

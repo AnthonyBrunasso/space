@@ -162,6 +162,7 @@ GameRender(v2f dims)
   glClearColor(.1f, .1f, .13f, 1.f);
 
   DebugUI();
+  live::InteractionRenderOrderOptions();
 
   rgg::DebugRenderWorldPrimitives();
 
@@ -213,7 +214,7 @@ ProcessPlatformEvent(const PlatformEvent& event) {
     default: break;
   }
 
-  live::SimProcessPlatformEvent(event);
+  live::InteractionProcessPlatformEvent(event);
 }
 
 s32

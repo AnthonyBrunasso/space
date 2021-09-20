@@ -163,6 +163,8 @@ GameRender(v2f dims)
 
   DebugUI();
 
+  rgg::DebugRenderWorldPrimitives();
+
   for (const live::Tree& tree : live::SimTrees()) {
     rgg::RenderRectangle(tree.rect(), v4f(0.f, 1.f, 0.f, 1.f));
   }
@@ -172,7 +174,6 @@ GameRender(v2f dims)
   }
 
   rgg::DebugRenderUIPrimitives();
-  rgg::DebugRenderWorldPrimitives();
   imui::Render(imui::kEveryoneTag);
 
   window::SwapBuffers();

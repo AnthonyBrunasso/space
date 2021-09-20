@@ -104,7 +104,22 @@ void
 SimUpdate()
 {
   if (kInteraction.left_mouse_down) {
-    rgg::DebugPushRect(kInteraction.selection_rect(), v4f(0.f, 1.f, 0.f, 0.2f));
+    Rectf srect = math::OrientToAabb(kInteraction.selection_rect());
+    for (int i = 0; i < kSim.trees.size(); ++i) {
+      Tree* tree = &kSim.trees[i];
+      Rectf trect = tree->rect();
+      b8 irect = math::IntersectRect(trect, srect);
+      b8 crect = math::IsContainedInRect(trect, srect);
+      if (irect || crect) {
+        Rectf render_rect = trect;
+        render_rect.x -= 1.f;
+        render_rect.y -= 1.f;
+        render_rect.width += 2.f;
+        render_rect.height += 2.f;
+        rgg::DebugPushRect(render_rect, v4f(1.f, 1.f, 1.f, 1.f));
+      }
+    }
+    rgg::DebugPushRect(srect, v4f(0.f, 1.f, 0.f, 0.2f));
   }
 
   for (int i = 0; i < kSim.characters.size(); ++i) {

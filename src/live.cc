@@ -1,6 +1,9 @@
 // Singleplayer game template.
 #define SINGLE_PLAYER
 
+#include <vector>
+#include <unordered_map>
+
 #include "math/math.cc"
 #include "renderer/renderer.cc"
 #include "renderer/camera.cc"
@@ -8,8 +11,7 @@
 #include "animation/fsm.cc"
 
 #include "live/constants.cc"
-
-#include <vector>
+#include "live/sim.cc"
 
 #define WIN_ATTACH_DEBUGGER 0
 #define DEBUG_PHYSICS 0
@@ -37,31 +39,9 @@ struct State {
   platform::Clock game_clock;
 };
 
-struct Entity {
-  Entity(v2f pos, v2f bounds) : pos(pos), bounds(bounds) {}
-  v2f pos;
-  v2f bounds;
-
-  Rectf rect() const { return Rectf(pos, bounds); }
-};
-
-struct Tree : public Entity {
-  Tree(v2f pos) : Entity(pos, v2f(live::kTreeWidth, live::kTreeHeight)) {}
-};
-
-struct Character : public Entity {
-  Character(v2f pos) : Entity(pos, v2f(live::kCharacterWidth, live::kCharacterHeight)) {}
-};
-
-struct Game {
-  std::vector<Tree> trees;
-  std::vector<Character> characters;
-};
 
 static State kGameState;
 static Stats kGameStats;
-
-static Game kGame;
 
 static char kUIBuffer[64];
 
@@ -160,13 +140,10 @@ GameInitialize(const v2f& dims)
   camera.position = v3f(0.f, 0.f, 0.f);
   camera.dir = v3f(0.f, 0.f, -1.f);
   camera.up = v3f(0.f, 1.f, 0.f);
+  camera.viewport = dims;
   rgg::CameraInit(camera);
 
-  kGame.trees.push_back(Tree(v2f(0.f, 0.f)));
-  kGame.trees.push_back(Tree(v2f(15.f, 8.f)));
-  kGame.trees.push_back(Tree(v2f(-8.f, -12.5f)));
-  kGame.trees.push_back(Tree(v2f(-4.f, 20.f)));
-  kGame.characters.push_back(Character(v2f(-80.f, 100.f)));
+  live::SimInitialize();
 }
 
 bool
@@ -174,6 +151,7 @@ GameUpdate()
 {
   rgg::CameraUpdate();
   rgg::GetObserver()->view = rgg::CameraView();
+  live::SimUpdate();
   return true;
 }
 
@@ -185,16 +163,17 @@ GameRender(v2f dims)
 
   DebugUI();
 
-  for (const Tree& tree : kGame.trees) {
+  for (const live::Tree& tree : live::SimTrees()) {
     rgg::RenderRectangle(tree.rect(), v4f(0.f, 1.f, 0.f, 1.f));
   }
 
-  for (const Character& character : kGame.characters) {
+  for (const live::Character& character : live::SimCharacters()) {
     rgg::RenderCircle(character.pos, character.rect().width / 2.f, v4f(1.f, 0.f, 0.f, 1.f));
   }
 
   rgg::DebugRenderUIPrimitives();
   imui::Render(imui::kEveryoneTag);
+
   window::SwapBuffers();
 }
 
@@ -231,6 +210,8 @@ ProcessPlatformEvent(const PlatformEvent& event) {
     } break;
     default: break;
   }
+
+  live::SimProcessPlatformEvent(event);
 }
 
 s32

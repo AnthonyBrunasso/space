@@ -322,7 +322,8 @@ CameraRayFromMouseToWorld(const v2f& screen, r32 plane_z)
   v3f ray = CameraRayFromMouse(screen);
   v3f n(0.f, 0.f, 1.f);
   r32 t = -(math::Dot(CameraPosition(), n) + plane_z) / math::Dot(ray, n);
-  return CameraPosition() + ray * t;
+  v3f out = CameraPosition() + ray * t;
+  return out;
 }
 
 }

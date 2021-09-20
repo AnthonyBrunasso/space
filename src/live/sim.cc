@@ -33,6 +33,13 @@ struct Sim {
 struct Interaction {
   b8 left_mouse_down = false;
   v2f left_mouse_start;
+
+  Rectf selection_rect()
+  {
+    v2f cursor = window::GetCursorPosition();
+    v2f wpos = rgg::CameraRayFromMouseToWorld(cursor, 1.f).xy();
+    return math::MakeRect(left_mouse_start, wpos);
+  }
 };
 
 static Sim kSim;
@@ -68,12 +75,6 @@ SimProcessPlatformEvent(const PlatformEvent& event)
     case XBOX_CONTROLLER:
     deafult: break;
   }
-
-  if (kInteraction.left_mouse_down) {
-    v2f cursor = window::GetCursorPosition();
-    v2f wpos = rgg::CameraRayFromMouseToWorld(cursor, 1.f).xy();
-    rgg::DebugPushRect(math::MakeRect(kInteraction.left_mouse_start, wpos), v4f(0.f, 1.f, 0.f, 0.2f));
-  }
 }
 
 void
@@ -102,6 +103,10 @@ SimCharacters()
 void
 SimUpdate()
 {
+  if (kInteraction.left_mouse_down) {
+    rgg::DebugPushRect(kInteraction.selection_rect(), v4f(0.f, 1.f, 0.f, 0.2f));
+  }
+
   for (int i = 0; i < kSim.characters.size(); ++i) {
     Character* character = &kSim.characters[i];
     OrderAcquire(character);

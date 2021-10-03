@@ -55,7 +55,7 @@ InteractionProcessPlatformEvent(const PlatformEvent& event)
       if (event.button == BUTTON_LEFT) {
         v2f wpos = rgg::CameraRayFromMouseToWorld(event.position, 1.f).xy();
         kInteraction.left_mouse_down = false;
-        DispatchBoxSelect(kInteraction.selection_rect());
+        DispatchBoxSelect(math::OrientToAabb(kInteraction.selection_rect()));
       }
     } break;
     case MOUSE_WHEEL:

@@ -10,6 +10,7 @@
 #include "renderer/imui.cc"
 #include "animation/fsm.cc"
 
+#include "live/components.cc"
 #include "live/constants.cc"
 #include "live/sim.cc"
 
@@ -166,12 +167,20 @@ GameRender(v2f dims)
 
   rgg::DebugRenderWorldPrimitives();
 
-  for (const live::Tree& tree : live::SimTrees()) {
-    rgg::RenderRectangle(tree.rect(), v4f(0.f, 1.f, 0.f, 1.f));
+  {
+    ECS_ITR2(itr, ecs::kPhysicsComponent, ecs::kTreeComponent);
+    while (itr.Next()) {
+      ecs::PhysicsComponent* tree = itr.c.physics;
+      rgg::RenderRectangle(tree->rect(), v4f(0.f, 1.f, 0.f, 1.f));
+    }
   }
 
-  for (const live::Character& character : live::SimCharacters()) {
-    rgg::RenderCircle(character.pos, character.rect().width / 2.f, v4f(1.f, 0.f, 0.f, 1.f));
+  {
+    ECS_ITR2(itr, ecs::kPhysicsComponent, ecs::kCharacterComponent);
+    while (itr.Next()) {
+      ecs::PhysicsComponent* character = itr.c.physics;
+      rgg::RenderCircle(character->pos, character->rect().width / 2.f, v4f(1.f, 0.f, 0.f, 1.f));
+    }
   }
 
   rgg::DebugRenderUIPrimitives();

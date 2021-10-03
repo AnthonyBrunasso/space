@@ -4,25 +4,6 @@
 namespace live {
 
 
-struct Entity {
-  Entity(v2f pos, v2f bounds) : pos(pos), bounds(bounds) {}
-  v2f pos;
-  v2f bounds;
-
-  Rectf rect() const { return Rectf(pos, bounds); }
-};
-
-struct Tree : public Entity {
-  Tree(v2f pos) : Entity(pos, v2f(live::kTreeWidth, live::kTreeHeight)) {}
-};
-
-struct Character : public Entity {
-  Character(v2f pos) : Entity(pos, v2f(live::kCharacterWidth, live::kCharacterHeight)) {}
-
-  // Order the character should be executing.
-  s32 order_id = 0;
-};
-
 template <typename T>
 using SimCallbacks = std::vector<std::function<void(const T&)>>;
 
@@ -43,42 +24,52 @@ using SimCallbacks = std::vector<std::function<void(const T&)>>;
 #include "live/order.cc"
 #include "live/interaction.cc"
 
-struct Sim {
-  std::vector<Tree> trees;
-  std::vector<Character> characters;
-};
+void
+SimCreateTree(v2f pos)
+{
+  ecs::Entity* tree = ecs::UseEntity();
+  ecs::PhysicsComponent* comp = ecs::AssignPhysicsComponent(tree);
+  comp->pos = pos;
+  comp->bounds = v2f(live::kTreeWidth, live::kTreeHeight);
+  ecs::AssignTreeComponent(tree);
+}
 
-static Sim kSim;
+void SimCreateCharacter(v2f pos)
+{
+  ecs::Entity* tree = ecs::UseEntity();
+  ecs::PhysicsComponent* comp = ecs::AssignPhysicsComponent(tree);
+  comp->pos = pos;
+  comp->bounds = v2f(live::kCharacterWidth, live::kCharacterHeight);
+  ecs::AssignCharacterComponent(tree);
+}
 
 void
 SimHandleBoxSelect(const Rectf& selection)
 {
-  puts("Test");
+  ECS_ITR2(itr, ecs::kPhysicsComponent, ecs::kTreeComponent);
+  while (itr.Next()) {
+    ecs::PhysicsComponent* tree = itr.c.physics;
+    Rectf trect = tree->rect();
+    b8 irect = math::IntersectRect(trect, selection);
+    b8 crect = math::IsContainedInRect(trect, selection);
+    if (irect || crect) {
+      printf("Harvest tree at %.2f %.2f\n", tree->pos.x, tree->pos.y);
+    }
+  }
 }
 
 void
 SimInitialize()
 {
-  kSim.trees.push_back(Tree(v2f(0.f, 0.f)));
-  kSim.trees.push_back(Tree(v2f(15.f, 8.f)));
-  kSim.trees.push_back(Tree(v2f(-8.f, -12.5f)));
-  kSim.trees.push_back(Tree(v2f(-4.f, 20.f)));
-  kSim.characters.push_back(Character(v2f(-80.f, 100.f)));
-  kSim.characters.push_back(Character(v2f(80.f, 120.f)));
+  SimCreateTree(v2f(0.f, 0.f));
+  SimCreateTree(v2f(15.f, 8.f));
+  SimCreateTree(v2f(-8.f, -12.5f));
+  SimCreateTree(v2f(-4.f, 20.f));
+
+  SimCreateCharacter(v2f(-80.f, 100.f));
+  SimCreateCharacter(v2f(80.f, 120.f));
 
   SubscribeBoxSelect(&SimHandleBoxSelect);
-}
-
-const std::vector<Tree>&
-SimTrees()
-{
-  return kSim.trees;
-}
-
-const std::vector<Character>&
-SimCharacters()
-{
-  return kSim.characters;
 }
 
 void
@@ -86,8 +77,9 @@ SimUpdate()
 {
   if (kInteraction.left_mouse_down) {
     Rectf srect = math::OrientToAabb(kInteraction.selection_rect());
-    for (int i = 0; i < kSim.trees.size(); ++i) {
-      Tree* tree = &kSim.trees[i];
+    ECS_ITR2(itr, ecs::kPhysicsComponent, ecs::kTreeComponent);
+    while (itr.Next()) {
+      ecs::PhysicsComponent* tree = itr.c.physics;
       Rectf trect = tree->rect();
       b8 irect = math::IntersectRect(trect, srect);
       b8 crect = math::IsContainedInRect(trect, srect);
@@ -103,10 +95,10 @@ SimUpdate()
     rgg::DebugPushRect(srect, v4f(0.f, 1.f, 0.f, 0.2f));
   }
 
-  for (int i = 0; i < kSim.characters.size(); ++i) {
-    Character* character = &kSim.characters[i];
-    OrderAcquire(character);
-    OrderExecute(character);
+  ECS_ITR1(itr, ecs::kCharacterComponent);
+  while (itr.Next()) {
+    OrderAcquire(itr.c.character);
+    OrderExecute(&itr);
   }
 }
 

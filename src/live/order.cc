@@ -1,7 +1,5 @@
 // namespace live {
 
-struct Character;
-
 struct Order {
   enum Type {
     MOVE = 0,
@@ -21,7 +19,7 @@ static u32 kOrderId = 1;
 static std::unordered_map<s32, Order> kOrders;
 
 Order*
-_GetOrder(Character* character)
+_GetOrder(ecs::CharacterComponent* character)
 {
   auto character_order = kOrders.find(character->order_id);
 
@@ -33,13 +31,13 @@ _GetOrder(Character* character)
 }
 
 b8
-_ExecuteMove(Character* character, Order* order)
+_ExecuteMove(ecs::CharacterComponent* character, ecs::PhysicsComponent* phys, Order* order)
 {
-  v2f diff = order->pos - character->pos;
+  v2f diff = order->pos - phys->pos;
   r32 diff_lsq = math::LengthSquared(diff);
   if (diff_lsq > 1.f) {
     v2f dir = math::Normalize(diff);
-    character->pos += (dir * 2.f);
+    phys->pos += (dir * 2.f);
     return false;
   }
   return true;
@@ -53,7 +51,7 @@ OrderCreateMove(v2f pos)
 }
 
 void
-OrderAcquire(Character* character)
+OrderAcquire(ecs::CharacterComponent* character)
 {
   Order* order = _GetOrder(character);
 
@@ -71,8 +69,11 @@ OrderAcquire(Character* character)
 }
 
 void
-OrderExecute(Character* character)
+OrderExecute(ecs::EntityItr<1>* itr)
 {
+  ecs::CharacterComponent* character = itr->c.character;
+  ecs::PhysicsComponent* physics = itr->c.physics;
+
   Order* order = _GetOrder(character);
 
   if (order == nullptr) {
@@ -83,7 +84,7 @@ OrderExecute(Character* character)
   b8 order_completed = false;
   switch (order->type) {
     case Order::MOVE: {
-      order_completed = _ExecuteMove(character, order);
+      order_completed = _ExecuteMove(character, physics, order);
     } break;
     default: break;
   }

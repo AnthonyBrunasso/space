@@ -8,14 +8,9 @@ struct Interaction {
     HARVEST = 1,
   };
 
-  enum Callback {
-    RIGHT_CLICK_UP = 0,
-  };
-
   b8 left_mouse_down = false;
   v2f left_mouse_start;
   Action action = HARVEST;
-  SimCallbacks<Rectf> right_click_up;
 
   Rectf selection_rect()
   {

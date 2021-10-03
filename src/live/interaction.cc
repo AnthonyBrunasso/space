@@ -1,8 +1,21 @@
 // namespace live {
 
+DEFINE_CALLBACK(BoxSelect, Rectf);
+
 struct Interaction {
+  enum Action {
+    NONE = 0,
+    HARVEST = 1,
+  };
+
+  enum Callback {
+    RIGHT_CLICK_UP = 0,
+  };
+
   b8 left_mouse_down = false;
   v2f left_mouse_start;
+  Action action = HARVEST;
+  SimCallbacks<Rectf> right_click_up;
 
   Rectf selection_rect()
   {
@@ -26,7 +39,7 @@ InteractionRenderOrderOptions()
   imui::TextOptions toptions;
   toptions.highlight_color = imui::kRed;
   if (imui::Text("Trees", toptions).clicked) {
-    puts("hi");
+    kInteraction.action = Interaction::HARVEST;
   }
   imui::End();
 }
@@ -46,19 +59,16 @@ InteractionProcessPlatformEvent(const PlatformEvent& event)
     case MOUSE_UP: {
       if (event.button == BUTTON_LEFT) {
         v2f wpos = rgg::CameraRayFromMouseToWorld(event.position, 1.f).xy();
-        printf("(%.2f %.2f) (%.2f %.2f)\n",
-               kInteraction.left_mouse_start.x, 
-               kInteraction.left_mouse_start.y, 
-               wpos.x, wpos.y);
         kInteraction.left_mouse_down = false;
+        DispatchBoxSelect(kInteraction.selection_rect());
       }
     } break;
-    case NOT_IMPLEMENTED:
     case MOUSE_WHEEL:
     case KEY_DOWN:
     case KEY_UP:
     case MOUSE_POSITION:
     case XBOX_CONTROLLER:
+    case NOT_IMPLEMENTED:
     deafult: break;
   }
 }

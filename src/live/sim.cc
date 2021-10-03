@@ -23,6 +23,23 @@ struct Character : public Entity {
   s32 order_id = 0;
 };
 
+template <typename T>
+using SimCallbacks = std::vector<std::function<void(const T&)>>;
+
+#define DEFINE_CALLBACK(name, param)                              \
+  static SimCallbacks<param> k##name;                             \
+  void                                                            \
+  Subscribe##name(const std::function<void(const param&)> func) { \
+    k##name.push_back(func);                                      \
+  }                                                               \
+                                                                  \
+  void                                                            \
+  Dispatch##name(const param& p) {                                \
+     for (const auto& event : k##name) {                          \
+      event(p);                                                   \
+    }                                                             \
+  }
+
 #include "live/order.cc"
 #include "live/interaction.cc"
 
@@ -34,6 +51,12 @@ struct Sim {
 static Sim kSim;
 
 void
+SimHandleBoxSelect(const Rectf& selection)
+{
+  puts("Test");
+}
+
+void
 SimInitialize()
 {
   kSim.trees.push_back(Tree(v2f(0.f, 0.f)));
@@ -42,6 +65,8 @@ SimInitialize()
   kSim.trees.push_back(Tree(v2f(-4.f, 20.f)));
   kSim.characters.push_back(Character(v2f(-80.f, 100.f)));
   kSim.characters.push_back(Character(v2f(80.f, 120.f)));
+
+  SubscribeBoxSelect(&SimHandleBoxSelect);
 }
 
 const std::vector<Tree>&

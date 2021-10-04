@@ -4,6 +4,8 @@ enum TypeId : u64 {
   kPhysicsComponent = 0,
   kTreeComponent = 1,
   kCharacterComponent = 2,
+  kDeathComponent = 3,
+  kComponentCount = 4,
 };
 
 const char*
@@ -13,6 +15,7 @@ TypeName(TypeId type_id)
     case kPhysicsComponent: return "Physics";
     case kTreeComponent: return "Tree";
     case kCharacterComponent: return "Character";
+    case kDeathComponent: return "Death";
     default: return "Unknown";
   }
   return "Unknown";
@@ -40,6 +43,11 @@ struct CharacterComponent {
   u32 order_id; // TEMP
 };
 
+// If set on an entity will remove it at the end of the current frame.
+struct DeathComponent {
+  u32 entity_id = 0;
+};
+
 }
 
 namespace ecs {
@@ -48,6 +56,7 @@ struct Components {
   PhysicsComponent* physics = nullptr;
   TreeComponent* tree = nullptr;
   CharacterComponent* character = nullptr;
+  DeathComponent* death = nullptr;
 };
 
 }
@@ -73,6 +82,10 @@ GetComponents(u64 tid)
       static ecs::ComponentStorage f(128, sizeof(CharacterComponent));
       return &f;
     } break;
+    case kDeathComponent: {
+      static ecs::ComponentStorage f(64, sizeof(DeathComponent));
+      return &f;
+    } break;
     default: {
       assert(!"Unknown component type");
     } break;
@@ -83,5 +96,6 @@ GetComponents(u64 tid)
 DECLARE_COMPONENT(PhysicsComponent, kPhysicsComponent);
 DECLARE_COMPONENT(TreeComponent, kTreeComponent);
 DECLARE_COMPONENT(CharacterComponent, kCharacterComponent);
+DECLARE_COMPONENT(DeathComponent, kDeathComponent);
 
 }

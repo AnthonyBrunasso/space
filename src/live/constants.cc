@@ -8,6 +8,7 @@ constexpr r32 kTreeHeight = 10.f;
 
 constexpr r32 kCharacterWidth = 10.f;
 constexpr r32 kCharacterHeight = 10.f;
+constexpr r32 kCharacterDefaultSpeed = 0.5f;
 
 constexpr r32 kCameraSpeed = 10.f;
 

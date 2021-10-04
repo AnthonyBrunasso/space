@@ -36,11 +36,11 @@ SimCreateTree(v2f pos)
 
 void SimCreateCharacter(v2f pos)
 {
-  ecs::Entity* tree = ecs::UseEntity();
-  ecs::PhysicsComponent* comp = ecs::AssignPhysicsComponent(tree);
+  ecs::Entity* character = ecs::UseEntity();
+  ecs::PhysicsComponent* comp = ecs::AssignPhysicsComponent(character);
   comp->pos = pos;
   comp->bounds = v2f(live::kCharacterWidth, live::kCharacterHeight);
-  ecs::AssignCharacterComponent(tree);
+  ecs::AssignCharacterComponent(character);
 }
 
 void
@@ -53,9 +53,16 @@ SimHandleBoxSelect(const Rectf& selection)
     b8 irect = math::IntersectRect(trect, selection);
     b8 crect = math::IsContainedInRect(trect, selection);
     if (irect || crect) {
-      printf("Harvest tree at %.2f %.2f\n", tree->pos.x, tree->pos.y);
+      OrderCreateHarvest(itr.e);
     }
   }
+}
+
+void
+SimHandleHarvestCompleted(u32 entity_id)
+{
+  assert(ecs::FindEntity(entity_id) != nullptr);
+  ecs::AssignDeathComponent(entity_id);
 }
 
 void
@@ -70,6 +77,7 @@ SimInitialize()
   SimCreateCharacter(v2f(80.f, 120.f));
 
   SubscribeBoxSelect(&SimHandleBoxSelect);
+  SubscribeHarvestCompleted(&SimHandleHarvestCompleted);
 }
 
 void
@@ -95,11 +103,24 @@ SimUpdate()
     rgg::DebugPushRect(srect, v4f(0.f, 1.f, 0.f, 0.2f));
   }
 
-  ECS_ITR1(itr, ecs::kCharacterComponent);
-  while (itr.Next()) {
-    OrderAcquire(itr.c.character);
-    OrderExecute(&itr);
+  {
+    ECS_ITR2(itr, ecs::kCharacterComponent, ecs::kPhysicsComponent);
+    while (itr.Next()) {
+      OrderAcquire(itr.c.character);
+      OrderExecute(&itr);
+    }
   }
+
+  {
+    ECS_ITR1(itr, ecs::kDeathComponent);
+    while (itr.Next()) {
+      // Just in case an entity got multiple death components.
+      if (!itr.e) continue;
+      ecs::DeleteEntity(itr.e, ecs::kComponentCount);
+    }
+    ecs::GetComponents(ecs::kDeathComponent)->Clear();
+  }
+
 }
 
 }

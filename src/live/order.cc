@@ -1,13 +1,21 @@
 // namespace live {
 
+DEFINE_CALLBACK(HarvestCompleted, u32);
+
 struct Order {
   enum Type {
-    MOVE = 0,
+    kMove = 0,
+    kHarvest = 1,
   };
   Order(u32 id, Type type, v2f pos, int max_acquire_count) :
       id(id), type(type), pos(pos), max_acquire_count(max_acquire_count) {}
+  Order(u32 id, Type type, u32 entity_id, int max_acquire_count) :
+      id(id), type(type), entity_id(entity_id), max_acquire_count(max_acquire_count) {}
   u32 id = 0;
-  v2f pos;
+  union {
+    u32 entity_id;
+    v2f pos;
+  };
   Type type;
   // Number of units that have acquired this order.
   u32 acquire_count = 0;
@@ -31,23 +39,64 @@ _GetOrder(ecs::CharacterComponent* character)
 }
 
 b8
-_ExecuteMove(ecs::CharacterComponent* character, ecs::PhysicsComponent* phys, Order* order)
+_ExecuteMove(ecs::CharacterComponent* character, ecs::PhysicsComponent* phys, v2f target)
 {
-  v2f diff = order->pos - phys->pos;
+  v2f diff = target - phys->pos;
   r32 diff_lsq = math::LengthSquared(diff);
   if (diff_lsq > 1.f) {
     v2f dir = math::Normalize(diff);
-    phys->pos += (dir * 2.f);
+    phys->pos += (dir * kCharacterDefaultSpeed);
     return false;
   }
   return true;
+}
+
+b8
+_ExecuteMove(ecs::CharacterComponent* character, ecs::PhysicsComponent* phys, Order* order)
+{
+  assert(order->type == Order::kMove);
+  return _ExecuteMove(character, phys, order->pos);
+}
+
+b8
+_ExecuteHarvest(ecs::CharacterComponent* character, ecs::PhysicsComponent* physics, Order* order)
+{
+  assert(order->type == Order::kHarvest);
+
+  ecs::Entity* harvest_entity = ecs::FindEntity(order->entity_id);
+  assert(harvest_entity != nullptr);
+
+  ecs::PhysicsComponent* tree_physics = ecs::GetPhysicsComponent(harvest_entity);
+  assert(tree_physics != nullptr);
+
+  if (_ExecuteMove(character, physics, tree_physics->pos)) {
+    // TODO: Maybe add some mechanics for taking an amount of time to harvest the tree.
+    DispatchHarvestCompleted(order->entity_id);
+    return true;
+  }
+
+  return false;
 }
 
 void
 OrderCreateMove(v2f pos)
 {
   u32 oid = kOrderId++;
-  kOrders.insert({oid, Order(oid, Order::MOVE, pos, 1)});
+  kOrders.insert({oid, Order(oid, Order::kMove, pos, 1)});
+}
+
+void
+OrderCreateHarvest(ecs::Entity* entity)
+{
+  for (const auto& [id, order] : kOrders)
+  {
+    if (order.type != Order::kHarvest) continue;
+    // Order already created to harvest this thing. Don't try again.
+    // TODO: Maybe store that information on the thing to be harvested itself for quicker lookup?
+    if (order.entity_id == entity->id) return;
+  }
+  u32 oid = kOrderId++;
+  kOrders.insert({oid, Order(oid, Order::kHarvest, entity->id, 1)});
 }
 
 void
@@ -69,7 +118,7 @@ OrderAcquire(ecs::CharacterComponent* character)
 }
 
 void
-OrderExecute(ecs::EntityItr<1>* itr)
+OrderExecute(ecs::EntityItr<2>* itr)
 {
   ecs::CharacterComponent* character = itr->c.character;
   ecs::PhysicsComponent* physics = itr->c.physics;
@@ -80,11 +129,13 @@ OrderExecute(ecs::EntityItr<1>* itr)
     return;
   }
 
-  //puts("Execute order");
   b8 order_completed = false;
   switch (order->type) {
-    case Order::MOVE: {
+    case Order::kMove: {
       order_completed = _ExecuteMove(character, physics, order);
+    } break;
+    case Order::kHarvest: {
+      order_completed = _ExecuteHarvest(character, physics, order);
     } break;
     default: break;
   }

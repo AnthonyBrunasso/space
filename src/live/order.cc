@@ -142,6 +142,7 @@ OrderExecute(ecs::EntityItr<2>* itr)
 
   if (order_completed) {
     kOrders.erase(order->id);
+    character->order_id = kInvalidOrderId;
   }
 }
 

@@ -33,8 +33,27 @@ InteractionRenderOrderOptions()
   imui::Begin("Selection", imui::kEveryoneTag, options, &pos_ui, &enable_ui);
   imui::TextOptions toptions;
   toptions.highlight_color = imui::kRed;
-  if (imui::Text("Trees", toptions).clicked) {
+  if (imui::Text("Harvest", toptions).clicked) {
     kInteraction.action = Interaction::HARVEST;
+  }
+  imui::End();
+}
+
+void
+InteractionRenderResourceCounts()
+{
+  static char resource_buffer[64];
+
+  v2f screen = window::GetWindowSize();
+
+  static b8 enable_ui = true;
+  static v2f pos_ui(0.f, 500.f);
+  imui::PaneOptions options;
+  imui::Begin("Resources", imui::kEveryoneTag, options, &pos_ui, &enable_ui);
+  for (s32 i = 0; i < kResourceTypeCount; ++i) {
+    snprintf(resource_buffer, sizeof(resource_buffer), "%s: %i",
+             ResourceName((ResourceType)i), kSim.resources[i]);
+    imui::Text(resource_buffer);
   }
   imui::End();
 }

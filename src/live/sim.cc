@@ -22,17 +22,31 @@ using SimCallbacks = std::vector<std::function<void(const T&)>>;
     }                                                             \
   }
 
+struct Sim {
+  s32 resources[kResourceTypeCount];
+};
+
+static Sim kSim;
+
 #include "live/order.cc"
 #include "live/interaction.cc"
 
+u32
+SecondsToTicks(r32 seconds)
+{
+  return (u32)roundf((r32)kGameState.framerate * seconds);
+}
+
 void
-SimCreateHarvest(v2f pos)
+SimCreateWoodHarvest(v2f pos)
 {
   Entity* tree = UseEntity();
   PhysicsComponent* comp = AssignPhysicsComponent(tree);
   comp->pos = pos;
   comp->bounds = v2f(live::kHarvestWidth, live::kHarvestHeight);
-  AssignHarvestComponent(tree);
+  HarvestComponent* harvest = AssignHarvestComponent(tree);
+  harvest->resource_type = kWood;
+  harvest->tth = SecondsToTicks(1.f);
 }
 
 void SimCreateCharacter(v2f pos)
@@ -62,17 +76,21 @@ SimHandleBoxSelect(const Rectf& selection)
 void
 SimHandleHarvestCompleted(u32 entity_id)
 {
-  assert(FindEntity(entity_id) != nullptr);
+  Entity* harvest_entity = FindEntity(entity_id);
+  assert(harvest_entity != nullptr);
+  HarvestComponent* harvest_component = GetHarvestComponent(harvest_entity);
+  assert(harvest_component != nullptr);
+  ++kSim.resources[harvest_component->resource_type];
   AssignDeathComponent(entity_id);
 }
 
 void
 SimInitialize()
 {
-  SimCreateHarvest(v2f(0.f, 0.f));
-  SimCreateHarvest(v2f(15.f, 8.f));
-  SimCreateHarvest(v2f(-8.f, -12.5f));
-  SimCreateHarvest(v2f(-4.f, 20.f));
+  SimCreateWoodHarvest(v2f(0.f, 0.f));
+  SimCreateWoodHarvest(v2f(15.f, 8.f));
+  SimCreateWoodHarvest(v2f(-8.f, -12.5f));
+  SimCreateWoodHarvest(v2f(-4.f, 20.f));
 
   SimCreateCharacter(v2f(-80.f, 100.f));
   SimCreateCharacter(v2f(80.f, 120.f));

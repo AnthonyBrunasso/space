@@ -10,10 +10,6 @@
 #include "renderer/imui.cc"
 #include "animation/fsm.cc"
 
-#include "live/components.cc"
-#include "live/constants.cc"
-#include "live/sim.cc"
-
 #define WIN_ATTACH_DEBUGGER 0
 #define DEBUG_PHYSICS 0
 #define DEBUG_UI 0
@@ -43,6 +39,10 @@ struct State {
 
 static State kGameState;
 static Stats kGameStats;
+
+#include "live/components.cc"
+#include "live/constants.cc"
+#include "live/sim.cc"
 
 static char kUIBuffer[64];
 
@@ -164,6 +164,7 @@ GameRender(v2f dims)
 
   DebugUI();
   live::InteractionRenderOrderOptions();
+  live::InteractionRenderResourceCounts();
 
   rgg::DebugRenderWorldPrimitives();
 

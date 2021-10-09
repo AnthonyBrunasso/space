@@ -69,10 +69,16 @@ _ExecuteHarvest(CharacterComponent* character, PhysicsComponent* physics, Order*
   PhysicsComponent* tree_physics = GetPhysicsComponent(harvest_entity);
   assert(tree_physics != nullptr);
 
+  HarvestComponent* harvest = GetHarvestComponent(harvest_entity);
+  assert(harvest != nullptr);
+
   if (_ExecuteMove(character, physics, tree_physics->pos)) {
-    // TODO: Maybe add some mechanics for taking an amount of time to harvest the tree.
-    DispatchHarvestCompleted(order->entity_id);
-    return true;
+    if (harvest->tth > 0 ) {
+      --harvest->tth;
+    } else {
+      DispatchHarvestCompleted(order->entity_id);
+      return true;
+    }
   }
 
   return false;

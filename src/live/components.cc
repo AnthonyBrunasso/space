@@ -35,13 +35,25 @@ struct PhysicsComponent {
 };
 
 enum ResourceType {
-  kUnknown = 0,
-  kWood = 1,
+  kWood = 0,
+  kResourceTypeCount = 1,
 };
+
+const char*
+ResourceName(ResourceType type)
+{
+  switch (type) {
+    case kWood: return "Wood";
+    case kResourceTypeCount: return "Unknown";
+  }
+  return "Unknown";
+}
 
 struct HarvestComponent {
   u32 entity_id;
-  ResourceType resource_type = kUnknown;
+  ResourceType resource_type;
+  // ticks_to_harvest.
+  u32 tth;
 };
 
 struct CharacterComponent {

@@ -171,8 +171,16 @@ GameRender(v2f dims)
   {
     ECS_ITR2(itr, kPhysicsComponent, kHarvestComponent);
     while (itr.Next()) {
-      PhysicsComponent* tree = itr.c.physics;
-      rgg::RenderRectangle(tree->rect(), v4f(0.f, 1.f, 0.f, 1.f));
+      PhysicsComponent* physics = itr.c.physics;
+      HarvestComponent* harvest = itr.c.harvest;
+      switch (harvest->resource_type) {
+        case kLumber:
+          rgg::RenderRectangle(physics->rect(), v4f(0.f, 1.f, 0.f, 1.f));
+          break;
+        case kStone:
+          rgg::RenderRectangle(physics->rect(), v4f(.5f, .5f, .5f, 1.f));
+          break;
+      }
     }
   }
 

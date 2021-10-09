@@ -36,7 +36,8 @@ struct PhysicsComponent {
 
 enum ResourceType {
   kLumber = 0,
-  kResourceTypeCount = 1,
+  kStone = 1,
+  kResourceTypeCount = 2,
 };
 
 const char*
@@ -44,6 +45,7 @@ ResourceName(ResourceType type)
 {
   switch (type) {
     case kLumber: return "Lumber";
+    case kStone: return "Stone";
     case kResourceTypeCount: return "Unknown";
   }
   return "Unknown";

@@ -1,5 +1,6 @@
 #pragma once
 
+using namespace ecs;
 
 namespace live {
 
@@ -25,30 +26,30 @@ using SimCallbacks = std::vector<std::function<void(const T&)>>;
 #include "live/interaction.cc"
 
 void
-SimCreateTree(v2f pos)
+SimCreateHarvest(v2f pos)
 {
-  ecs::Entity* tree = ecs::UseEntity();
-  ecs::PhysicsComponent* comp = ecs::AssignPhysicsComponent(tree);
+  Entity* tree = UseEntity();
+  PhysicsComponent* comp = AssignPhysicsComponent(tree);
   comp->pos = pos;
-  comp->bounds = v2f(live::kTreeWidth, live::kTreeHeight);
-  ecs::AssignTreeComponent(tree);
+  comp->bounds = v2f(live::kHarvestWidth, live::kHarvestHeight);
+  AssignHarvestComponent(tree);
 }
 
 void SimCreateCharacter(v2f pos)
 {
-  ecs::Entity* character = ecs::UseEntity();
-  ecs::PhysicsComponent* comp = ecs::AssignPhysicsComponent(character);
+  Entity* character = UseEntity();
+  PhysicsComponent* comp = AssignPhysicsComponent(character);
   comp->pos = pos;
   comp->bounds = v2f(live::kCharacterWidth, live::kCharacterHeight);
-  ecs::AssignCharacterComponent(character);
+  AssignCharacterComponent(character);
 }
 
 void
 SimHandleBoxSelect(const Rectf& selection)
 {
-  ECS_ITR2(itr, ecs::kPhysicsComponent, ecs::kTreeComponent);
+  ECS_ITR2(itr, kPhysicsComponent, kHarvestComponent);
   while (itr.Next()) {
-    ecs::PhysicsComponent* tree = itr.c.physics;
+    PhysicsComponent* tree = itr.c.physics;
     Rectf trect = tree->rect();
     b8 irect = math::IntersectRect(trect, selection);
     b8 crect = math::IsContainedInRect(trect, selection);
@@ -61,17 +62,17 @@ SimHandleBoxSelect(const Rectf& selection)
 void
 SimHandleHarvestCompleted(u32 entity_id)
 {
-  assert(ecs::FindEntity(entity_id) != nullptr);
-  ecs::AssignDeathComponent(entity_id);
+  assert(FindEntity(entity_id) != nullptr);
+  AssignDeathComponent(entity_id);
 }
 
 void
 SimInitialize()
 {
-  SimCreateTree(v2f(0.f, 0.f));
-  SimCreateTree(v2f(15.f, 8.f));
-  SimCreateTree(v2f(-8.f, -12.5f));
-  SimCreateTree(v2f(-4.f, 20.f));
+  SimCreateHarvest(v2f(0.f, 0.f));
+  SimCreateHarvest(v2f(15.f, 8.f));
+  SimCreateHarvest(v2f(-8.f, -12.5f));
+  SimCreateHarvest(v2f(-4.f, 20.f));
 
   SimCreateCharacter(v2f(-80.f, 100.f));
   SimCreateCharacter(v2f(80.f, 120.f));
@@ -85,9 +86,9 @@ SimUpdate()
 {
   if (kInteraction.left_mouse_down) {
     Rectf srect = math::OrientToAabb(kInteraction.selection_rect());
-    ECS_ITR2(itr, ecs::kPhysicsComponent, ecs::kTreeComponent);
+    ECS_ITR2(itr, kPhysicsComponent, kHarvestComponent);
     while (itr.Next()) {
-      ecs::PhysicsComponent* tree = itr.c.physics;
+      PhysicsComponent* tree = itr.c.physics;
       Rectf trect = tree->rect();
       b8 irect = math::IntersectRect(trect, srect);
       b8 crect = math::IsContainedInRect(trect, srect);
@@ -104,7 +105,7 @@ SimUpdate()
   }
 
   {
-    ECS_ITR2(itr, ecs::kCharacterComponent, ecs::kPhysicsComponent);
+    ECS_ITR2(itr, kCharacterComponent, kPhysicsComponent);
     while (itr.Next()) {
       OrderAcquire(itr.c.character);
       OrderExecute(&itr);
@@ -112,13 +113,13 @@ SimUpdate()
   }
 
   {
-    ECS_ITR1(itr, ecs::kDeathComponent);
+    ECS_ITR1(itr, kDeathComponent);
     while (itr.Next()) {
       // Just in case an entity got multiple death components.
       if (!itr.e) continue;
-      ecs::DeleteEntity(itr.e, ecs::kComponentCount);
+      DeleteEntity(itr.e, kComponentCount);
     }
-    ecs::GetComponents(ecs::kDeathComponent)->Clear();
+    GetComponents(kDeathComponent)->Clear();
   }
 
 }

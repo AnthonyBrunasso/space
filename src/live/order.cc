@@ -27,7 +27,7 @@ static u32 kOrderId = 1;
 static std::unordered_map<s32, Order> kOrders;
 
 Order*
-_GetOrder(ecs::CharacterComponent* character)
+_GetOrder(CharacterComponent* character)
 {
   auto character_order = kOrders.find(character->order_id);
 
@@ -39,7 +39,7 @@ _GetOrder(ecs::CharacterComponent* character)
 }
 
 b8
-_ExecuteMove(ecs::CharacterComponent* character, ecs::PhysicsComponent* phys, v2f target)
+_ExecuteMove(CharacterComponent* character, PhysicsComponent* phys, v2f target)
 {
   v2f diff = target - phys->pos;
   r32 diff_lsq = math::LengthSquared(diff);
@@ -52,21 +52,21 @@ _ExecuteMove(ecs::CharacterComponent* character, ecs::PhysicsComponent* phys, v2
 }
 
 b8
-_ExecuteMove(ecs::CharacterComponent* character, ecs::PhysicsComponent* phys, Order* order)
+_ExecuteMove(CharacterComponent* character, PhysicsComponent* phys, Order* order)
 {
   assert(order->type == Order::kMove);
   return _ExecuteMove(character, phys, order->pos);
 }
 
 b8
-_ExecuteHarvest(ecs::CharacterComponent* character, ecs::PhysicsComponent* physics, Order* order)
+_ExecuteHarvest(CharacterComponent* character, PhysicsComponent* physics, Order* order)
 {
   assert(order->type == Order::kHarvest);
 
-  ecs::Entity* harvest_entity = ecs::FindEntity(order->entity_id);
+  Entity* harvest_entity = FindEntity(order->entity_id);
   assert(harvest_entity != nullptr);
 
-  ecs::PhysicsComponent* tree_physics = ecs::GetPhysicsComponent(harvest_entity);
+  PhysicsComponent* tree_physics = GetPhysicsComponent(harvest_entity);
   assert(tree_physics != nullptr);
 
   if (_ExecuteMove(character, physics, tree_physics->pos)) {
@@ -86,7 +86,7 @@ OrderCreateMove(v2f pos)
 }
 
 void
-OrderCreateHarvest(ecs::Entity* entity)
+OrderCreateHarvest(Entity* entity)
 {
   for (const auto& [id, order] : kOrders)
   {
@@ -100,7 +100,7 @@ OrderCreateHarvest(ecs::Entity* entity)
 }
 
 void
-OrderAcquire(ecs::CharacterComponent* character)
+OrderAcquire(CharacterComponent* character)
 {
   Order* order = _GetOrder(character);
 
@@ -118,10 +118,10 @@ OrderAcquire(ecs::CharacterComponent* character)
 }
 
 void
-OrderExecute(ecs::EntityItr<2>* itr)
+OrderExecute(EntityItr<2>* itr)
 {
-  ecs::CharacterComponent* character = itr->c.character;
-  ecs::PhysicsComponent* physics = itr->c.physics;
+  CharacterComponent* character = itr->c.character;
+  PhysicsComponent* physics = itr->c.physics;
 
   Order* order = _GetOrder(character);
 

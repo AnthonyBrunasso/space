@@ -168,17 +168,17 @@ GameRender(v2f dims)
   rgg::DebugRenderWorldPrimitives();
 
   {
-    ECS_ITR2(itr, ecs::kPhysicsComponent, ecs::kTreeComponent);
+    ECS_ITR2(itr, kPhysicsComponent, kHarvestComponent);
     while (itr.Next()) {
-      ecs::PhysicsComponent* tree = itr.c.physics;
+      PhysicsComponent* tree = itr.c.physics;
       rgg::RenderRectangle(tree->rect(), v4f(0.f, 1.f, 0.f, 1.f));
     }
   }
 
   {
-    ECS_ITR2(itr, ecs::kPhysicsComponent, ecs::kCharacterComponent);
+    ECS_ITR2(itr, kPhysicsComponent, kCharacterComponent);
     while (itr.Next()) {
-      ecs::PhysicsComponent* character = itr.c.physics;
+      PhysicsComponent* character = itr.c.physics;
       rgg::RenderCircle(character->pos, character->rect().width / 2.f, v4f(1.f, 0.f, 0.f, 1.f));
     }
   }

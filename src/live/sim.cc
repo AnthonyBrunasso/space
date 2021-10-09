@@ -38,14 +38,14 @@ SecondsToTicks(r32 seconds)
 }
 
 void
-SimCreateWoodHarvest(v2f pos)
+SimCreateLumberHarvest(v2f pos)
 {
   Entity* tree = UseEntity();
   PhysicsComponent* comp = AssignPhysicsComponent(tree);
   comp->pos = pos;
   comp->bounds = v2f(live::kHarvestWidth, live::kHarvestHeight);
   HarvestComponent* harvest = AssignHarvestComponent(tree);
-  harvest->resource_type = kWood;
+  harvest->resource_type = kLumber;
   harvest->tth = SecondsToTicks(1.f);
 }
 
@@ -87,10 +87,10 @@ SimHandleHarvestCompleted(u32 entity_id)
 void
 SimInitialize()
 {
-  SimCreateWoodHarvest(v2f(0.f, 0.f));
-  SimCreateWoodHarvest(v2f(15.f, 8.f));
-  SimCreateWoodHarvest(v2f(-8.f, -12.5f));
-  SimCreateWoodHarvest(v2f(-4.f, 20.f));
+  SimCreateLumberHarvest(v2f(0.f, 0.f));
+  SimCreateLumberHarvest(v2f(15.f, 8.f));
+  SimCreateLumberHarvest(v2f(-8.f, -12.5f));
+  SimCreateLumberHarvest(v2f(-4.f, 20.f));
 
   SimCreateCharacter(v2f(-80.f, 100.f));
   SimCreateCharacter(v2f(80.f, 120.f));

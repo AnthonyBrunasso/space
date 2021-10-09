@@ -1,16 +1,20 @@
 // namespace live {
 
-DEFINE_CALLBACK(BoxSelect, Rectf);
+DEFINE_CALLBACK(HarvestBoxSelect, Rectf);
+DEFINE_CALLBACK(BuildLeftClick, v2f);
 
 struct Interaction {
   enum Action {
-    NONE = 0,
-    HARVEST = 1,
+    kNone = 0,
+    kHarvest = 1,
+    kBuild = 2,
   };
+
+  v2f mouse_pos;
 
   b8 left_mouse_down = false;
   v2f left_mouse_start;
-  Action action = HARVEST;
+  Action action = kHarvest;
 
   Rectf selection_rect()
   {
@@ -34,7 +38,10 @@ InteractionRenderOrderOptions()
   imui::TextOptions toptions;
   toptions.highlight_color = imui::kRed;
   if (imui::Text("Harvest", toptions).clicked) {
-    kInteraction.action = Interaction::HARVEST;
+    kInteraction.action = Interaction::kHarvest;
+  }
+  if (imui::Text("Build", toptions).clicked) {
+    kInteraction.action = Interaction::kBuild;
   }
   imui::End();
 }
@@ -68,13 +75,21 @@ InteractionProcessPlatformEvent(const PlatformEvent& event)
         //OrderCreateMove(wpos);
         kInteraction.left_mouse_down = true;
         kInteraction.left_mouse_start = wpos;
+        if (kInteraction.action == Interaction::kBuild) {
+          DispatchBuildLeftClick(wpos);
+        }
+      }
+      if (event.button == BUTTON_RIGHT) {
+        kInteraction.action = Interaction::kHarvest;
       }
     } break;
     case MOUSE_UP: {
       if (event.button == BUTTON_LEFT) {
         v2f wpos = rgg::CameraRayFromMouseToWorld(event.position, 1.f).xy();
         kInteraction.left_mouse_down = false;
-        DispatchBoxSelect(math::OrientToAabb(kInteraction.selection_rect()));
+        if (kInteraction.action == Interaction::kHarvest) {
+          DispatchHarvestBoxSelect(math::OrientToAabb(kInteraction.selection_rect()));
+        }
       }
     } break;
     case MOUSE_WHEEL:
@@ -84,6 +99,36 @@ InteractionProcessPlatformEvent(const PlatformEvent& event)
     case XBOX_CONTROLLER:
     case NOT_IMPLEMENTED:
     deafult: break;
+  }
+}
+
+void
+InteractionRender()
+{
+  if (kInteraction.left_mouse_down && kInteraction.action == Interaction::kHarvest) {
+    Rectf srect = math::OrientToAabb(kInteraction.selection_rect());
+    ECS_ITR2(itr, kPhysicsComponent, kHarvestComponent);
+    while (itr.Next()) {
+      PhysicsComponent* tree = itr.c.physics;
+      Rectf trect = tree->rect();
+      b8 irect = math::IntersectRect(trect, srect);
+      b8 crect = math::IsContainedInRect(trect, srect);
+      if (irect || crect) {
+        Rectf render_rect = trect;
+        render_rect.x -= 1.f;
+        render_rect.y -= 1.f;
+        render_rect.width += 2.f;
+        render_rect.height += 2.f;
+        rgg::DebugPushRect(render_rect, v4f(1.f, 1.f, 1.f, 1.f));
+      }
+    }
+    rgg::DebugPushRect(srect, v4f(0.f, 1.f, 0.f, 0.2f));
+  }
+
+  if (kInteraction.action == Interaction::kBuild) {
+    v2f mouse_pos = rgg::CameraRayFromMouseToWorld(window::GetCursorPosition(), 1.f).xy();
+    Rectf rect(mouse_pos - v2f(kWallWidth  / 2.f, kWallHeight / 2.f), v2f(kWallWidth, kWallHeight));
+    rgg::DebugPushRect(rect, v4f(1.f, 1.f, 1.f, 1.f));
   }
 }
 

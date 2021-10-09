@@ -1,79 +1,20 @@
- ------------ Civilization (11/1/2020) Turns 1-30 as Russia ------------
+1. Build orders.
 
-Start of game -
+2. Behaviors for characters.
 
-Turns 1-2
+3. Do I want stockpiles?
 
-  Start with two units...
+4. People have needs / food / water / shelter.
 
-    1. Settler.
-    2. Scout or Warrior.
+5. Animals so players can hunt.
 
-  Goal:
-    Find suitable location to colonize city.
+6. Fighting / shooting.
 
-Turns 3-10
+7. Farming / growing plants.
 
-    With city
-    With scout or warrior
-    
-    1. Choose production for the city (scout / warrior / some building).
-    2. Continue to scout with warrior.
-    3. Choose science based on surrounding resources or strategies.
-    4. Meet nearby civilizations.
-    5. Pickup huts / be given rewards for exploring.
-    6. Barbarians discover first city - providing a threat that maybe you have to return your first unit to deal with.
 
-Turns 10-15
+chase charge dispute
+8008493574
 
-    With city
-    With scout or warrior
-    With (scout / warrior / some building) built during last phase
-
-    1. Choose second production from first city - another simple unit (warrior / scout) technical unit (builder / ranged unit) or monument
-    2. City grows in population allowing player to customize tiles that the city should work.
-      a. Tiles provide resources for city - food / production / faith / science. Some of those are global resources (faith / science / money) while others are specific to the city
-          i. food allows a city to grow faster (food per turn - food compution per turn) until food > food need to grow population
-          ii. Units / buildings cost N production and from tiles around the city gains M production per turn.
-    3. Given they money gained from the last phase until now - should a unit be purchased to fight off invaders.
-    4. Initial research done - second research option much mor complicated. Pick a research that either -
-      a. Allows the player to capture animals - boosting food and opening the research tree to horseback riding - a faster means of travel.
-      b. Start developing their religion or faith.
-      c. Explore militaristic option - exposing resources (like iron) that must be found to boost the player quickly into a militaristic boost via swordsmen
-      d. Discover masonry - given the player a boost to production by harvesting stone and letting them build a wonder such as the pyramids
-      e. Pottery to provide food to the capital
-      f. Sailing - allow the player to explore more.
-    5. Likely some fights will happen during these turns.
-
-Turns 16-26
-
-    With city
-    With scout / warriors
-    
-    1. Likely you are in some fights with nearby barbarians trying to ruin your day
-    2. You are weighing the tradeoffs of building a worker vs building a settler
-    3. You've found some locations with your initial scout you are considering the benefits of settling to
-    4. You have a hurt warrior from defending against barbarians and are trying to safetly heal them
-    5. You are picking civics and enacting the resulting policies - this is giving you options like
-      a. Doing more damage vs barbarians.
-      b. Providing additional production to cities.
-      c. Giving extra money from traderoutes
-    6. Science continues to provide hard decisions - the tree really expands and choices compound with the previous. This gives you the option to start planning for the late game.
-      a. Choose sciency things the bootstrap your science.
-      b. Choose militaristic things for immediate help against barbarians / foreign invaders.
-      c. Choose production oriented things to start building up your empire for a move.
-      d. Lots of stuff here...
-
-Turns 27-30ish
-
-    1. Hopefully you have gotten a hold of your barbarian situation via some militaristic tactics - etc
-    2. First AI reaches out to you - you trade locations of capitals
-    3. I lost a slinger unexpectedly... that sucked
-
-Random Bits and Bobs
-
-  1. Pressing enter ends your turn when you've made all your decisions.
-  2. Some of the beginning turns feel very much like giving the player the opportunity to optimize for food / production. And trading one for the other (production for granary, as an example)
-  3. Cities should auto manage citizens to resources around them but allow players to optimize for things they may want - extra production for a needed wonder or an extra citizen / etc.
-  4. Middle clicking on tiles centers camera at that tile.
-
+bofa collection (7am - 7pm) (M-F)
+18669019856

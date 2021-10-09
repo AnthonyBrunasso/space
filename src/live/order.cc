@@ -1,11 +1,13 @@
 // namespace live {
 
 DEFINE_CALLBACK(HarvestCompleted, u32);
+DEFINE_CALLBACK(BuildCompleted, u32);
 
 struct Order {
   enum Type {
     kMove = 0,
     kHarvest = 1,
+    kBuild = 2,
   };
   Order(u32 id, Type type, v2f pos, int max_acquire_count) :
       id(id), type(type), pos(pos), max_acquire_count(max_acquire_count) {}
@@ -84,11 +86,45 @@ _ExecuteHarvest(CharacterComponent* character, PhysicsComponent* physics, Order*
   return false;
 }
 
+b8
+_ExecuteBuild(CharacterComponent* character, PhysicsComponent* physics, Order* order)
+{
+  assert(order->type == Order::kBuild);
+
+  Entity* build_entity = FindEntity(order->entity_id);
+  assert(build_entity != nullptr);
+
+  PhysicsComponent* build_physics = GetPhysicsComponent(build_entity);
+  assert(build_physics != nullptr);
+
+  BuildComponent* build = GetBuildComponent(build_entity);
+  assert(build != nullptr);
+
+  if (_ExecuteMove(character, physics, build_physics->pos)) {
+    if (build->ttb > 0 ) {
+      --build->ttb;
+    } else {
+      DispatchBuildCompleted(build->entity_id);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
 void
 OrderCreateMove(v2f pos)
 {
   u32 oid = kOrderId++;
   kOrders.insert({oid, Order(oid, Order::kMove, pos, 1)});
+}
+
+void
+OrderCreateBuild(Entity* entity)
+{
+  u32 oid = kOrderId++;
+  kOrders.insert({oid, Order(oid, Order::kBuild, entity->id, 1)});
 }
 
 void
@@ -117,6 +153,15 @@ OrderAcquire(CharacterComponent* character)
   // Perhaps run some conditional logic on what types of orders a character is willing to acquire. 
   for (auto& p : kOrders) {
     if (p.second.acquire_count >= p.second.max_acquire_count) continue;
+    if (p.second.type == Order::kBuild) {
+      Entity* build_entity = FindEntity(p.second.entity_id);
+      BuildComponent* build_comp = GetBuildComponent(build_entity);
+      assert(build_comp != nullptr);
+      // Don't have enough resources to build.
+      if (kSim.resources[build_comp->required_resource_type] < build_comp->resource_count) {
+        continue;
+      }
+    }
     character->order_id = p.first;
     ++(p.second.acquire_count);
     break;
@@ -142,6 +187,9 @@ OrderExecute(EntityItr<2>* itr)
     } break;
     case Order::kHarvest: {
       order_completed = _ExecuteHarvest(character, physics, order);
+    } break;
+    case Order::kBuild: {
+      order_completed = _ExecuteBuild(character, physics, order);
     } break;
     default: break;
   }

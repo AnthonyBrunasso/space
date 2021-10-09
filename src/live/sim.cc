@@ -40,8 +40,8 @@ SecondsToTicks(r32 seconds)
 void
 SimCreateHarvest(v2f pos, ResourceType resource_type, r32 seconds_to_harvest)
 {
-  Entity* tree = UseEntity();
-  PhysicsComponent* comp = AssignPhysicsComponent(tree);
+  Entity* entity = UseEntity();
+  PhysicsComponent* comp = AssignPhysicsComponent(entity);
   comp->pos = pos;
   switch (resource_type) {
     case kLumber:
@@ -51,12 +51,32 @@ SimCreateHarvest(v2f pos, ResourceType resource_type, r32 seconds_to_harvest)
       comp->bounds = v2f(live::kStoneWidth, live::kStoneHeight);
       break;
   }
-  HarvestComponent* harvest = AssignHarvestComponent(tree);
+  HarvestComponent* harvest = AssignHarvestComponent(entity);
   harvest->resource_type = resource_type;
   harvest->tth = SecondsToTicks(seconds_to_harvest);
 }
 
-void SimCreateCharacter(v2f pos)
+void
+SimCreateBuild(v2f pos, BuildType build_type, r32 seconds_to_build)
+{
+  Entity* entity = UseEntity();
+  PhysicsComponent* comp = AssignPhysicsComponent(entity);
+  comp->pos = pos;
+  switch (build_type) {
+    case kWall:
+      comp->bounds = v2f(live::kWallWidth, live::kWallHeight);
+      break;
+  }
+  BuildComponent* build = AssignBuildComponent(entity);
+  build->build_type = build_type;
+  build->ttb = SecondsToTicks(seconds_to_build);
+  build->required_resource_type = kLumber;
+  build->resource_count = 1;
+  OrderCreateBuild(entity);
+}
+
+void
+SimCreateCharacter(v2f pos)
 {
   Entity* character = UseEntity();
   PhysicsComponent* comp = AssignPhysicsComponent(character);
@@ -66,7 +86,7 @@ void SimCreateCharacter(v2f pos)
 }
 
 void
-SimHandleBoxSelect(const Rectf& selection)
+SimHandleHarvestBoxSelect(const Rectf& selection)
 {
   ECS_ITR2(itr, kPhysicsComponent, kHarvestComponent);
   while (itr.Next()) {
@@ -92,6 +112,20 @@ SimHandleHarvestCompleted(u32 entity_id)
 }
 
 void
+SimHandleBuildCompleted(u32 entity_id)
+{
+  printf("Build completed\n");
+  AssignDeathComponent(entity_id);
+}
+
+void
+SimHandleBuildLeftClick(v2f pos)
+{
+  //printf("Build left click %.2f %.2f\n", pos.x, pos.y);
+  SimCreateBuild(pos, kWall, 5.f);
+}
+
+void
 SimInitialize()
 {
   SimCreateHarvest(v2f(0.f, 0.f), kLumber, kSecsToHarvestLumber);
@@ -108,33 +142,15 @@ SimInitialize()
   SimCreateCharacter(v2f(-80.f, 100.f));
   SimCreateCharacter(v2f(80.f, 120.f));
 
-  SubscribeBoxSelect(&SimHandleBoxSelect);
+  SubscribeHarvestBoxSelect(&SimHandleHarvestBoxSelect);
+  SubscribeBuildLeftClick(&SimHandleBuildLeftClick);
   SubscribeHarvestCompleted(&SimHandleHarvestCompleted);
+  SubscribeBuildCompleted(&SimHandleBuildCompleted);
 }
 
 void
 SimUpdate()
 {
-  if (kInteraction.left_mouse_down) {
-    Rectf srect = math::OrientToAabb(kInteraction.selection_rect());
-    ECS_ITR2(itr, kPhysicsComponent, kHarvestComponent);
-    while (itr.Next()) {
-      PhysicsComponent* tree = itr.c.physics;
-      Rectf trect = tree->rect();
-      b8 irect = math::IntersectRect(trect, srect);
-      b8 crect = math::IsContainedInRect(trect, srect);
-      if (irect || crect) {
-        Rectf render_rect = trect;
-        render_rect.x -= 1.f;
-        render_rect.y -= 1.f;
-        render_rect.width += 2.f;
-        render_rect.height += 2.f;
-        rgg::DebugPushRect(render_rect, v4f(1.f, 1.f, 1.f, 1.f));
-      }
-    }
-    rgg::DebugPushRect(srect, v4f(0.f, 1.f, 0.f, 0.2f));
-  }
-
   {
     ECS_ITR2(itr, kCharacterComponent, kPhysicsComponent);
     while (itr.Next()) {

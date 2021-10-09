@@ -152,7 +152,10 @@ GameUpdate()
 {
   rgg::CameraUpdate();
   rgg::GetObserver()->view = rgg::CameraView();
+
+  live::InteractionRender(); // TODO: Move to GameRender
   live::SimUpdate();
+
   return true;
 }
 
@@ -182,6 +185,7 @@ GameRender(v2f dims)
           break;
       }
     }
+
   }
 
   {
@@ -189,6 +193,20 @@ GameRender(v2f dims)
     while (itr.Next()) {
       PhysicsComponent* character = itr.c.physics;
       rgg::RenderCircle(character->pos, character->rect().width / 2.f, v4f(1.f, 0.f, 0.f, 1.f));
+    }
+  }
+
+
+  {
+    ECS_ITR2(itr, kPhysicsComponent, kBuildComponent);
+    while (itr.Next()) {
+      PhysicsComponent* physics = itr.c.physics;
+      BuildComponent* build = itr.c.build;
+      switch (build->build_type) {
+        case kWall:
+          rgg::RenderLineRectangle(physics->rect(), v4f(1.f, 1.f, 1.f, 1.f));
+          break;
+      }
     }
   }
 

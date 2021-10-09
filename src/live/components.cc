@@ -5,7 +5,8 @@ enum TypeId : u64 {
   kHarvestComponent = 1,
   kCharacterComponent = 2,
   kDeathComponent = 3,
-  kComponentCount = 4,
+  kBuildComponent = 4,
+  kComponentCount = 5,
 };
 
 const char*
@@ -16,6 +17,7 @@ TypeName(TypeId type_id)
     case kHarvestComponent: return "Harvest";
     case kCharacterComponent: return "Character";
     case kDeathComponent: return "Death";
+    case kBuildComponent: return "Build";
     default: return "Unknown";
   }
   return "Unknown";
@@ -68,6 +70,30 @@ struct DeathComponent {
   u32 entity_id = 0;
 };
 
+enum BuildType {
+  kWall = 0,
+  kBuildTypeCount = 1,
+};
+
+const char*
+BuildName(BuildType type)
+{
+  switch (type) {
+    case kWall: return "Wall";
+    default: return "Unknown";
+  }
+  return "Unknown";
+}
+
+struct BuildComponent {
+  u32 entity_id;
+  BuildType build_type;
+  ResourceType required_resource_type;
+  u32 resource_count = 0;
+  // ticks_to_build
+  u32 ttb;
+};
+
 }
 
 namespace ecs {
@@ -77,6 +103,7 @@ struct Components {
   HarvestComponent* harvest = nullptr;
   CharacterComponent* character = nullptr;
   DeathComponent* death = nullptr;
+  BuildComponent* build = nullptr;
 };
 
 }
@@ -106,6 +133,10 @@ GetComponents(u64 tid)
       static ecs::ComponentStorage f(64, sizeof(DeathComponent));
       return &f;
     } break;
+    case kBuildComponent: {
+      static ecs::ComponentStorage f(64, sizeof(BuildComponent));
+      return &f;
+    } break;
     default: {
       assert(!"Unknown component type");
     } break;
@@ -117,5 +148,6 @@ DECLARE_COMPONENT(PhysicsComponent, kPhysicsComponent);
 DECLARE_COMPONENT(HarvestComponent, kHarvestComponent);
 DECLARE_COMPONENT(CharacterComponent, kCharacterComponent);
 DECLARE_COMPONENT(DeathComponent, kDeathComponent);
+DECLARE_COMPONENT(BuildComponent, kBuildComponent);
 
 }

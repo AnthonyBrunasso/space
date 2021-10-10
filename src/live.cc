@@ -84,7 +84,7 @@ DebugUI()
     imui::NewLine();
     imui::SameLine();
     imui::Width(right_align);
-    imui::Text("FPS");
+    imui::Text("AVG FPS");
     snprintf(kUIBuffer, sizeof(kUIBuffer), "%04.02ff/s",
              (r64)kGameState.game_updates /
                  ((r64)kGameState.game_time_usec / 1e6));
@@ -106,6 +106,9 @@ DebugUI()
     imui::SameLine();
     imui::Width(right_align);
     imui::Text("Game Speed");
+    if (imui::Text("120 ", debug_options).clicked) {
+      SetFramerate(120);
+    }
     if (imui::Text("60 ", debug_options).clicked) {
       SetFramerate(60);
     }

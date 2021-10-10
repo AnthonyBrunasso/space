@@ -50,6 +50,9 @@ SimCreateHarvest(v2f pos, ResourceType resource_type, r32 seconds_to_harvest)
     case kStone:
       comp->bounds = v2f(live::kStoneWidth, live::kStoneHeight);
       break;
+    case kResourceTypeCount:
+    default:
+      break;
   }
   HarvestComponent* harvest = AssignHarvestComponent(entity);
   harvest->resource_type = resource_type;
@@ -65,6 +68,9 @@ SimCreateBuild(v2f pos, StructureType structure_type, r32 seconds_to_build)
   switch (structure_type) {
     case kWall:
       comp->bounds = v2f(live::kWallWidth, live::kWallHeight);
+      break;
+    case kStructureTypeCount:
+    default:
       break;
   }
   BuildComponent* build = AssignBuildComponent(entity);

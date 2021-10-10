@@ -186,6 +186,9 @@ GameRender(v2f dims)
         case kStone:
           rgg::RenderRectangle(physics->rect(), v4f(.5f, .5f, .5f, 1.f));
           break;
+        case kResourceTypeCount:
+        default:
+          assert(!"Can't render resource type");
       }
     }
 
@@ -209,6 +212,9 @@ GameRender(v2f dims)
         case kWall:
           rgg::RenderLineRectangle(physics->rect(), v4f(1.f, 1.f, 1.f, 1.f));
           break;
+        case kStructureTypeCount:
+        default:
+          assert(!"Can't render build component");
       }
     }
   }
@@ -222,6 +228,9 @@ GameRender(v2f dims)
         case kWall:
           rgg::RenderRectangle(physics->rect(), v4f(.64f, .45f, .28f, 1.f));
           break;
+        case kStructureTypeCount:
+        default:
+          assert(!"Can't render structure component");
       }
     }
   }

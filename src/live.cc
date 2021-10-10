@@ -202,13 +202,27 @@ GameRender(v2f dims)
     while (itr.Next()) {
       PhysicsComponent* physics = itr.c.physics;
       BuildComponent* build = itr.c.build;
-      switch (build->build_type) {
+      switch (build->structure_type) {
         case kWall:
           rgg::RenderLineRectangle(physics->rect(), v4f(1.f, 1.f, 1.f, 1.f));
           break;
       }
     }
   }
+
+  {
+    ECS_ITR2(itr, kPhysicsComponent, kStructureComponent);
+    while (itr.Next()) {
+      PhysicsComponent* physics = itr.c.physics;
+      StructureComponent* structure = itr.c.structure;
+      switch (structure->structure_type) {
+        case kWall:
+          rgg::RenderRectangle(physics->rect(), v4f(.64f, .45f, .28f, 1.f));
+          break;
+      }
+    }
+  }
+
 
   rgg::DebugRenderUIPrimitives();
   imui::Render(imui::kEveryoneTag);

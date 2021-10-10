@@ -57,18 +57,18 @@ SimCreateHarvest(v2f pos, ResourceType resource_type, r32 seconds_to_harvest)
 }
 
 void
-SimCreateBuild(v2f pos, BuildType build_type, r32 seconds_to_build)
+SimCreateBuild(v2f pos, StructureType structure_type, r32 seconds_to_build)
 {
   Entity* entity = UseEntity();
   PhysicsComponent* comp = AssignPhysicsComponent(entity);
-  comp->pos = pos;
-  switch (build_type) {
+  comp->pos = pos - v2f(kWallWidth  / 2.f, kWallHeight / 2.f);
+  switch (structure_type) {
     case kWall:
       comp->bounds = v2f(live::kWallWidth, live::kWallHeight);
       break;
   }
   BuildComponent* build = AssignBuildComponent(entity);
-  build->build_type = build_type;
+  build->structure_type = structure_type;
   build->ttb = SecondsToTicks(seconds_to_build);
   build->required_resource_type = kLumber;
   build->resource_count = 1;
@@ -83,6 +83,17 @@ SimCreateCharacter(v2f pos)
   comp->pos = pos;
   comp->bounds = v2f(live::kCharacterWidth, live::kCharacterHeight);
   AssignCharacterComponent(character);
+}
+
+void
+SimCreateWall(v2f pos)
+{
+  Entity* wall = UseEntity();
+  PhysicsComponent* comp = AssignPhysicsComponent(wall);
+  comp->pos = pos;
+  comp->bounds = v2f(live::kWallWidth, live::kWallHeight);
+  StructureComponent* structure = AssignStructureComponent(wall);
+  structure->structure_type = kWall; 
 }
 
 void
@@ -114,7 +125,19 @@ SimHandleHarvestCompleted(u32 entity_id)
 void
 SimHandleBuildCompleted(u32 entity_id)
 {
-  printf("Build completed\n");
+  //printf("Build completed\n");
+  Entity* ent = FindEntity(entity_id);
+  assert(ent != nullptr);
+  BuildComponent* build = GetBuildComponent(ent);
+  assert(build != nullptr);
+  PhysicsComponent* physics = GetPhysicsComponent(ent);
+  assert(physics != nullptr);
+  switch (build->structure_type) {
+    case kWall:
+      SimCreateWall(physics->pos);
+      break;
+    default: printf("Error: SimHandleBuildCompleted - unabled to complete.");
+  }
   AssignDeathComponent(entity_id);
 }
 

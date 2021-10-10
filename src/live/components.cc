@@ -6,7 +6,8 @@ enum TypeId : u64 {
   kCharacterComponent = 2,
   kDeathComponent = 3,
   kBuildComponent = 4,
-  kComponentCount = 5,
+  kStructureComponent = 5,
+  kComponentCount = 6,
 };
 
 const char*
@@ -18,6 +19,7 @@ TypeName(TypeId type_id)
     case kCharacterComponent: return "Character";
     case kDeathComponent: return "Death";
     case kBuildComponent: return "Build";
+    case kStructureComponent: return "Structure";
     default: return "Unknown";
   }
   return "Unknown";
@@ -70,13 +72,13 @@ struct DeathComponent {
   u32 entity_id = 0;
 };
 
-enum BuildType {
+enum StructureType {
   kWall = 0,
-  kBuildTypeCount = 1,
+  kStructureTypeCount = 1,
 };
 
 const char*
-BuildName(BuildType type)
+StructureName(StructureType type)
 {
   switch (type) {
     case kWall: return "Wall";
@@ -87,11 +89,16 @@ BuildName(BuildType type)
 
 struct BuildComponent {
   u32 entity_id;
-  BuildType build_type;
+  StructureType structure_type;
   ResourceType required_resource_type;
   u32 resource_count = 0;
   // ticks_to_build
   u32 ttb;
+};
+
+struct StructureComponent {
+  u32 entity_id;
+  StructureType structure_type;
 };
 
 }
@@ -104,6 +111,7 @@ struct Components {
   CharacterComponent* character = nullptr;
   DeathComponent* death = nullptr;
   BuildComponent* build = nullptr;
+  StructureComponent* structure = nullptr;
 };
 
 }
@@ -137,6 +145,10 @@ GetComponents(u64 tid)
       static ecs::ComponentStorage f(64, sizeof(BuildComponent));
       return &f;
     } break;
+    case kStructureComponent: {
+      static ecs::ComponentStorage f(64, sizeof(StructureComponent));
+      return &f;
+    } break;
     default: {
       assert(!"Unknown component type");
     } break;
@@ -149,5 +161,6 @@ DECLARE_COMPONENT(HarvestComponent, kHarvestComponent);
 DECLARE_COMPONENT(CharacterComponent, kCharacterComponent);
 DECLARE_COMPONENT(DeathComponent, kDeathComponent);
 DECLARE_COMPONENT(BuildComponent, kBuildComponent);
+DECLARE_COMPONENT(StructureComponent, kStructureComponent);
 
 }

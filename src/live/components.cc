@@ -7,7 +7,8 @@ enum TypeId : u64 {
   kDeathComponent = 3,
   kBuildComponent = 4,
   kStructureComponent = 5,
-  kComponentCount = 6,
+  kOrderComponent = 6,
+  kComponentCount = 7,
 };
 
 const char*
@@ -20,6 +21,7 @@ TypeName(TypeId type_id)
     case kDeathComponent: return "Death";
     case kBuildComponent: return "Build";
     case kStructureComponent: return "Structure";
+    case kOrderComponent: return "Order";
     default: return "Unknown";
   }
   return "Unknown";
@@ -101,6 +103,21 @@ struct StructureComponent {
   StructureType structure_type;
 };
 
+enum OrderType {
+  kMove = 0,
+  kHarvest = 1,
+  kBuild = 2,
+  kOrderTypeCount = 3,
+};
+
+struct OrderComponent {
+  u32 entity_id;
+  OrderType order_type;
+  // Number of units that have acquired this order.
+  u32 acquire_count = 0;
+  u32 max_acquire_count = 0;
+};
+
 }
 
 namespace ecs {
@@ -112,6 +129,7 @@ struct Components {
   DeathComponent* death = nullptr;
   BuildComponent* build = nullptr;
   StructureComponent* structure = nullptr;
+  OrderComponent* order = nullptr;
 };
 
 }
@@ -126,27 +144,31 @@ GetComponents(u64 tid)
 {
   switch (tid) {
     case kPhysicsComponent: {
-      static ecs::ComponentStorage f(ENTITY_COUNT, sizeof(PhysicsComponent));
+      static ecs::ComponentStorage f(ENTITY_COUNT, sizeof(PhysicsComponent), kPhysicsComponent);
       return &f;
     } break;
     case kHarvestComponent: {
-      static ecs::ComponentStorage f(128, sizeof(HarvestComponent));
+      static ecs::ComponentStorage f(128, sizeof(HarvestComponent), kHarvestComponent);
       return &f;
     } break;
     case kCharacterComponent: {
-      static ecs::ComponentStorage f(128, sizeof(CharacterComponent));
+      static ecs::ComponentStorage f(128, sizeof(CharacterComponent), kCharacterComponent);
       return &f;
     } break;
     case kDeathComponent: {
-      static ecs::ComponentStorage f(64, sizeof(DeathComponent));
+      static ecs::ComponentStorage f(64, sizeof(DeathComponent), kDeathComponent);
       return &f;
     } break;
     case kBuildComponent: {
-      static ecs::ComponentStorage f(64, sizeof(BuildComponent));
+      static ecs::ComponentStorage f(64, sizeof(BuildComponent), kBuildComponent);
       return &f;
     } break;
     case kStructureComponent: {
-      static ecs::ComponentStorage f(64, sizeof(StructureComponent));
+      static ecs::ComponentStorage f(64, sizeof(StructureComponent), kStructureComponent);
+      return &f;
+    } break;
+    case kOrderComponent: {
+      static ecs::ComponentStorage f(64, sizeof(OrderComponent), kOrderComponent);
       return &f;
     } break;
     default: {
@@ -162,5 +184,6 @@ DECLARE_COMPONENT(CharacterComponent, kCharacterComponent);
 DECLARE_COMPONENT(DeathComponent, kDeathComponent);
 DECLARE_COMPONENT(BuildComponent, kBuildComponent);
 DECLARE_COMPONENT(StructureComponent, kStructureComponent);
+DECLARE_COMPONENT(OrderComponent, kOrderComponent);
 
 }

@@ -37,70 +37,7 @@ SecondsToTicks(r32 seconds)
   return (u32)roundf((r32)kGameState.framerate * seconds);
 }
 
-void
-SimCreateHarvest(v2f pos, ResourceType resource_type, r32 seconds_to_harvest)
-{
-  Entity* entity = UseEntity();
-  PhysicsComponent* comp = AssignPhysicsComponent(entity);
-  comp->pos = pos;
-  switch (resource_type) {
-    case kLumber:
-      comp->bounds = v2f(live::kLumberWidth, live::kLumberHeight);
-      break;
-    case kStone:
-      comp->bounds = v2f(live::kStoneWidth, live::kStoneHeight);
-      break;
-    case kResourceTypeCount:
-    default:
-      break;
-  }
-  HarvestComponent* harvest = AssignHarvestComponent(entity);
-  harvest->resource_type = resource_type;
-  harvest->tth = SecondsToTicks(seconds_to_harvest);
-}
-
-void
-SimCreateBuild(v2f pos, StructureType structure_type, r32 seconds_to_build)
-{
-  Entity* entity = UseEntity();
-  PhysicsComponent* comp = AssignPhysicsComponent(entity);
-  comp->pos = pos - v2f(kWallWidth  / 2.f, kWallHeight / 2.f);
-  switch (structure_type) {
-    case kWall:
-      comp->bounds = v2f(live::kWallWidth, live::kWallHeight);
-      break;
-    case kStructureTypeCount:
-    default:
-      break;
-  }
-  BuildComponent* build = AssignBuildComponent(entity);
-  build->structure_type = structure_type;
-  build->ttb = SecondsToTicks(seconds_to_build);
-  build->required_resource_type = kLumber;
-  build->resource_count = 1;
-  OrderCreateBuild(entity);
-}
-
-void
-SimCreateCharacter(v2f pos)
-{
-  Entity* character = UseEntity();
-  PhysicsComponent* comp = AssignPhysicsComponent(character);
-  comp->pos = pos;
-  comp->bounds = v2f(live::kCharacterWidth, live::kCharacterHeight);
-  AssignCharacterComponent(character);
-}
-
-void
-SimCreateWall(v2f pos)
-{
-  Entity* wall = UseEntity();
-  PhysicsComponent* comp = AssignPhysicsComponent(wall);
-  comp->pos = pos;
-  comp->bounds = v2f(live::kWallWidth, live::kWallHeight);
-  StructureComponent* structure = AssignStructureComponent(wall);
-  structure->structure_type = kWall; 
-}
+#include "live/sim_create.cc"
 
 void
 SimHandleHarvestBoxSelect(const Rectf& selection)
@@ -112,7 +49,7 @@ SimHandleHarvestBoxSelect(const Rectf& selection)
     b8 irect = math::IntersectRect(trect, selection);
     b8 crect = math::IsContainedInRect(trect, selection);
     if (irect || crect) {
-      OrderCreateHarvest(itr.e);
+      SimCreateHarvestOrder(itr.e);
     }
   }
 }
@@ -131,7 +68,6 @@ SimHandleHarvestCompleted(u32 entity_id)
 void
 SimHandleBuildCompleted(u32 entity_id)
 {
-  //printf("Build completed\n");
   Entity* ent = FindEntity(entity_id);
   assert(ent != nullptr);
   BuildComponent* build = GetBuildComponent(ent);
@@ -150,21 +86,23 @@ SimHandleBuildCompleted(u32 entity_id)
 void
 SimHandleBuildLeftClick(v2f pos)
 {
-  //printf("Build left click %.2f %.2f\n", pos.x, pos.y);
-  SimCreateBuild(pos, kWall, 5.f);
+  SimCreateBuildOrder(kWall, pos, 5.f);
 }
 
 void
 SimInitialize()
 {
-  SimCreateHarvest(v2f(0.f, 0.f), kLumber, kSecsToHarvestLumber);
-  SimCreateHarvest(v2f(15.f, 8.f), kLumber, kSecsToHarvestLumber);
-  SimCreateHarvest(v2f(-8.f, -12.5f), kLumber, kSecsToHarvestLumber);
-  SimCreateHarvest(v2f(-4.f, 20.f), kLumber, kSecsToHarvestLumber);
+  SimCreateHarvest(kLumber, v2f(0.f, 0.f), kSecsToHarvestLumber);
+  SimCreateHarvest(kLumber, v2f(15.f, 8.f), kSecsToHarvestLumber);
+  SimCreateHarvest(kLumber, v2f(-8.f, -12.5f), kSecsToHarvestLumber);
+  SimCreateHarvest(kLumber, v2f(-4.f, 20.f), kSecsToHarvestLumber);
 
   for (int x = 0; x < 10; ++x) {
     for (int y = 0; y < 5; ++y) {
-      SimCreateHarvest(v2f(400.f + x * (kStoneWidth + 5.f), 400.f - y * (kStoneHeight + 5.f)), kStone, kSecsToHarvestStone);
+      SimCreateHarvest(
+          kStone,
+          v2f(400.f + x * (kStoneWidth + 5.f), 400.f - y * (kStoneHeight + 5.f)),
+          kSecsToHarvestStone);
     }
   }
 

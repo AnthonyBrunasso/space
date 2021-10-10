@@ -1,16 +1,20 @@
-1. Build orders.
+Design Tasks
 
-2. Behaviors for characters.
+  1. Behaviors for characters.
 
-3. Do I want stockpiles?
+  2. Do I want stockpiles?
 
-4. People have needs / food / water / shelter.
+  3. People have needs / food / water / shelter.
 
-5. Animals so players can hunt.
+  4. Animals so players can hunt.
 
-6. Fighting / shooting.
+  5. Fighting / shooting.
 
-7. Farming / growing plants.
+  6. Farming / growing plants.
+
+Tech Tasks
+
+  1. Create terminal console that connects to running game. Can issue commands that way.
 
 
 chase charge dispute

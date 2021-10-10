@@ -25,12 +25,13 @@ DECLARE_HASH_ARRAY(Entity, ENTITY_COUNT);
 
 class ComponentStorage {
  public:
-  ComponentStorage(u32 n, u32 sz)
+  ComponentStorage(u32 n, u32 sz, u64 tid)
   {
     bytes_ = memory::PushBytes(n * sz);
     assert(bytes_ != nullptr);
     sizeof_element_ = sz;
     max_size_ = n;
+    tid_ = tid;
   }
 
   u8*
@@ -39,6 +40,7 @@ class ComponentStorage {
     assert(size_ < max_size_);
     u32 idx = size_ * sizeof_element_;
     ++size_;
+    //printf("Assign tid:%llu size:%u\n", tid_, size_);
     return &bytes_[idx];
   }
 
@@ -105,15 +107,21 @@ class ComponentStorage {
     if (size_ == 0) return;
     if (size_ == 1) {
       memset(bytes_, 0, sizeof_element_);
+      size_ = 0;
+      //printf("ComponentStorage::Erase tid:%llu size:%u\n", tid_, size_);
       return;
     }
     u8* elem = Find(id);
-    if (!elem) return;
+    if (!elem) {
+      //printf("ComponentStorage::Erase.Find(%u) not found\n", id);
+      return;
+    }
     u8* nelem = elem + sizeof_element_;
     u8* end = &bytes_[(size_ - 1) * sizeof_element_ + sizeof_element_];
     memmove(elem, elem + sizeof_element_, end - nelem);
     --size_;
     memset(Get(size_), 0, sizeof_element_);
+    //printf("ComponentStorage::Erase tid:%llu size:%u\n", tid_, size_);
   }
 
   void
@@ -141,6 +149,7 @@ class ComponentStorage {
   u32 sizeof_element_ = 0;
   u32 size_ = 0;
   u32 max_size_ = 0;
+  u64 tid_ = 0;
 };
 
 // Users must defined this function.
@@ -159,6 +168,7 @@ DeleteEntity(Entity* ent, u32 max_comps = 64)
   if (ent->components_mask) {
     for (s32 i = 0; i < max_comps; ++i) {
       if (FLAGGED(ent->components_mask, i)) {
+        //printf("GetComponents(%u)->Erase(entity:%u)\n", i, ent->id);
         GetComponents(i)->Erase(ent->id);
       }
     }

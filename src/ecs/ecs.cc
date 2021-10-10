@@ -106,9 +106,7 @@ class ComponentStorage {
   {
     if (size_ == 0) return;
     if (size_ == 1) {
-      memset(bytes_, 0, sizeof_element_);
-      size_ = 0;
-      //printf("ComponentStorage::Erase tid:%llu size:%u\n", tid_, size_);
+      Clear();
       return;
     }
     u8* elem = Find(id);

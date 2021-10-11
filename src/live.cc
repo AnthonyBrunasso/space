@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
+#include <queue>
 
 #include "math/math.cc"
 #include "renderer/renderer.cc"
@@ -14,6 +16,9 @@
 #define DEBUG_PHYSICS 0
 #define DEBUG_UI 0
 #define PLATFORMER_CAMERA 1
+
+#define RENDER_CHARACTER_AAB 0
+#define RENDER_GRID 0
 
 struct State {
   // Game and render updates per second
@@ -39,6 +44,23 @@ struct State {
 
 static State kGameState;
 static Stats kGameStats;
+
+namespace std {
+
+template <>
+struct hash<v2i>
+{
+  std::size_t
+  operator()(const v2i& grid) const
+  {
+    // Arbitrarily large prime numbers
+    const size_t h1 = 0x8da6b343;
+    const size_t h2 = 0xd8163841;
+    return grid.x * h1 + grid.y * h2;
+  }
+};
+
+}
 
 #include "live/components.cc"
 #include "live/constants.cc"
@@ -141,12 +163,19 @@ GameInitialize(const v2f& dims)
     math::Ortho(dims.x, 0.f, dims.y, 0.f, -1.f, 1.f);
 
   rgg::Camera camera;
-  camera.position = v3f(0.f, 0.f, 0.f);
+  camera.position = v3f(400.f, 400.f, 0.f);
   camera.dir = v3f(0.f, 0.f, -1.f);
   camera.up = v3f(0.f, 1.f, 0.f);
   camera.viewport = dims;
+  camera.mode = rgg::kCameraOverhead;
   rgg::CameraInit(camera);
 
+  // I don't think we need depth testing for a 2d game?
+  //glDisable(GL_DEPTH_TEST);
+  //glEnable(GL_BLEND);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+  
+  
   live::SimInitialize();
 }
 
@@ -155,6 +184,7 @@ GameUpdate()
 {
   rgg::CameraUpdate();
   rgg::GetObserver()->view = rgg::CameraView();
+  //Print4x4Matrix(rgg::GetObserver()->view);
 
   live::InteractionRender(); // TODO: Move to GameRender
   live::SimUpdate();
@@ -168,12 +198,19 @@ GameRender(v2f dims)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glClearColor(.1f, .1f, .13f, 1.f);
 
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_ALWAYS);
+
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+
+
   DebugUI();
   live::InteractionRenderOrderOptions();
   live::InteractionRenderResourceCounts();
 
-  rgg::DebugRenderWorldPrimitives();
 
+  
   {
     ECS_ITR2(itr, kPhysicsComponent, kHarvestComponent);
     while (itr.Next()) {
@@ -193,15 +230,6 @@ GameRender(v2f dims)
     }
 
   }
-
-  {
-    ECS_ITR2(itr, kPhysicsComponent, kCharacterComponent);
-    while (itr.Next()) {
-      PhysicsComponent* character = itr.c.physics;
-      rgg::RenderCircle(character->pos, character->rect().width / 2.f, v4f(1.f, 0.f, 0.f, 1.f));
-    }
-  }
-
 
   {
     ECS_ITR2(itr, kPhysicsComponent, kBuildComponent);
@@ -235,6 +263,51 @@ GameRender(v2f dims)
     }
   }
 
+  {
+    ECS_ITR2(itr, kPhysicsComponent, kCharacterComponent);
+    while (itr.Next()) {
+      PhysicsComponent* character = itr.c.physics;
+      r32 half_width = character->rect().width / 2.f;
+
+      /*
+      std::vector<v2i> grids = live::GridGetIntersectingCellPos(character);
+      for (v2i grid : grids) {
+        v2f grid_pos = live::GridPosFromXY(grid);
+        rgg::RenderRectangle(Rectf(grid_pos, live::CellDims()), v4f(.2f, .6f, .2f, .8f));
+      }*/
+
+      rgg::RenderCircle(character->pos + v2f(half_width, half_width),
+                        character->rect().width / 2.f, v4f(1.f, 0.f, 0.f, 1.f));
+
+#if RENDER_CHARACTER_AAB
+      rgg::RenderLineRectangle(character->rect(), v4f(1.f, 0.f, 0.f, 1.f));
+#endif
+      
+      //v2f grid_pos;
+      //if (live::GridClampPos(character->pos, &grid_pos)) {
+      //  rgg::RenderRectangle(Rectf(grid_pos, live::CellDims()), v4f(.2f, .2f, .2f, .8f));
+      //}
+    }
+  }
+
+#if RENDER_GRID
+  // TODO: Implement an active grid which is the current view I think.
+  live::Grid* grid = live::GridGet(1);
+  r32 grid_width = grid->width * live::kCellWidth;
+  r32 grid_height = grid->height * live::kCellHeight;
+  for (s32 x = 0; x < grid->width; ++x) {
+    v2f start(x * live::kCellWidth, 0);
+    v2f end(x * live::kCellWidth, grid_height);
+    rgg::RenderLine(start, end, v4f(1.f, 1.f, 1.f, .5f));
+  }
+  for (s32 y = 0; y < grid->height; ++y) {
+    v2f start(0, y * live::kCellHeight);
+    v2f end(grid_width, y * live::kCellHeight);
+    rgg::RenderLine(start, end, v4f(1.f, 1.f, 1.f, .5f));
+  }
+#endif
+
+  rgg::DebugRenderWorldPrimitives();
 
   rgg::DebugRenderUIPrimitives();
   imui::Render(imui::kEveryoneTag);

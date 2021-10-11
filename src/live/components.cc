@@ -37,6 +37,9 @@ struct PhysicsComponent {
   u32 entity_id;
   v2f pos;
   v2f bounds;
+  // All things that appear in the world only exist in the context of a specific
+  // grid. This value represents that index in grid.cc:kGrids.
+  u32 grid_id;
   Rectf rect() const { return Rectf(pos, bounds); }
 };
 

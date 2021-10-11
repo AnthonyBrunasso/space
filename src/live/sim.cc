@@ -30,6 +30,8 @@ static Sim kSim;
 
 #include "live/order.cc"
 #include "live/interaction.cc"
+#include "live/search.cc"
+#include "live/grid.cc"
 
 u32
 SecondsToTicks(r32 seconds)
@@ -76,7 +78,7 @@ SimHandleBuildCompleted(u32 entity_id)
   assert(physics != nullptr);
   switch (build->structure_type) {
     case kWall:
-      SimCreateWall(physics->pos);
+      SimCreateWall(physics->pos, physics->grid_id);
       break;
     default: printf("Error: SimHandleBuildCompleted - unabled to complete.");
   }
@@ -86,28 +88,30 @@ SimHandleBuildCompleted(u32 entity_id)
 void
 SimHandleBuildLeftClick(v2f pos)
 {
-  SimCreateBuildOrder(kWall, pos, 5.f);
+  // TODO: Correctly pass grid id.
+  SimCreateBuildOrder(kWall, pos, 0, 5.f);
 }
 
 void
 SimInitialize()
 {
-  SimCreateHarvest(kLumber, v2f(0.f, 0.f), kSecsToHarvestLumber);
-  SimCreateHarvest(kLumber, v2f(15.f, 8.f), kSecsToHarvestLumber);
-  SimCreateHarvest(kLumber, v2f(-8.f, -12.5f), kSecsToHarvestLumber);
-  SimCreateHarvest(kLumber, v2f(-4.f, 20.f), kSecsToHarvestLumber);
+  u32 grid_id = GridCreate(v2i(128, 128));
+
+  SimCreateHarvest(kLumber, v2f(0.f, 0.f), grid_id, kSecsToHarvestLumber);
+  SimCreateHarvest(kLumber, v2f(15.f, 8.f), grid_id, kSecsToHarvestLumber);
+  SimCreateHarvest(kLumber, v2f(28.f, 12.5f), grid_id, kSecsToHarvestLumber);
+  SimCreateHarvest(kLumber, v2f(4.f, 20.f), grid_id, kSecsToHarvestLumber);
 
   for (int x = 0; x < 10; ++x) {
     for (int y = 0; y < 5; ++y) {
       SimCreateHarvest(
-          kStone,
-          v2f(400.f + x * (kStoneWidth + 5.f), 400.f - y * (kStoneHeight + 5.f)),
-          kSecsToHarvestStone);
+          kStone, GridPosFromXY(v2i(30, 30)) + GridPosFromXY(v2i(x, y)),
+          grid_id, kSecsToHarvestStone);
     }
   }
 
-  SimCreateCharacter(v2f(-80.f, 100.f));
-  SimCreateCharacter(v2f(80.f, 120.f));
+  SimCreateCharacter(v2f(160.f, 100.f), grid_id);
+  SimCreateCharacter(v2f(80.f, 120.f), grid_id);
 
   SubscribeHarvestBoxSelect(&SimHandleHarvestBoxSelect);
   SubscribeBuildLeftClick(&SimHandleBuildLeftClick);

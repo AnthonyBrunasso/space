@@ -127,8 +127,11 @@ InteractionRender()
 
   if (kInteraction.action == Interaction::kBuild) {
     v2f mouse_pos = rgg::CameraRayFromMouseToWorld(window::GetCursorPosition(), 1.f).xy();
-    Rectf rect(mouse_pos - v2f(kWallWidth  / 2.f, kWallHeight / 2.f), v2f(kWallWidth, kWallHeight));
-    rgg::DebugPushRect(rect, v4f(1.f, 1.f, 1.f, 1.f));
+    v2f grid_pos;
+    if (GridClampPos(mouse_pos, &grid_pos)) {
+      Rectf rect(grid_pos, v2f(kWallWidth, kWallHeight));
+      rgg::DebugPushRect(rect, v4f(1.f, 1.f, 1.f, 1.f));
+    }
   }
 }
 

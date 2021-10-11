@@ -70,10 +70,15 @@ SimCreateHarvestOrder(Entity* harvest_entity)
 void
 SimCreateBuildOrder(StructureType structure_type, v2f pos, u32 grid_id, r32 seconds_to_build)
 {
+  v2f grid_pos;
+  if (!GridClampPos(pos, &grid_pos)) {
+    //assert(!"Build order created out of bounds of grid");
+    return;
+  }
   assert(GridPosIsValid(pos));
   Entity* entity = UseEntity();
   PhysicsComponent* phys = AssignPhysicsComponent(entity);
-  phys->pos = pos - v2f(kWallWidth  / 2.f, kWallHeight / 2.f);
+  phys->pos = grid_pos;
   phys->grid_id = grid_id;
   switch (structure_type) {
     case kWall:

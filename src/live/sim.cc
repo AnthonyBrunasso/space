@@ -28,6 +28,7 @@ struct Sim {
 
 static Sim kSim;
 
+#include "live/util.cc"
 #include "live/order.cc"
 #include "live/interaction.cc"
 #include "live/search.cc"
@@ -97,10 +98,10 @@ SimInitialize()
 {
   u32 grid_id = GridCreate(v2i(128, 128));
 
-  SimCreateHarvest(kLumber, v2f(0.f, 0.f), grid_id, kSecsToHarvestLumber);
-  SimCreateHarvest(kLumber, v2f(15.f, 8.f), grid_id, kSecsToHarvestLumber);
-  SimCreateHarvest(kLumber, v2f(28.f, 12.5f), grid_id, kSecsToHarvestLumber);
-  SimCreateHarvest(kLumber, v2f(4.f, 20.f), grid_id, kSecsToHarvestLumber);
+  SimCreateHarvest(kLumber, v2f(400.f, 230.f), grid_id, kSecsToHarvestLumber);
+  SimCreateHarvest(kLumber, v2f(415.f, 245.f), grid_id, kSecsToHarvestLumber);
+  SimCreateHarvest(kLumber, v2f(428.f, 220.5f), grid_id, kSecsToHarvestLumber);
+  SimCreateHarvest(kLumber, v2f(414.f, 215.f), grid_id, kSecsToHarvestLumber);
 
   for (int x = 0; x < 10; ++x) {
     for (int y = 0; y < 5; ++y) {

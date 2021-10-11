@@ -17,8 +17,8 @@
 #define DEBUG_UI 0
 #define PLATFORMER_CAMERA 1
 
-#define RENDER_CHARACTER_AAB 0
-#define RENDER_GRID 0
+#define RENDER_CHARACTER_AAB 1
+#define RENDER_GRID 1
 
 struct State {
   // Game and render updates per second
@@ -163,7 +163,7 @@ GameInitialize(const v2f& dims)
     math::Ortho(dims.x, 0.f, dims.y, 0.f, -1.f, 1.f);
 
   rgg::Camera camera;
-  camera.position = v3f(400.f, 400.f, 0.f);
+  camera.position = v3f(950.f, 600.f, 0.f);
   camera.dir = v3f(0.f, 0.f, -1.f);
   camera.up = v3f(0.f, 1.f, 0.f);
   camera.viewport = dims;
@@ -298,12 +298,12 @@ GameRender(v2f dims)
   for (s32 x = 0; x < grid->width; ++x) {
     v2f start(x * live::kCellWidth, 0);
     v2f end(x * live::kCellWidth, grid_height);
-    rgg::RenderLine(start, end, v4f(1.f, 1.f, 1.f, .5f));
+    rgg::RenderLine(start, end, v4f(1.f, 1.f, 1.f, .15f));
   }
   for (s32 y = 0; y < grid->height; ++y) {
     v2f start(0, y * live::kCellHeight);
     v2f end(grid_width, y * live::kCellHeight);
-    rgg::RenderLine(start, end, v4f(1.f, 1.f, 1.f, .5f));
+    rgg::RenderLine(start, end, v4f(1.f, 1.f, 1.f, .15f));
   }
 #endif
 

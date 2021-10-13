@@ -58,6 +58,12 @@ SimHandleHarvestBoxSelect(const Rectf& selection)
 }
 
 void
+SimHandleZoneBoxSelect(const Rectf& selection)
+{
+  printf("Zone %.2f %.2f\n", selection.x, selection.y);
+}
+
+void
 SimHandleHarvestCompleted(u32 entity_id)
 {
   Entity* harvest_entity = FindEntity(entity_id);
@@ -68,8 +74,6 @@ SimHandleHarvestCompleted(u32 entity_id)
   assert(resource_component != nullptr);
   RemoveHarvestComponent(harvest_entity);
   AssignPickupComponent(harvest_entity);
-  //++kSim.resources[resource_component->resource_type];
-  //AssignDeathComponent(entity_id);
 }
 
 void
@@ -121,6 +125,7 @@ SimInitialize()
   //SimCreateHarvest(kStone, GridPosFromXY(v2i(3, 3)), grid_id, kSecsToHarvestStone);
 
   SubscribeHarvestBoxSelect(&SimHandleHarvestBoxSelect);
+  SubscribeZoneBoxSelect(&SimHandleZoneBoxSelect);
   SubscribeBuildLeftClick(&SimHandleBuildLeftClick);
   SubscribeHarvestCompleted(&SimHandleHarvestCompleted);
   SubscribeBuildCompleted(&SimHandleBuildCompleted);

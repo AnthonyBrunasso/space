@@ -1,6 +1,7 @@
 // namespace live {
 
 DEFINE_CALLBACK(HarvestBoxSelect, Rectf);
+DEFINE_CALLBACK(ZoneBoxSelect, Rectf);
 DEFINE_CALLBACK(BuildLeftClick, v2f);
 
 struct Interaction {
@@ -8,6 +9,7 @@ struct Interaction {
     kNone = 0,
     kHarvest = 1,
     kBuild = 2,
+    kZone = 3,
   };
 
   v2f mouse_pos;
@@ -37,11 +39,17 @@ InteractionRenderOrderOptions()
   imui::Begin("Selection", imui::kEveryoneTag, options, &pos_ui, &enable_ui);
   imui::TextOptions toptions;
   toptions.highlight_color = imui::kRed;
-  if (imui::Text("Harvest", toptions).clicked) {
+  toptions.color = kInteraction.action == Interaction::kHarvest ? imui::kRed : imui::kWhite;
+  if (imui::Text("1. Harvest", toptions).clicked) {
     kInteraction.action = Interaction::kHarvest;
   }
-  if (imui::Text("Build", toptions).clicked) {
+  toptions.color = kInteraction.action == Interaction::kBuild ? imui::kRed : imui::kWhite;
+  if (imui::Text("2. Build", toptions).clicked) {
     kInteraction.action = Interaction::kBuild;
+  }
+  toptions.color = kInteraction.action == Interaction::kZone ? imui::kRed : imui::kWhite;
+  if (imui::Text("3. Zone", toptions).clicked) {
+    kInteraction.action = Interaction::kZone;
   }
   imui::End();
 }
@@ -89,11 +97,25 @@ InteractionProcessPlatformEvent(const PlatformEvent& event)
         kInteraction.left_mouse_down = false;
         if (kInteraction.action == Interaction::kHarvest) {
           DispatchHarvestBoxSelect(math::OrientToAabb(kInteraction.selection_rect()));
+        } else if (kInteraction.action == Interaction::kZone) {
+          DispatchZoneBoxSelect(math::OrientToAabb(kInteraction.selection_rect()));
         }
       }
     } break;
     case MOUSE_WHEEL:
-    case KEY_DOWN:
+    case KEY_DOWN: {
+      switch (event.key) {
+        case '1':
+          kInteraction.action = Interaction::kHarvest;
+          break;
+        case '2':
+          kInteraction.action = Interaction::kBuild;
+          break;
+        case '3':
+          kInteraction.action = Interaction::kZone;
+          break;
+      }
+    } break;
     case KEY_UP:
     case MOUSE_POSITION:
     case XBOX_CONTROLLER:
@@ -122,7 +144,12 @@ InteractionRender()
         rgg::DebugPushRect(render_rect, v4f(1.f, 1.f, 1.f, 1.f));
       }
     }
-    rgg::DebugPushRect(srect, v4f(0.f, 1.f, 0.f, 0.2f));
+    rgg::DebugPushRect(srect, v4f(0.f, 1.f, 0.f, 0.8f));
+  }
+
+  if (kInteraction.left_mouse_down && kInteraction.action == Interaction::kZone) {
+    Rectf srect = math::OrientToAabb(kInteraction.selection_rect());
+    rgg::DebugPushRect(srect, v4f(0.f, 0.f, 1.f, 0.8f));
   }
 
   if (kInteraction.action == Interaction::kBuild) {

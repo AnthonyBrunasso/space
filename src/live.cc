@@ -248,7 +248,7 @@ GameRender(v2f dims)
       Rectf rect = physics->rect();
       switch (resource->resource_type) {
         case kLumber:
-          rgg::RenderTriangle(rect.Center(), rect.width / 2.f, v4f(0.f, 1.f, 0.f, 1.f));
+          rgg::RenderTriangle(rect.Center(), rect.width / 2.f, v4f(.64f, .45f, .28f, 1.f));
           break;
         case kStone:
           rgg::RenderTriangle(rect.Center(), rect.width / 2.f, v4f(.5f, .5f, .5f, 1.f));

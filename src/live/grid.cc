@@ -5,6 +5,12 @@ struct Cell {
   // This happens when a structure takes up multiple grid cells.
   std::vector<u32> entity_ids;
   v2i pos;
+
+  Rectf
+  rect() const
+  {
+    return Rectf(GridPosFromXY(pos), v2f(kCellWidth, kCellHeight));
+  }
 };
 
 struct Grid {
@@ -99,6 +105,7 @@ struct Grid {
   std::vector<Cell> storage;
 };
 
+
 std::vector<Grid> kGrids;
 
 u32
@@ -149,17 +156,76 @@ GridGetIntersectingCellPos(PhysicsComponent* phys)
 void
 GridSetEntity(PhysicsComponent* phys)
 {
-  
   v2i xy;
   if (!GridXYFromPos(phys->pos, &xy)) {
     assert(!"GridSetEntity requires a valid grid location.");
     return; 
   }
 
-  //printf("GridSetEntity(entity_id:%u, %.2f, %.2f) %u,%u\n",
-  //       phys->entity_id, phys->pos.x, phys->pos.y, xy.x, xy.y);
-
-
+  Grid* grid = GridGet(phys->grid_id);
+  std::vector<v2i> cells = GridGetIntersectingCellPos(phys);
+  for (v2i cell : cells) {
+    Cell* gcell = grid->Get(cell);
+    assert(gcell != nullptr);
+    gcell->entity_ids.push_back(phys->entity_id);
+    //printf("grid->Set(%u, %u)->AddEntity(%u)\n", cell.x, cell.y, phys->entity_id);
+  }
 }
+
+void
+GridUnsetEntity(PhysicsComponent* phys)
+{
+  v2i xy;
+  if (!GridXYFromPos(phys->pos, &xy)) {
+    assert(!"GridSetEntity requires a valid grid location.");
+    return; 
+  }
+
+  Grid* grid = GridGet(phys->grid_id);
+  std::vector<v2i> cells = GridGetIntersectingCellPos(phys);
+  for (v2i cell : cells) {
+    Cell* gcell = grid->Get(cell);
+    assert(gcell != nullptr);
+    gcell->entity_ids.erase(std::remove(
+          gcell->entity_ids.begin(), gcell->entity_ids.end(), phys->entity_id),
+            gcell->entity_ids.end());
+    //printf("grid->Set(%u, %u)->AddEntity(%u)\n", cell.x, cell.y, phys->entity_id);
+  }
+}
+
+struct GridSync {
+  GridSync(PhysicsComponent* phys) : phys(phys)
+  {
+    assert(phys != nullptr);
+    nodes = GridGetIntersectingCellPos(phys);
+  }
+
+  ~GridSync()
+  {
+    assert(phys != nullptr);
+    Grid* grid = GridGet(phys->grid_id);
+    std::vector<v2i> new_nodes = GridGetIntersectingCellPos(phys);
+    if (nodes != new_nodes) {
+      // Unset all from original nodes.
+      for (v2i node : nodes) {
+        Cell* gcell = grid->Get(node);
+        assert(gcell != nullptr);
+        gcell->entity_ids.erase(std::remove(
+          gcell->entity_ids.begin(), gcell->entity_ids.end(), phys->entity_id),
+            gcell->entity_ids.end());
+        //printf("grid(%u, %u)->RemoveEntity(%u)\n", node.x, node.y, phys->entity_id);
+      }
+      for (v2i node : new_nodes) {
+        Cell* gcell = grid->Get(node);
+        assert(gcell != nullptr);
+        gcell->entity_ids.push_back(phys->entity_id);
+        //printf("grid(%u, %u)->AddEntity(%u)\n", node.x, node.y, phys->entity_id);
+      }
+    }
+  }
+
+  std::vector<v2i> nodes;
+  PhysicsComponent* phys;
+};
 
 // }

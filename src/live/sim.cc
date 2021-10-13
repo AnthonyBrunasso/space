@@ -29,10 +29,10 @@ struct Sim {
 static Sim kSim;
 
 #include "live/util.cc"
-#include "live/order.cc"
 #include "live/interaction.cc"
 #include "live/search.cc"
 #include "live/grid.cc"
+#include "live/order.cc"
 
 u32
 SecondsToTicks(r32 seconds)
@@ -99,8 +99,8 @@ SimInitialize()
   u32 grid_id = GridCreate(v2i(128, 128));
 
   SimCreateHarvest(kLumber, v2f(400.f, 230.f), grid_id, kSecsToHarvestLumber);
-  SimCreateHarvest(kLumber, v2f(415.f, 245.f), grid_id, kSecsToHarvestLumber);
-  SimCreateHarvest(kLumber, v2f(428.f, 220.5f), grid_id, kSecsToHarvestLumber);
+  SimCreateHarvest(kLumber, v2f(472.f, 271.f), grid_id, kSecsToHarvestLumber);
+  /*SimCreateHarvest(kLumber, v2f(428.f, 220.5f), grid_id, kSecsToHarvestLumber);
   SimCreateHarvest(kLumber, v2f(414.f, 215.f), grid_id, kSecsToHarvestLumber);
 
   for (int x = 0; x < 10; ++x) {
@@ -109,10 +109,12 @@ SimInitialize()
           kStone, GridPosFromXY(v2i(30, 30)) + GridPosFromXY(v2i(x, y)),
           grid_id, kSecsToHarvestStone);
     }
-  }
+  }*/
 
   SimCreateCharacter(v2f(160.f, 100.f), grid_id);
   SimCreateCharacter(v2f(80.f, 120.f), grid_id);
+
+  //SimCreateHarvest(kStone, GridPosFromXY(v2i(3, 3)), grid_id, kSecsToHarvestStone);
 
   SubscribeHarvestBoxSelect(&SimHandleHarvestBoxSelect);
   SubscribeBuildLeftClick(&SimHandleBuildLeftClick);
@@ -134,8 +136,13 @@ SimUpdate()
   {
     ECS_ITR1(itr, kDeathComponent);
     while (itr.Next()) {
-      // Just in case an entity got multiple death components.
       if (!itr.e) continue;
+      // Free the grid of the entity id.
+      if (itr.e->Has(kPhysicsComponent)) {
+        PhysicsComponent* phys = GetPhysicsComponent(itr.e);
+        assert(phys != nullptr);
+        GridUnsetEntity(phys);
+      }
       DeleteEntity(itr.e, kComponentCount);
     }
     GetComponents(kDeathComponent)->Clear();

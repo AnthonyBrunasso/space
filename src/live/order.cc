@@ -17,6 +17,7 @@ _ExecuteMove(CharacterComponent* character, PhysicsComponent* phys, v2f target)
   v2f diff = target - phys->pos;
   r32 diff_lsq = math::LengthSquared(diff);
   if (diff_lsq > 1.f) {
+    GridSync grid_sync(phys);
     v2f dir = math::Normalize(diff);
     phys->pos += (dir * kCharacterDefaultSpeed);
     return false;

@@ -19,6 +19,7 @@
 
 #define RENDER_CHARACTER_AAB 1
 #define RENDER_GRID 1
+#define RENDER_GRID_CELLS_FILLED 1
 
 struct State {
   // Game and render updates per second
@@ -209,7 +210,16 @@ GameRender(v2f dims)
   live::InteractionRenderOrderOptions();
   live::InteractionRenderResourceCounts();
 
-
+#if RENDER_GRID_CELLS_FILLED 
+{
+  live::Grid* grid = live::GridGet(1);
+  for (live::Cell& cell : grid->storage) {
+    if (!cell.entity_ids.empty()) {
+      rgg::RenderRectangle(cell.rect(), v4f(.2f, .2f, .2f, .8f));
+    }
+  }
+}
+#endif
   
   {
     ECS_ITR2(itr, kPhysicsComponent, kHarvestComponent);
@@ -291,6 +301,7 @@ GameRender(v2f dims)
   }
 
 #if RENDER_GRID
+{
   // TODO: Implement an active grid which is the current view I think.
   live::Grid* grid = live::GridGet(1);
   r32 grid_width = grid->width * live::kCellWidth;
@@ -305,7 +316,9 @@ GameRender(v2f dims)
     v2f end(grid_width, y * live::kCellHeight);
     rgg::RenderLine(start, end, v4f(1.f, 1.f, 1.f, .15f));
   }
+}
 #endif
+
 
   rgg::DebugRenderWorldPrimitives();
 

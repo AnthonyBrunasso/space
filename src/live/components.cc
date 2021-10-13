@@ -2,13 +2,15 @@ namespace ecs {
 
 enum TypeId : u64 {
   kPhysicsComponent = 0,
-  kHarvestComponent = 1,
-  kCharacterComponent = 2,
-  kDeathComponent = 3,
-  kBuildComponent = 4,
-  kStructureComponent = 5,
-  kOrderComponent = 6,
-  kComponentCount = 7,
+  kResourceComponent = 1,
+  kHarvestComponent = 2,
+  kCharacterComponent = 3,
+  kDeathComponent = 4,
+  kBuildComponent = 5,
+  kStructureComponent = 6,
+  kOrderComponent = 7,
+  kPickupComponent = 8,
+  kComponentCount = 9,
 };
 
 const char*
@@ -16,12 +18,14 @@ TypeName(TypeId type_id)
 {
   switch (type_id) {
     case kPhysicsComponent: return "Physics";
+    case kResourceComponent: return "Resource";
     case kHarvestComponent: return "Harvest";
     case kCharacterComponent: return "Character";
     case kDeathComponent: return "Death";
     case kBuildComponent: return "Build";
     case kStructureComponent: return "Structure";
     case kOrderComponent: return "Order";
+    case kPickupComponent: return "Pickup";
     default: return "Unknown";
   }
   return "Unknown";
@@ -60,9 +64,13 @@ ResourceName(ResourceType type)
   return "Unknown";
 }
 
-struct HarvestComponent {
+struct ResourceComponent {
   u32 entity_id;
   ResourceType resource_type;
+};
+
+struct HarvestComponent {
+  u32 entity_id;
   // ticks_to_harvest.
   u32 tth;
 };
@@ -121,18 +129,24 @@ struct OrderComponent {
   u32 max_acquire_count = 0;
 };
 
+struct PickupComponent {
+  u32 entity_id;
+};
+
 }
 
 namespace ecs {
 
 struct Components {
   PhysicsComponent* physics = nullptr;
+  ResourceComponent* resource = nullptr;
   HarvestComponent* harvest = nullptr;
   CharacterComponent* character = nullptr;
   DeathComponent* death = nullptr;
   BuildComponent* build = nullptr;
   StructureComponent* structure = nullptr;
   OrderComponent* order = nullptr;
+  PickupComponent* pickup = nullptr;
 };
 
 }
@@ -148,6 +162,10 @@ GetComponents(u64 tid)
   switch (tid) {
     case kPhysicsComponent: {
       static ecs::ComponentStorage f(ENTITY_COUNT, sizeof(PhysicsComponent), kPhysicsComponent);
+      return &f;
+    } break;
+    case kResourceComponent: {
+      static ecs::ComponentStorage f(128, sizeof(ResourceComponent), kResourceComponent);
       return &f;
     } break;
     case kHarvestComponent: {
@@ -174,6 +192,10 @@ GetComponents(u64 tid)
       static ecs::ComponentStorage f(64, sizeof(OrderComponent), kOrderComponent);
       return &f;
     } break;
+    case kPickupComponent: {
+      static ecs::ComponentStorage f(64, sizeof(PickupComponent), kPickupComponent);
+      return &f;
+    } break;
     default: {
       assert(!"Unknown component type");
     } break;
@@ -182,11 +204,13 @@ GetComponents(u64 tid)
 }
 
 DECLARE_COMPONENT(PhysicsComponent, kPhysicsComponent);
+DECLARE_COMPONENT(ResourceComponent, kResourceComponent);
 DECLARE_COMPONENT(HarvestComponent, kHarvestComponent);
 DECLARE_COMPONENT(CharacterComponent, kCharacterComponent);
 DECLARE_COMPONENT(DeathComponent, kDeathComponent);
 DECLARE_COMPONENT(BuildComponent, kBuildComponent);
 DECLARE_COMPONENT(StructureComponent, kStructureComponent);
 DECLARE_COMPONENT(OrderComponent, kOrderComponent);
+DECLARE_COMPONENT(PickupComponent, kPickupComponent);
 
 }

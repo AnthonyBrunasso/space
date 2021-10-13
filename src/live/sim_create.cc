@@ -5,9 +5,11 @@ SimCreateHarvest(ResourceType resource_type, v2f pos, u32 grid_id, r32 seconds_t
 {
   assert(GridPosIsValid(pos));
   Entity* entity = UseEntity();
+
   PhysicsComponent* phys = AssignPhysicsComponent(entity);
   phys->pos = pos;
   phys->grid_id = grid_id;
+
   switch (resource_type) {
     case kLumber:
       phys->bounds = v2f(live::kLumberWidth, live::kLumberHeight);
@@ -19,9 +21,13 @@ SimCreateHarvest(ResourceType resource_type, v2f pos, u32 grid_id, r32 seconds_t
     default:
       break;
   }
+
   HarvestComponent* harvest = AssignHarvestComponent(entity);
-  harvest->resource_type = resource_type;
   harvest->tth = SecondsToTicks(seconds_to_harvest);
+
+  ResourceComponent* resource = AssignResourceComponent(entity);
+  resource->resource_type = resource_type;
+
   GridSetEntity(phys);
 }
 
@@ -30,11 +36,14 @@ SimCreateCharacter(v2f pos, u32 grid_id)
 {
   assert(GridPosIsValid(pos));
   Entity* character = UseEntity();
+
   PhysicsComponent* phys = AssignPhysicsComponent(character);
   phys->pos = pos;
   phys->bounds = v2f(live::kCharacterWidth, live::kCharacterHeight);
   phys->grid_id = grid_id;
+
   AssignCharacterComponent(character);
+
   GridSetEntity(phys);
 }
 
@@ -43,12 +52,15 @@ SimCreateWall(v2f pos, u32 grid_id)
 {
   assert(GridPosIsValid(pos));
   Entity* wall = UseEntity();
+
   PhysicsComponent* phys = AssignPhysicsComponent(wall);
   phys->pos = pos;
   phys->bounds = v2f(live::kWallWidth, live::kWallHeight);
   phys->grid_id = grid_id;
+
   StructureComponent* structure = AssignStructureComponent(wall);
   structure->structure_type = kWall; 
+
   GridSetEntity(phys);
 }
 
@@ -77,9 +89,11 @@ SimCreateBuildOrder(StructureType structure_type, v2f pos, u32 grid_id, r32 seco
   }
   assert(GridPosIsValid(pos));
   Entity* entity = UseEntity();
+
   PhysicsComponent* phys = AssignPhysicsComponent(entity);
   phys->pos = grid_pos;
   phys->grid_id = grid_id;
+
   switch (structure_type) {
     case kWall:
       phys->bounds = v2f(live::kWallWidth, live::kWallHeight);

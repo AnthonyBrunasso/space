@@ -64,8 +64,12 @@ SimHandleHarvestCompleted(u32 entity_id)
   assert(harvest_entity != nullptr);
   HarvestComponent* harvest_component = GetHarvestComponent(harvest_entity);
   assert(harvest_component != nullptr);
-  ++kSim.resources[harvest_component->resource_type];
-  AssignDeathComponent(entity_id);
+  ResourceComponent* resource_component = GetResourceComponent(harvest_entity);
+  assert(resource_component != nullptr);
+  RemoveHarvestComponent(harvest_entity);
+  AssignPickupComponent(harvest_entity);
+  //++kSim.resources[resource_component->resource_type];
+  //AssignDeathComponent(entity_id);
 }
 
 void
@@ -90,7 +94,7 @@ void
 SimHandleBuildLeftClick(v2f pos)
 {
   // TODO: Correctly pass grid id.
-  SimCreateBuildOrder(kWall, pos, 0, 5.f);
+  SimCreateBuildOrder(kWall, pos, 1, 5.f);
 }
 
 void
@@ -100,7 +104,7 @@ SimInitialize()
 
   SimCreateHarvest(kLumber, v2f(400.f, 230.f), grid_id, kSecsToHarvestLumber);
   SimCreateHarvest(kLumber, v2f(472.f, 271.f), grid_id, kSecsToHarvestLumber);
-  /*SimCreateHarvest(kLumber, v2f(428.f, 220.5f), grid_id, kSecsToHarvestLumber);
+  SimCreateHarvest(kLumber, v2f(428.f, 220.5f), grid_id, kSecsToHarvestLumber);
   SimCreateHarvest(kLumber, v2f(414.f, 215.f), grid_id, kSecsToHarvestLumber);
 
   for (int x = 0; x < 10; ++x) {
@@ -109,7 +113,7 @@ SimInitialize()
           kStone, GridPosFromXY(v2i(30, 30)) + GridPosFromXY(v2i(x, y)),
           grid_id, kSecsToHarvestStone);
     }
-  }*/
+  }
 
   SimCreateCharacter(v2f(160.f, 100.f), grid_id);
   SimCreateCharacter(v2f(80.f, 120.f), grid_id);

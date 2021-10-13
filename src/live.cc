@@ -222,11 +222,11 @@ GameRender(v2f dims)
 #endif
   
   {
-    ECS_ITR2(itr, kPhysicsComponent, kHarvestComponent);
+    ECS_ITR3(itr, kPhysicsComponent, kHarvestComponent, kResourceComponent);
     while (itr.Next()) {
       PhysicsComponent* physics = itr.c.physics;
-      HarvestComponent* harvest = itr.c.harvest;
-      switch (harvest->resource_type) {
+      ResourceComponent* resource = itr.c.resource;
+      switch (resource->resource_type) {
         case kLumber:
           rgg::RenderRectangle(physics->rect(), v4f(0.f, 1.f, 0.f, 1.f));
           break;
@@ -238,7 +238,26 @@ GameRender(v2f dims)
           assert(!"Can't render resource type");
       }
     }
+  }
 
+  {
+    ECS_ITR3(itr, kPhysicsComponent, kPickupComponent, kResourceComponent);
+    while (itr.Next()) {
+      PhysicsComponent* physics = itr.c.physics;
+      ResourceComponent* resource = itr.c.resource;
+      Rectf rect = physics->rect();
+      switch (resource->resource_type) {
+        case kLumber:
+          rgg::RenderTriangle(rect.Center(), rect.width / 2.f, v4f(0.f, 1.f, 0.f, 1.f));
+          break;
+        case kStone:
+          rgg::RenderTriangle(rect.Center(), rect.width / 2.f, v4f(.5f, .5f, .5f, 1.f));
+          break;
+        case kResourceTypeCount:
+        default:
+          assert(!"Can't render resource type");
+      }
+    }
   }
 
   {

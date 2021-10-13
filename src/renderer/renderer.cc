@@ -481,6 +481,32 @@ RenderTriangle(const v3f& position, const v3f& scale,
 }
 
 void
+RenderTriangle(const v2f& p, r32 half_height, const v4f& color)
+{
+  glUseProgram(kRGG.geometry_program.reference);
+  // Texture state has quad with length 1 geometry. This makes scaling simpler
+  // as we can use the width / height directly in scale matrix.
+  glBindVertexArray(kTextureState.vao_reference);
+  Mat4f view_projection = kObserver.projection * kObserver.view;
+  glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
+              color.w);
+  glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
+                     &view_projection.data_[0]);
+  v2f top = p + v2f(0.f, half_height);
+  v2f bottom_right = p + v2f(half_height, -half_height);
+  v2f bottom_left = p + v2f(-half_height, -half_height);
+  r32 verts[9] = {
+    top.x, top.y, 0.f,
+    bottom_right.x, bottom_right.y, 0.f,
+    bottom_left.x, bottom_left.y, 0.f,
+  };
+  glBindBuffer(GL_ARRAY_BUFFER, kTextureState.vbo_reference);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_DYNAMIC_DRAW);
+  glDrawArrays(GL_TRIANGLES, 0, 3);
+
+}
+
+void
 RenderRectangle(const v3f& position, const v3f& scale,
                 const Quatf& orientation, const v4f& color)
 {

@@ -680,7 +680,7 @@ void
 SetCursorPosition(v2f pos)
 {
   //v2f dims = GetWindowSize();
-  //SetCursorPos(pos.x, pos.y);
+  SetCursorPos(pos.x, pos.y);
 }
 
 const char*

@@ -120,7 +120,7 @@ constexpr s32 kHexVertCount = 18;
 DECLARE_ARRAY(DebugSphere, 8);
 DECLARE_ARRAY(DebugCube, 128);
 DECLARE_ARRAY(DebugPoint, 128);
-DECLARE_ARRAY(DebugRect, 128);
+DECLARE_ARRAY(DebugRect, 512);
 
 static Observer kObserver;
 static RGG kRGG;

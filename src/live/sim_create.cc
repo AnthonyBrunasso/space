@@ -117,4 +117,39 @@ SimCreateBuildOrder(StructureType structure_type, v2f pos, u32 grid_id, r32 seco
   GridSetEntity(phys);
 }
 
+void
+SimCreateZone(const Rectf& selection, u32 grid_id)
+{
+  Rectf aabb = math::OrientToAabb(selection);
+  v2f min_world = aabb.Min();
+  v2f max_world = aabb.Max();
+  v2i min_grid, max_grid;
+  if (!GridXYFromPos(min_world, &min_grid)) {
+    printf("ZoneBoxSelect: Invalid grid min...\n");
+    return;
+  }
+
+  if (!GridXYFromPos(max_world, &max_grid)) {
+    printf("ZoneBoxSelect: Invalid grid max...\n");
+    return;
+  }
+
+  Entity* entity = UseEntity();
+
+  PhysicsComponent* phys = AssignPhysicsComponent(entity);
+  phys->pos = GridPosFromXY(min_grid);
+  // TODO: This isn't quite right.
+  phys->bounds = v2f((max_grid.x - min_grid.x + 1) * kCellWidth,
+                     (max_grid.y - min_grid.y + 1) * kCellHeight);
+  phys->grid_id = grid_id;
+
+  ZoneComponent* zone = AssignZoneComponent(entity);
+  zone->zone_start = min_grid;
+  zone->zone_end = max_grid;
+  // TODO: Probably drive this from UI.
+  zone->resource_mask = FLAG(kLumber) | FLAG(kStone);
+
+  GridSetEntity(phys);
+}
+
 // }

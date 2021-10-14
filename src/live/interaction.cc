@@ -10,13 +10,13 @@ struct Interaction {
     kHarvest = 1,
     kBuild = 2,
     kZone = 3,
+    kMiddleMouseMove = 4,
   };
-
-  v2f mouse_pos;
 
   b8 left_mouse_down = false;
   v2f left_mouse_start;
   Action action = kHarvest;
+  Action saved_action;
 
   Rectf selection_rect()
   {
@@ -90,6 +90,10 @@ InteractionProcessPlatformEvent(const PlatformEvent& event)
       if (event.button == BUTTON_RIGHT) {
         kInteraction.action = Interaction::kHarvest;
       }
+      if (event.button == BUTTON_MIDDLE) {
+        kInteraction.saved_action = kInteraction.action;
+        kInteraction.action = Interaction::kMiddleMouseMove;
+      }
     } break;
     case MOUSE_UP: {
       if (event.button == BUTTON_LEFT) {
@@ -100,6 +104,9 @@ InteractionProcessPlatformEvent(const PlatformEvent& event)
         } else if (kInteraction.action == Interaction::kZone) {
           DispatchZoneBoxSelect(math::OrientToAabb(kInteraction.selection_rect()));
         }
+      }
+      if (event.button == BUTTON_MIDDLE) {
+        kInteraction.action = kInteraction.saved_action;
       }
     } break;
     case MOUSE_WHEEL:
@@ -141,15 +148,35 @@ InteractionRender()
         render_rect.y -= 1.f;
         render_rect.width += 2.f;
         render_rect.height += 2.f;
-        rgg::DebugPushRect(render_rect, v4f(1.f, 1.f, 1.f, 1.f));
+        rgg::RenderLineRectangle(render_rect, v4f(1.f, 1.f, 1.f, 1.f));
       }
     }
-    rgg::DebugPushRect(srect, v4f(0.f, 1.f, 0.f, 0.8f));
+    rgg::RenderLineRectangle(srect, v4f(0.f, 1.f, 0.f, 0.8f));
   }
 
   if (kInteraction.left_mouse_down && kInteraction.action == Interaction::kZone) {
     Rectf srect = math::OrientToAabb(kInteraction.selection_rect());
-    rgg::DebugPushRect(srect, v4f(0.f, 0.f, 1.f, 0.8f));
+    // TODO: Current grid...
+    Grid* grid = GridGet(1);
+    v2i grid_start;
+    if (GridXYFromPos(srect.Min(), &grid_start)) {
+      BfsSearchItr itr(grid_start,
+          [grid, srect](v2i node) -> bool {
+            Rectf grid_rect(GridPosFromXY(node), CellDims());
+            return math::IntersectRect(srect, grid_rect) ||
+                   math::IsContainedInRect(srect, grid_rect) ||
+                   math::IsContainedInRect(grid_rect, srect);
+          },
+          [grid](v2i node) -> std::vector<v2i> {
+            return grid->NeighborsPos(node);
+          }
+      );
+      while(itr.Next());
+      for (v2i node : itr.nodes) {
+        Rectf wrect(GridPosFromXY(node), v2f(kCellWidth, kCellHeight));
+        rgg::RenderLineRectangle(wrect, v4f(0.f, 0.f, 1.f, 0.8f));
+      }
+    }
   }
 
   if (kInteraction.action == Interaction::kBuild) {
@@ -157,8 +184,12 @@ InteractionRender()
     v2f grid_pos;
     if (GridClampPos(mouse_pos, &grid_pos)) {
       Rectf rect(grid_pos, v2f(kWallWidth, kWallHeight));
-      rgg::DebugPushRect(rect, v4f(1.f, 1.f, 1.f, 1.f));
+      rgg::RenderLineRectangle(rect, v4f(1.f, 1.f, 1.f, 1.f));
     }
+  }
+
+  if (kInteraction.action == Interaction::kMiddleMouseMove) {
+    rgg::CameraSetPositionXY(window::GetCursorPosition());
   }
 }
 

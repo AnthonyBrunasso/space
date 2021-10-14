@@ -29,9 +29,9 @@ struct Sim {
 static Sim kSim;
 
 #include "live/util.cc"
-#include "live/interaction.cc"
 #include "live/search.cc"
 #include "live/grid.cc"
+#include "live/interaction.cc"
 #include "live/order.cc"
 
 u32
@@ -60,7 +60,7 @@ SimHandleHarvestBoxSelect(const Rectf& selection)
 void
 SimHandleZoneBoxSelect(const Rectf& selection)
 {
-  printf("Zone %.2f %.2f\n", selection.x, selection.y);
+  SimCreateZone(selection, 1);
 }
 
 void

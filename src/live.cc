@@ -19,7 +19,7 @@
 
 #define RENDER_CHARACTER_AAB 1
 #define RENDER_GRID 1
-#define RENDER_GRID_CELLS_FILLED 1
+#define RENDER_GRID_CELLS_FILLED 0
 
 struct State {
   // Game and render updates per second
@@ -128,6 +128,13 @@ DebugUI()
     imui::NewLine();
     imui::SameLine();
     imui::Width(right_align);
+    imui::Text("Cursor World");
+    v2f wpos = rgg::CameraRayFromMouseToWorld(window::GetCursorPosition(), 1.f).xy();
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "(%.0f, %.0f)", wpos.x, wpos.y);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    imui::SameLine();
+    imui::Width(right_align);
     imui::Text("Game Speed");
     if (imui::Text("120 ", debug_options).clicked) {
       SetFramerate(120);
@@ -187,7 +194,6 @@ GameUpdate()
   rgg::GetObserver()->view = rgg::CameraView();
   //Print4x4Matrix(rgg::GetObserver()->view);
 
-  live::InteractionRender(); // TODO: Move to GameRender
   live::SimUpdate();
 
   return true;
@@ -220,6 +226,14 @@ GameRender(v2f dims)
   }
 }
 #endif
+
+  {
+    ECS_ITR2(itr, kPhysicsComponent, kZoneComponent);
+    while (itr.Next()) {
+      PhysicsComponent* physics = itr.c.physics;
+      rgg::RenderRectangle(physics->rect(), v4f(0.1f, 0.1f, 0.4f, 0.8f));
+    }
+  }
   
   {
     ECS_ITR3(itr, kPhysicsComponent, kHarvestComponent, kResourceComponent);
@@ -338,6 +352,7 @@ GameRender(v2f dims)
 }
 #endif
 
+  live::InteractionRender();
 
   rgg::DebugRenderWorldPrimitives();
 

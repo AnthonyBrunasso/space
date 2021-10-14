@@ -174,6 +174,15 @@ Normalize(const Vec2<T>& v)
 
 template <class T>
 Vec2<T>
+SafeNormalize(const Vec2<T>& v)
+{
+  r32 l = Length(v);
+  if (l < FLT_EPSILON) return Vec2<T>(0.f, 0.f);
+  return v / l;
+}
+
+template <class T>
+Vec2<T>
 Project(const Vec2<T>& a, const Vec2<T>& onto_b)
 {
   return onto_b * (Dot(a, onto_b) / Dot(onto_b, onto_b));

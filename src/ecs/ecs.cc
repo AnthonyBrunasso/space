@@ -164,6 +164,7 @@ DeleteEntity(Entity* ent, u32 max_comps = 64)
 {
   // If the entity has any components left attached to it - delete them.
   if (ent->components_mask) {
+    // TODO: Use find first set
     for (s32 i = 0; i < max_comps; ++i) {
       if (FLAGGED(ent->components_mask, i)) {
         //printf("GetComponents(%u)->Erase(entity:%u)\n", i, ent->id);

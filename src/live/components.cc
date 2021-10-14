@@ -10,7 +10,8 @@ enum TypeId : u64 {
   kStructureComponent = 6,
   kOrderComponent = 7,
   kPickupComponent = 8,
-  kComponentCount = 9,
+  kZoneComponent = 9,
+  kComponentCount = 10,
 };
 
 const char*
@@ -26,6 +27,7 @@ TypeName(TypeId type_id)
     case kStructureComponent: return "Structure";
     case kOrderComponent: return "Order";
     case kPickupComponent: return "Pickup";
+    case kZoneComponent: return "Zone";
     default: return "Unknown";
   }
   return "Unknown";
@@ -133,6 +135,15 @@ struct PickupComponent {
   u32 entity_id;
 };
 
+struct ZoneComponent {
+  u32 entity_id;
+  // Specifies the types of resources allowed to be placed in this zone.
+  u32 resource_mask;
+  // Zones start and end at grid locations.
+  v2i zone_start;
+  v2i zone_end;
+};
+
 }
 
 namespace ecs {
@@ -147,6 +158,7 @@ struct Components {
   StructureComponent* structure = nullptr;
   OrderComponent* order = nullptr;
   PickupComponent* pickup = nullptr;
+  ZoneComponent* zone = nullptr;
 };
 
 }
@@ -196,6 +208,10 @@ GetComponents(u64 tid)
       static ecs::ComponentStorage f(64, sizeof(PickupComponent), kPickupComponent);
       return &f;
     } break;
+    case kZoneComponent: {
+      static ecs::ComponentStorage f(64, sizeof(ZoneComponent), kZoneComponent);
+      return &f;
+    } break;
     default: {
       assert(!"Unknown component type");
     } break;
@@ -212,5 +228,6 @@ DECLARE_COMPONENT(BuildComponent, kBuildComponent);
 DECLARE_COMPONENT(StructureComponent, kStructureComponent);
 DECLARE_COMPONENT(OrderComponent, kOrderComponent);
 DECLARE_COMPONENT(PickupComponent, kPickupComponent);
+DECLARE_COMPONENT(ZoneComponent, kZoneComponent);
 
 }

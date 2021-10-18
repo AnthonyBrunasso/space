@@ -11,7 +11,8 @@ enum TypeId : u64 {
   kOrderComponent = 7,
   kPickupComponent = 8,
   kZoneComponent = 9,
-  kComponentCount = 10,
+  kCarryComponent = 10,
+  kComponentCount = 11,
 };
 
 const char*
@@ -28,6 +29,7 @@ TypeName(TypeId type_id)
     case kOrderComponent: return "Order";
     case kPickupComponent: return "Pickup";
     case kZoneComponent: return "Zone";
+    case kCarryComponent: return "Carry";
     default: return "Unknown";
   }
   return "Unknown";
@@ -79,7 +81,8 @@ struct HarvestComponent {
 
 struct CharacterComponent {
   u32 entity_id;
-  u32 order_id; // TEMP
+  u32 order_id;
+  u32 carrying_id;
 };
 
 // If set on an entity will remove it at the end of the current frame.
@@ -120,7 +123,9 @@ enum OrderType {
   kMove = 0,
   kHarvest = 1,
   kBuild = 2,
-  kOrderTypeCount = 3,
+  kPickup = 3,
+  kCarryTo = 4,
+  kOrderTypeCount = 5,
 };
 
 struct OrderComponent {
@@ -129,6 +134,7 @@ struct OrderComponent {
   // Number of units that have acquired this order.
   u32 acquire_count = 0;
   u32 max_acquire_count = 0;
+  u32 target_entity_id = 0;
 };
 
 struct PickupComponent {
@@ -142,6 +148,11 @@ struct ZoneComponent {
   // Zones start and end at grid locations.
   v2i zone_start;
   v2i zone_end;
+};
+
+struct CarryComponent {
+  u32 entity_id;
+  u32 carrier_entity_id;
 };
 
 }
@@ -159,6 +170,7 @@ struct Components {
   OrderComponent* order = nullptr;
   PickupComponent* pickup = nullptr;
   ZoneComponent* zone = nullptr;
+  CarryComponent* carry = nullptr;
 };
 
 }
@@ -212,6 +224,10 @@ GetComponents(u64 tid)
       static ecs::ComponentStorage f(64, sizeof(ZoneComponent), kZoneComponent);
       return &f;
     } break;
+    case kCarryComponent: {
+      static ecs::ComponentStorage f(64, sizeof(CarryComponent), kCarryComponent);
+      return &f;
+    } break;
     default: {
       assert(!"Unknown component type");
     } break;
@@ -229,5 +245,6 @@ DECLARE_COMPONENT(StructureComponent, kStructureComponent);
 DECLARE_COMPONENT(OrderComponent, kOrderComponent);
 DECLARE_COMPONENT(PickupComponent, kPickupComponent);
 DECLARE_COMPONENT(ZoneComponent, kZoneComponent);
+DECLARE_COMPONENT(CarryComponent, kCarryComponent);
 
 }

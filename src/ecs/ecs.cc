@@ -107,11 +107,13 @@ class ComponentStorage {
     if (size_ == 0) return;
     if (size_ == 1) {
       Clear();
+      //printf("ComponentStorage::Erase tid:%llu eid:%u size:%u\n", tid_, id, size_);
       return;
     }
     u8* elem = Find(id);
     if (!elem) {
       //printf("ComponentStorage::Erase.Find(%u) not found\n", id);
+      assert(elem != nullptr);
       return;
     }
     u8* nelem = elem + sizeof_element_;
@@ -119,7 +121,7 @@ class ComponentStorage {
     memmove(elem, elem + sizeof_element_, end - nelem);
     --size_;
     memset(Get(size_), 0, sizeof_element_);
-    //printf("ComponentStorage::Erase tid:%llu size:%u\n", tid_, size_);
+    //printf("ComponentStorage::Erase tid:%llu eid:%u size:%u\n", tid_, id, size_);
   }
 
   void

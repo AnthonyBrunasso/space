@@ -204,6 +204,7 @@ struct GridSync {
   {
     assert(phys != nullptr);
     Grid* grid = GridGet(phys->grid_id);
+    assert(grid != nullptr);
     std::vector<v2i> new_nodes = GridGetIntersectingCellPos(phys);
     if (nodes != new_nodes) {
       // Unset all from original nodes.

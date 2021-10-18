@@ -28,19 +28,18 @@ struct Sim {
 
 static Sim kSim;
 
-#include "live/util.cc"
-#include "live/search.cc"
-#include "live/grid.cc"
-#include "live/interaction.cc"
-#include "live/order.cc"
-
 u32
 SecondsToTicks(r32 seconds)
 {
   return (u32)roundf((r32)kGameState.framerate * seconds);
 }
 
+#include "live/util.cc"
+#include "live/search.cc"
+#include "live/grid.cc"
 #include "live/sim_create.cc"
+#include "live/interaction.cc"
+#include "live/order.cc"
 
 void
 SimHandleHarvestBoxSelect(const Rectf& selection)
@@ -74,6 +73,12 @@ SimHandleHarvestCompleted(u32 entity_id)
   assert(resource_component != nullptr);
   RemoveHarvestComponent(harvest_entity);
   AssignPickupComponent(harvest_entity);
+  // This callback is dispatched in the context of a running order to harvest this thing. Therefore
+  // instead of creating a new order we must mutate the existing one or bad things happen.
+  OrderComponent* order = GetOrderComponent(harvest_entity);
+  order->order_type = kPickup;
+  order->acquire_count = 0;
+  order->max_acquire_count = 1;
 }
 
 void
@@ -139,6 +144,22 @@ SimUpdate()
     while (itr.Next()) {
       OrderAcquire(itr.c.character);
       OrderExecute(&itr);
+    }
+  }
+
+  {
+    ECS_ITR2(itr, kPhysicsComponent, kCarryComponent);
+    while (itr.Next()) {
+      PhysicsComponent* phys = GetPhysicsComponent(itr.e);
+      assert(phys != nullptr);
+      CarryComponent* carry = GetCarryComponent(itr.e);
+      assert(carry != nullptr);
+      Entity* carrying_entity = FindEntity(carry->carrier_entity_id);
+      assert(carrying_entity != nullptr);
+      PhysicsComponent* carrying_physics = GetPhysicsComponent(carrying_entity);
+      assert(carrying_physics != nullptr);
+      GridSync sync(phys);
+      phys->pos = carrying_physics->pos;
     }
   }
 

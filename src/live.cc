@@ -19,7 +19,7 @@
 
 #define RENDER_CHARACTER_AAB 1
 #define RENDER_GRID 1
-#define RENDER_GRID_CELLS_FILLED 0
+#define RENDER_GRID_CELLS_FILLED 1
 
 struct State {
   // Game and render updates per second
@@ -255,26 +255,6 @@ GameRender(v2f dims)
   }
 
   {
-    ECS_ITR3(itr, kPhysicsComponent, kPickupComponent, kResourceComponent);
-    while (itr.Next()) {
-      PhysicsComponent* physics = itr.c.physics;
-      ResourceComponent* resource = itr.c.resource;
-      Rectf rect = physics->rect();
-      switch (resource->resource_type) {
-        case kLumber:
-          rgg::RenderTriangle(rect.Center(), rect.width / 2.f, v4f(.64f, .45f, .28f, 1.f));
-          break;
-        case kStone:
-          rgg::RenderTriangle(rect.Center(), rect.width / 2.f, v4f(.5f, .5f, .5f, 1.f));
-          break;
-        case kResourceTypeCount:
-        default:
-          assert(!"Can't render resource type");
-      }
-    }
-  }
-
-  {
     ECS_ITR2(itr, kPhysicsComponent, kBuildComponent);
     while (itr.Next()) {
       PhysicsComponent* physics = itr.c.physics;
@@ -330,6 +310,28 @@ GameRender(v2f dims)
       //if (live::GridClampPos(character->pos, &grid_pos)) {
       //  rgg::RenderRectangle(Rectf(grid_pos, live::CellDims()), v4f(.2f, .2f, .2f, .8f));
       //}
+    }
+  }
+
+  {
+    ECS_ITR2(itr, kPhysicsComponent, kResourceComponent);
+    while (itr.Next()) {
+      // The resource should not be rendered if this is a tree for instance.
+      if (GetHarvestComponent(itr.e)) continue;
+      PhysicsComponent* physics = itr.c.physics;
+      ResourceComponent* resource = itr.c.resource;
+      Rectf rect = physics->rect();
+      switch (resource->resource_type) {
+        case kLumber:
+          rgg::RenderTriangle(rect.Center(), rect.width / 2.f, v4f(.64f, .45f, .28f, 1.f));
+          break;
+        case kStone:
+          rgg::RenderTriangle(rect.Center(), rect.width / 2.f, v4f(.5f, .5f, .5f, 1.f));
+          break;
+        case kResourceTypeCount:
+        default:
+          assert(!"Can't render resource type");
+      }
     }
   }
 

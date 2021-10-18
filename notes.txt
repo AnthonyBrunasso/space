@@ -20,6 +20,8 @@ Tech Tasks
 
   4. Stockpiles that hold resources
 
+  5. Debugging for ecs stuff...
+
 
 chase charge dispute
 8008493574

@@ -72,6 +72,7 @@ static char kUIBuffer[64];
 enum DebugUIState {
   kDiagnosticsViewer,
   kEntityViewer,
+  kDebugViewer,
 };
 
 void
@@ -167,6 +168,11 @@ DebugUIRenderEntity()
 }
 
 void
+DebugUIRenderDebug()
+{
+}
+
+void
 DebugUI()
 {
   v2f screen = window::GetWindowSize();
@@ -174,7 +180,8 @@ DebugUI()
     static b8 enable_debug = false;
     static v2f diagnostics_pos(3.f, screen.y);
     static DebugUIState debug_ui_state = kDiagnosticsViewer;
-    static r32 right_align = 130.f;
+    static r32 right_align = 125.f;
+    static v4f unused_color = v4f(.8f, .8f, .8f, 1.f);
     imui::PaneOptions options;
     options.max_width = 315.f;
     imui::Begin("Debug", imui::kEveryoneTag, options, &diagnostics_pos,
@@ -183,13 +190,18 @@ DebugUI()
     debug_options.highlight_color = imui::kRed;
     imui::SameLine();
     imui::Width(right_align);
-    debug_options.color = debug_ui_state == kDiagnosticsViewer ? imui::kRed :  imui::kWhite;
+    debug_options.color = debug_ui_state == kDiagnosticsViewer ? imui::kRed : unused_color;
     if (imui::Text("Diag", debug_options).clicked) {
       debug_ui_state = kDiagnosticsViewer;
     }
-    debug_options.color = debug_ui_state == kEntityViewer ? imui::kRed :  imui::kWhite;
+    imui::Width(right_align);
+    debug_options.color = debug_ui_state == kEntityViewer ? imui::kRed :  unused_color;
     if (imui::Text("Entity", debug_options).clicked) {
       debug_ui_state = kEntityViewer;
+    }
+    debug_options.color = debug_ui_state == kDebugViewer ? imui::kRed :  unused_color;
+    if (imui::Text("Debug", debug_options).clicked) {
+      debug_ui_state = kDebugViewer;
     }
     imui::NewLine();
     imui::HorizontalLine(v4f(1.f, 1.f, 1.f, .4f));
@@ -200,6 +212,9 @@ DebugUI()
         break;
       case kEntityViewer:
         DebugUIRenderEntity();
+        break;
+      case kDebugViewer:
+        DebugUIRenderDebug();
         break;
     }
     imui::End();

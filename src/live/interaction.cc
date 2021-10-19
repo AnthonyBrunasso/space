@@ -54,6 +54,21 @@ InteractionRenderOrderOptions()
   imui::End();
 }
 
+/*void
+InteractionRenderEntityViewer()
+{
+  static char resource_buffer[64];
+
+  v2f screen = window::GetWindowSize();
+
+  static b8 enable_ui = true;
+  static v2f pos_ui(0.f, screen.y - 20.f);
+  imui::PaneOptions options;
+  imui::Begin("Entities", imui::kEveryoneTag, options, &pos_ui, &enable_ui);
+  imui::Text("TEST");
+  imui::End();
+}*/
+
 void
 InteractionRenderResourceCounts()
 {
@@ -62,7 +77,7 @@ InteractionRenderResourceCounts()
   v2f screen = window::GetWindowSize();
 
   static b8 enable_ui = true;
-  static v2f pos_ui(0.f, 500.f);
+  static v2f pos_ui(screen.x - 125.f, 80.f);
   imui::PaneOptions options;
   imui::Begin("Resources", imui::kEveryoneTag, options, &pos_ui, &enable_ui);
   for (s32 i = 0; i < kResourceTypeCount; ++i) {

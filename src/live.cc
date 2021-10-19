@@ -69,11 +69,101 @@ struct hash<v2i>
 
 static char kUIBuffer[64];
 
+enum DebugUIState {
+  kDiagnosticsViewer,
+  kEntityViewer,
+};
+
 void
 SetFramerate(u64 fr)
 {
   kGameState.framerate = fr;
   kGameState.frame_target_usec = 1000.f * 1000.f / kGameState.framerate;
+}
+
+void
+DebugUIRenderDiagnostics()
+{
+  v2f screen = window::GetWindowSize();
+  static r32 right_align = 130.f;
+  imui::TextOptions debug_options;
+  debug_options.color = imui::kWhite;
+  debug_options.highlight_color = imui::kRed;
+  imui::SameLine();
+  imui::Width(right_align);
+  imui::Text("Frame Time");
+  snprintf(kUIBuffer, sizeof(kUIBuffer), "%04.02fus [%02.02f%%]",
+           StatsMean(&kGameStats), 100.f * StatsUnbiasedRsDev(&kGameStats));
+  imui::Text(kUIBuffer);
+  imui::NewLine();
+  imui::SameLine();
+  imui::Width(right_align);
+  imui::Text("Game Time");
+  snprintf(kUIBuffer, sizeof(kUIBuffer), "%04.02fs",
+           (r64)kGameState.game_time_usec / 1e6);
+  imui::Text(kUIBuffer);
+  imui::NewLine();
+  imui::SameLine();
+  imui::Width(right_align);
+  imui::Text("AVG FPS");
+  snprintf(kUIBuffer, sizeof(kUIBuffer), "%04.02ff/s",
+           (r64)kGameState.game_updates /
+               ((r64)kGameState.game_time_usec / 1e6));
+  imui::Text(kUIBuffer);
+  imui::NewLine();
+  imui::SameLine();
+  imui::Width(right_align);
+  imui::Text("Window Size");
+  snprintf(kUIBuffer, sizeof(kUIBuffer), "%.0fx%.0f", screen.x, screen.y);
+  imui::Text(kUIBuffer);
+  imui::NewLine();
+  imui::SameLine();
+  imui::Width(right_align);
+  imui::Text("Camera Pos");
+  v3f cpos = rgg::CameraPosition();
+  snprintf(kUIBuffer, sizeof(kUIBuffer), "(%.0f, %.0f, %.0f)", cpos.x, cpos.y, cpos.z);
+  imui::Text(kUIBuffer);
+  imui::NewLine();
+  imui::SameLine();
+  imui::Width(right_align);
+  imui::Text("Cursor World");
+  v2f wpos = rgg::CameraRayFromMouseToWorld(window::GetCursorPosition(), 1.f).xy();
+  snprintf(kUIBuffer, sizeof(kUIBuffer), "(%.0f, %.0f)", wpos.x, wpos.y);
+  imui::Text(kUIBuffer);
+  imui::NewLine();
+  v2i gpos;
+  if (live::GridXYFromPos(wpos, &gpos)) {
+    imui::SameLine();
+    imui::Width(right_align);
+    imui::Text("Cursor Grid");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "(%i, %i)", gpos.x, gpos.y);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+  }
+  imui::SameLine();
+  imui::Width(right_align);
+  imui::Text("Game Speed");
+  if (imui::Text("120 ", debug_options).clicked) {
+    SetFramerate(120);
+  }
+  if (imui::Text("60 ", debug_options).clicked) {
+    SetFramerate(60);
+  }
+  if (imui::Text("30 ", debug_options).clicked) {
+    SetFramerate(30);
+  }
+  if (imui::Text("10 ", debug_options).clicked) {
+    SetFramerate(10);
+  }
+  if (imui::Text("5 ", debug_options).clicked) {
+    SetFramerate(5);
+  }
+  imui::NewLine();
+}
+
+void
+DebugUIRenderEntity()
+{
 }
 
 void
@@ -83,75 +173,35 @@ DebugUI()
   {
     static b8 enable_debug = false;
     static v2f diagnostics_pos(3.f, screen.y);
+    static DebugUIState debug_ui_state = kDiagnosticsViewer;
     static r32 right_align = 130.f;
     imui::PaneOptions options;
     options.max_width = 315.f;
-    imui::Begin("Diagnostics", imui::kEveryoneTag, options, &diagnostics_pos,
+    imui::Begin("Debug", imui::kEveryoneTag, options, &diagnostics_pos,
                 &enable_debug);
     imui::TextOptions debug_options;
-    debug_options.color = imui::kWhite;
     debug_options.highlight_color = imui::kRed;
     imui::SameLine();
     imui::Width(right_align);
-    imui::Text("Frame Time");
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "%04.02fus [%02.02f%%]",
-             StatsMean(&kGameStats), 100.f * StatsUnbiasedRsDev(&kGameStats));
-    imui::Text(kUIBuffer);
-    imui::NewLine();
-    imui::SameLine();
-    imui::Width(right_align);
-    imui::Text("Game Time");
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "%04.02fs",
-             (r64)kGameState.game_time_usec / 1e6);
-    imui::Text(kUIBuffer);
-    imui::NewLine();
-    imui::SameLine();
-    imui::Width(right_align);
-    imui::Text("AVG FPS");
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "%04.02ff/s",
-             (r64)kGameState.game_updates /
-                 ((r64)kGameState.game_time_usec / 1e6));
-    imui::Text(kUIBuffer);
-    imui::NewLine();
-    imui::SameLine();
-    imui::Width(right_align);
-    imui::Text("Window Size");
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "%.0fx%.0f", screen.x, screen.y);
-    imui::Text(kUIBuffer);
-    imui::NewLine();
-    imui::SameLine();
-    imui::Width(right_align);
-    imui::Text("Camera Pos");
-    v3f cpos = rgg::CameraPosition();
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "(%.0f, %.0f, %.0f)", cpos.x, cpos.y, cpos.z);
-    imui::Text(kUIBuffer);
-    imui::NewLine();
-    imui::SameLine();
-    imui::Width(right_align);
-    imui::Text("Cursor World");
-    v2f wpos = rgg::CameraRayFromMouseToWorld(window::GetCursorPosition(), 1.f).xy();
-    snprintf(kUIBuffer, sizeof(kUIBuffer), "(%.0f, %.0f)", wpos.x, wpos.y);
-    imui::Text(kUIBuffer);
-    imui::NewLine();
-    imui::SameLine();
-    imui::Width(right_align);
-    imui::Text("Game Speed");
-    if (imui::Text("120 ", debug_options).clicked) {
-      SetFramerate(120);
+    debug_options.color = debug_ui_state == kDiagnosticsViewer ? imui::kRed :  imui::kWhite;
+    if (imui::Text("Diag", debug_options).clicked) {
+      debug_ui_state = kDiagnosticsViewer;
     }
-    if (imui::Text("60 ", debug_options).clicked) {
-      SetFramerate(60);
-    }
-    if (imui::Text("30 ", debug_options).clicked) {
-      SetFramerate(30);
-    }
-    if (imui::Text("10 ", debug_options).clicked) {
-      SetFramerate(10);
-    }
-    if (imui::Text("5 ", debug_options).clicked) {
-      SetFramerate(5);
+    debug_options.color = debug_ui_state == kEntityViewer ? imui::kRed :  imui::kWhite;
+    if (imui::Text("Entity", debug_options).clicked) {
+      debug_ui_state = kEntityViewer;
     }
     imui::NewLine();
+    imui::HorizontalLine(v4f(1.f, 1.f, 1.f, .4f));
+    imui::Space(imui::kVertical, 5);
+    switch (debug_ui_state) {
+      case kDiagnosticsViewer:
+        DebugUIRenderDiagnostics();
+        break;
+      case kEntityViewer:
+        DebugUIRenderEntity();
+        break;
+    }
     imui::End();
   }
 
@@ -213,6 +263,7 @@ GameRender(v2f dims)
 
 
   DebugUI();
+  //live::InteractionRenderEntityViewer();
   live::InteractionRenderOrderOptions();
   live::InteractionRenderResourceCounts();
 

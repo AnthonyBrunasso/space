@@ -166,6 +166,36 @@ DebugUIRenderDiagnostics()
 void
 DebugUIRenderEntity()
 {
+  static r32 right_align = 130.f;
+  // TODO: Current grid
+  live::Grid* grid = live::GridGet(1);
+  v2f wpos = rgg::CameraRayFromMouseToWorld(window::GetCursorPosition(), 1.f).xy();
+  v2i gpos;
+  if (live::GridXYFromPos(wpos, &gpos)) {
+    live::Cell* cell = grid->Get(gpos);
+    assert(cell != nullptr);
+    imui::SameLine();
+    imui::Width(right_align);
+    imui::Text("Cursor Grid");
+    snprintf(kUIBuffer, sizeof(kUIBuffer), "(%i, %i)", gpos.x, gpos.y);
+    imui::Text(kUIBuffer);
+    imui::NewLine();
+    for (u32 entity_id : cell->entity_ids) {
+      ecs::Entity* entity = ecs::FindEntity(entity_id);
+      assert(entity != nullptr);
+      imui::SameLine();
+      snprintf(kUIBuffer, sizeof(kUIBuffer), "Entity(%u)", entity_id);
+      imui::Text(kUIBuffer);
+      imui::NewLine();
+      for (u64 i = 0; i < ecs::kComponentCount; ++i) {
+        ecs::TypeId type_id = (ecs::TypeId)i;
+        if (entity->Has(type_id)) {
+          snprintf(kUIBuffer, sizeof(kUIBuffer), "  %s", ecs::TypeName(type_id));
+          imui::Text(kUIBuffer);
+        }
+      }
+    }
+  }
 }
 
 void

@@ -64,7 +64,7 @@ struct Result {
   strcat(title_with_tag, tag_append);          \
 
 #define DEBUG_POINT(pos) \
-  rgg::DebugPushPoint(pos, 3.5f, v4f(0.f, .5f, 0.5f, 1.f), rgg::kDebugUI);
+  rgg::DebugPushPoint(pos, 3.5f, v4f(0.f, .8f, 0.6f, 1.f), rgg::kDebugUI);
 
 #define DEBUG_RECT(rect) \
   rgg::DebugPushRect(rect, v4f(0.f, 0.f, 1.f, 1.f), rgg::kDebugUI);
@@ -581,7 +581,7 @@ Indent(int spaces)
 // Set begin_mode.pos to point to the bottom left of where the current element
 // should draw.
 Rectf
-UpdatePane(r32 width, r32 height, b8* element_in_pane)
+UpdatePane(r32 width, r32 height, b8* element_in_pane, r32 y_offset = 0.f)
 {
   assert(element_in_pane);
   IF_HIDDEN(return Rectf());
@@ -599,6 +599,7 @@ UpdatePane(r32 width, r32 height, b8* element_in_pane)
     begin_mode.pos.y -= height; 
   } else {
     begin_mode.pos.x += begin_mode.last_rect.width;
+    begin_mode.pos.y += y_offset;
   }
   // Determine the new pane size.
   Pane* pane = begin_mode.pane;
@@ -847,7 +848,7 @@ Checkbox(r32 width, r32 height, b8* checked)
   IF_HIDDEN(return result);
   u32 tag = kIMUI.begin_mode.tag;
   b8 in_pane = false;
-  Rectf rect = UpdatePane(width, height, &in_pane);
+  Rectf rect = UpdatePane(width, height, &in_pane, 5.f);
   if (!in_pane) return result;
   struct Checkbox* checkbox = UseCheckbox(tag);
   if (!checkbox) {

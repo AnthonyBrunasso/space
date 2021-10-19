@@ -17,9 +17,10 @@
 #define DEBUG_UI 0
 #define PLATFORMER_CAMERA 1
 
-#define RENDER_CHARACTER_AAB 1
-#define RENDER_GRID 1
-#define RENDER_GRID_CELLS_FILLED 1
+static b8 kRenderCharacterAabb = false;
+static b8 kRenderGrid = false;
+static b8 kRenderGridFill = false;
+static b8 kDebugImui = false;
 
 struct State {
   // Game and render updates per second
@@ -170,6 +171,27 @@ DebugUIRenderEntity()
 void
 DebugUIRenderDebug()
 {
+  static r32 right_align = 160.f;
+  imui::SameLine();
+  imui::Width(right_align);
+  imui::Text("Render AABB");
+  imui::Checkbox(16.f, 16.f, &kRenderCharacterAabb);
+  imui::NewLine();
+  imui::SameLine();
+  imui::Width(right_align);
+  imui::Text("Render Grid");
+  imui::Checkbox(16.f, 16.f, &kRenderGrid);
+  imui::NewLine();
+  imui::SameLine();
+  imui::Width(right_align);
+  imui::Text("Render Grid Fill");
+  imui::Checkbox(16.f, 16.f, &kRenderGridFill);
+  imui::NewLine();
+  imui::SameLine();
+  imui::Width(right_align);
+  imui::Text("Debug IMUI");
+  imui::Checkbox(16.f, 16.f, &kDebugImui);
+  imui::NewLine();
 }
 
 void
@@ -218,14 +240,6 @@ DebugUI()
         break;
     }
     imui::End();
-  }
-
-  {
-#if DEBUG_UI
-    static b8 enable_debug = false;
-    static v2f ui_pos(300.f, screen.y);
-    imui::DebugPane("UI Debug", imui::kEveryoneTag, &ui_pos, &enable_debug);
-#endif
   }
 }
 
@@ -282,16 +296,14 @@ GameRender(v2f dims)
   live::InteractionRenderOrderOptions();
   live::InteractionRenderResourceCounts();
 
-#if RENDER_GRID_CELLS_FILLED 
-{
-  live::Grid* grid = live::GridGet(1);
-  for (live::Cell& cell : grid->storage) {
-    if (!cell.entity_ids.empty()) {
-      rgg::RenderRectangle(cell.rect(), v4f(.2f, .2f, .2f, .8f));
+  if (kRenderGridFill) {
+    live::Grid* grid = live::GridGet(1);
+    for (live::Cell& cell : grid->storage) {
+      if (!cell.entity_ids.empty()) {
+        rgg::RenderRectangle(cell.rect(), v4f(.2f, .2f, .2f, .8f));
+      }
     }
   }
-}
-#endif
 
   {
     ECS_ITR2(itr, kPhysicsComponent, kZoneComponent);
@@ -368,9 +380,9 @@ GameRender(v2f dims)
       rgg::RenderCircle(character->pos + v2f(half_width, half_width),
                         character->rect().width / 2.f, v4f(1.f, 0.f, 0.f, 1.f));
 
-#if RENDER_CHARACTER_AAB
-      rgg::RenderLineRectangle(character->rect(), v4f(1.f, 0.f, 0.f, 1.f));
-#endif
+      if (kRenderCharacterAabb) {
+        rgg::RenderLineRectangle(character->rect(), v4f(1.f, 0.f, 0.f, 1.f));
+      }
       
       //v2f grid_pos;
       //if (live::GridClampPos(character->pos, &grid_pos)) {
@@ -401,30 +413,34 @@ GameRender(v2f dims)
     }
   }
 
-#if RENDER_GRID
-{
-  // TODO: Implement an active grid which is the current view I think.
-  live::Grid* grid = live::GridGet(1);
-  r32 grid_width = grid->width * live::kCellWidth;
-  r32 grid_height = grid->height * live::kCellHeight;
-  for (s32 x = 0; x < grid->width; ++x) {
-    v2f start(x * live::kCellWidth, 0);
-    v2f end(x * live::kCellWidth, grid_height);
-    rgg::RenderLine(start, end, v4f(1.f, 1.f, 1.f, .15f));
+  if (kRenderGrid) {
+    // TODO: Implement an active grid which is the current view I think.
+    live::Grid* grid = live::GridGet(1);
+    r32 grid_width = grid->width * live::kCellWidth;
+    r32 grid_height = grid->height * live::kCellHeight;
+    for (s32 x = 0; x < grid->width; ++x) {
+      v2f start(x * live::kCellWidth, 0);
+      v2f end(x * live::kCellWidth, grid_height);
+      rgg::RenderLine(start, end, v4f(1.f, 1.f, 1.f, .15f));
+    }
+    for (s32 y = 0; y < grid->height; ++y) {
+      v2f start(0, y * live::kCellHeight);
+      v2f end(grid_width, y * live::kCellHeight);
+      rgg::RenderLine(start, end, v4f(1.f, 1.f, 1.f, .15f));
+    }
   }
-  for (s32 y = 0; y < grid->height; ++y) {
-    v2f start(0, y * live::kCellHeight);
-    v2f end(grid_width, y * live::kCellHeight);
-    rgg::RenderLine(start, end, v4f(1.f, 1.f, 1.f, .15f));
-  }
-}
-#endif
 
   live::InteractionRender();
 
   rgg::DebugRenderWorldPrimitives();
 
   rgg::DebugRenderUIPrimitives();
+
+  if (kDebugImui) {
+    static v2f debug_imui(500.f, 500.f);
+    static b8 show = true;
+    imui::DebugPane("Debug IMUI", imui::kEveryoneTag, &debug_imui, &show);
+  }
   imui::Render(imui::kEveryoneTag);
 
   window::SwapBuffers();

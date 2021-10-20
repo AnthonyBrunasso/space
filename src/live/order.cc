@@ -137,40 +137,32 @@ _ExecuteCarryTo(CharacterComponent* character, PhysicsComponent* physics, OrderC
     assert(!grid_cells.empty());
     Grid* grid = GridGet(target_physics->grid_id);
     assert(grid != nullptr);
-    bool can_use_cell = false;
-    v2i use_cell;
+    std::optional<v2i> use_cell;
     for (v2i cell : grid_cells) {
       Cell* gcell = grid->Get(cell);
-      printf("Trying cell  %i %i\n", cell.x, cell.y);
       assert(gcell != nullptr);
-      if (gcell->entity_ids.empty()) {
-        can_use_cell = true;
-        use_cell = gcell->pos;
-        break;
-      }
-      // If there exist entities that don't block the resource from being put here.
+      // If the cell does not have a resource or building entity.
+      bool is_cell_valid = true;
       for (u32 entity_id : gcell->entity_ids) {
         Entity* entity = FindEntity(entity_id);
-        assert(entity != nullptr);
-        if (entity->Has(kResourceComponent) || entity->Has(kStructureComponent)) {
-          printf("Has resource or structure %i %i\n", cell.x, cell.y);
+        if (entity->Has(kResourceComponent) || entity->Has(kBuildComponent)) {
+          is_cell_valid = false;
           break;
         }
-        use_cell = gcell->pos;
-        can_use_cell = true;
-        printf("Using cell %i %i\n", use_cell.x, use_cell.y);
+      }
+      if (is_cell_valid) {
+        use_cell = cell;
         break;
       }
-      if (can_use_cell) break;
     }
-    if (can_use_cell) {
+    if (use_cell) {
       Entity* carried_entity = FindEntity(character->carrying_id);
       assert(carried_entity != nullptr);
       PhysicsComponent* carried_physics = GetPhysicsComponent(carried_entity);
       assert(carried_physics != nullptr);
       GridSync gsync(carried_physics);
-      printf("Place resource %i %i\n", use_cell.x, use_cell.y);
-      carried_physics->pos = GridPosFromXY(use_cell);
+      //printf("Place resource %i %i\n", use_cell->x, use_cell->y);
+      carried_physics->pos = GridPosFromXY(*use_cell);
       RemoveCarryComponent(carried_entity);
       character->carrying_id = 0;
       return true;

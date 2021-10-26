@@ -107,14 +107,48 @@ _ExecutePickup(CharacterComponent* character, PhysicsComponent* physics, OrderCo
     character->carrying_id = pickup_entity->id;
     order->order_type = kCarryTo;
     // Find the zone to carry this thing to.
-    ECS_ITR1(itr, kZoneComponent);
+    ECS_ITR2(itr, kZoneComponent, kPhysicsComponent);
+    ZoneComponent* zone = nullptr;
+    PhysicsComponent* zone_physics = nullptr;
     bool zone_found = false;
     while (itr.Next()) {
-      order->target_entity_id = itr.e->id;
+      // TODO: Check that zone can hold this resource??
+      zone = itr.c.zone;
+      zone_physics = itr.c.physics;
       zone_found = true;
       break;
     }
     assert(zone_found != false);
+    assert(zone != nullptr);
+    assert(zone_physics != nullptr);
+    std::vector<v2i> grid_cells = GridGetIntersectingCellPos(zone_physics);
+    assert(!grid_cells.empty());
+    Grid* grid = GridGet(zone_physics->grid_id);
+    assert(grid != nullptr);
+    std::optional<v2i> use_cell;
+    for (v2i cell : grid_cells) {
+      //printf("Looking at cell %i %i\n", cell.x, cell.y);
+      Cell* gcell = grid->Get(cell);
+      assert(gcell != nullptr);
+      // If the cell does not have a resource or building entity.
+      bool is_cell_valid = true;
+      for (u32 entity_id : gcell->entity_ids) {
+        Entity* entity = FindEntity(entity_id);
+        if (entity->Has(kResourceComponent) || entity->Has(kBuildComponent) || entity->Has(kTagComponent)) {
+          is_cell_valid = false;
+          break;
+        }
+      }
+      if (is_cell_valid) {
+        use_cell = cell;
+        break;
+      }
+    }
+    if (use_cell) {
+      //printf("About to carry to cell %i %i\n", use_cell->x, use_cell->y);
+      u32 tag_entity_id = SimCreateTag(*use_cell, zone_physics->grid_id);
+      order->target_entity_id = tag_entity_id;
+    }
   }
 
   // Pickup never returns true because pickups are only issued to be carried somewhere else. Instead
@@ -127,46 +161,21 @@ _ExecuteCarryTo(CharacterComponent* character, PhysicsComponent* physics, OrderC
 {
   Entity* target_entity = FindEntity(order->target_entity_id);
   assert(target_entity != nullptr);
-  PhysicsComponent* target_physics = GetPhysicsComponent(target_entity);
-  assert(target_physics != nullptr);
-  if (_ExecuteMove(character, physics, target_physics->pos)) {
+  TagComponent* tag_component = GetTagComponent(target_entity);
+  v2f pos = GridPosFromXY(tag_component->grid_pos);
+  if (_ExecuteMove(character, physics, pos)) {
     // Distribute resource to zone.
-    ZoneComponent* zone_component = GetZoneComponent(target_entity);
-    assert(zone_component != nullptr);
-    std::vector<v2i> grid_cells = GridGetIntersectingCellPos(target_physics);
-    assert(!grid_cells.empty());
-    Grid* grid = GridGet(target_physics->grid_id);
-    assert(grid != nullptr);
-    std::optional<v2i> use_cell;
-    for (v2i cell : grid_cells) {
-      Cell* gcell = grid->Get(cell);
-      assert(gcell != nullptr);
-      // If the cell does not have a resource or building entity.
-      bool is_cell_valid = true;
-      for (u32 entity_id : gcell->entity_ids) {
-        Entity* entity = FindEntity(entity_id);
-        if (entity->Has(kResourceComponent) || entity->Has(kBuildComponent)) {
-          is_cell_valid = false;
-          break;
-        }
-      }
-      if (is_cell_valid) {
-        use_cell = cell;
-        break;
-      }
-    }
-    if (use_cell) {
-      Entity* carried_entity = FindEntity(character->carrying_id);
-      assert(carried_entity != nullptr);
-      PhysicsComponent* carried_physics = GetPhysicsComponent(carried_entity);
-      assert(carried_physics != nullptr);
-      GridSync gsync(carried_physics);
-      //printf("Place resource %i %i\n", use_cell->x, use_cell->y);
-      carried_physics->pos = GridPosFromXY(*use_cell);
-      RemoveCarryComponent(carried_entity);
-      character->carrying_id = 0;
-      return true;
-    }
+    Entity* carried_entity = FindEntity(character->carrying_id);
+    assert(carried_entity != nullptr);
+    PhysicsComponent* carried_physics = GetPhysicsComponent(carried_entity);
+    assert(carried_physics != nullptr);
+    GridSync gsync(carried_physics);
+    carried_physics->pos = GridPosFromXY(tag_component->grid_pos);
+    RemoveCarryComponent(carried_entity);
+    character->carrying_id = 0;
+    // Kill the entity with the tag component.
+    AssignDeathComponent(order->target_entity_id);
+    return true;
   }
   return false;
 }

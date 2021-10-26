@@ -152,4 +152,15 @@ SimCreateZone(const Rectf& selection, u32 grid_id)
   GridSetEntity(phys);
 }
 
+u32
+SimCreateTag(v2i grid_pos, u32 grid_id)
+{
+  Entity* entity = UseEntity();
+  TagComponent* tag = AssignTagComponent(entity);
+  tag->grid_pos = grid_pos;
+  tag->grid_id = grid_id;
+  GridSetEntity(tag);
+  return entity->id;
+}
+
 // }

@@ -173,6 +173,15 @@ GridSetEntity(PhysicsComponent* phys)
 }
 
 void
+GridSetEntity(TagComponent* tag)
+{
+  Grid* grid = GridGet(tag->grid_id);
+  Cell* cell = grid->Get(tag->grid_pos);
+  assert(cell != nullptr);
+  cell->entity_ids.push_back(tag->entity_id);
+}
+
+void
 GridUnsetEntity(PhysicsComponent* phys)
 {
   v2i xy;
@@ -192,6 +201,18 @@ GridUnsetEntity(PhysicsComponent* phys)
     //printf("grid->Set(%u, %u)->AddEntity(%u)\n", cell.x, cell.y, phys->entity_id);
   }
 }
+
+void
+GridUnsetEntity(TagComponent* tag)
+{
+  Grid* grid = GridGet(tag->grid_id);
+  Cell* cell = grid->Get(tag->grid_pos);
+  assert(cell != nullptr);
+  cell->entity_ids.erase(std::remove(
+        cell->entity_ids.begin(), cell->entity_ids.end(), tag->entity_id),
+          cell->entity_ids.end());
+}
+
 
 struct GridSync {
   GridSync(PhysicsComponent* phys) : phys(phys)

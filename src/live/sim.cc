@@ -173,6 +173,11 @@ SimUpdate()
         assert(phys != nullptr);
         GridUnsetEntity(phys);
       }
+      if (itr.e->Has(kTagComponent)) {
+        TagComponent* tag = GetTagComponent(itr.e);
+        assert(tag != nullptr);
+        GridUnsetEntity(tag);
+      }
       DeleteEntity(itr.e, kComponentCount);
     }
     GetComponents(kDeathComponent)->Clear();

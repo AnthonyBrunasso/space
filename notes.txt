@@ -12,15 +12,14 @@ Design Tasks
 
 Tech Tasks
 
-  1. Create terminal console that connects to running game. Can issue commands that way.
+  1. Putting resources in zones should be dependent on the zone having a grid source available to do so. Then it should be reserved when selected so another character doesn't do it.
 
   2. Pathing
 
-  3. Harvestables drop resources on the ground that can be picked up
+Maybe
 
-  4. Stockpiles that hold resources
+  1. Create terminal console that connects to running game. Can issue commands that way.
 
-  5. Debugging for ecs stuff...
 
 
 chase charge dispute

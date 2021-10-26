@@ -175,6 +175,11 @@ _ExecuteCarryTo(CharacterComponent* character, PhysicsComponent* physics, OrderC
     character->carrying_id = 0;
     // Kill the entity with the tag component.
     AssignDeathComponent(order->target_entity_id);
+    // Assume a resource was carried to a stockpile???
+    if (carried_entity->Has(kResourceComponent)) {
+      ResourceComponent* resource = GetResourceComponent(carried_entity);
+      ++kSim.resources[resource->resource_type];
+    }
     return true;
   }
   return false;

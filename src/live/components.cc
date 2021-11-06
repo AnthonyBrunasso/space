@@ -200,11 +200,11 @@ GetComponents(u64 tid)
       return &f;
     } break;
     case kResourceComponent: {
-      static ecs::ComponentStorage f(128, sizeof(ResourceComponent), kResourceComponent);
+      static ecs::ComponentStorage f(256, sizeof(ResourceComponent), kResourceComponent);
       return &f;
     } break;
     case kHarvestComponent: {
-      static ecs::ComponentStorage f(128, sizeof(HarvestComponent), kHarvestComponent);
+      static ecs::ComponentStorage f(256, sizeof(HarvestComponent), kHarvestComponent);
       return &f;
     } break;
     case kCharacterComponent: {

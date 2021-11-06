@@ -11,6 +11,24 @@ constexpr r32 kLumberHeight = 10.f;
 constexpr r32 kCellWidth = 15.f;
 constexpr r32 kCellHeight = 15.f;
 
+constexpr u32 kGridMinX = 0;
+constexpr u32 kGridMinY = 0;
+
+static v2i
+GridMin()
+{
+  return v2i(kGridMinX, kGridMinY);
+}
+
+constexpr u32 kGridMaxX = 128;
+constexpr u32 kGridMaxY = 128;
+
+static v2i
+GridMax()
+{
+  return v2i(kGridMaxX, kGridMaxY);
+}
+
 static v2f
 CellDims()
 {

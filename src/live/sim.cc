@@ -38,6 +38,7 @@ SecondsToTicks(r32 seconds)
 #include "live/search.cc"
 #include "live/grid.cc"
 #include "live/sim_create.cc"
+#include "live/mgen.cc"
 #include "live/interaction.cc"
 #include "live/order.cc"
 
@@ -109,23 +110,23 @@ SimHandleBuildLeftClick(v2f pos)
 void
 SimInitialize()
 {
-  u32 grid_id = GridCreate(v2i(128, 128));
+  u32 grid_id = GridCreate(GridMax());
 
-  SimCreateHarvest(kLumber, v2f(400.f, 230.f), grid_id, kSecsToHarvestLumber);
-  SimCreateHarvest(kLumber, v2f(472.f, 271.f), grid_id, kSecsToHarvestLumber);
-  SimCreateHarvest(kLumber, v2f(428.f, 220.5f), grid_id, kSecsToHarvestLumber);
-  SimCreateHarvest(kLumber, v2f(414.f, 215.f), grid_id, kSecsToHarvestLumber);
-
-  for (int x = 0; x < 10; ++x) {
+  GenTrees(GridPosFromXY(GridMin()), GridPosFromXY(GridMax() - v2i(1, 1)), grid_id);
+  
+  /*for (int x = 0; x < 10; ++x) {
     for (int y = 0; y < 5; ++y) {
       SimCreateHarvest(
           kStone, GridPosFromXY(v2i(30, 30)) + GridPosFromXY(v2i(x, y)),
           grid_id, kSecsToHarvestStone);
     }
-  }
+  }*/
 
   SimCreateCharacter(v2f(160.f, 100.f), grid_id);
   SimCreateCharacter(v2f(80.f, 120.f), grid_id);
+  SimCreateCharacter(v2f(120.f, 80.f), grid_id);
+  SimCreateCharacter(v2f(130.f, 40.f), grid_id);
+  SimCreateCharacter(v2f(25.f, 70.f), grid_id);
 
   //SimCreateHarvest(kStone, GridPosFromXY(v2i(3, 3)), grid_id, kSecsToHarvestStone);
 

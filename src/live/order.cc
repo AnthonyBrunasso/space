@@ -160,6 +160,7 @@ b8
 _ExecuteCarryTo(CharacterComponent* character, PhysicsComponent* physics, OrderComponent* order)
 {
   Entity* target_entity = FindEntity(order->target_entity_id);
+  // TODO: This will happen when the zone is filled. Should handle that.
   assert(target_entity != nullptr);
   TagComponent* tag_component = GetTagComponent(target_entity);
   v2f pos = GridPosFromXY(tag_component->grid_pos);

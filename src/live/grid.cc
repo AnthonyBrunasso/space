@@ -30,6 +30,7 @@ struct Grid {
   Index(v2i xy) const
   {
     u32 index = xy.y * width + xy.x;
+    //printf("Index(%i, %i) == %i\n", xy.x, xy.y, index);
     assert(index < storage.size());
     return index;
   }
@@ -37,8 +38,8 @@ struct Grid {
   Cell*
   Get(v2i xy)
   {
-    if (xy.x < 0 || xy.x > width) return nullptr;
-    if (xy.y < 0 || xy.y > height) return nullptr;
+    if (xy.x < 0 || xy.x >= width) return nullptr;
+    if (xy.y < 0 || xy.y >= height) return nullptr;
     return &storage[Index(xy)];
   }
 

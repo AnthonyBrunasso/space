@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <queue>
+#include <functional>
+#include <optional>
 
 #include "math/math.cc"
 #include "renderer/renderer.cc"
@@ -12,7 +14,7 @@
 #include "renderer/imui.cc"
 #include "animation/fsm.cc"
 
-#define WIN_ATTACH_DEBUGGER 0
+#define WIN_ATTACH_DEBUGGER 1
 #define DEBUG_PHYSICS 0
 #define DEBUG_UI 0
 #define PLATFORMER_CAMERA 1

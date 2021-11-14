@@ -127,7 +127,7 @@ _ExecutePickup(CharacterComponent* character, PhysicsComponent* physics, OrderCo
     assert(grid != nullptr);
     std::optional<v2i> use_cell;
     for (v2i cell : grid_cells) {
-      //printf("Looking at cell %i %i\n", cell.x, cell.y);
+      printf("Looking at cell %i %i\n", cell.x, cell.y);
       Cell* gcell = grid->Get(cell);
       assert(gcell != nullptr);
       // If the cell does not have a resource or building entity.
@@ -237,11 +237,12 @@ OrderExecute(EntityItr<2>* itr)
   PhysicsComponent* physics = itr->c.physics;
 
   OrderComponent* order = _GetOrder(character);
-  OrderType original_order_type = order->order_type;
 
   if (order == nullptr) {
     return;
   }
+
+  OrderType original_order_type = order->order_type;
 
   b8 order_completed = false;
   switch (order->order_type) {

@@ -38,6 +38,7 @@ SecondsToTicks(r32 seconds)
 #include "live/search.cc"
 #include "live/grid.cc"
 #include "live/sim_create.cc"
+#include "live/zone.cc"
 #include "live/mgen.cc"
 #include "live/interaction.cc"
 #include "live/order.cc"
@@ -80,6 +81,8 @@ SimHandleHarvestCompleted(u32 entity_id)
   order->order_type = kPickup;
   order->acquire_count = 0;
   order->max_acquire_count = 1;
+  // Pickup and take it to a zone.
+  order->pickup_data.destination = PickupData::kFindZone;
 }
 
 void

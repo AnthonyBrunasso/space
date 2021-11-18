@@ -108,11 +108,17 @@ SimCreateBuildOrder(StructureType structure_type, v2f pos, u32 grid_id, r32 seco
   build->ttb = SecondsToTicks(seconds_to_build);
   build->required_resource_type = kLumber;
   build->resource_count = 1;
+  build->pickup_orders_issued = 0;
 
   OrderComponent* order = AssignOrderComponent(entity);
   order->order_type = kBuild;
   order->acquire_count  = 0;
   order->max_acquire_count = 1;
+
+  //ResourceCollectorComponent* collector = AssignResourceCollectorComponent(entity);
+  // Resources pending are ones in flight. Probably being carried or soon to be carried there by a character.
+  //collector->pending_resource_count = 0;
+  //collector->arrived_resource_count = 0;
 
   GridSetEntity(phys);
 }

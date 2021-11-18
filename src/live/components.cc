@@ -114,6 +114,7 @@ struct BuildComponent {
   u32 resource_count = 0;
   // ticks_to_build
   u32 ttb;
+  u32 pickup_orders_issued = 0;
 };
 
 struct StructureComponent {
@@ -130,6 +131,20 @@ enum OrderType {
   kOrderTypeCount = 5,
 };
 
+struct HarvestData {};
+struct BuildData {};
+struct PickupData {
+  enum Destination {
+    kFindZone = 0,
+    kBuild = 1,
+  };
+  Destination destination;
+  u32 build_entity_id = 0;
+};
+struct CarryToData {
+  u32 target_entity_id;
+};
+
 struct OrderComponent {
   u32 entity_id;
   OrderType order_type;
@@ -137,6 +152,12 @@ struct OrderComponent {
   u32 acquire_count = 0;
   u32 max_acquire_count = 0;
   u32 target_entity_id = 0;
+  union {
+    HarvestData harvest_data;
+    BuildData build_data;
+    PickupData pickup_data;
+    CarryToData carry_to_data;
+  };
 };
 
 struct PickupComponent {

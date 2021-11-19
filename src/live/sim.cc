@@ -106,6 +106,20 @@ SimHandleBuildCompleted(u32 entity_id)
 void
 SimHandleBuildLeftClick(v2f pos)
 {
+  // TODO: Current grid...
+  Grid* grid = GridGet(1);
+  v2i gpos;
+  if (!GridXYFromPos(pos, &gpos))
+    return;
+  Cell* gcell = grid->Get(gpos);
+  if (!gcell)
+    return;
+  for (u32 entity_id : gcell->entity_ids) {
+    Entity* entity = FindEntity(entity_id);
+    assert(entity);
+    if (entity->Has(kBuildComponent) || entity->Has(kStructureComponent))
+      return;
+  }
   // TODO: Correctly pass grid id.
   SimCreateBuildOrder(kWall, pos, 1, 5.f);
 }

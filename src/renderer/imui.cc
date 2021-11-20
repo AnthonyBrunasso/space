@@ -1129,6 +1129,12 @@ MouseInUI(u32 tag)
   return false;
 }
 
+b8
+MouseInUI()
+{
+  return MouseInUI(0);
+}
+
 void
 MouseDown(v2f pos, PlatformButton b, u32 tag)
 {

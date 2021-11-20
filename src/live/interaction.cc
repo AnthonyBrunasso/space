@@ -94,6 +94,7 @@ InteractionProcessPlatformEvent(const PlatformEvent& event)
   switch (event.type) {
     case MOUSE_DOWN: {
       if (event.button == BUTTON_LEFT) {
+        if (imui::MouseInUI()) break;
         v2f wpos = rgg::CameraRayFromMouseToWorld(event.position, 1.f).xy();
         //OrderCreateMove(wpos);
         kInteraction.left_mouse_down = true;
@@ -112,6 +113,7 @@ InteractionProcessPlatformEvent(const PlatformEvent& event)
     } break;
     case MOUSE_UP: {
       if (event.button == BUTTON_LEFT) {
+        if (imui::MouseInUI()) break;
         v2f wpos = rgg::CameraRayFromMouseToWorld(event.position, 1.f).xy();
         kInteraction.left_mouse_down = false;
         if (kInteraction.action == Interaction::kHarvest) {

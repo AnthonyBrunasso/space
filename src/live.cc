@@ -14,7 +14,7 @@
 #include "renderer/imui.cc"
 #include "animation/fsm.cc"
 
-#define WIN_ATTACH_DEBUGGER 1
+#define WIN_ATTACH_DEBUGGER 0
 #define DEBUG_PHYSICS 0
 #define DEBUG_UI 0
 #define PLATFORMER_CAMERA 1

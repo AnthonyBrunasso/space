@@ -9,6 +9,17 @@ enum class TerrainAsset {
   kGrassMiddleLeft = 5,
   kGrassMiddleMiddle = 6,
   kGrassMiddleRight = 7,
+  kDirtBottomLeft = 8,
+  kDirtBottomMiddle = 9,
+  kDirtBottomRight = 10,
+  kDirtMiddleLeft = 11,
+  kDirtMiddleMiddle = 12,
+  kDirtMiddleRight = 13,
+};
+
+enum class CharacterAsset {
+  kAll = 0,
+  kVillager = 1,
 };
 
 constexpr r32 kTW = 16;
@@ -24,9 +35,22 @@ static Rectf kGrassMiddleLeftRect = Rectf(0.f, 25.f, kTW, kTH);
 static Rectf kGrassMiddleMiddleRect = Rectf(16.f, 25.f, kTW, kTH);
 static Rectf kGrassMiddleRightRect = Rectf(32.f, 25.f, kTW, kTH);
 
+static Rectf kDirtBottomLeftRect = Rectf(0.f, 153.f, kTW, kTH);
+static Rectf kDirtBottomMiddleRect = Rectf(16.f, 153.f, kTW, kTH);
+static Rectf kDirtBottomRightRect = Rectf(32.f, 153.f, kTW, kTH);
+
+static Rectf kDirtMiddleLeftRect = Rectf(0.f, 137.f, kTW, kTH);
+static Rectf kDirtMiddleMiddleRect = Rectf(16.f, 137.f, kTW, kTH);
+static Rectf kDirtMiddleRightRect = Rectf(32.f, 137.f, kTW, kTH);
+
+constexpr r32 kCW = 16;
+constexpr r32 kCH = 16;
+
+static Rectf kVillagerRect = Rectf(0.f, 16.f, kCW, kCH);
 
 struct AssetStorage {
   u32 terrain_texture_id;
+  u32 character_texture_id;
 };
 
 static AssetStorage kAssets;
@@ -38,12 +62,14 @@ AssetLoadAll()
   // rows: 16 cols: 16
   kAssets.terrain_texture_id = rgg::LoadTexture("asset/terrain.tga", rgg::DefaultTextureInfo());
   assert(kAssets.terrain_texture_id != 0);
+
+  kAssets.character_texture_id = rgg::LoadTexture("asset/characters.tga", rgg::DefaultTextureInfo());
+  assert(kAssets.character_texture_id != 0);
 }
 
 void
-AssetTerrainRender(v2f pos = v2f(0.f, 0.f), TerrainAsset asset = TerrainAsset::kAll)
+AssetTerrainRender(rgg::Texture* texture, v2f pos = v2f(0.f, 0.f), TerrainAsset asset = TerrainAsset::kAll)
 {
-  rgg::Texture* texture = rgg::GetTexture(kAssets.terrain_texture_id);
   //printf("%.2f %.2f\n", texture->width, texture->height);
   //exit(0);
   switch (asset) {
@@ -79,9 +105,54 @@ AssetTerrainRender(v2f pos = v2f(0.f, 0.f), TerrainAsset asset = TerrainAsset::k
       Rectf dest = Rectf(pos.x, pos.y, kTW, kTH);
       rgg::RenderTexture(*texture, kGrassMiddleRightRect, dest);
     } break;
+    case TerrainAsset::kDirtBottomLeft: {
+      Rectf dest = Rectf(pos.x, pos.y, kTW, kTH);
+      rgg::RenderTexture(*texture, kDirtBottomLeftRect, dest);
+    } break;
+    case TerrainAsset::kDirtBottomMiddle: {
+      Rectf dest = Rectf(pos.x, pos.y, kTW, kTH);
+      rgg::RenderTexture(*texture, kDirtBottomMiddleRect, dest);
+    } break;
+    case TerrainAsset::kDirtBottomRight: {
+      Rectf dest = Rectf(pos.x, pos.y, kTW, kTH);
+      rgg::RenderTexture(*texture, kDirtBottomRightRect, dest);
+    } break;
+    case TerrainAsset::kDirtMiddleLeft: {
+      Rectf dest = Rectf(pos.x, pos.y, kTW, kTH);
+      rgg::RenderTexture(*texture, kDirtMiddleLeftRect, dest);
+    } break;
+    case TerrainAsset::kDirtMiddleMiddle: {
+      Rectf dest = Rectf(pos.x, pos.y, kTW, kTH);
+      rgg::RenderTexture(*texture, kDirtMiddleMiddleRect, dest);
+    } break;
+    case TerrainAsset::kDirtMiddleRight: {
+      Rectf dest = Rectf(pos.x, pos.y, kTW, kTH);
+      rgg::RenderTexture(*texture, kDirtMiddleRightRect, dest);
+    } break;
+
+
     default:
       assert(!"Implement rendering for this asset.");
       break;
+  }
+}
+
+void
+AssetCharacterRender(rgg::Texture* texture, v2f pos = v2f(0.f, 0.f), CharacterAsset asset = CharacterAsset::kAll)
+{
+  switch (asset) {
+    case CharacterAsset::kAll: {
+      Rectf rect(pos.x, pos.y, texture->width, texture->height);
+      rgg::RenderTexture(*texture, rect, rect);
+    } break;
+    case CharacterAsset::kVillager: {
+      Rectf dest = Rectf(pos.x, pos.y, kCW, kCH);
+      rgg::RenderTexture(*texture, kVillagerRect, dest);
+    } break;;
+    default:
+      assert(!"Implement rendering for this asset.");
+      break;
+
   }
 }
 

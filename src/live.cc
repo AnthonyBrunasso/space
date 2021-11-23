@@ -361,6 +361,7 @@ GameRender(v2f dims)
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_ALWAYS);
 
+  //glDisable(GL_BLEND);
   //glEnable(GL_BLEND);
   //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
 
@@ -379,19 +380,23 @@ GameRender(v2f dims)
     }
   }
 
+  rgg::Texture* terrain_texture = rgg::GetTexture(live::kAssets.terrain_texture_id);
+  rgg::Texture* character_texture = rgg::GetTexture(live::kAssets.character_texture_id);
+  Rectf sbounds = live::ScreenBounds();
+
   {
-    Rectf sbounds = live::ScreenBounds();
+    assert(terrain_texture);
     for (const live::Cell& cell : grid->storage) {
       if (!math::IsContainedInRect(cell.rect(), sbounds) && !math::IntersectRect(cell.rect(), sbounds))
         continue;
       if (cell.pos == v2i(0, 0)) {
-        live::AssetTerrainRender(live::GridPosFromXY(cell.pos), live::TerrainAsset::kGrassBottomLeft);
+        live::AssetTerrainRender(terrain_texture, live::GridPosFromXY(cell.pos), live::TerrainAsset::kDirtBottomLeft);
       } else if (cell.pos.y == 0) {
-        live::AssetTerrainRender(live::GridPosFromXY(cell.pos), live::TerrainAsset::kGrassBottomMiddle);
+        live::AssetTerrainRender(terrain_texture, live::GridPosFromXY(cell.pos), live::TerrainAsset::kDirtBottomMiddle);
       } else if (cell.pos.x == 0) {
-        live::AssetTerrainRender(live::GridPosFromXY(cell.pos), live::TerrainAsset::kGrassMiddleLeft);
+        live::AssetTerrainRender(terrain_texture, live::GridPosFromXY(cell.pos), live::TerrainAsset::kDirtMiddleLeft);
       } else {
-        live::AssetTerrainRender(live::GridPosFromXY(cell.pos), live::TerrainAsset::kGrassMiddleMiddle);
+        live::AssetTerrainRender(terrain_texture, live::GridPosFromXY(cell.pos), live::TerrainAsset::kDirtMiddleMiddle);
       }
     }
   }
@@ -409,10 +414,13 @@ GameRender(v2f dims)
     while (itr.Next()) {
       PhysicsComponent* physics = itr.c.physics;
       ResourceComponent* resource = itr.c.resource;
+      if (!math::IsContainedInRect(physics->rect(), sbounds) && !math::IntersectRect(physics->rect(), sbounds))
+        continue;
+
       switch (resource->resource_type) {
         case kLumber:
           //rgg::RenderRectangle(physics->rect(), v4f(0.f, 1.f, 0.f, 1.f));
-          live::AssetTerrainRender(physics->pos, live::TerrainAsset::kTree);
+          live::AssetTerrainRender(terrain_texture, physics->pos, live::TerrainAsset::kTree);
           break;
         case kStone:
           rgg::RenderRectangle(physics->rect(), v4f(.5f, .5f, .5f, 1.f));
@@ -423,6 +431,8 @@ GameRender(v2f dims)
       }
     }
   }
+
+  glDisable(GL_BLEND);
 
   {
     ECS_ITR2(itr, kPhysicsComponent, kBuildComponent);
@@ -469,8 +479,10 @@ GameRender(v2f dims)
         rgg::RenderRectangle(Rectf(grid_pos, live::CellDims()), v4f(.2f, .6f, .2f, .8f));
       }*/
 
-      rgg::RenderCircle(character->pos + v2f(half_width, half_width),
-                        character->rect().width / 2.f, v4f(1.f, 0.f, 0.f, 1.f));
+      live::AssetCharacterRender(character_texture, character->pos, live::CharacterAsset::kVillager);
+
+      //rgg::RenderCircle(character->pos + v2f(half_width, half_width),
+      //                  character->rect().width / 2.f, v4f(1.f, 0.f, 0.f, 1.f));
 
       if (kRenderCharacterAabb) {
         rgg::RenderLineRectangle(character->rect(), v4f(1.f, 0.f, 0.f, 1.f));
@@ -493,7 +505,7 @@ GameRender(v2f dims)
       Rectf rect = physics->rect();
       switch (resource->resource_type) {
         case kLumber:
-          rgg::RenderTriangle(rect.Center(), rect.width / 2.f, v4f(.64f, .45f, .28f, 1.f));
+          rgg::RenderTriangle(rect.Center(), rect.width / 2.f, v4f(.1f, .5f, .1f, 1.f));
           break;
         case kStone:
           rgg::RenderTriangle(rect.Center(), rect.width / 2.f, v4f(.5f, .5f, .5f, 1.f));
@@ -504,6 +516,8 @@ GameRender(v2f dims)
       }
     }
   }
+
+  glEnable(GL_BLEND);
 
   if (kRenderGrid) {
     // TODO: Implement an active grid which is the current view I think.

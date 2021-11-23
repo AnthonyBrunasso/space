@@ -36,6 +36,7 @@ SecondsToTicks(r32 seconds)
 
 #include "live/util.cc"
 #include "live/search.cc"
+#include "live/asset.cc"
 #include "live/grid.cc"
 #include "live/sim_create.cc"
 #include "live/zone.cc"
@@ -139,11 +140,11 @@ SimInitialize()
     }
   }*/
 
-  SimCreateCharacter(v2f(160.f, 100.f), grid_id);
-  SimCreateCharacter(v2f(80.f, 120.f), grid_id);
-  SimCreateCharacter(v2f(120.f, 80.f), grid_id);
-  SimCreateCharacter(v2f(130.f, 40.f), grid_id);
-  SimCreateCharacter(v2f(25.f, 70.f), grid_id);
+  SimCreateCharacter(v2f(160.f, 100.f), (u32)Job::kHarvest, grid_id);
+  SimCreateCharacter(v2f(80.f, 120.f), (u32)Job::kHaul, grid_id);
+  SimCreateCharacter(v2f(120.f, 80.f), (u32)Job::kBuild, grid_id);
+  //SimCreateCharacter(v2f(130.f, 40.f), grid_id);
+  //SimCreateCharacter(v2f(25.f, 70.f), grid_id);
 
   //SimCreateHarvest(kStone, GridPosFromXY(v2i(3, 3)), grid_id, kSecsToHarvestStone);
 

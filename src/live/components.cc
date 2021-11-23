@@ -81,10 +81,22 @@ struct HarvestComponent {
   u32 tth;
 };
 
+enum class Job : u32 {
+  kHarvest = FLAG(0),
+  kHaul    = FLAG(1),
+  kBuild   = FLAG(2),
+};
+
 struct CharacterComponent {
   u32 entity_id;
   u32 order_id;
   u32 carrying_id;
+  u32 job_bitfield;
+
+  b8
+  HasJob(Job job) {
+    return FLAGGED(job_bitfield, (u32)job);  
+  }
 };
 
 // If set on an entity will remove it at the end of the current frame.

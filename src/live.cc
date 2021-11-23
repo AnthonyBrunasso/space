@@ -163,6 +163,12 @@ DebugUIRenderDiagnostics()
     SetFramerate(5);
   }
   imui::NewLine();
+  Rectf swb = live::ScreenBounds();
+  imui::Width(right_align);
+  imui::Text("World Screen");
+  snprintf(kUIBuffer, sizeof(kUIBuffer), "(%.2f, %.2f, %.2f, %.2f)", swb.x, swb.y, swb.width, swb.height);
+  imui::Text(kUIBuffer);
+  imui::NewLine();
 }
 
 void
@@ -330,8 +336,7 @@ GameInitialize(const v2f& dims)
   //glDisable(GL_DEPTH_TEST);
   //glEnable(GL_BLEND);
   //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
-  
-  
+  live::AssetLoadAll();  
   live::SimInitialize();
 }
 
@@ -356,8 +361,8 @@ GameRender(v2f dims)
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_ALWAYS);
 
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+  //glEnable(GL_BLEND);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
 
 
   DebugUI();
@@ -365,11 +370,28 @@ GameRender(v2f dims)
   live::InteractionRenderOrderOptions();
   live::InteractionRenderResourceCounts();
 
+  live::Grid* grid = live::GridGet(1);
   if (kRenderGridFill) {
-    live::Grid* grid = live::GridGet(1);
     for (live::Cell& cell : grid->storage) {
       if (!cell.entity_ids.empty()) {
         rgg::RenderRectangle(cell.rect(), v4f(.2f, .2f, .2f, .8f));
+      }
+    }
+  }
+
+  {
+    Rectf sbounds = live::ScreenBounds();
+    for (const live::Cell& cell : grid->storage) {
+      if (!math::IsContainedInRect(cell.rect(), sbounds) && !math::IntersectRect(cell.rect(), sbounds))
+        continue;
+      if (cell.pos == v2i(0, 0)) {
+        live::AssetTerrainRender(live::GridPosFromXY(cell.pos), live::TerrainAsset::kGrassBottomLeft);
+      } else if (cell.pos.y == 0) {
+        live::AssetTerrainRender(live::GridPosFromXY(cell.pos), live::TerrainAsset::kGrassBottomMiddle);
+      } else if (cell.pos.x == 0) {
+        live::AssetTerrainRender(live::GridPosFromXY(cell.pos), live::TerrainAsset::kGrassMiddleLeft);
+      } else {
+        live::AssetTerrainRender(live::GridPosFromXY(cell.pos), live::TerrainAsset::kGrassMiddleMiddle);
       }
     }
   }
@@ -389,7 +411,8 @@ GameRender(v2f dims)
       ResourceComponent* resource = itr.c.resource;
       switch (resource->resource_type) {
         case kLumber:
-          rgg::RenderRectangle(physics->rect(), v4f(0.f, 1.f, 0.f, 1.f));
+          //rgg::RenderRectangle(physics->rect(), v4f(0.f, 1.f, 0.f, 1.f));
+          live::AssetTerrainRender(physics->pos, live::TerrainAsset::kTree);
           break;
         case kStone:
           rgg::RenderRectangle(physics->rect(), v4f(.5f, .5f, .5f, 1.f));

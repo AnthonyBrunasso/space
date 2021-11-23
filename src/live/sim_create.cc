@@ -32,7 +32,7 @@ SimCreateHarvest(ResourceType resource_type, v2f pos, u32 grid_id, r32 seconds_t
 }
 
 void
-SimCreateCharacter(v2f pos, u32 grid_id)
+SimCreateCharacter(v2f pos, u32 job_bitfield, u32 grid_id)
 {
   assert(GridPosIsValid(pos));
   Entity* character = UseEntity();
@@ -42,7 +42,10 @@ SimCreateCharacter(v2f pos, u32 grid_id)
   phys->bounds = v2f(live::kCharacterWidth, live::kCharacterHeight);
   phys->grid_id = grid_id;
 
-  AssignCharacterComponent(character);
+  CharacterComponent* ccomp = AssignCharacterComponent(character);
+  ccomp->order_id = 0;
+  ccomp->carrying_id = 0;
+  ccomp->job_bitfield |= job_bitfield;
 
   GridSetEntity(phys);
 }

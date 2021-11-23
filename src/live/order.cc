@@ -98,9 +98,11 @@ OrderMorphToCarryToZone(OrderComponent* order, PhysicsComponent* physics)
   bool zone_found = false;
   while (itr.Next()) {
     // TODO: Check that zone can hold this resource??
-    zone = itr.c.zone;
-    zone_physics = itr.c.physics;
-    zone_found = true;
+    if (ZoneHasCapacity(itr.c.zone, itr.c.physics)) {
+      zone = itr.c.zone;
+      zone_physics = itr.c.physics;
+      zone_found = true;
+    }
     break;
   }
   assert(zone_found != false);
@@ -134,6 +136,7 @@ OrderMorphToCarryToZone(OrderComponent* order, PhysicsComponent* physics)
     u32 tag_entity_id = SimCreateTag(*use_cell, zone_physics->grid_id);
     order->carry_to_data.target_entity_id = tag_entity_id;
   }
+  assert(order->carry_to_data.target_entity_id);
 }
 
 b8
@@ -292,12 +295,20 @@ OrderAcquire(CharacterComponent* character)
           continue;
         }
 
+        if (!character->HasJob(Job::kBuild))
+          continue;
+
+        printf("Can anuyone build???\n");
+
         b8 can_build_proceed = CanBuildProceed(itr.e, build_comp);
         // Check if the build order can proceed.
         if (!can_build_proceed) {
           continue;
         }
       } else if (order->order_type == kPickup) {
+        if (!character->HasJob(Job::kHaul))
+          continue;
+
         // Look for a zone that this thing can be moved to.
         ResourceComponent* resource = GetResourceComponent(itr.e);
         if (resource) {
@@ -308,6 +319,9 @@ OrderAcquire(CharacterComponent* character)
           }
           if (!valid_zone) continue;
         }
+      } else if (order->order_type == kHarvest) {
+        if (!character->HasJob(Job::kHarvest))
+          continue;
       }
       character->order_id = order->entity_id;
       ++(order->acquire_count);

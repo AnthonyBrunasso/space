@@ -25,7 +25,6 @@ LoadTexture(const char* texture_file, const TextureInfo& texture_info)
   assert(kUsedTextureHandle < TEXTURE_MAX);
   TextureHandle* t = UseTextureHandle();
   if (!LoadTGA(texture_file, texture_info, &t->texture)) {
-    printf("Unable to load %s\n", texture_file);
     return 0;
   }
   TextureFileToId* file_to_id = UseTextureFileToId(texture_file, len);
@@ -44,7 +43,6 @@ LoadTextureAndSprite(const char* texture_file, const char* sprite_file,
   assert(kUsedTextureHandle < TEXTURE_MAX);
   TextureHandle* t = UseTextureHandle();
   if (!LoadTGA(texture_file, texture_info, &t->texture)) {
-    printf("Unable to load %s\n", texture_file);
     return 0;
   }
   if (!LoadAnimation(sprite_file, &t->sprite)) {

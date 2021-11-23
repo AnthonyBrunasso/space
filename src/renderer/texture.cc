@@ -25,6 +25,13 @@ struct TextureInfo {
   GLuint mag_filter = GL_LINEAR;
 };
 
+TextureInfo
+DefaultTextureInfo()
+{
+  TextureInfo info;
+  return info;
+}
+
 struct UV {
   r32 u;
   r32 v;
@@ -166,6 +173,10 @@ LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
   u32 file_length;
 
   fptr = fopen(file, "rb");
+  if (!fptr) {
+    printf("Failed  to load %s\n", file);
+    return false;
+  }
   fseek(fptr, 0, SEEK_END);
   file_length = ftell(fptr);
   rewind(fptr);

@@ -95,6 +95,7 @@ void
 UI()
 {
   v2f screen = window::GetWindowSize();
+  {
   static b8 dir_enable = true;
   static v2f dir_pos(300.f, screen.y - 300.f);
   imui::PaneOptions options;
@@ -113,6 +114,14 @@ UI()
   filesystem::WalkDirectory("asset/", FileTGACallback);
   imui::Indent(-2);
   imui::End();
+  }
+
+  {
+  static b8 enable = true;
+  imui::PaneOptions options;
+  static v2f pos(0.f, screen.y);
+  imui::DebugPane("Debug", 0, &pos, &enable);
+  }
 }
 
 void

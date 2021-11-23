@@ -194,6 +194,43 @@ DebugUIRenderEntity()
         if (entity->Has(type_id)) {
           snprintf(kUIBuffer, sizeof(kUIBuffer), "  %s", ecs::TypeName(type_id));
           imui::Text(kUIBuffer);
+          switch (type_id)
+          {
+            case ecs::kPhysicsComponent: {
+              ecs::PhysicsComponent* physics = ecs::GetPhysicsComponent(entity);
+              snprintf(kUIBuffer, sizeof(kUIBuffer), "    pos: %.2f, %.2f", physics->pos.x, physics->pos.y);
+              imui::Text(kUIBuffer);
+              snprintf(kUIBuffer, sizeof(kUIBuffer), "    bounds: %.2f, %.2f", physics->bounds.x, physics->bounds.y);
+              imui::Text(kUIBuffer);
+              snprintf(kUIBuffer, sizeof(kUIBuffer), "    grid: %u", physics->grid_id);
+              imui::Text(kUIBuffer);
+            } break;
+            case ecs::kResourceComponent: {
+              ecs::ResourceComponent* resource = ecs::GetResourceComponent(entity);
+              snprintf(kUIBuffer, sizeof(kUIBuffer), "    resource: %s", ecs::ResourceName(resource->resource_type));
+              imui::Text(kUIBuffer);
+            } break;
+            case ecs::kHarvestComponent: {
+            } break;
+            case ecs::kCharacterComponent: {
+            } break;
+            case ecs::kDeathComponent: {
+            } break;
+            case ecs::kBuildComponent: {
+            } break;
+            case ecs::kStructureComponent: {
+            } break;
+            case ecs::kOrderComponent: {
+            } break;
+            case ecs::kPickupComponent: {
+            } break;
+            case ecs::kZoneComponent: {
+            } break;
+            case ecs::kCarryComponent: {
+            } break;
+            case ecs::kTagComponent: {
+            } break;
+          }
         }
       }
     }

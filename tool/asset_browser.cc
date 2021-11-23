@@ -1,5 +1,5 @@
 #include "platform/platform.cc"
-#include "audio/audio.cc"
+//#include "audio/audio.cc"
 #include "common/common.cc"
 #include "gl/gl.cc"
 #include "renderer/renderer.cc"
@@ -14,16 +14,16 @@ struct Mesh {
   rgg::Mesh mesh;
 };
 
-struct Sound {
-  audio::Sound sound;
-};
+//struct Sound {
+//  audio::Sound sound;
+//};
 
 struct Texture {
   rgg::Texture texture;
 };
 
 DECLARE_HASH_MAP_STR(Mesh, 32);
-DECLARE_HASH_MAP_STR(Sound, 32);
+//DECLARE_HASH_MAP_STR(Sound, 32);
 DECLARE_HASH_MAP_STR(Texture, 32);
 
 rgg::Mesh* kCurrentMesh = nullptr;
@@ -50,7 +50,7 @@ FileOBJCallback(const char* filename)
   }
 }
 
-void
+/*void
 FileWAVCallback(const char* filename)
 {
   if (strcmp(filesystem::GetFilenameExtension(filename), "wav") != 0) return;
@@ -68,7 +68,7 @@ FileWAVCallback(const char* filename)
       audio::PlaySound(sound->sound, audio::Source());
     }
   }
-}
+}*/
 
 void
 FileTGACallback(const char* filename)
@@ -104,10 +104,10 @@ UI()
   imui::Indent(2);
   filesystem::WalkDirectory("asset/", FileOBJCallback);
   imui::Indent(-2);
-  imui::Text("Sounds");
-  imui::Indent(2);
+  //imui::Text("Sounds");
+  /*imui::Indent(2);
   filesystem::WalkDirectory("asset/", FileWAVCallback);
-  imui::Indent(-2);
+  imui::Indent(-2);*/
   imui::Text("Textures");
   imui::Indent(2);
   filesystem::WalkDirectory("asset/", FileTGACallback);
@@ -133,7 +133,7 @@ main(int argc, char** argv)
   create_info.window_height = 1080;
   int window_result = window::Create("Space", create_info);
   if (!rgg::Initialize()) return 1;
-  audio::Initialize();
+  //audio::Initialize();
 
   v2f size = window::GetWindowSize();
   auto* o = rgg::GetObserver();

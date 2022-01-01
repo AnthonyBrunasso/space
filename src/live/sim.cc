@@ -101,6 +101,7 @@ SimHandleBuildCompleted(u32 entity_id)
       break;
     default: printf("Error: SimHandleBuildCompleted - unabled to complete.");
   }
+  printf("Assign death component %u\n", entity_id);
   AssignDeathComponent(entity_id);
 }
 
@@ -140,11 +141,11 @@ SimInitialize()
     }
   }*/
 
-  SimCreateCharacter(v2f(160.f, 100.f), (u32)Job::kHarvest, grid_id);
-  SimCreateCharacter(v2f(80.f, 120.f), (u32)Job::kHaul, grid_id);
-  SimCreateCharacter(v2f(120.f, 80.f), (u32)Job::kBuild, grid_id);
-  //SimCreateCharacter(v2f(130.f, 40.f), grid_id);
-  //SimCreateCharacter(v2f(25.f, 70.f), grid_id);
+  SimCreateCharacter(v2f(160.f, 100.f), (u32)Job::kAll, grid_id);
+  SimCreateCharacter(v2f(80.f, 120.f), (u32)Job::kAll, grid_id);
+  SimCreateCharacter(v2f(120.f, 80.f), (u32)Job::kAll, grid_id);
+  SimCreateCharacter(v2f(130.f, 40.f), (u32)Job::kAll, grid_id);
+  SimCreateCharacter(v2f(25.f, 70.f), (u32)Job::kAll, grid_id);
 
   //SimCreateHarvest(kStone, GridPosFromXY(v2i(3, 3)), grid_id, kSecsToHarvestStone);
 

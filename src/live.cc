@@ -321,7 +321,7 @@ DebugUI()
 void
 GameInitialize(const v2f& dims)
 {
-  rgg::GetObserver()->projection =
+  /*rgg::GetObserver()->projection =
     math::Ortho(dims.x, 0.f, dims.y, 0.f, -1.f, 1.f);
 
   rgg::Camera camera;
@@ -330,7 +330,19 @@ GameInitialize(const v2f& dims)
   camera.up = v3f(0.f, 1.f, 0.f);
   camera.viewport = dims;
   camera.mode = rgg::kCameraOverhead;
+  rgg::CameraInit(camera);*/
+
+  rgg::GetObserver()->projection = math::Perspective(67.f, dims.x / dims.y, .1f, 1000.f);
+
+  rgg::Camera camera;
+  camera.position = v3f(50.f, 50.f, 400.f);
+  camera.dir = v3f(0.f, 0.f, -1.f);
+  camera.up = v3f(0.f, 1.f, 0.f);
+  camera.mode = rgg::kCameraBrowser;
+  camera.viewport = dims;
+  camera.speed = v3f(1.f, 1.f, .1f);
   rgg::CameraInit(camera);
+
 
   // I don't think we need depth testing for a 2d game?
   //glDisable(GL_DEPTH_TEST);
@@ -346,9 +358,7 @@ GameUpdate()
   rgg::CameraUpdate();
   rgg::GetObserver()->view = rgg::CameraView();
   //Print4x4Matrix(rgg::GetObserver()->view);
-
   live::SimUpdate();
-
   return true;
 }
 
@@ -479,10 +489,10 @@ GameRender(v2f dims)
         rgg::RenderRectangle(Rectf(grid_pos, live::CellDims()), v4f(.2f, .6f, .2f, .8f));
       }*/
 
-      live::AssetCharacterRender(character_texture, character->pos, live::CharacterAsset::kVillager);
+      //live::AssetCharacterRender(character_texture, character->pos, live::CharacterAsset::kVillager);
 
-      //rgg::RenderCircle(character->pos + v2f(half_width, half_width),
-      //                  character->rect().width / 2.f, v4f(1.f, 0.f, 0.f, 1.f));
+      rgg::RenderCircle(character->pos + v2f(half_width, half_width),
+                        character->rect().width / 2.f, v4f(1.f, 0.f, 0.f, 1.f));
 
       if (kRenderCharacterAabb) {
         rgg::RenderLineRectangle(character->rect(), v4f(1.f, 0.f, 0.f, 1.f));

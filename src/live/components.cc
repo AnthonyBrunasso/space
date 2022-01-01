@@ -85,6 +85,7 @@ enum class Job : u32 {
   kHarvest = FLAG(0),
   kHaul    = FLAG(1),
   kBuild   = FLAG(2),
+  kAll     = kHarvest | kHaul | kBuild,
 };
 
 struct CharacterComponent {
@@ -127,6 +128,7 @@ struct BuildComponent {
   // ticks_to_build
   u32 ttb;
   u32 pickup_orders_issued = 0;
+  std::vector<u32> requesite_entity_ids;
 };
 
 struct StructureComponent {

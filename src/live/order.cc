@@ -81,6 +81,9 @@ OrderExecuteBuild(CharacterComponent* character, PhysicsComponent* physics, Orde
       --build->ttb;
     } else {
       DispatchBuildCompleted(build->entity_id);
+      for (u32 req_entity_id : build->requesite_entity_ids) {
+        AssignDeathComponent(req_entity_id);
+      }
       return true;
     }
   }
@@ -208,7 +211,7 @@ OrderExecuteCarryTo(CharacterComponent* character, PhysicsComponent* physics, Or
 }
 
 bool
-CanBuildProceed(Entity* ent, BuildComponent* build_comp)
+CanBuildProceed(Entity* ent, BuildComponent* build_comp, std::vector<u32>* entity_ids)
 {
   ResourceType type = build_comp->required_resource_type;
   u32 count = build_comp->resource_count;
@@ -229,6 +232,7 @@ CanBuildProceed(Entity* ent, BuildComponent* build_comp)
       ResourceComponent* resource = GetResourceComponent(cell_entity);
       assert(resource != nullptr);
       if (resource->resource_type == type) {
+        entity_ids->push_back(entity_id);
         --count;
       }
       if (!count) break;
@@ -295,16 +299,18 @@ OrderAcquire(CharacterComponent* character)
           continue;
         }
 
-        if (!character->HasJob(Job::kBuild))
-          continue;
+        //if (!character->HasJob(Job::kBuild))
+        //  continue;
 
-        printf("Can anuyone build???\n");
+        //printf("Can anuyone build???\n");
 
-        b8 can_build_proceed = CanBuildProceed(itr.e, build_comp);
+        std::vector<u32> entity_ids;
+        b8 can_build_proceed = CanBuildProceed(itr.e, build_comp, &entity_ids);
         // Check if the build order can proceed.
         if (!can_build_proceed) {
           continue;
         }
+        build_comp->requesite_entity_ids = entity_ids;
       } else if (order->order_type == kPickup) {
         if (!character->HasJob(Job::kHaul))
           continue;

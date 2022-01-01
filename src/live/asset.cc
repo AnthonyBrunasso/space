@@ -58,12 +58,15 @@ static AssetStorage kAssets;
 void
 AssetLoadAll()
 {
+  rgg::TextureInfo tinfo;
+  tinfo.min_filter = GL_NEAREST_MIPMAP_NEAREST;
+  tinfo.mag_filter = GL_NEAREST;
   // terrain is 256 by 256
   // rows: 16 cols: 16
-  kAssets.terrain_texture_id = rgg::LoadTexture("asset/terrain.tga", rgg::DefaultTextureInfo());
+  kAssets.terrain_texture_id = rgg::LoadTexture("asset/terrain.tga", tinfo);
   assert(kAssets.terrain_texture_id != 0);
 
-  kAssets.character_texture_id = rgg::LoadTexture("asset/characters.tga", rgg::DefaultTextureInfo());
+  kAssets.character_texture_id = rgg::LoadTexture("asset/characters.tga", tinfo);
   assert(kAssets.character_texture_id != 0);
 }
 

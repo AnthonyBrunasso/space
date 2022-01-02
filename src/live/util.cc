@@ -30,15 +30,6 @@ GridClampPos(v2f pos, v2f* clamped_pos)
   return true;
 }
 
-Rectf
-ScreenBounds()
-{
-  v2f screen = window::GetWindowSize();
-  v2f top_right = rgg::CameraRayFromMouseToWorld(screen, 1.f).xy();
-  v2f bottom_left = rgg::CameraRayFromMouseToWorld(v2f(0.f, 0.f), 1.f).xy();
-  return math::MakeRect(bottom_left, top_right);
-}
-
 v2f
 CursorToWorld()
 {
@@ -49,6 +40,14 @@ v2f
 ScreenToWorld(v2f screen)
 {
   return rgg::CameraRayFromMouseToWorld(screen, 1.f).xy();
+}
+
+Rectf
+ScreenBounds()
+{
+  v2f top_right = ScreenToWorld(window::GetWindowSize());
+  v2f bottom_left = ScreenToWorld(v2f(0.f, 0.f));
+  return math::MakeRect(bottom_left, top_right);
 }
 
 // }

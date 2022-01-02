@@ -143,9 +143,9 @@ SimInitialize()
 
   SimCreateCharacter(v2f(160.f, 100.f), (u32)Job::kAll, grid_id);
   SimCreateCharacter(v2f(80.f, 120.f), (u32)Job::kAll, grid_id);
-  //SimCreateCharacter(v2f(120.f, 80.f), (u32)Job::kAll, grid_id);
-  //SimCreateCharacter(v2f(130.f, 40.f), (u32)Job::kAll, grid_id);
-  //SimCreateCharacter(v2f(25.f, 70.f), (u32)Job::kAll, grid_id);
+  SimCreateCharacter(v2f(120.f, 80.f), (u32)Job::kAll, grid_id);
+  SimCreateCharacter(v2f(130.f, 40.f), (u32)Job::kAll, grid_id);
+  SimCreateCharacter(v2f(25.f, 70.f), (u32)Job::kAll, grid_id);
 
   //SimCreateHarvest(kStone, GridPosFromXY(v2i(3, 3)), grid_id, kSecsToHarvestStone);
 

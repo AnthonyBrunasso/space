@@ -39,5 +39,16 @@ ScreenBounds()
   return math::MakeRect(bottom_left, top_right);
 }
 
+v2f
+CursorToWorld()
+{
+  return rgg::CameraRayFromMouseToWorld(window::GetCursorPosition(), 1.f).xy();
+}
+
+v2f
+ScreenToWorld(v2f screen)
+{
+  return rgg::CameraRayFromMouseToWorld(screen, 1.f).xy();
+}
 
 // }

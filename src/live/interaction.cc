@@ -10,7 +10,6 @@ struct Interaction {
     kHarvest = 1,
     kBuild = 2,
     kZone = 3,
-    kMiddleMouseMove = 4,
   };
 
   b8 left_mouse_down = false;
@@ -20,9 +19,7 @@ struct Interaction {
 
   Rectf selection_rect()
   {
-    v2f cursor = window::GetCursorPosition();
-    v2f wpos = rgg::CameraRayFromMouseToWorld(cursor, 1.f).xy();
-    return math::MakeRect(left_mouse_start, wpos);
+    return math::MakeRect(left_mouse_start, CursorToWorld());
   }
 };
 
@@ -95,8 +92,7 @@ InteractionProcessPlatformEvent(const PlatformEvent& event)
     case MOUSE_DOWN: {
       if (event.button == BUTTON_LEFT) {
         if (imui::MouseInUI()) break;
-        v2f wpos = rgg::CameraRayFromMouseToWorld(event.position, 1.f).xy();
-        //OrderCreateMove(wpos);
+        v2f wpos = ScreenToWorld(event.position);
         kInteraction.left_mouse_down = true;
         kInteraction.left_mouse_start = wpos;
         if (kInteraction.action == Interaction::kBuild) {
@@ -106,15 +102,11 @@ InteractionProcessPlatformEvent(const PlatformEvent& event)
       if (event.button == BUTTON_RIGHT) {
         kInteraction.action = Interaction::kHarvest;
       }
-      if (event.button == BUTTON_MIDDLE) {
-        kInteraction.saved_action = kInteraction.action;
-        kInteraction.action = Interaction::kMiddleMouseMove;
-      }
     } break;
     case MOUSE_UP: {
       if (event.button == BUTTON_LEFT) {
         if (imui::MouseInUI()) break;
-        v2f wpos = rgg::CameraRayFromMouseToWorld(event.position, 1.f).xy();
+        v2f wpos = ScreenToWorld(event.position);
         kInteraction.left_mouse_down = false;
         if (kInteraction.action == Interaction::kHarvest) {
           DispatchHarvestBoxSelect(math::OrientToAabb(kInteraction.selection_rect()));
@@ -123,7 +115,7 @@ InteractionProcessPlatformEvent(const PlatformEvent& event)
         }
       }
       if (event.button == BUTTON_MIDDLE) {
-        kInteraction.action = kInteraction.saved_action;
+        rgg::CameraSetPositionXY(ScreenToWorld(event.position));
       }
     } break;
     case MOUSE_WHEEL:
@@ -197,16 +189,12 @@ InteractionRender()
   }
 
   if (kInteraction.action == Interaction::kBuild) {
-    v2f mouse_pos = rgg::CameraRayFromMouseToWorld(window::GetCursorPosition(), 1.f).xy();
+    v2f mouse_pos = CursorToWorld();
     v2f grid_pos;
     if (GridClampPos(mouse_pos, &grid_pos)) {
       Rectf rect(grid_pos, v2f(kWallWidth, kWallHeight));
       rgg::RenderLineRectangle(rect, v4f(1.f, 1.f, 1.f, 1.f));
     }
-  }
-
-  if (kInteraction.action == Interaction::kMiddleMouseMove) {
-    rgg::CameraSetPositionXY(window::GetCursorPosition());
   }
 }
 

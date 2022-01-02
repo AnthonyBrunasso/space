@@ -231,10 +231,23 @@ DebugUIRenderEntity()
             case ecs::kPickupComponent: {
             } break;
             case ecs::kZoneComponent: {
+              ecs::ZoneComponent* zone = ecs::GetZoneComponent(entity);
+              snprintf(kUIBuffer, sizeof(kUIBuffer), "    resource_mask: %u", zone->resource_mask);
+              imui::Text(kUIBuffer);
+              snprintf(kUIBuffer, sizeof(kUIBuffer), "    zone_start: %i, %i", zone->zone_start.x, zone->zone_start.y);
+              imui::Text(kUIBuffer);
+              snprintf(kUIBuffer, sizeof(kUIBuffer), "    zone_end: %i, %i", zone->zone_end.x, zone->zone_end.y);
+              imui::Text(kUIBuffer);
+              int i = 0;
+              for (const ecs::ZoneCell& zone_cell : zone->zone_cells) {
+                snprintf(kUIBuffer, sizeof(kUIBuffer), "    cell(%i): %i, %i", i++, zone_cell.grid_pos.x, zone_cell.grid_pos.y);
+                imui::Text(kUIBuffer);
+                snprintf(kUIBuffer, sizeof(kUIBuffer), "      reserved: %i", zone_cell.reserved);
+                imui::Text(kUIBuffer);
+
+              }
             } break;
             case ecs::kCarryComponent: {
-            } break;
-            case ecs::kTagComponent: {
             } break;
           }
         }

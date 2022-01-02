@@ -98,48 +98,44 @@ OrderMorphToCarryToZone(OrderComponent* order, PhysicsComponent* physics)
   ECS_ITR2(itr, kZoneComponent, kPhysicsComponent);
   ZoneComponent* zone = nullptr;
   PhysicsComponent* zone_physics = nullptr;
-  bool zone_found = false;
   while (itr.Next()) {
     // TODO: Check that zone can hold this resource??
-    if (ZoneHasCapacity(itr.c.zone, itr.c.physics)) {
+    if (ZoneHasCapacity(itr.c.zone)) {
       zone = itr.c.zone;
       zone_physics = itr.c.physics;
-      zone_found = true;
+      break;
     }
-    break;
   }
-  assert(zone_found != false);
   assert(zone != nullptr);
   assert(zone_physics != nullptr);
-  std::vector<v2i> grid_cells = GridGetIntersectingCellPos(zone_physics);
-  assert(!grid_cells.empty());
   Grid* grid = GridGet(zone_physics->grid_id);
   assert(grid != nullptr);
-  std::optional<v2i> use_cell;
-  for (v2i cell : grid_cells) {
+  ZoneCell* use_cell = nullptr;
+  for (ZoneCell& zcell : zone->zone_cells) {
+    if (zcell.reserved) continue;
     // printf("Looking at cell %i %i\n", cell.x, cell.y);
-    Cell* gcell = grid->Get(cell);
+    Cell* gcell = grid->Get(zcell.grid_pos);
     assert(gcell != nullptr);
     // If the cell does not have a resource or building entity.
     bool is_cell_valid = true;
     for (u32 entity_id : gcell->entity_ids) {
       Entity* entity = FindEntity(entity_id);
-      if (entity->Has(kResourceComponent) || entity->Has(kBuildComponent) || entity->Has(kTagComponent)) {
+      if (entity->Has(kResourceComponent) || entity->Has(kBuildComponent)) {
         is_cell_valid = false;
         break;
       }
     }
     if (is_cell_valid) {
-      use_cell = cell;
+      use_cell = &zcell;
       break;
     }
   }
+  // TODO: Temp... What should we do if we get here and don't have a valid cell to take the item to.
+  assert(use_cell != nullptr);
   if (use_cell) {
-    //printf("About to carry to cell %i %i\n", use_cell->x, use_cell->y);
-    u32 tag_entity_id = SimCreateTag(*use_cell, zone_physics->grid_id);
-    order->carry_to_data.target_entity_id = tag_entity_id;
+    order->carry_to_data.grid_pos = use_cell->grid_pos;
+    use_cell->reserved = true;
   }
-  assert(order->carry_to_data.target_entity_id);
 }
 
 b8
@@ -162,7 +158,13 @@ OrderExecutePickup(CharacterComponent* character, PhysicsComponent* physics, Ord
     if (order->pickup_data.destination == PickupData::kFindZone) {
       OrderMorphToCarryToZone(order, physics);
     } else if (order->pickup_data.destination == PickupData::kBuild) {
-      order->carry_to_data.target_entity_id = order->pickup_data.build_entity_id;
+      Entity* build_entity = FindEntity(order->pickup_data.build_entity_id);
+      assert(build_entity != nullptr);
+      PhysicsComponent* build_physics = GetPhysicsComponent(build_entity);
+      assert(build_physics != nullptr);
+      std::vector<v2i> cells = GridGetIntersectingCellPos(build_physics);
+      assert(cells.size() > 0);
+      order->carry_to_data.grid_pos = cells[0];
     }
   }
 
@@ -174,19 +176,7 @@ OrderExecutePickup(CharacterComponent* character, PhysicsComponent* physics, Ord
 b8
 OrderExecuteCarryTo(CharacterComponent* character, PhysicsComponent* physics, OrderComponent* order)
 {
-  Entity* target_entity = FindEntity(order->carry_to_data.target_entity_id);
-  // TODO: This will happen when the zone is filled. Should handle that.
-  assert(target_entity != nullptr);
-  // TODO: I think TagComponent might be stupid
-  v2f pos;
-  if (target_entity->Has(kTagComponent)) {
-    TagComponent* tag_component = GetTagComponent(target_entity);
-    pos = GridPosFromXY(tag_component->grid_pos);
-  } else {
-    PhysicsComponent* target_physics_component = GetPhysicsComponent(target_entity);
-    assert(target_physics_component);
-    pos = target_physics_component->pos;
-  }
+  v2f pos = GridPosFromXY(order->carry_to_data.grid_pos);
   if (OrderExecuteMove(character, physics, pos)) {
     Entity* carried_entity = FindEntity(character->carrying_id);
     assert(carried_entity != nullptr);
@@ -196,14 +186,10 @@ OrderExecuteCarryTo(CharacterComponent* character, PhysicsComponent* physics, Or
     carried_physics->pos = pos;
     RemoveCarryComponent(carried_entity);
     character->carrying_id = 0;
-    // Kill the entity with the tag component.
-    if (target_entity->Has(kTagComponent)) {
-      AssignDeathComponent(order->carry_to_data.target_entity_id);
-      // Assume a resource was carried to a stockpile???
-      if (carried_entity->Has(kResourceComponent)) {
-        ResourceComponent* resource = GetResourceComponent(carried_entity);
-        ++kSim.resources[resource->resource_type];
-      }
+    // Assume a resource was carried to a stockpile???
+    if (carried_entity->Has(kResourceComponent)) {
+      ResourceComponent* resource = GetResourceComponent(carried_entity);
+      ++kSim.resources[resource->resource_type];
     }
     return true;
   }

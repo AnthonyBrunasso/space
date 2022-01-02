@@ -155,21 +155,16 @@ SimCreateZone(const Rectf& selection, u32 grid_id)
   ZoneComponent* zone = AssignZoneComponent(entity);
   zone->zone_start = min_grid;
   zone->zone_end = max_grid;
+
   // TODO: Probably drive this from UI.
   zone->resource_mask = FLAG(kLumber) | FLAG(kStone);
 
-  GridSetEntity(phys);
-}
-
-u32
-SimCreateTag(v2i grid_pos, u32 grid_id)
-{
-  Entity* entity = UseEntity();
-  TagComponent* tag = AssignTagComponent(entity);
-  tag->grid_pos = grid_pos;
-  tag->grid_id = grid_id;
-  GridSetEntity(tag);
-  return entity->id;
+  std::vector<v2i> cells = GridSetEntity(phys);
+  for (v2i cell : cells) {
+    ZoneCell zone_cell;
+    zone_cell.grid_pos = cell;
+    zone->zone_cells.push_back(zone_cell);
+  }
 }
 
 // }

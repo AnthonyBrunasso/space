@@ -154,32 +154,26 @@ GridGetIntersectingCellPos(PhysicsComponent* phys)
   return nodes;
 }
 
-void
+std::vector<v2i>
 GridSetEntity(PhysicsComponent* phys)
-{
+{ 
+  std::vector<v2i> cells;
   v2i xy;
   if (!GridXYFromPos(phys->pos, &xy)) {
     assert(!"GridSetEntity requires a valid grid location.");
-    return; 
+    return cells; 
   }
 
   Grid* grid = GridGet(phys->grid_id);
-  std::vector<v2i> cells = GridGetIntersectingCellPos(phys);
+  cells = GridGetIntersectingCellPos(phys);
   for (v2i cell : cells) {
     Cell* gcell = grid->Get(cell);
     assert(gcell != nullptr);
     gcell->entity_ids.push_back(phys->entity_id);
     //printf("grid->Set(%u, %u)->AddEntity(%u)\n", cell.x, cell.y, phys->entity_id);
   }
-}
 
-void
-GridSetEntity(TagComponent* tag)
-{
-  Grid* grid = GridGet(tag->grid_id);
-  Cell* cell = grid->Get(tag->grid_pos);
-  assert(cell != nullptr);
-  cell->entity_ids.push_back(tag->entity_id);
+  return cells;
 }
 
 void
@@ -202,18 +196,6 @@ GridUnsetEntity(PhysicsComponent* phys)
     //printf("grid->Set(%u, %u)->AddEntity(%u)\n", cell.x, cell.y, phys->entity_id);
   }
 }
-
-void
-GridUnsetEntity(TagComponent* tag)
-{
-  Grid* grid = GridGet(tag->grid_id);
-  Cell* cell = grid->Get(tag->grid_pos);
-  assert(cell != nullptr);
-  cell->entity_ids.erase(std::remove(
-        cell->entity_ids.begin(), cell->entity_ids.end(), tag->entity_id),
-          cell->entity_ids.end());
-}
-
 
 struct GridSync {
   GridSync(PhysicsComponent* phys) : phys(phys)

@@ -12,8 +12,7 @@ enum TypeId : u64 {
   kPickupComponent = 8,
   kZoneComponent = 9,
   kCarryComponent = 10,
-  kTagComponent = 11,
-  kComponentCount = 12,
+  kComponentCount = 11,
 };
 
 const char*
@@ -31,7 +30,6 @@ TypeName(TypeId type_id)
     case kPickupComponent: return "Pickup";
     case kZoneComponent: return "Zone";
     case kCarryComponent: return "Carry";
-    case kTagComponent: return "Tag";
     default: return "Unknown";
   }
   return "Unknown";
@@ -156,7 +154,8 @@ struct PickupData {
   u32 build_entity_id = 0;
 };
 struct CarryToData {
-  u32 target_entity_id;
+  //u32 target_entity_id;
+  v2i grid_pos;
 };
 
 struct OrderComponent {
@@ -178,6 +177,12 @@ struct PickupComponent {
   u32 entity_id;
 };
 
+struct ZoneCell {
+  v2i grid_pos;
+  // Whether or not the cell is reserved for an item.
+  b8 reserved;
+};
+
 struct ZoneComponent {
   u32 entity_id;
   // Specifies the types of resources allowed to be placed in this zone.
@@ -185,20 +190,12 @@ struct ZoneComponent {
   // Zones start and end at grid locations.
   v2i zone_start;
   v2i zone_end;
+  std::vector<ZoneCell> zone_cells;
 };
 
 struct CarryComponent {
   u32 entity_id;
   u32 carrier_entity_id;
-};
-
-// Not sure how I feel about this - but just want to use this as a component to indicate something
-// is interesting about this entity. Right now the case is I want to temporarily create an entity
-// with this component in a zone for a character to carry a resource to.
-struct TagComponent {
-  u32 entity_id;
-  v2i grid_pos;
-  u32 grid_id;
 };
 
 }
@@ -274,10 +271,6 @@ GetComponents(u64 tid)
       static ecs::ComponentStorage f(64, sizeof(CarryComponent), kCarryComponent);
       return &f;
     } break;
-    case kTagComponent: {
-      static ecs::ComponentStorage f(64, sizeof(TagComponent), kTagComponent);
-      return &f;
-    } break;
     default: {
       assert(!"Unknown component type");
     } break;
@@ -296,6 +289,4 @@ DECLARE_COMPONENT(OrderComponent, kOrderComponent);
 DECLARE_COMPONENT(PickupComponent, kPickupComponent);
 DECLARE_COMPONENT(ZoneComponent, kZoneComponent);
 DECLARE_COMPONENT(CarryComponent, kCarryComponent);
-DECLARE_COMPONENT(TagComponent, kTagComponent);
-
 }

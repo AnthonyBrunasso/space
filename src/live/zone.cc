@@ -30,20 +30,10 @@ ZoneHasResourceForPickup(ZoneComponent* zone, ResourceComponent** resource, Reso
 }
 
 b8
-ZoneHasCapacity(ZoneComponent* zone, PhysicsComponent* physics)
+ZoneHasCapacity(ZoneComponent* zone)
 {
-  Grid* grid = GridGet(physics->grid_id);
-  assert(grid);
-  std::vector<v2i> grid_cells = GridGetIntersectingCellPos(physics);
-  for (v2i cell : grid_cells) {
-    Cell* gcell = grid->Get(cell);
-    assert(gcell != nullptr);
-    for (u32 entity_id : gcell->entity_ids) {
-      Entity* entity = FindEntity(entity_id);
-      if (!entity->Has(kResourceComponent) && !entity->Has(kTagComponent)) {
-        return true;
-      }
-    }
+  for (const ZoneCell& zcell : zone->zone_cells) {
+    if (!zcell.reserved) return true;
   }
   return false;
 }

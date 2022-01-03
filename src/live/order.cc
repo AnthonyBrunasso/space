@@ -133,7 +133,7 @@ OrderMorphToCarryToZone(OrderComponent* order, PhysicsComponent* physics)
   // TODO: Temp... What should we do if we get here and don't have a valid cell to take the item to.
   assert(use_cell != nullptr);
   if (use_cell) {
-    order->carry_to_data.grid_pos = use_cell->grid_pos;
+    order->carry_to_data.grid_to = use_cell->grid_pos;
     use_cell->reserved = true;
   }
 }
@@ -164,7 +164,12 @@ OrderExecutePickup(CharacterComponent* character, PhysicsComponent* physics, Ord
       assert(build_physics != nullptr);
       std::vector<v2i> cells = GridGetIntersectingCellPos(build_physics);
       assert(cells.size() > 0);
-      order->carry_to_data.grid_pos = cells[0];
+      order->carry_to_data.grid_to = cells[0];
+      Entity* zone_entity = FindEntity(order->pickup_data.zone_entity_id);
+      if (zone_entity) {
+        ZoneCell* zone_cell = ZoneGetCell(GetZoneComponent(zone_entity), order->pickup_data.zone_grid_pos);
+        if (zone_cell) zone_cell->reserved = false;
+      }
     }
   }
 
@@ -176,7 +181,7 @@ OrderExecutePickup(CharacterComponent* character, PhysicsComponent* physics, Ord
 b8
 OrderExecuteCarryTo(CharacterComponent* character, PhysicsComponent* physics, OrderComponent* order)
 {
-  v2f pos = GridPosFromXY(order->carry_to_data.grid_pos);
+  v2f pos = GridPosFromXY(order->carry_to_data.grid_to);
   if (OrderExecuteMove(character, physics, pos)) {
     Entity* carried_entity = FindEntity(character->carrying_id);
     assert(carried_entity != nullptr);
@@ -234,12 +239,16 @@ OrderCreatePickupsFor(BuildComponent* build_comp)
 {
   ECS_ITR2(itr, kZoneComponent, kPhysicsComponent);
   ResourceComponent* resource_component = nullptr;
+  ZoneCell* zone_cell = nullptr;
+  u32 zone_entity_id = 0;
   while (itr.Next()) {
-    if (ZoneHasResourceForPickup(itr.c.zone, &resource_component, build_comp->required_resource_type)) {
+    if (ZoneHasResourceForPickup(itr.c.zone, &resource_component, &zone_cell, build_comp->required_resource_type)) {
+      // TODO: Investigate why itr.e.id doesn't work here. Seemed to be 0 when I tried it last.
+      zone_entity_id = itr.c.zone->entity_id;
       break;
     }
   }
-  if (resource_component) {
+  if (resource_component && zone_entity_id) {
     Entity* resource_entity = FindEntity(resource_component->entity_id);
     assert(resource_entity);
     AssignPickupComponent(resource_entity);
@@ -250,6 +259,8 @@ OrderCreatePickupsFor(BuildComponent* build_comp)
     order->max_acquire_count = 1;
     order->pickup_data.build_entity_id = build_comp->entity_id;
     order->pickup_data.destination = PickupData::kBuild;
+    order->pickup_data.zone_entity_id = zone_entity_id;
+    order->pickup_data.zone_grid_pos = zone_cell->grid_pos;
     build_comp->pickup_orders_issued += 1;
   }
 }

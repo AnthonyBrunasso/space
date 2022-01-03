@@ -152,10 +152,13 @@ struct PickupData {
   };
   Destination destination;
   u32 build_entity_id = 0;
+  // Zone the thing was picked up from.
+  u32 zone_entity_id = 0;
+  v2i zone_grid_pos;
 };
 struct CarryToData {
   //u32 target_entity_id;
-  v2i grid_pos;
+  v2i grid_to;
 };
 
 struct OrderComponent {

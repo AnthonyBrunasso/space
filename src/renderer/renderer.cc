@@ -488,6 +488,7 @@ RenderTriangle(const v2f& p, r32 half_height, const v4f& color)
   // as we can use the width / height directly in scale matrix.
   glBindVertexArray(kTextureState.vao_reference);
   Mat4f view_projection = kObserver.projection * kObserver.view;
+  Print4x4Matrix(view_projection);
   glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
               color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,

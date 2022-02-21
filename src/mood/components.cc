@@ -189,47 +189,47 @@ GetComponents(u64 tid)
   switch (tid) {
     case kPhysicsComponent: {
       static ecs::ComponentStorage f(
-          PHYSICS_PARTICLE_COUNT, sizeof(PhysicsComponent));
+          PHYSICS_PARTICLE_COUNT, sizeof(PhysicsComponent), kPhysicsComponent);
       return &f;
     } break;
     case kAIComponent: {
-      static ecs::ComponentStorage f(64, sizeof(AIComponent));
+      static ecs::ComponentStorage f(64, sizeof(AIComponent), kAIComponent);
       return &f;
     } break;
     case kCharacterComponent: {
-      static ecs::ComponentStorage f(128, sizeof(CharacterComponent));
+      static ecs::ComponentStorage f(128, sizeof(CharacterComponent), kCharacterComponent);
       return &f;
     } break;
     case kDeathComponent: {
-      static ecs::ComponentStorage f(64, sizeof(DeathComponent));
+      static ecs::ComponentStorage f(64, sizeof(DeathComponent), kDeathComponent);
       return &f;
     } break;
     case kProjectileComponent: {
-      static ecs::ComponentStorage f(512, sizeof(ProjectileComponent));
+      static ecs::ComponentStorage f(512, sizeof(ProjectileComponent), kProjectileComponent);
       return &f;
     } break;
     case kObstacleComponent: {
-      static ecs::ComponentStorage f(32, sizeof(ObstacleComponent));
+      static ecs::ComponentStorage f(32, sizeof(ObstacleComponent), kObstacleComponent);
       return &f;
     } break;
     case kSpawnerComponent: {
-      static ecs::ComponentStorage f(32, sizeof(SpawnerComponent));
+      static ecs::ComponentStorage f(32, sizeof(SpawnerComponent), kSpawnerComponent);
       return &f;
     } break;
     case kProjectileWeaponComponent: {
-      static ecs::ComponentStorage f(64, sizeof(ProjectileWeaponComponent));
+      static ecs::ComponentStorage f(64, sizeof(ProjectileWeaponComponent), kProjectileWeaponComponent);
       return &f;
     } break;
     case kAnimComponent: {
-      static ecs::ComponentStorage f(256, sizeof(AnimComponent));
+      static ecs::ComponentStorage f(256, sizeof(AnimComponent), kAnimComponent);
       return &f;
     } break;
     case kMeleeWeaponComponent: {
-      static ecs::ComponentStorage f(64, sizeof(MeleeWeaponComponent));
+      static ecs::ComponentStorage f(64, sizeof(MeleeWeaponComponent), kMeleeWeaponComponent);
       return &f;
     } break;
     case kDamageComponent: {
-      static ecs::ComponentStorage f(128, sizeof(DamageComponent));
+      static ecs::ComponentStorage f(128, sizeof(DamageComponent), kDamageComponent);
       return &f;
     } break;
     default: {

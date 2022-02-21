@@ -3,7 +3,7 @@
 
 // Engine stuff.
 #include "math/math.cc"
-#include "audio/audio.cc"
+//#include "audio/audio.cc"
 #include "renderer/renderer.cc"
 #include "renderer/camera.cc"
 #include "renderer/imui.cc"
@@ -245,10 +245,10 @@ main(s32 argc, char** argv)
     return 1;
   }
 
-  if (!audio::Initialize()) {
+  /*if (!audio::Initialize()) {
     printf("Unable to initialize audio system.\n");
     return 1;
-  }
+  }*/
 
   const v2f dims = window::GetWindowSize();
   GameInitialize(dims);

@@ -340,7 +340,7 @@ Initialize()
 {
   const GLubyte* renderer = glGetString(GL_RENDERER);
   const GLubyte* version = glGetString(GL_VERSION);
-  printf("Renderer: %s Version: %s\n", renderer, version);
+  LOG(INFO, "Renderer: %s Version: %s", renderer, version);
 
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
@@ -425,12 +425,12 @@ Initialize()
       kHexVertCount * 3, kHexVerts, kHexVertNorms);
 
   if (!SetupTexture()) {
-    printf("Failed to setup Texture.\n");
+    LOG(INFO, "Failed to setup Texture.");
     return false;
   }
 
   if (!SetupUI()) {
-    printf("Failed to setup UI.\n");
+    LOG(INFO, "Failed to setup UI.");
     return false;
   }
 

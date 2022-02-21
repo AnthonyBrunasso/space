@@ -126,7 +126,6 @@ glBlendFuncSeparate_Func* glBlendFuncSeparate;
 
 static DWORD XInputGetState_Stub(DWORD, XINPUT_STATE*)
 {
-  printf("Calling stub...\n");
   return 1;
 }
 
@@ -566,7 +565,6 @@ SetupXboxController()
   if (!xinput_library) {
     return;
   }
-  printf("Loaded xinput\n");
   __XInputGetState = (XInputGetState_Func*)GetProcAddress(xinput_library, "XInputGetState");
   __XInputSetState = (XInputSetState_Func*)GetProcAddress(xinput_library, "XInputSetState");
 }
@@ -593,7 +591,6 @@ Create(const char* name, int width, int height, b8 fullscreen)
 int
 Create(const char* name, const CreateInfo& create_info)
 {
-  printf("Create %lu %lu\n", create_info.window_width, create_info.window_height);
   kWindow.hwnd = SetupWindow(GetModuleHandle(0), name, create_info);
   kWindow.hdc = GetDC(kWindow.hwnd);
   kWindow.hglrc = InitOpenGL(kWindow.hdc);

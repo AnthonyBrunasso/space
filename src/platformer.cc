@@ -253,18 +253,11 @@ main(s32 argc, char** argv)
   const v2f dims = window::GetWindowSize();
   GameInitialize(dims);
   
-  // main thread affinity set to core 0
-  if (platform::thread_affinity_count() > 1) {
-    platform::thread_affinity_usecore(0);
-    printf("Game thread may run on %d cores\n",
-           platform::thread_affinity_count());
-  }
-
   // Reset State
   StatsInit(&kGameStats);
   kGameState.game_updates = 0;
   SetFramerate(kGameState.framerate);
-  printf("Client target usec %lu\n", kGameState.frame_target_usec);
+  LOG(INFO, "Client target usec %lu", kGameState.frame_target_usec);
 
   // If vsync is enabled, force the clock_init to align with clock_sync
   // TODO: We should also enforce framerate is equal to refresh rate

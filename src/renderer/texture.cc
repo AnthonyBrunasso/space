@@ -192,17 +192,17 @@ LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
   TgaImageSpec* image_spec = (TgaImageSpec*)(&buffer[sizeof(TgaHeader)]);
 
 #if 1
-  printf("TGA file: %s header\n", file);
-  printf("header->id_length: %i\n", header->id_length);
-  printf("header->color_map_type: %i\n", header->color_map_type);
-  printf("header->image_type: %i\n", header->image_type); 
-  printf("TGA file: %s Image Spec\n", file);
-  printf("image_spec->x_origin: %i\n", image_spec->x_origin);
-  printf("image_spec->y_origin: %i\n", image_spec->y_origin);
-  printf("image_spec->image_width: %i\n", image_spec->image_width);
-  printf("image_spec->image_height: %i\n", image_spec->image_height);
-  printf("image_spec->pixel_depth: %i\n", image_spec->pixel_depth);
-  printf("image_spec->image_descriptor: %i\n", image_spec->image_descriptor);
+  LOG(INFO, "TGA file: %s header", file);
+  LOG(INFO, "header->id_length: %i", header->id_length);
+  LOG(INFO, "header->color_map_type: %i", header->color_map_type);
+  LOG(INFO, "header->image_type: %i", header->image_type); 
+  LOG(INFO, "TGA file: %s Image Spec", file);
+  LOG(INFO, "image_spec->x_origin: %i", image_spec->x_origin);
+  LOG(INFO, "image_spec->y_origin: %i", image_spec->y_origin);
+  LOG(INFO, "image_spec->image_width: %i", image_spec->image_width);
+  LOG(INFO, "image_spec->image_height: %i", image_spec->image_height);
+  LOG(INFO, "image_spec->pixel_depth: %i", image_spec->pixel_depth);
+  LOG(INFO, "image_spec->image_descriptor: %i", image_spec->image_descriptor);
 #endif
 
   // Image bytes sz
@@ -212,7 +212,7 @@ LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
   else if (image_spec->pixel_depth == 24) format = GL_RGB;
   else if (image_spec->pixel_depth == 32) format = GL_RGBA;
   else {
-    printf("Unsupported tga pixel depth\n");
+    LOG(WARN, "Unsupported tga pixel depth\n");
     memory::PopBytes(file_length);
     fclose(fptr);
     return false;
@@ -294,12 +294,12 @@ RenderTexture(const Texture& texture, const Rectf& src,
     uv[5] = {start_x + width, start_y}; // TR 
   }
 #if 0
-  printf("uv[0]=(%.3f, %3.f)\n", uv[0].u, uv[0].v);
-  printf("uv[1]=(%.3f, %3.f)\n", uv[1].u, uv[1].v);
-  printf("uv[2]=(%.3f, %3.f)\n", uv[2].u, uv[2].v);
-  printf("uv[3]=(%.3f, %3.f)\n", uv[3].u, uv[3].v);
-  printf("uv[4]=(%.3f, %3.f)\n", uv[4].u, uv[4].v);
-  printf("uv[5]=(%.3f, %3.f)\n", uv[5].u, uv[5].v);
+  LOG(INFO, "uv[0]=(%.3f, %3.f)", uv[0].u, uv[0].v);
+  LOG(INFO, "uv[1]=(%.3f, %3.f)", uv[1].u, uv[1].v);
+  LOG(INFO, "uv[2]=(%.3f, %3.f)", uv[2].u, uv[2].v);
+  LOG(INFO, "uv[3]=(%.3f, %3.f)", uv[3].u, uv[3].v);
+  LOG(INFO, "uv[4]=(%.3f, %3.f)", uv[4].u, uv[4].v);
+  LOG(INFO, "uv[5]=(%.3f, %3.f)", uv[5].u, uv[5].v);
 #endif
   glBindBuffer(GL_ARRAY_BUFFER, kTextureState.uv_vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(uv), uv, GL_DYNAMIC_DRAW);

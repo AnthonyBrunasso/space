@@ -17,7 +17,7 @@ namespace mood {
 void
 MapSave(const char* name)
 {
-  printf("Saving Map To %s\n", name);
+  LOG(INFO, "Saving Map To %s", name);
   FILE* f = fopen(name, "w+");
   if (!f) return;
   fprintf(f, "%s\n", name);
@@ -58,7 +58,7 @@ MapCreateEmpty(const char* name)
 {
   FILE* f = fopen(name, "w+");
   if (!f) return;
-  printf("Map create empty %s\n", name);
+  LOG(INFO, "Map create empty %s", name);
   fprintf(f, "%s\n", name);
   fclose(f);
 }
@@ -73,15 +73,15 @@ MapReload(const char* name)
 void
 MapLoadFrom(const char* name)
 {
-  printf("Loading Map From %s\n", kCurrentMapName);
+  LOG(INFO, "Loading Map From %s", kCurrentMapName);
   FILE* f = fopen(name, "rb");
   if (!f) {
-    printf("Unable to load map %s\n", name);
+    LOG(WARN, "Unable to load map %s", name);
     return;
   }
   char line[32];
   fscanf(f, "%s\n", &line);
-  printf("Map Name: %s\n", line);
+  LOG(INFO, "Map Name: %s", line);
   while (1) {
     int res = fscanf(f, "%s", line);
     if (res == EOF) break;
@@ -95,7 +95,7 @@ MapLoadFrom(const char* name)
       u32 id;
       sprite = rgg::GetSprite(texture_name, &id);
       if (!sprite) {
-        printf("Unable to load sprite for %s\n", texture_name);
+        LOG(WARN, "Unable to load sprite for %s", texture_name);
         continue;
       }
       animation::SetLabel(label_name, sprite);
@@ -139,7 +139,6 @@ MapUniqueNameFinder(const char* filename)
       ++kMapNum;
     }
   }
-  //printf("Setting current map name...\n");
   strcpy(kCurrentMapName, "asset/level_");
   char num[8];
   sprintf(num, "%d", kMapNum);

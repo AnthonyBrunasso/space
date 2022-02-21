@@ -1,6 +1,7 @@
 #pragma once
 
 #include "math/rect.h"
+#include "common/log.cc"
 
 namespace animation
 {
@@ -85,16 +86,16 @@ LoadAnimation(const char* filename, Sprite* sprite)
     } else { continue; }  // Unrecognized line
   }
   fclose(f);
-  printf("Loaded anim file %s\n", filename);
-  printf("  texture %s\n", sprite->texture_name);
-  printf("  width x height %ux%u\n", sprite->width, sprite->height);
+  LOG(INFO, "Loaded anim file %s", filename);
+  LOG(INFO, "  texture %s", sprite->texture_name);
+  LOG(INFO, "  width x height %ux%u", sprite->width, sprite->height);
   for (s32 i = 0; i < sprite->label_size; ++i) {
     Label* label = &sprite->label[i];
-    printf("  label %s\n", label->name);
+    LOG(INFO, "  label %s", label->name);
     for (s32 j = 0; j < label->coord_size; ++j) {
-      printf("    %u %u\n", label->coord[j].x, label->coord[j].y);
+      LOG(INFO, "    %u %u", label->coord[j].x, label->coord[j].y);
     }
-    printf("    frames %u\n", label->frame_count);
+    LOG(INFO, "    frames %u", label->frame_count);
   }
   return true;
 }

@@ -155,10 +155,10 @@ struct FSM {
   DebugPrint()
   {
     for (u32 i = 0; i < node_data.size(); ++i) {
-      printf("ANIM %i [%s]\n", i, current_state == i ? "x" : ""); 
+      LOG(INFO, "ANIM %i [%s]", i, current_state == i ? "x" : ""); 
       for (u32 j = 0; j < node_data[i].frames.size(); ++j) {
         const auto& af = node_data[i].frames[j];
-        printf("  %.2f, %.2f, %.2f, %.2f, %u [%s]\n",
+        LOG(INFO, "  %.2f, %.2f, %.2f, %.2f, %u [%s]",
                af.x, af.y, af.width, af.height, af.length,
                current_state == i && current_frame == j ? "x" : "");
       }

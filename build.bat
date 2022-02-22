@@ -9,7 +9,6 @@ third_party\imgui\imgui_draw.cpp ^
 third_party\imgui\imgui_tables.cpp ^
 third_party\imgui\imgui_widgets.cpp ^
 third_party\imgui\imgui_demo.cpp ^
-third_party\imgui\backends\imgui_impl_opengl3.cpp ^
 /Zi /GL /GR- /nologo /EHsc /std:c++17 /fp:strict /diagnostics:caret ^
 /I . /I src\ /I third_party\ /I third_party\imgui\ /I third_party\imgui\backends\ ^
 /Fo:%BIN_DIR%\ /DUNICODE ^

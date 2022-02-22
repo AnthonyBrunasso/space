@@ -5,7 +5,7 @@
 #include "imgui.h"
 // I DO THIS DONT TRY TO DO IT AGAIN IMGUI
 #define IMGUI_IMPL_OPENGL_LOADER_CUSTOM 1
-#include "imgui_impl_opengl3.h"
+#include "imgui_opengl3.cc"
 
 #include "constants.cc"
 #include "mesh.cc"

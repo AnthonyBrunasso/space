@@ -146,7 +146,7 @@ GameInitialize(const v2f& dims)
 
   if (!rgg::CameraHasLocalCamera()) {
     rgg::Camera camera;
-    camera.position = v3f(0.f, 1.f, 1.f);
+    camera.position = v3f(0.f, 0.f, 0.f);
     camera.dir = v3f(0.f, 0.f, -1.f);
     camera.up = v3f(0.f, 1.f, 0.f);
     camera.mode = rgg::kCameraBrowser;

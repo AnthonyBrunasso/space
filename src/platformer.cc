@@ -205,11 +205,17 @@ GameRender(v2f dims)
   rgg::GetObserver()->view =
     math::LookAt(v3f(0.f, 0.f, .5f), v3f(0.f, 0.f, 0.f), v3f(0.f, 1.f, 0.f));
 
-  rgg::RenderTexture(
+  static bool render_game = true;
+  ImGui::Begin("Game", &render_game);
+  ImGui::Image((void*)(intptr_t)render_target.reference,
+               ImVec2(mood::kRenderTargetWidth, mood::kRenderTargetHeight));
+  ImGui::End();
+
+  /*rgg::RenderTexture(
       render_target,
       Rectf(0.f, 0.f, mood::kRenderTargetWidth, mood::kRenderTargetHeight),
       Rectf(-mood::kScreenWidth / 2.f, -mood::kScreenHeight / 2.f,
-            mood::kScreenWidth, mood::kScreenHeight), true);
+            mood::kScreenWidth, mood::kScreenHeight), true);*/
 
   ImGui::Render();
   ImGuiImplRenderDrawData();

@@ -1,24 +1,5 @@
 #pragma once
 
-#include "platform/platform.cc"
-
-#include "imgui.h"
-// I DO THIS DONT TRY TO DO IT AGAIN IMGUI
-#define IMGUI_IMPL_OPENGL_LOADER_CUSTOM 1
-#include "imgui_opengl3.cc"
-
-#include "constants.cc"
-#include "mesh.cc"
-#include "shader.h"
-#include "imgui_impl.cc"
-
-#include "animation/sprite.cc"
-#include "asset/cube.cc"
-#include "asset/cone.cc"
-#include "asset/sphere.cc"
-#include "common/common.cc"
-#include "gl/gl.cc"
-#include "math/math.cc"
 
 struct RenderTag {
   // TODO(abrunasso): Support custom shaders.

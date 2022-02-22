@@ -1,14 +1,5 @@
 #pragma once
 
-#include <cassert>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
-#include "gl/gl.cc"
-#include "memory/memory.cc"
-
 namespace rgg {
 
 #define DEBUGOBJ 0

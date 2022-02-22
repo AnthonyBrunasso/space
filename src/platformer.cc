@@ -1,16 +1,10 @@
 // Singleplayer game template.
 #define SINGLE_PLAYER
 
-// Engine stuff.
-#include "math/math.cc"
-//#include "audio/audio.cc"
-#include "renderer/renderer.cc"
-#include "renderer/camera.cc"
-#include "renderer/imui.cc"
+#include "common/include.cc"
+
 #define PHYSICS_PARTICLE_COUNT 2048
 #include "physics/physics.cc"
-#include "util/cooldown.cc"
-#include "animation/fsm.cc"
 
 // Gameplay stuff.
 #include "mood/constants.cc"

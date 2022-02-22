@@ -559,7 +559,7 @@ u32
 WidthOf(char c)
 {
   auto& font = rgg::kUI.font;
-  rgg::FontMetadataRow* row = &rgg::kFontMetadataRow[' '];
+  FontMetadataRow* row = &kFontMetadataRow[' '];
   if (!row || !row->id) return 0;
   return row->xadvance;
 }
@@ -570,7 +570,7 @@ Indent(int spaces)
   assert(kIMUI.begin_mode.set);
   IF_HIDDEN(return);
   auto& font = rgg::kUI.font;
-  rgg::FontMetadataRow* row = &rgg::kFontMetadataRow[' '];
+  FontMetadataRow* row = &kFontMetadataRow[' '];
   if (!row || !row->id) return;
   kIMUI.begin_mode.indent = spaces;
   kIMUI.begin_mode.pos.x = kIMUI.begin_mode.start->x + spaces * row->xadvance;
@@ -917,7 +917,7 @@ NewLine()
   begin_mode->flow_type = kNewLine;
   begin_mode->flow_switch = true;
   auto& font = rgg::kUI.font;
-  rgg::FontMetadataRow* row = &rgg::kFontMetadataRow[' '];
+  FontMetadataRow* row = &kFontMetadataRow[' '];
   if (!row || !row->id) return;
   begin_mode->pos.x = begin_mode->start->x + begin_mode->indent * row->xadvance;
 }

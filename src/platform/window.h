@@ -20,6 +20,7 @@ enum PlatformEventType {
   MOUSE_DOWN,
   MOUSE_UP,
   MOUSE_WHEEL,
+  MOUSE_MOVE,
   KEY_DOWN,
   KEY_UP,
   MOUSE_POSITION,

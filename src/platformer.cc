@@ -293,6 +293,7 @@ main(s32 argc, char** argv)
     PlatformEvent event;
     while (window::PollEvent(&event)) {
       rgg::CameraUpdateEvent(event);
+      ImGuiImplProcessEvent(event);
       mood::ProcessPlatformEvent(event, cursor);
     }
 
@@ -302,6 +303,8 @@ main(s32 argc, char** argv)
     } else {
       GameRender(dims);  
     }
+
+    ImGui::EndFrame();
 
     const u64 elapsed_usec = platform::ClockEnd(&kGameState.game_clock);
     StatsAdd(elapsed_usec, &kGameStats);

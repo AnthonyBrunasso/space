@@ -1,9 +1,5 @@
 #pragma once
 
-#include "renderer/renderer.cc"
-
-#include "../common/common.cc"
-
 EXTERN(unsigned imui_errno);
 
 namespace imui

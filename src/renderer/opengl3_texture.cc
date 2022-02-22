@@ -43,15 +43,15 @@ b8
 SetupTexture()
 {
   GLuint vert_shader, frag_shader;
-  if (!gl::CompileShader(GL_VERTEX_SHADER, &kTextureVertexShader,
+  if (!GLCompileShader(GL_VERTEX_SHADER, &kTextureVertexShader,
                          &vert_shader)) {
     return false;
   }
-  if (!gl::CompileShader(GL_FRAGMENT_SHADER, &kTextureFragmentShader,
+  if (!GLCompileShader(GL_FRAGMENT_SHADER, &kTextureFragmentShader,
                          &frag_shader)) {
     return false;
   }
-  if (!gl::LinkShaders(&kTextureState.program, 2, vert_shader, frag_shader)) {
+  if (!GLLinkShaders(&kTextureState.program, 2, vert_shader, frag_shader)) {
     return false;
   }
   kTextureState.texture_uniform =
@@ -72,9 +72,9 @@ SetupTexture()
   };
 
   kTextureState.vao_reference =
-      gl::CreateGeometryVAO(18, quad, &kTextureState.vbo_reference);
+      GLCreateGeometryVAO(18, quad, &kTextureState.vbo_reference);
   u32 vbo;
-  kTextureState.vao_reference_static = gl::CreateGeometryVAO(18, quad, &vbo);
+  kTextureState.vao_reference_static = GLCreateGeometryVAO(18, quad, &vbo);
   glEnableVertexAttribArray(1);
   glGenBuffers(1, &kTextureState.uv_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, kTextureState.uv_vbo);

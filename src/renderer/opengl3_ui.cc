@@ -27,15 +27,15 @@ SetupUI()
   font.texture = CreateTexture2D(GL_RED, kFontWidth, kFontHeight,
                                  TextureInfo(), kFontData);
   GLuint vert_shader, frag_shader;
-  if (!gl::CompileShader(GL_VERTEX_SHADER, &kFontVertexShader,
+  if (!GLCompileShader(GL_VERTEX_SHADER, &kFontVertexShader,
                          &vert_shader)) {
     return false;
   }
-  if (!gl::CompileShader(GL_FRAGMENT_SHADER, &kFontFragmentShader,
+  if (!GLCompileShader(GL_FRAGMENT_SHADER, &kFontFragmentShader,
                          &frag_shader)) {
     return false;
   }
-  if (!gl::LinkShaders(&font.program, 2, vert_shader, frag_shader)) {
+  if (!GLLinkShaders(&font.program, 2, vert_shader, frag_shader)) {
     return false;
   }
   font.texture_uniform = glGetUniformLocation(font.program, "basic_texture");

@@ -1,6 +1,5 @@
 #pragma once
 
-
 struct RenderTag {
   // TODO(abrunasso): Support custom shaders.
   GLuint vao_reference;
@@ -113,9 +112,9 @@ DECLARE_ARRAY(DebugRect, 512);
 static Observer kObserver;
 static RGG kRGG;
 
-#include "texture.cc"
+#include "opengl3_texture.cc"
 #include "texture_cache.cc"
-#include "ui.cc"
+#include "opengl3_ui.cc"
 
 Mat4f
 DefaultPerspective(const v2f& dims, r32 fov = 64.f)
@@ -162,15 +161,15 @@ b8
 SetupGeometryProgram3d()
 {
   GLuint vert_shader, frag_shader;
-  if (!gl::CompileShader(GL_VERTEX_SHADER, &kVertexShader3d, &vert_shader)) {
+  if (!GLCompileShader(GL_VERTEX_SHADER, &kVertexShader3d, &vert_shader)) {
     return false;
   }
 
-  if (!gl::CompileShader(GL_FRAGMENT_SHADER, &kFragmentShader3d, &frag_shader)) {
+  if (!GLCompileShader(GL_FRAGMENT_SHADER, &kFragmentShader3d, &frag_shader)) {
     return false;
   }
 
-  if (!gl::LinkShaders(&kRGG.geometry_program_3d.reference, 2, vert_shader,
+  if (!GLLinkShaders(&kRGG.geometry_program_3d.reference, 2, vert_shader,
                        frag_shader)) {
     return false;
   }
@@ -211,15 +210,15 @@ b8
 SetupGeometryProgram()
 {
   GLuint vert_shader, frag_shader;
-  if (!gl::CompileShader(GL_VERTEX_SHADER, &kVertexShader, &vert_shader)) {
+  if (!GLCompileShader(GL_VERTEX_SHADER, &kVertexShader, &vert_shader)) {
     return false;
   }
 
-  if (!gl::CompileShader(GL_FRAGMENT_SHADER, &kFragmentShader, &frag_shader)) {
+  if (!GLCompileShader(GL_FRAGMENT_SHADER, &kFragmentShader, &frag_shader)) {
     return false;
   }
 
-  if (!gl::LinkShaders(&kRGG.geometry_program.reference, 2, vert_shader,
+  if (!GLLinkShaders(&kRGG.geometry_program.reference, 2, vert_shader,
                        frag_shader)) {
     return false;
   }
@@ -227,17 +226,17 @@ SetupGeometryProgram()
   glDeleteShader(vert_shader);
   glDeleteShader(frag_shader);
 
-  if (!gl::CompileShader(GL_VERTEX_SHADER, &kSmoothRectangleVertexShader,
+  if (!GLCompileShader(GL_VERTEX_SHADER, &kSmoothRectangleVertexShader,
                          &vert_shader)) {
     return false;
   }
 
-  if (!gl::CompileShader(GL_FRAGMENT_SHADER, &kSmoothRectangleFragmentShader,
+  if (!GLCompileShader(GL_FRAGMENT_SHADER, &kSmoothRectangleFragmentShader,
                          &frag_shader)) {
     return false;
   }
 
-  if (!gl::LinkShaders(&kRGG.smooth_rectangle_program.reference, 2, vert_shader,
+  if (!GLLinkShaders(&kRGG.smooth_rectangle_program.reference, 2, vert_shader,
                        frag_shader)) {
     return false;
   }
@@ -274,17 +273,17 @@ b8
 SetupCircleProgram()
 {
   GLuint vert_shader, frag_shader;
-  if (!gl::CompileShader(GL_VERTEX_SHADER, &kCircleVertexShader,
+  if (!GLCompileShader(GL_VERTEX_SHADER, &kCircleVertexShader,
                          &vert_shader)) {
     return false;
   }
 
-  if (!gl::CompileShader(GL_FRAGMENT_SHADER, &kCircleFragmentShader,
+  if (!GLCompileShader(GL_FRAGMENT_SHADER, &kCircleFragmentShader,
                          &frag_shader)) {
     return false;
   }
 
-  if (!gl::LinkShaders(&kRGG.circle_program.reference, 2, vert_shader,
+  if (!GLLinkShaders(&kRGG.circle_program.reference, 2, vert_shader,
                        frag_shader)) {
     return false;
   }
@@ -347,7 +346,7 @@ Initialize()
   GLfloat tri[9] = {0.0f, m / 2.f,  0.f,      m / 2.f, -m / 2.f,
                     0.f,  -m / 2.f, -m / 2.f, 0.f};
   GLuint vbo;
-  kRGG.triangle_vao_reference = gl::CreateGeometryVAO(9, tri, &vbo);
+  kRGG.triangle_vao_reference = GLCreateGeometryVAO(9, tri, &vbo);
 
   // Rectangle. Notice it's a square. Scale to make rectangly.
   // clang-format off
@@ -361,7 +360,7 @@ Initialize()
       m / 2.f, -m / 2.f, 0.f
   };
   // clang-format on
-  kRGG.rectangle_vao_reference = gl::CreateGeometryVAO(18, square, &vbo);
+  kRGG.rectangle_vao_reference = GLCreateGeometryVAO(18, square, &vbo);
 
   // Don't use CreateGeometryVAO here because the vbo reference is used by
   // RenderLine to feed line endpoints directly to GPU.
@@ -376,13 +375,13 @@ Initialize()
   glBindBuffer(GL_ARRAY_BUFFER, kRGG.line_vbo_reference);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
-  kRGG.cube_vao_reference = gl::CreateGeometryVAOWithNormals(
+  kRGG.cube_vao_reference = GLCreateGeometryVAOWithNormals(
       kCubeVertCount * 3, kCubeVerts, kCubeVertNorms);
 
-  kRGG.cone_vao_reference = gl::CreateGeometryVAOWithNormals(
+  kRGG.cone_vao_reference = GLCreateGeometryVAOWithNormals(
       kConeVertCount * 3, kConeVerts, kConeVertNorms);
   
-  kRGG.sphere_vao_reference = gl::CreateGeometryVAOWithNormals(
+  kRGG.sphere_vao_reference = GLCreateGeometryVAOWithNormals(
       kSphereVertCount * 3, kSphereVerts, kSphereVertNorms);
 
   v2f hc[6];
@@ -409,7 +408,7 @@ Initialize()
     0.f, 0.f, 1.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f,
   };
 
-  kRGG.hex_vao_reference = gl::CreateGeometryVAOWithNormals(
+  kRGG.hex_vao_reference = GLCreateGeometryVAOWithNormals(
       kHexVertCount * 3, kHexVerts, kHexVertNorms);
 
   if (!SetupTexture()) {
@@ -435,7 +434,7 @@ CreateRenderable(int vert_count, GLfloat* verts, GLenum mode)
 {
   RenderTag tag = {};
   GLuint vbo;
-  tag.vao_reference = gl::CreateGeometryVAO(vert_count * 3, verts, &vbo);
+  tag.vao_reference = GLCreateGeometryVAO(vert_count * 3, verts, &vbo);
   tag.vert_count = vert_count;
   tag.mode = mode;
   return tag;

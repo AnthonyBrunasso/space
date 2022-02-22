@@ -1,10 +1,4 @@
-#include "utils.h"
-
-#include <cstdint>
-
-#include "platform/platform.cc"
-
-namespace gl
+namespace rgg
 {
 const char*
 GLTypeToString(int type)
@@ -59,7 +53,7 @@ GLEnumToString(int type)
 }
 
 uint32_t
-CreateGeometryVAO(int len, GLfloat* verts, GLuint* points_vbo)
+GLCreateGeometryVAO(int len, GLfloat* verts, GLuint* points_vbo)
 {
   // Create points VBO.
   *points_vbo = 0;
@@ -77,7 +71,7 @@ CreateGeometryVAO(int len, GLfloat* verts, GLuint* points_vbo)
 }
 
 uint32_t
-CreateGeometryVAOWithNormals(int len, GLfloat* verts, GLfloat* normals)
+GLCreateGeometryVAOWithNormals(int len, GLfloat* verts, GLfloat* normals)
 {
   GLuint points_vbo = 0;
   glGenBuffers(1, &points_vbo);
@@ -105,4 +99,4 @@ CreateGeometryVAOWithNormals(int len, GLfloat* verts, GLfloat* normals)
   return vao;
 }
 
-}  // namespace gl
+}

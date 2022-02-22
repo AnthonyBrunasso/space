@@ -1,7 +1,5 @@
 #pragma once
 
-#include "animation/sprite.cc"
-#include "renderer/texture.cc"
 #include "mood/sim.cc"
 
 namespace mood {

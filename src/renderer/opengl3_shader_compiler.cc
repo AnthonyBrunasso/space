@@ -1,20 +1,12 @@
 #pragma once
 
-#include "shader.h"
-
-#include <cstdio>
-
-#include "utils.h"
-
-#include "platform/platform.cc"
-
-namespace gl
+namespace rgg
 {
 constexpr uint64_t length = 4096;
 static char kBuffer[length];
 
 uint64_t
-GetShaderInfoLog(uint32_t shader_reference, uint64_t length, char* log)
+GLGetShaderInfoLog(uint32_t shader_reference, uint64_t length, char* log)
 {
   u32 actual_length = 0;
   glGetShaderInfoLog(shader_reference, length, &actual_length, log);
@@ -22,7 +14,7 @@ GetShaderInfoLog(uint32_t shader_reference, uint64_t length, char* log)
 }
 
 uint64_t
-GetProgramInfoLog(uint32_t program_reference, uint64_t length, char* log)
+GLGetProgramInfoLog(uint32_t program_reference, uint64_t length, char* log)
 {
   u32 actual_length = 0;
   glGetProgramInfoLog(program_reference, length, &actual_length, log);
@@ -30,7 +22,7 @@ GetProgramInfoLog(uint32_t program_reference, uint64_t length, char* log)
 }
 
 bool
-CompileShader(GLenum shader_type, const GLchar* const* src, GLuint* id)
+GLCompileShader(GLenum shader_type, const GLchar* const* src, GLuint* id)
 {
   *id = glCreateShader(shader_type);
   glShaderSource(*id, 1, src, NULL);
@@ -38,7 +30,7 @@ CompileShader(GLenum shader_type, const GLchar* const* src, GLuint* id)
   int params = -1;
   glGetShaderiv(*id, GL_COMPILE_STATUS, &params);
   if (params != GL_TRUE) {
-    GetShaderInfoLog(*id, length, kBuffer);
+    GLGetShaderInfoLog(*id, length, kBuffer);
     printf("%s\n", *src);
     printf("Shader Log: %s\n", kBuffer);
     return false;
@@ -48,7 +40,7 @@ CompileShader(GLenum shader_type, const GLchar* const* src, GLuint* id)
 
 // Link shader and check for errors if any exist.
 bool
-LinkShaders(GLuint* id, int n, ...)
+GLLinkShaders(GLuint* id, int n, ...)
 {
   *id = glCreateProgram();
   va_list vl;
@@ -61,7 +53,7 @@ LinkShaders(GLuint* id, int n, ...)
   int params = -1;
   glGetProgramiv(*id, GL_LINK_STATUS, &params);
   if (params != GL_TRUE) {
-    GetProgramInfoLog(*id, length, kBuffer);
+    GLGetProgramInfoLog(*id, length, kBuffer);
     printf("Program Log: %s\n", kBuffer);
     return false;
   }
@@ -71,7 +63,7 @@ LinkShaders(GLuint* id, int n, ...)
 // Given a program id prints -
 // LINK_STATUS, ATTACHED_SHADERS, ACTIVE_ATTRIBUTES, ACTIVE_UNIFORMS
 void
-PrintProgramInfoString(GLuint program_reference)
+GLPrintProgramInfoString(GLuint program_reference)
 {
   printf("Program reference: %u\n", program_reference);
   int params = -1;
@@ -131,4 +123,4 @@ PrintProgramInfoString(GLuint program_reference)
 
 }
 
-}  // namespace gl
+}

@@ -222,7 +222,6 @@ GameRender(v2f dims)
 
   rgg::DebugRenderUIPrimitives();
 
-
   imui::Render(imui::kEveryoneTag);
   window::SwapBuffers();
 }

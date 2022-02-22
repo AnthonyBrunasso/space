@@ -5,85 +5,6 @@
 #include <xinput.h>
 #include <gl/gl.h>
 
-// https://www.khronos.org/registry/OpenGL/api/GL/glext.h
-
-// GL types.
-typedef size_t GLsizeiptr;
-typedef char GLchar;
-typedef float GLfloat;
-
-// GL functions loaded using wglGetProcAddress.
-typedef void glGenBuffers_Func(GLsizei, GLuint*);
-glGenBuffers_Func* glGenBuffers;
-typedef void glBindBuffer_Func(GLenum, GLuint);
-glBindBuffer_Func* glBindBuffer;
-typedef void glBufferData_Func(GLenum, GLsizeiptr, const void*, GLenum);
-glBufferData_Func* glBufferData;
-typedef void glGenVertexArrays_Func(GLsizei, GLuint*);
-glGenVertexArrays_Func* glGenVertexArrays;
-typedef void glBindVertexArray_Func(GLuint);
-glBindVertexArray_Func* glBindVertexArray;
-typedef void glEnableVertexAttribArray_Func(GLuint);
-glEnableVertexAttribArray_Func* glEnableVertexAttribArray;
-typedef void glVertexAttribPointer_Func(GLuint, GLint, GLenum, GLboolean, GLsizei, const void*);
-glVertexAttribPointer_Func* glVertexAttribPointer;
-typedef GLuint glCreateShader_Func(GLenum);
-glCreateShader_Func* glCreateShader;
-typedef void glShaderSource_Func(GLuint, GLsizei, const GLchar* const*, const GLint*);
-glShaderSource_Func* glShaderSource;
-typedef void glCompileShader_Func(GLuint);
-glCompileShader_Func* glCompileShader;
-typedef GLuint glCreateProgram_Func(void);
-glCreateProgram_Func* glCreateProgram;
-typedef void glAttachShader_Func(GLuint, GLuint);
-glAttachShader_Func* glAttachShader;
-typedef void glLinkProgram_Func(GLuint);
-glLinkProgram_Func* glLinkProgram;
-typedef void glUseProgram_Func(GLuint);
-glUseProgram_Func* glUseProgram;
-typedef GLint glGetUniformLocation_Func(GLuint, const GLchar*);
-glGetUniformLocation_Func* glGetUniformLocation;
-typedef void glUniformMatrix4fv_Func(GLint, GLsizei, GLboolean, const GLfloat*);
-glUniformMatrix4fv_Func* glUniformMatrix4fv;
-typedef void glGetShaderInfoLog_Func(GLuint, GLsizei, GLsizei*, GLchar*);
-glGetShaderInfoLog_Func* glGetShaderInfoLog;
-typedef void glGetProgramInfoLog_Func(GLuint, GLsizei, GLsizei*, GLchar*);
-glGetProgramInfoLog_Func* glGetProgramInfoLog;
-typedef void glGetShaderiv_Func(GLuint, GLenum, GLint*);
-glGetShaderiv_Func* glGetShaderiv;
-typedef void glGetProgramiv_Func(GLuint, GLenum, GLint*);
-glGetProgramiv_Func* glGetProgramiv;
-typedef void glGetActiveAttrib_Func(GLuint, GLuint, GLsizei, GLsizei*, GLint*, GLenum*, GLchar*);
-glGetActiveAttrib_Func* glGetActiveAttrib;
-typedef GLint glGetAttribLocation_Func(GLuint, const GLchar*);
-glGetAttribLocation_Func* glGetAttribLocation;
-typedef void glGetActiveUniform_Func(GLuint, GLuint, GLsizei, GLsizei*, GLint*, GLenum*, GLchar*);
-glGetActiveUniform_Func* glGetActiveUniform;
-typedef void glUniform4f_Func(GLint, GLfloat, GLfloat, GLfloat, GLfloat);
-glUniform4f_Func* glUniform4f;
-typedef void glUniform3f_Func(GLint, GLfloat, GLfloat, GLfloat);
-glUniform3f_Func* glUniform3f;
-typedef void glActiveTexture_Func(GLenum);
-glActiveTexture_Func* glActiveTexture;
-typedef void glUniform1i_Func(GLint, GLint);
-glUniform1i_Func* glUniform1i;
-typedef void glDeleteShader_Func(GLuint);
-glDeleteShader_Func* glDeleteShader;
-typedef void glGenFramebuffers_Func(GLsizei, GLuint*);
-glGenFramebuffers_Func* glGenFramebuffers;
-typedef void glBindFramebuffer_Func(GLenum, GLuint);
-glBindFramebuffer_Func* glBindFramebuffer;
-typedef void glFramebufferTexture_Func(GLenum, GLenum, GLuint, GLint);
-glFramebufferTexture_Func* glFramebufferTexture;
-typedef void glDrawBuffers_Func(GLsizei, const GLenum*);
-glDrawBuffers_Func* glDrawBuffers;
-typedef void glUniform1f_Func(GLint, GLfloat);
-glUniform1f_Func* glUniform1f;
-typedef void glGenerateMipmap_Func(GLenum);
-glGenerateMipmap_Func* glGenerateMipmap;
-typedef void glBlendFuncSeparate_Func(GLenum, GLenum, GLenum, GLenum);
-glBlendFuncSeparate_Func* glBlendFuncSeparate;
-
 // GL defines.
 #define GL_ARRAY_BUFFER                   0x8892
 #define GL_STATIC_DRAW                    0x88E4
@@ -553,6 +474,15 @@ SetupGLFunctions() {
   glUniform1f = (glUniform1f_Func*)GetGLFunction("glUniform1f");
   glGenerateMipmap = (glGenerateMipmap_Func*)GetGLFunction("glGenerateMipmap");
   glBlendFuncSeparate = (glBlendFuncSeparate_Func*)GetGLFunction("glBlendFuncSeparate");
+  glBindTextures = (glBindTextures_Func*)GetGLFunction("glBindTextures");
+  //glGetIntegerv = (glGetIntegerv_Func*)GetGLFunction("glGetIntegerv");
+  glGetStringi = (glGetStringi_Func*)GetGLFunction("glGetStringi");
+  glBlendEquation = (glBlendEquation_Func*)GetGLFunction("glBlendEquation");
+  glBufferSubData = (glBufferSubData_Func*)GetGLFunction("glBufferSubData");
+  glDeleteVertexArrays = (glDeleteVertexArrays_Func*)GetGLFunction("glDeleteVertexArrays");
+  glBlendEquationSeparate = (glBlendEquationSeparate_Func*)GetGLFunction("glBlendEquationSeparate");
+  glDetachShader = (glDetachShader_Func*)GetGLFunction("glDetachShader");
+  glDeleteBuffers = (glDeleteBuffers_Func*)GetGLFunction("glDeleteBuffers");
 }
 
 void
@@ -683,7 +613,16 @@ SetCursorPosition(v2f pos)
 const char*
 GetBinaryPath()
 {
-  return "";
+  static bool kDoOnce = true;
+  static char kStrBinPath[256];
+  if (kDoOnce) {
+    static TCHAR kBinPath[256];
+    GetCurrentDirectory(256, kBinPath);
+    size_t n = 0;
+    wcstombs_s(&n, kStrBinPath, 256, kBinPath, 256);
+    kDoOnce = false;
+  }
+  return &kStrBinPath[0];
 }
 
 }  // namespace window

@@ -16,7 +16,7 @@ static char kBuffer[length];
 uint64_t
 GetShaderInfoLog(uint32_t shader_reference, uint64_t length, char* log)
 {
-  int actual_length = 0;
+  u32 actual_length = 0;
   glGetShaderInfoLog(shader_reference, length, &actual_length, log);
   return actual_length;
 }
@@ -24,7 +24,7 @@ GetShaderInfoLog(uint32_t shader_reference, uint64_t length, char* log)
 uint64_t
 GetProgramInfoLog(uint32_t program_reference, uint64_t length, char* log)
 {
-  int actual_length = 0;
+  u32 actual_length = 0;
   glGetProgramInfoLog(program_reference, length, &actual_length, log);
   return actual_length;
 }
@@ -85,7 +85,7 @@ PrintProgramInfoString(GLuint program_reference)
   for (GLuint i = 0; i < (GLuint)params; i++) {
     char name[64];
     int max_length = 64;
-    int actual_length = 0;
+    u32 actual_length = 0;
     int size = 0;
     GLenum type;
     glGetActiveAttrib(program_reference, i, max_length, &actual_length, &size,
@@ -109,7 +109,7 @@ PrintProgramInfoString(GLuint program_reference)
   for (GLuint i = 0; i < (GLuint)params; i++) {
     char name[64];
     int max_length = 64;
-    int actual_length = 0;
+    u32 actual_length = 0;
     int size = 0;
     GLenum type;
     glGetActiveUniform(program_reference, i, max_length, &actual_length, &size,

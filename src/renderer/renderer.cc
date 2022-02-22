@@ -1,8 +1,16 @@
 #pragma once
 
+#include "platform/platform.cc"
+
+#include "imgui.h"
+// I DO THIS DONT TRY TO DO IT AGAIN IMGUI
+#define IMGUI_IMPL_OPENGL_LOADER_CUSTOM 1
+#include "imgui_impl_opengl3.h"
+
 #include "constants.cc"
 #include "mesh.cc"
 #include "shader.h"
+#include "imgui_impl.cc"
 
 #include "animation/sprite.cc"
 #include "asset/cube.cc"
@@ -11,7 +19,6 @@
 #include "common/common.cc"
 #include "gl/gl.cc"
 #include "math/math.cc"
-#include "platform/platform.cc"
 
 struct RenderTag {
   // TODO(abrunasso): Support custom shaders.
@@ -425,14 +432,19 @@ Initialize()
       kHexVertCount * 3, kHexVerts, kHexVertNorms);
 
   if (!SetupTexture()) {
-    LOG(INFO, "Failed to setup Texture.");
+    LOG(WARN, "Failed to setup Texture.");
     return false;
   }
 
   if (!SetupUI()) {
-    LOG(INFO, "Failed to setup UI.");
+    LOG(WARN, "Failed to setup UI.");
     return false;
   }
+
+  /*if (!ImGuiImplSetup()) {
+    LOG(WARN, "Failed to setup imgui.");
+    return false;
+  }*/
 
   return true;
 }

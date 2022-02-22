@@ -252,6 +252,8 @@ main(s32 argc, char** argv)
 
   const v2f dims = window::GetWindowSize();
   GameInitialize(dims);
+
+  LOG(INFO, "%s", window::GetBinaryPath());
   
   // Reset State
   StatsInit(&kGameStats);

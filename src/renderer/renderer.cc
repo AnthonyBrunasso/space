@@ -441,10 +441,10 @@ Initialize()
     return false;
   }
 
-  /*if (!ImGuiImplSetup()) {
+  if (!ImGuiImplSetup()) {
     LOG(WARN, "Failed to setup imgui.");
     return false;
-  }*/
+  }
 
   return true;
 }

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "window.h"
 
 #include <cassert>
@@ -5,45 +7,6 @@
 #include <xinput.h>
 #include <gl/gl.h>
 
-// GL defines.
-#define GL_ARRAY_BUFFER                   0x8892
-#define GL_STATIC_DRAW                    0x88E4
-#define GL_VERTEX_SHADER                  0x8B31
-#define GL_FRAGMENT_SHADER                0x8B30
-#define GL_COMPILE_STATUS                 0x8B81
-#define GL_LINK_STATUS                    0x8B82
-#define GL_ACTIVE_ATTRIBUTES              0x8B89
-#define GL_ATTACHED_SHADERS               0x8B85
-#define GL_ACTIVE_UNIFORMS                0x8B86
-#define GL_BOOL                           0x8B56
-#define GL_FLOAT_VEC2                     0x8B50
-#define GL_FLOAT_VEC3                     0x8B51
-#define GL_FLOAT_VEC4                     0x8B52
-#define GL_FLOAT_MAT2                     0x8B5A
-#define GL_FLOAT_MAT3                     0x8B5B
-#define GL_FLOAT_MAT4                     0x8B5C
-#define GL_MULTISAMPLE                    0x809D
-#define GL_SAMPLER_2D                     0x8B5E
-#define GL_SAMPLER_3D                     0x8B5F
-#define GL_SAMPLER_CUBE                   0x8B60
-#define GL_SAMPLER_2D_SHADOW              0x8B62
-#define GL_TEXTURE0                       0x84C0
-#define GL_TEXTURE1                       0x84C1
-#define GL_TEXTURE2                       0x84C2
-#define GL_TEXTURE3                       0x84C3
-#define GL_TEXTURE4                       0x84C4
-#define GL_TEXTURE5                       0x84C5
-#define GL_TEXTURE6                       0x84C6
-#define GL_TEXTURE7                       0x84C7
-#define GL_TEXTURE8                       0x84C8
-#define GL_TEXTURE9                       0x84C9
-#define GL_TEXTURE10                      0x84CA
-#define GL_CLAMP_TO_EDGE                  0x812F
-#define GL_DYNAMIC_DRAW                   0x88E8
-#define GL_FRAMEBUFFER                    0x8D40
-#define GL_COLOR_ATTACHMENT0              0x8CE0
-#define GL_BGR                            0x80E0
-#define GL_BGRA                           0x80E1
 
 static DWORD XInputGetState_Stub(DWORD, XINPUT_STATE*)
 {
@@ -424,66 +387,6 @@ InitOpenGL(HDC real_dc)
   return gl33_context;
 }
 
-void*
-GetGLFunction(const char* name)
-{
-  void *p = (void *)wglGetProcAddress(name);
-  if(p == 0 || (p == (void*)0x1) || (p == (void*)0x2) ||
-               (p == (void*)0x3) || (p == (void*)-1)) {
-    static HMODULE module = LoadLibraryA("opengl32.dll");
-    p = (void *)GetProcAddress(module, name);
-  }
-  assert(p);
-  return p;
-}
-
-void
-SetupGLFunctions() {
-  glGenBuffers = (glGenBuffers_Func*)GetGLFunction("glGenBuffers");
-  glBindBuffer = (glBindBuffer_Func*)GetGLFunction("glBindBuffer");
-  glBufferData = (glBufferData_Func*)GetGLFunction("glBufferData");
-  glGenVertexArrays = (glGenVertexArrays_Func*)GetGLFunction("glGenVertexArrays");
-  glBindVertexArray = (glBindVertexArray_Func*)GetGLFunction("glBindVertexArray");
-  glEnableVertexAttribArray = (glEnableVertexAttribArray_Func*)GetGLFunction("glEnableVertexAttribArray");
-  glVertexAttribPointer = (glVertexAttribPointer_Func*)GetGLFunction("glVertexAttribPointer");
-  glCreateShader = (glCreateShader_Func*)GetGLFunction("glCreateShader");
-  glShaderSource = (glShaderSource_Func*)GetGLFunction("glShaderSource");
-  glCompileShader = (glCompileShader_Func*)GetGLFunction("glCompileShader");
-  glCreateProgram = (glCreateProgram_Func*)GetGLFunction("glCreateProgram");
-  glAttachShader = (glAttachShader_Func*)GetGLFunction("glAttachShader");
-  glLinkProgram = (glLinkProgram_Func*)GetGLFunction("glLinkProgram");
-  glUseProgram = (glUseProgram_Func*)GetGLFunction("glUseProgram");
-  glGetUniformLocation  = (glGetUniformLocation_Func*)GetGLFunction("glGetUniformLocation");
-  glUniformMatrix4fv = (glUniformMatrix4fv_Func*)GetGLFunction("glUniformMatrix4fv");
-  glGetShaderInfoLog = (glGetShaderInfoLog_Func*)GetGLFunction("glGetShaderInfoLog");
-  glGetProgramInfoLog = (glGetProgramInfoLog_Func*)GetGLFunction("glGetProgramInfoLog");
-  glGetShaderiv = (glGetShaderiv_Func*)GetGLFunction("glGetShaderiv");
-  glGetProgramiv = (glGetProgramiv_Func*)GetGLFunction("glGetProgramiv");
-  glGetActiveAttrib = (glGetActiveAttrib_Func*)GetGLFunction("glGetActiveAttrib");
-  glGetAttribLocation = (glGetAttribLocation_Func*)GetGLFunction("glGetAttribLocation");
-  glGetActiveUniform = (glGetActiveUniform_Func*)GetGLFunction("glGetActiveUniform");
-  glUniform4f = (glUniform4f_Func*)GetGLFunction("glUniform4f");
-  glUniform3f = (glUniform3f_Func*)GetGLFunction("glUniform3f");
-  glActiveTexture = (glActiveTexture_Func*)GetGLFunction("glActiveTexture");
-  glUniform1i = (glUniform1i_Func*)GetGLFunction("glUniform1i");
-  glDeleteShader = (glDeleteShader_Func*)GetGLFunction("glDeleteShader");
-  glGenFramebuffers = (glGenFramebuffers_Func*)GetGLFunction("glGenFramebuffers");
-  glBindFramebuffer = (glBindFramebuffer_Func*)GetGLFunction("glBindFramebuffer");
-  glFramebufferTexture = (glFramebufferTexture_Func*)GetGLFunction("glFramebufferTexture");
-  glDrawBuffers = (glDrawBuffers_Func*)GetGLFunction("glDrawBuffers");
-  glUniform1f = (glUniform1f_Func*)GetGLFunction("glUniform1f");
-  glGenerateMipmap = (glGenerateMipmap_Func*)GetGLFunction("glGenerateMipmap");
-  glBlendFuncSeparate = (glBlendFuncSeparate_Func*)GetGLFunction("glBlendFuncSeparate");
-  glBindTextures = (glBindTextures_Func*)GetGLFunction("glBindTextures");
-  //glGetIntegerv = (glGetIntegerv_Func*)GetGLFunction("glGetIntegerv");
-  glGetStringi = (glGetStringi_Func*)GetGLFunction("glGetStringi");
-  glBlendEquation = (glBlendEquation_Func*)GetGLFunction("glBlendEquation");
-  glBufferSubData = (glBufferSubData_Func*)GetGLFunction("glBufferSubData");
-  glDeleteVertexArrays = (glDeleteVertexArrays_Func*)GetGLFunction("glDeleteVertexArrays");
-  glBlendEquationSeparate = (glBlendEquationSeparate_Func*)GetGLFunction("glBlendEquationSeparate");
-  glDetachShader = (glDetachShader_Func*)GetGLFunction("glDetachShader");
-  glDeleteBuffers = (glDeleteBuffers_Func*)GetGLFunction("glDeleteBuffers");
-}
 
 void
 SetupXboxController()

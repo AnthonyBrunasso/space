@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <windows.h>
 
 // https://www.khronos.org/registry/OpenGL/api/GL/glext.h
 // https://www.khronos.org/registry/OpenGL/api/GL/glcorearb.h
@@ -15,6 +16,33 @@ typedef uint32_t GLenum;
 typedef unsigned char GLubyte;
 typedef intptr_t GLintptr;
 
+// GL defines.
+#define GL_STATIC_DRAW                    0x88E4
+#define GL_VERTEX_SHADER                  0x8B31
+#define GL_FRAGMENT_SHADER                0x8B30
+#define GL_COMPILE_STATUS                 0x8B81
+#define GL_LINK_STATUS                    0x8B82
+#define GL_ACTIVE_ATTRIBUTES              0x8B89
+#define GL_ATTACHED_SHADERS               0x8B85
+#define GL_ACTIVE_UNIFORMS                0x8B86
+#define GL_BOOL                           0x8B56
+#define GL_FLOAT_VEC2                     0x8B50
+#define GL_FLOAT_VEC3                     0x8B51
+#define GL_FLOAT_VEC4                     0x8B52
+#define GL_FLOAT_MAT2                     0x8B5A
+#define GL_FLOAT_MAT3                     0x8B5B
+#define GL_FLOAT_MAT4                     0x8B5C
+#define GL_MULTISAMPLE                    0x809D
+#define GL_SAMPLER_2D                     0x8B5E
+#define GL_SAMPLER_3D                     0x8B5F
+#define GL_SAMPLER_CUBE                   0x8B60
+#define GL_SAMPLER_2D_SHADOW              0x8B62
+#define GL_CLAMP_TO_EDGE                  0x812F
+#define GL_DYNAMIC_DRAW                   0x88E8
+#define GL_FRAMEBUFFER                    0x8D40
+#define GL_COLOR_ATTACHMENT0              0x8CE0
+#define GL_BGR                            0x80E0
+#define GL_BGRA                           0x80E1
 #define GL_MAJOR_VERSION                  0x821B
 #define GL_MINOR_VERSION                  0x821C
 #define GL_VERSION                        0x1F02
@@ -65,11 +93,8 @@ typedef intptr_t GLintptr;
 #define GL_BLEND_EQUATION_ALPHA           0x883D
 #define GL_BLEND_DST_RGB                  0x80C8
 #define GL_STREAM_DRAW                    0x88E0
-#define GL_COMPILE_STATUS                 0x8B81
-#define GL_LINK_STATUS                    0x8B82
 #define GL_INFO_LOG_LENGTH                0x8B84
-#define GL_FRAGMENT_SHADER                0x8B30
-#define GL_VERTEX_SHADER                  0x8B31
+#define GL_EXTENSIONS                     0x1F03
 
 #define GLsizei uint32_t
 #define GLboolean bool
@@ -166,6 +191,68 @@ typedef void glDeleteBuffers_Func(GLsizei, const GLuint*);
 static glDeleteBuffers_Func* glDeleteBuffers;
 typedef void glDeleteProgram_Func(GLuint);
 static glDeleteProgram_Func* glDeleteProgram;
+
+static void*
+GetGLFunction(const char* name)
+{
+  void *p = (void *)wglGetProcAddress(name);
+  if(p == 0 || (p == (void*)0x1) || (p == (void*)0x2) ||
+               (p == (void*)0x3) || (p == (void*)-1)) {
+    static HMODULE module = LoadLibraryA("opengl32.dll");
+    p = (void *)GetProcAddress(module, name);
+  }
+  assert(p);
+  return p;
+}
+
+static void
+SetupGLFunctions() {
+  glGenBuffers = (glGenBuffers_Func*)GetGLFunction("glGenBuffers");
+  glBindBuffer = (glBindBuffer_Func*)GetGLFunction("glBindBuffer");
+  glBufferData = (glBufferData_Func*)GetGLFunction("glBufferData");
+  glGenVertexArrays = (glGenVertexArrays_Func*)GetGLFunction("glGenVertexArrays");
+  glBindVertexArray = (glBindVertexArray_Func*)GetGLFunction("glBindVertexArray");
+  glEnableVertexAttribArray = (glEnableVertexAttribArray_Func*)GetGLFunction("glEnableVertexAttribArray");
+  glVertexAttribPointer = (glVertexAttribPointer_Func*)GetGLFunction("glVertexAttribPointer");
+  glCreateShader = (glCreateShader_Func*)GetGLFunction("glCreateShader");
+  glShaderSource = (glShaderSource_Func*)GetGLFunction("glShaderSource");
+  glCompileShader = (glCompileShader_Func*)GetGLFunction("glCompileShader");
+  glCreateProgram = (glCreateProgram_Func*)GetGLFunction("glCreateProgram");
+  glAttachShader = (glAttachShader_Func*)GetGLFunction("glAttachShader");
+  glLinkProgram = (glLinkProgram_Func*)GetGLFunction("glLinkProgram");
+  glUseProgram = (glUseProgram_Func*)GetGLFunction("glUseProgram");
+  glGetUniformLocation  = (glGetUniformLocation_Func*)GetGLFunction("glGetUniformLocation");
+  glUniformMatrix4fv = (glUniformMatrix4fv_Func*)GetGLFunction("glUniformMatrix4fv");
+  glGetShaderInfoLog = (glGetShaderInfoLog_Func*)GetGLFunction("glGetShaderInfoLog");
+  glGetProgramInfoLog = (glGetProgramInfoLog_Func*)GetGLFunction("glGetProgramInfoLog");
+  glGetShaderiv = (glGetShaderiv_Func*)GetGLFunction("glGetShaderiv");
+  glGetProgramiv = (glGetProgramiv_Func*)GetGLFunction("glGetProgramiv");
+  glGetActiveAttrib = (glGetActiveAttrib_Func*)GetGLFunction("glGetActiveAttrib");
+  glGetAttribLocation = (glGetAttribLocation_Func*)GetGLFunction("glGetAttribLocation");
+  glGetActiveUniform = (glGetActiveUniform_Func*)GetGLFunction("glGetActiveUniform");
+  glUniform4f = (glUniform4f_Func*)GetGLFunction("glUniform4f");
+  glUniform3f = (glUniform3f_Func*)GetGLFunction("glUniform3f");
+  glActiveTexture = (glActiveTexture_Func*)GetGLFunction("glActiveTexture");
+  glUniform1i = (glUniform1i_Func*)GetGLFunction("glUniform1i");
+  glDeleteShader = (glDeleteShader_Func*)GetGLFunction("glDeleteShader");
+  glGenFramebuffers = (glGenFramebuffers_Func*)GetGLFunction("glGenFramebuffers");
+  glBindFramebuffer = (glBindFramebuffer_Func*)GetGLFunction("glBindFramebuffer");
+  glFramebufferTexture = (glFramebufferTexture_Func*)GetGLFunction("glFramebufferTexture");
+  glDrawBuffers = (glDrawBuffers_Func*)GetGLFunction("glDrawBuffers");
+  glUniform1f = (glUniform1f_Func*)GetGLFunction("glUniform1f");
+  glGenerateMipmap = (glGenerateMipmap_Func*)GetGLFunction("glGenerateMipmap");
+  glBlendFuncSeparate = (glBlendFuncSeparate_Func*)GetGLFunction("glBlendFuncSeparate");
+  glBindTextures = (glBindTextures_Func*)GetGLFunction("glBindTextures");
+  //glGetIntegerv = (glGetIntegerv_Func*)GetGLFunction("glGetIntegerv");
+  glGetStringi = (glGetStringi_Func*)GetGLFunction("glGetStringi");
+  glBlendEquation = (glBlendEquation_Func*)GetGLFunction("glBlendEquation");
+  glBufferSubData = (glBufferSubData_Func*)GetGLFunction("glBufferSubData");
+  glDeleteVertexArrays = (glDeleteVertexArrays_Func*)GetGLFunction("glDeleteVertexArrays");
+  glBlendEquationSeparate = (glBlendEquationSeparate_Func*)GetGLFunction("glBlendEquationSeparate");
+  glDetachShader = (glDetachShader_Func*)GetGLFunction("glDetachShader");
+  glDeleteBuffers = (glDeleteBuffers_Func*)GetGLFunction("glDeleteBuffers");
+}
+
 
 // STUPID... Fix this.
 #undef GLsizei

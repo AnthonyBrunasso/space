@@ -217,7 +217,11 @@ GameRender(v2f dims)
       Rectf(-mood::kScreenWidth / 2.f, -mood::kScreenHeight / 2.f,
             mood::kScreenWidth, mood::kScreenHeight), true);
 
+  ImGui::Render();
+  ImGuiImplRenderDrawData();
+
   rgg::DebugRenderUIPrimitives();
+
 
   imui::Render(imui::kEveryoneTag);
   window::SwapBuffers();
@@ -240,6 +244,7 @@ main(s32 argc, char** argv)
   if (!window::Create("Game", kGameState.window_create_info)) {
     return 1;
   }
+
 
   if (!rgg::Initialize()) {
     return 1;
@@ -265,6 +270,8 @@ main(s32 argc, char** argv)
   // TODO: We should also enforce framerate is equal to refresh rate
   window::SwapBuffers();
 
+  bool show_demo_window = true;
+
   while (1) {
     platform::ClockStart(&kGameState.game_clock);
 
@@ -275,6 +282,13 @@ main(s32 argc, char** argv)
 
     const v2f cursor = window::GetCursorPosition();
     imui::MousePosition(cursor, imui::kEveryoneTag);
+
+    ImGuiImplNewFrame();
+    ImGui::NewFrame();
+
+    if (show_demo_window) {
+      ImGui::ShowDemoWindow(&show_demo_window);
+    }
 
     PlatformEvent event;
     while (window::PollEvent(&event)) {

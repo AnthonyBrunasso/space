@@ -28,7 +28,6 @@ void WalkDirectory(const char* dir, const std::function<void(const char*, bool)>
   while ((entry = readdir(dirp)) != nullptr) {
     bool is_dir = entry->d_type == DT_DIR;
     char full_name[128] = {};
-    strcat(full_name, dir);
     strcat(full_name, entry->d_name);
     file_callback(full_name, is_dir);
   }
@@ -38,6 +37,13 @@ void WalkDirectory(const char* dir, const std::function<void(const char*, bool)>
 
 void ChangeDirectory(const char* dir) {
   chdir(dir);
+}
+
+const char* GetWorkingDirectory() {
+  static char cwd[256];
+  memset(cwd, 0, 256);
+  getcwd(cwd, 256);
+  return cwd;
 }
 
 }  // namespace filesystem

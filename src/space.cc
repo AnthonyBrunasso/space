@@ -80,8 +80,12 @@ void EditorFileBrowser() {
   ImGui::SetNextWindowPos(ImVec2(0, item_height + 1.f), ImGuiCond_Always);
   ImGui::Begin("File Browser", nullptr, window_flags);
   char dir[256] = {};
-  strcat(dir, window::GetBinaryPath());
+  strcat(dir, filesystem::GetWorkingDirectory());
+#ifdef _WIN32
   strcat(dir, "\\*");
+#else
+  strcat(dir, "/../");
+#endif
   EditorFilesFrom(dir);
   ImGui::End();
 }
@@ -97,8 +101,8 @@ void EditorMainMenuBar() {
 }
 
 s32 main(s32 argc, char** argv) {
-  kEditorState.window_create_info.window_width = 1920;
-  kEditorState.window_create_info.window_height = 1080;
+  kEditorState.window_create_info.window_width = 1280;
+  kEditorState.window_create_info.window_height = 720;
   if (!window::Create("Space", kEditorState.window_create_info)) {
     return 1;
   }

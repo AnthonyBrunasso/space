@@ -35,4 +35,5 @@ inline void ReplaceFilename(const char* newfname, char* oldfname_with_dir) {
 b8 MakeDirectory(const char* name);
 void WalkDirectory(const char* dir, const std::function<void(const char*, bool)> file_callback);
 void ChangeDirectory(const char* dir);
+const char* GetWorkingDirectory();
 }

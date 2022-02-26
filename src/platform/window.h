@@ -1,7 +1,5 @@
 #pragma once
 
-#include "math/vec.h"
-
 // Cross-platform window / opengl context abstraction. The purpose
 // of these functions are to setup a window on the screen and setup
 // the opengl context.

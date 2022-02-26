@@ -20,21 +20,15 @@ EGLSurface egl_surface;
 
 namespace window
 {
-s32
-x11_error_handler(Display*, XErrorEvent*)
-{
+s32 x11_error_handler(Display*, XErrorEvent*) {
   return 0;
 }
 
-s32
-x11_ioerror_handler(Display*)
-{
+s32 x11_ioerror_handler(Display*) {
   return 0;
 }
 
-s32
-Create(const char* name, s32 width, s32 height, b8 fullscreen)
-{
+s32 Create(const char* name, s32 width, s32 height, b8 fullscreen) {
   if (window_id) return 0;
 
   display = XOpenDisplay(NULL);
@@ -220,22 +214,16 @@ Create(const char* name, s32 width, s32 height, b8 fullscreen)
   return 1;
 }
 
-s32
-Create(const char* name, const CreateInfo& create_info)
-{
+s32 Create(const char* name, const CreateInfo& create_info) {
   return Create(name, create_info.window_width, create_info.window_height,
                 create_info.fullscreen);
 }
 
-void
-SwapBuffers()
-{
+void SwapBuffers() {
   eglSwapBuffers(egl_display, egl_surface);
 }
 
-b8
-PollEvent(PlatformEvent* event)
-{
+b8 PollEvent(PlatformEvent* event) {
   event->type = NOT_IMPLEMENTED;
   event->key = 0;
   event->position = v2f(0.f, 0.f);
@@ -243,25 +231,26 @@ PollEvent(PlatformEvent* event)
   XEvent xev;
   while (XCheckWindowEvent(display, window_id, -1, &xev)) {
     switch (xev.type) {
-      // Save Absolute x,y of the last mouse motion
-      case MotionNotify: {
-        mouse_x = xev.xmotion.x;
-        mouse_y = height_pixels - xev.xmotion.y;
-      }  // FALLTHRU
       default:
         // Discard unhandled events
         continue;
-      case KeyPress:
+      case MotionNotify: {
+        mouse_x = xev.xmotion.x;
+        mouse_y = xev.xmotion.y;
+        event->type = MOUSE_MOVE;
+        event->position = {mouse_x, mouse_y};
+      } break;
+      case KeyPress: {
         event->type = KEY_DOWN;
         event->key = XLookupKeysym(&xev.xkey, 0);
         event->position = {xev.xkey.x, xev.xkey.y};
-        break;
-      case KeyRelease:
+      } break;
+      case KeyRelease: {
         event->type = KEY_UP;
         event->key = XLookupKeysym(&xev.xkey, 0);
         event->position = {xev.xkey.x, xev.xkey.y};
-        break;
-      case ButtonPress:
+      } break;
+      case ButtonPress: {
         switch (xev.xbutton.button) {
           case 1:
           case 2:
@@ -279,12 +268,12 @@ PollEvent(PlatformEvent* event)
             break;
         }
         event->position = {xev.xbutton.x, xev.xbutton.y};
-        break;
-      case ButtonRelease:
+      } break;
+      case ButtonRelease: {
         event->type = MOUSE_UP;
         event->button = (PlatformButton)xev.xbutton.button;
         event->position = {xev.xbutton.x, xev.xbutton.y};
-        break;
+      } break;
     }
 
     event->position.y = height_pixels - event->position.y;

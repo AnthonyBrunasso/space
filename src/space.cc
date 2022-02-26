@@ -58,7 +58,11 @@ void EditorFilesFrom(const char* dir) {
       else
         strcat(subdir, dir);
       strcat(subdir, d.c_str());
+#ifdef _WIN32
       strcat(subdir, "\\*");
+#else
+      strcat(subdir, "/");
+#endif
       EditorFilesFrom(subdir);
       ImGui::Unindent();
       ImGui::TreePop();

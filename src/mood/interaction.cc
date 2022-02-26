@@ -612,7 +612,7 @@ MapEditor(v2f screen)
   }
   if (show_load_maps) {
     imui::Indent(1);
-    filesystem::WalkDirectory("asset/", __FileMapCallback);
+    //filesystem::WalkDirectory("asset/", __FileMapCallback);
     imui::Indent(0);
   }
   if (imui::Text("Clear Map", toptions).clicked) {

@@ -319,4 +319,10 @@ ShouldClose()
   return false;
 }
 
+const char*
+GetBinaryPath()
+{
+  return "";
+}
+
 }  // namespace window

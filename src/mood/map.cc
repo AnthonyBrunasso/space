@@ -149,7 +149,7 @@ MapUniqueNameFinder(const char* filename)
 void
 MapGenerateUniqueName()
 {
-  filesystem::WalkDirectory("asset/", MapUniqueNameFinder);
+  //filesystem::WalkDirectory("asset/", MapUniqueNameFinder);
 }
 
 }

@@ -9,18 +9,14 @@
 namespace filesystem
 {
 
-b8
-MakeDirectory(const char* name)
-{
+b8 MakeDirectory(const char* name) {
   if (mkdir(name, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) < 0)
     return errno == EEXIST;
 
   return true;
 }
 
-void
-WalkDirectory(const char* dir, FileCallback* file_callback)
-{
+void WalkDirectory(const char* dir, const std::function<void(const char*, bool)> file_callback) {
   assert(dir[strlen(dir) - 1] == '/');
   struct dirent* entry;
   DIR* dirp = opendir(dir);
@@ -30,18 +26,17 @@ WalkDirectory(const char* dir, FileCallback* file_callback)
   }
 
   while ((entry = readdir(dirp)) != nullptr) {
-    if (entry->d_type == DT_DIR) continue;
+    bool is_dir = entry->d_type == DT_DIR;
     char full_name[128] = {};
     strcat(full_name, dir);
     strcat(full_name, entry->d_name);
-    file_callback(full_name);
+    file_callback(full_name, is_dir);
   }
+
   closedir(dirp);
 }
 
-void
-ChangeDirectory(const char* dir)
-{
+void ChangeDirectory(const char* dir) {
   chdir(dir);
 }
 

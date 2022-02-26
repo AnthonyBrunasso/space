@@ -8,18 +8,18 @@
 
 #include "window.h"
 
-EXTERN(r32 width_pixels);
-EXTERN(r32 height_pixels);
-EXTERN(r32 mouse_x);
-EXTERN(r32 mouse_y);
-
-Display* display;
-s32 window_id;
-EGLDisplay egl_display;
-EGLSurface egl_surface;
+static r32 kWidthPixels;
+static r32 kHeightPixels;
+static r32 kMouseX;
+static r32 kMouseY;
+static Display* kDisplay;
+static s32 kWindowId;
+static EGLDisplay kEglDisplay;
+static EGLSurface kEglSurface;
 
 namespace window
 {
+
 s32 x11_error_handler(Display*, XErrorEvent*) {
   return 0;
 }
@@ -29,23 +29,23 @@ s32 x11_ioerror_handler(Display*) {
 }
 
 s32 Create(const char* name, s32 width, s32 height, b8 fullscreen) {
-  if (window_id) return 0;
+  if (kWindowId) return 0;
 
-  display = XOpenDisplay(NULL);
-  s32 screen = DefaultScreen(display);
-  Window root_window = RootWindow(display, screen);
+  kDisplay = XOpenDisplay(NULL);
+  s32 screen = DefaultScreen(kDisplay);
+  Window root_window = RootWindow(kDisplay, screen);
 
   s32 egl_major = 0;
   s32 egl_minor = 0;
-  egl_display = eglGetDisplay(display);
-  s32 egl_version_ok = eglInitialize(egl_display, &egl_major, &egl_minor);
+  kEglDisplay = eglGetDisplay(kDisplay);
+  s32 egl_version_ok = eglInitialize(kEglDisplay, &egl_major, &egl_minor);
   if (!egl_version_ok) {
     return 0;
   }
 
   // egl config
   s32 egl_config_count;
-  if (!eglGetConfigs(egl_display, NULL, 0, &egl_config_count)) {
+  if (!eglGetConfigs(kEglDisplay, NULL, 0, &egl_config_count)) {
     return 0;
   }
 
@@ -55,7 +55,7 @@ s32 Create(const char* name, s32 width, s32 height, b8 fullscreen) {
   }
 
   EGLConfig egl_config[MAX_EGL_CONFIG];
-  if (!eglGetConfigs(egl_display, egl_config, egl_config_count,
+  if (!eglGetConfigs(kEglDisplay, egl_config, egl_config_count,
                      &egl_config_count)) {
     return 0;
   }
@@ -65,27 +65,27 @@ s32 Create(const char* name, s32 width, s32 height, b8 fullscreen) {
     s32 color_type;
     s32 renderable_type;
 #define EGL_READ_CONFIG(attrib, x) \
-  eglGetConfigAttrib(egl_display, egl_config[i], attrib, x);
+  eglGetConfigAttrib(kEglDisplay, egl_config[i], attrib, x);
     EGL_READ_CONFIG(EGL_COLOR_BUFFER_TYPE, &color_type);
     EGL_READ_CONFIG(EGL_RENDERABLE_TYPE, &renderable_type);
 
     s32 red_bits;
     s32 green_bits;
     s32 blue_bits;
-    eglGetConfigAttrib(egl_display, egl_config[i], EGL_RED_SIZE, &red_bits);
-    eglGetConfigAttrib(egl_display, egl_config[i], EGL_GREEN_SIZE, &green_bits);
-    eglGetConfigAttrib(egl_display, egl_config[i], EGL_BLUE_SIZE, &blue_bits);
+    eglGetConfigAttrib(kEglDisplay, egl_config[i], EGL_RED_SIZE, &red_bits);
+    eglGetConfigAttrib(kEglDisplay, egl_config[i], EGL_GREEN_SIZE, &green_bits);
+    eglGetConfigAttrib(kEglDisplay, egl_config[i], EGL_BLUE_SIZE, &blue_bits);
 
     s32 alpha_bits;
     s32 depth_bits;
     s32 stencil_bits;
-    eglGetConfigAttrib(egl_display, egl_config[i], EGL_ALPHA_SIZE, &alpha_bits);
-    eglGetConfigAttrib(egl_display, egl_config[i], EGL_DEPTH_SIZE, &depth_bits);
-    eglGetConfigAttrib(egl_display, egl_config[i], EGL_STENCIL_SIZE,
+    eglGetConfigAttrib(kEglDisplay, egl_config[i], EGL_ALPHA_SIZE, &alpha_bits);
+    eglGetConfigAttrib(kEglDisplay, egl_config[i], EGL_DEPTH_SIZE, &depth_bits);
+    eglGetConfigAttrib(kEglDisplay, egl_config[i], EGL_STENCIL_SIZE,
                        &stencil_bits);
 
     s32 egl_samples;
-    eglGetConfigAttrib(egl_display, egl_config[i], EGL_SAMPLES, &egl_samples);
+    eglGetConfigAttrib(kEglDisplay, egl_config[i], EGL_SAMPLES, &egl_samples);
 
     if (red_bits + green_bits + blue_bits != 24) continue;
     if (alpha_bits != 8) continue;
@@ -114,16 +114,16 @@ s32 Create(const char* name, s32 width, s32 height, b8 fullscreen) {
   *write_attrib++ = EGL_NONE;
 
   EGLContext egl_context =
-      eglCreateContext(egl_display, egl_config[selected_config], NULL, attrib);
+      eglCreateContext(kEglDisplay, egl_config[selected_config], NULL, attrib);
   if (!egl_context) {
     return 0;
   }
 
   // X11 window create
-  Visual* visual = DefaultVisual(display, screen);
-  s32 depth = DefaultDepth(display, screen);
+  Visual* visual = DefaultVisual(kDisplay, screen);
+  s32 depth = DefaultDepth(kDisplay, screen);
 
-  s32 colormap = XCreateColormap(display, root_window, visual, AllocNone);
+  s32 colormap = XCreateColormap(kDisplay, root_window, visual, AllocNone);
 
   XSetWindowAttributes wa;
   const unsigned long wamask = CWBorderPixel | CWColormap | CWEventMask;
@@ -137,26 +137,26 @@ s32 Create(const char* name, s32 width, s32 height, b8 fullscreen) {
   s32 border_width = 0;
   s32 x = 100, y = 100;
   Window parent = root_window;
-  window_id = XCreateWindow(display, parent, x, y, width, height, border_width,
+  kWindowId = XCreateWindow(kDisplay, parent, x, y, width, height, border_width,
                             depth, InputOutput, CopyFromParent, wamask, &wa);
 
-  if (!window_id) {
+  if (!kWindowId) {
     return 0;
   }
 
-  XMapWindow(display, window_id);
-  XStoreName(display, window_id, name);
+  XMapWindow(kDisplay, kWindowId);
+  XStoreName(kDisplay, kWindowId, name);
 
   if (fullscreen) {
     XSizeHints* sizehints = XAllocSizeHints();
     long flags = 0;
-    XGetWMNormalHints(display, window_id, sizehints, &flags);
+    XGetWMNormalHints(kDisplay, kWindowId, sizehints, &flags);
     sizehints->flags &= ~(PMinSize | PMaxSize);
-    XSetWMNormalHints(display, window_id, sizehints);
+    XSetWMNormalHints(kDisplay, kWindowId, sizehints);
     XFree(sizehints);
 
 #define _NET_WM_STATE_ADD 1l
-#define GET_ATOM(X) Atom X = XInternAtom(display, #X, False)
+#define GET_ATOM(X) Atom X = XInternAtom(kDisplay, #X, False)
     GET_ATOM(_NET_WM_STATE);
     GET_ATOM(_NET_WM_STATE_FULLSCREEN);
 
@@ -164,12 +164,12 @@ s32 Create(const char* name, s32 width, s32 height, b8 fullscreen) {
     e.xany.type = ClientMessage;
     e.xclient.message_type = _NET_WM_STATE;
     e.xclient.format = 32;
-    e.xclient.window = window_id;
+    e.xclient.window = kWindowId;
     e.xclient.data.l[0] = _NET_WM_STATE_ADD;
     e.xclient.data.l[1] = _NET_WM_STATE_FULLSCREEN;
     e.xclient.data.l[3] = 0l;
 
-    XSendEvent(display, RootWindow(display, screen), 0,
+    XSendEvent(kDisplay, RootWindow(kDisplay, screen), 0,
                SubstructureNotifyMask | SubstructureRedirectMask, &e);
   } else {
     GET_ATOM(_MOTIF_WM_HINTS);
@@ -182,30 +182,30 @@ s32 Create(const char* name, s32 width, s32 height, b8 fullscreen) {
       unsigned long status;
     } MWMHints = {(1L << 1), 0, border ? 1 : 0, 0, 0};
 
-    XChangeProperty(display, window_id, _MOTIF_WM_HINTS, _MOTIF_WM_HINTS, 32,
+    XChangeProperty(kDisplay, kWindowId, _MOTIF_WM_HINTS, _MOTIF_WM_HINTS, 32,
                     PropModeReplace, (unsigned char*)&MWMHints,
                     sizeof(MWMHints) / sizeof(long));
   }
 
   attrib[0] = EGL_NONE;
   attrib[1] = EGL_NONE;
-  egl_surface = eglCreateWindowSurface(egl_display, egl_config[selected_config],
-                                       window_id, attrib);
-  if (!egl_surface) {
+  kEglSurface = eglCreateWindowSurface(kEglDisplay, egl_config[selected_config],
+                                       kWindowId, attrib);
+  if (!kEglSurface) {
     return 0;
   }
 
   EGLint surface_width, surface_height;
-  eglQuerySurface(egl_display, egl_surface, EGL_HEIGHT, &surface_height);
-  eglQuerySurface(egl_display, egl_surface, EGL_WIDTH, &surface_width);
-  width_pixels = surface_width;
-  height_pixels = surface_height;
+  eglQuerySurface(kEglDisplay, kEglSurface, EGL_HEIGHT, &surface_height);
+  eglQuerySurface(kEglDisplay, kEglSurface, EGL_WIDTH, &surface_width);
+  kWidthPixels = surface_width;
+  kHeightPixels = surface_height;
 
   XSetErrorHandler(x11_error_handler);
   XSetIOErrorHandler(x11_ioerror_handler);
-  eglMakeCurrent(egl_display, egl_surface, egl_surface, egl_context);
+  eglMakeCurrent(kEglDisplay, kEglSurface, kEglSurface, egl_context);
 
-  if (eglSwapInterval(egl_display, 0) == EGL_FALSE) {
+  if (eglSwapInterval(kEglDisplay, 0) == EGL_FALSE) {
     return 0;
   }
 
@@ -220,7 +220,7 @@ s32 Create(const char* name, const CreateInfo& create_info) {
 }
 
 void SwapBuffers() {
-  eglSwapBuffers(egl_display, egl_surface);
+  eglSwapBuffers(kEglDisplay, kEglSurface);
 }
 
 b8 PollEvent(PlatformEvent* event) {
@@ -229,16 +229,16 @@ b8 PollEvent(PlatformEvent* event) {
   event->position = v2f(0.f, 0.f);
 
   XEvent xev;
-  while (XCheckWindowEvent(display, window_id, -1, &xev)) {
+  while (XCheckWindowEvent(kDisplay, kWindowId, -1, &xev)) {
     switch (xev.type) {
       default:
         // Discard unhandled events
         continue;
       case MotionNotify: {
-        mouse_x = xev.xmotion.x;
-        mouse_y = xev.xmotion.y;
+        kMouseX = xev.xmotion.x;
+        kMouseY = xev.xmotion.y;
         event->type = MOUSE_MOVE;
-        event->position = {mouse_x, mouse_y};
+        event->position = {kMouseX, kMouseY};
       } break;
       case KeyPress: {
         event->type = KEY_DOWN;
@@ -276,41 +276,31 @@ b8 PollEvent(PlatformEvent* event) {
       } break;
     }
 
-    event->position.y = height_pixels - event->position.y;
+    event->position.y = kHeightPixels - event->position.y;
     return true;
   }
 
   return false;
 }
 
-v2f
-GetWindowSize()
-{
-  return v2f(width_pixels, height_pixels);
+v2f GetWindowSize() {
+  return v2f(kWidthPixels, kHeightPixels);
 }
 
-v2f
-GetPrimaryMonitorSize()
-{
+v2f GetPrimaryMonitorSize() {
   // TODO:
   return {};
 }
 
-v2f
-GetCursorPosition()
-{
-  return v2f(mouse_x, mouse_y);
+v2f GetCursorPosition() {
+  return v2f(kMouseX, kMouseY);
 }
 
-b8
-ShouldClose()
-{
+b8 ShouldClose() {
   return false;
 }
 
-const char*
-GetBinaryPath()
-{
+const char* GetBinaryPath() {
   return "";
 }
 

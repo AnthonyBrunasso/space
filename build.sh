@@ -1,5 +1,7 @@
 #!/bin/bash
 
+param_one="$1"
+
 if [ ! -d "build" ]; then
   mkdir build
 fi

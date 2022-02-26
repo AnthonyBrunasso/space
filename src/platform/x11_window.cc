@@ -8,6 +8,9 @@
 
 #include "window.h"
 
+namespace window
+{
+
 static r32 kWidthPixels;
 static r32 kHeightPixels;
 static r32 kMouseX;
@@ -17,8 +20,6 @@ static s32 kWindowId;
 static EGLDisplay kEglDisplay;
 static EGLSurface kEglSurface;
 
-namespace window
-{
 
 s32 x11_error_handler(Display*, XErrorEvent*) {
   return 0;

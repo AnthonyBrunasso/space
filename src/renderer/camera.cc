@@ -38,33 +38,25 @@ constexpr u32 kLocalCameraTag = 2;
 
 DECLARE_2D_ARRAY(Camera, kMaxTags, kMaxCameras);
 
-void
-CameraResetAll()
-{
+void CameraResetAll() {
   for (s32 i = 0; i < kMaxTags; ++i) {
     kUsedCamera[i] = 0;
   }
 }
 
-Camera*
-CameraGetCurrent()
-{
+Camera* CameraGetCurrent() {
   return &kCamera[kCameraState.camera_tag][kCameraState.camera_index];
 }
 
 // Current camera will set its direction to be towards target
-void
-CameraLookAt(const v3f& target)
-{
+void CameraLookAt(const v3f& target) {
   Camera* c = CameraGetCurrent();
   if (!c) return;
   c->dir = math::Normalize(target - c->position);
 }
 
 // Will lerp along the XY axis to a certain ositino.
-void
-CameraLerpToXY(const v2f& position)
-{
+void CameraLerpToXY(const v2f& position) {
   Camera* c = CameraGetCurrent();
   if (!c) return;
   c->lerp_to.x = position.x;
@@ -73,18 +65,14 @@ CameraLerpToXY(const v2f& position)
   c->lerpv = c->lerpv >= 1.f ? 0.f : c->lerpv;
 }
 
-void
-CameraSetPositionXY(const v2f& position)
-{
+void CameraSetPositionXY(const v2f& position) {
   Camera* c = CameraGetCurrent();
   if (!c) return;
   c->position.x = position.x;
   c->position.y = position.y;
 }
 
-void
-CameraLerpToPositionXY(const v2f& position, r32 t)
-{
+void CameraLerpToPositionXY(const v2f& position, r32 t) {
   Camera* c = CameraGetCurrent();
   if (!c) return;
   v2f pos = c->position.xy();
@@ -93,72 +81,59 @@ CameraLerpToPositionXY(const v2f& position, r32 t)
   c->position.y = lpos.y;
 }
 
-v3f
-CameraLerpPosition()
-{
+v3f CameraLerpPosition() {
   Camera* c = CameraGetCurrent();
   if (!c) return v3f(0.f, 0.f, 0.f);
   return c->lerp_to;
 }
 
-v3f
-CameraPosition()
-{
+v3f CameraPosition() {
   Camera* c = CameraGetCurrent();
   if (!c) return v3f(0.f, 0.f, 0.f);
   return c->position;
 }
 
-v3f
-CameraDirection()
-{
+v3f CameraDirection() {
   Camera* c = CameraGetCurrent();
   if (!c) return v3f(0.f, 0.f, 0.f);
   return c->dir;
 }
 
-void
-CameraMove(const v3f& delta)
-{
+void CameraMove(const v3f& delta) {
   Camera* c = CameraGetCurrent();
   if (!c) return;
   c->position += delta;
 }
 
-void
-CameraSwitch(u32 camera_tag, u32 camera_index)
-{
+void CameraSwitch(u32 camera_tag, u32 camera_index) {
   assert(camera_tag < kMaxTags);
   // Call CameraInit on new cameras.
   assert(camera_index < kUsedCamera[camera_tag]);
-  kCameraState.camera_index = camera_index;;
+  kCameraState.camera_index = camera_index;
   kCameraState.camera_tag = camera_tag;
 }
 
-void
-CameraInit(u32 camera_tag, const Camera& camera)
-{
+void CameraSwitch(u32 camera_index) {
+  CameraSwitch(kLocalCameraTag, camera_index);
+}
+
+s32 CameraInit(u32 camera_tag, const Camera& camera) {
   Camera* c = UseCamera(camera_tag);
   if (!c) return;
   CameraSwitch(camera_tag, kUsedCamera[camera_tag] - 1);
   *c = camera;
+  return kUsedCamera[camera_tag] - 1;
 }
 
-void
-CameraInit(Camera camera)
-{
-  CameraInit(kLocalCameraTag, camera);
+s32 CameraInit(Camera camera) {
+  return CameraInit(kLocalCameraTag, camera);
 }
 
-b8
-CameraHasLocalCamera()
-{
+b8 CameraHasLocalCamera() {
   return kUsedCamera[kLocalCameraTag] > 0;
 }
 
-void
-CameraOverhead(const PlatformEvent& event)
-{
+void CameraOverhead(const PlatformEvent& event) {
   Camera* c = CameraGetCurrent();
   if (!c) return;
   v3f forward = math::Normalize(c->dir.xy());
@@ -188,9 +163,7 @@ CameraOverhead(const PlatformEvent& event)
   }
 }
 
-void
-CameraBrowser(const PlatformEvent& event)
-{
+void CameraBrowser(const PlatformEvent& event) {
   Camera* c = CameraGetCurrent();
   if (!c) return;
   if (!c->camera_control) return;
@@ -218,16 +191,12 @@ CameraBrowser(const PlatformEvent& event)
   }
 }
 
-void
-CameraFirstPerson(const PlatformEvent& event)
-{
+void CameraFirstPerson(const PlatformEvent& event) {
   Camera* c = CameraGetCurrent();
   if (!c) return;
 }
 
-void
-CameraUpdate(u32 tag)
-{
+void CameraUpdate(u32 tag) {
   kCameraState.camera_tag = tag;
   Camera* c = CameraGetCurrent();
   // If there is some target to move to lerp to it.
@@ -237,15 +206,11 @@ CameraUpdate(u32 tag)
   }
 }
 
-void
-CameraUpdate()
-{
+void CameraUpdate() {
   CameraUpdate(kLocalCameraTag);
 }
 
-void
-CameraUpdateEvent(const PlatformEvent& event, u32 tag)
-{
+void CameraUpdateEvent(const PlatformEvent& event, u32 tag) {
   kCameraState.camera_tag = tag;
   Camera* c = CameraGetCurrent();
   // Otherwise let the player control the camera.
@@ -266,23 +231,17 @@ CameraUpdateEvent(const PlatformEvent& event, u32 tag)
   }
 }
 
-void
-CameraUpdateEvent(const PlatformEvent& event)
-{
+void CameraUpdateEvent(const PlatformEvent& event) {
   CameraUpdateEvent(event, kLocalCameraTag);
 }
 
-Mat4f
-CameraLookAt()
-{
+Mat4f CameraLookAt() {
   Camera* c = CameraGetCurrent();
   if (!c) return math::Identity();
   return math::LookAt(c->position, c->position + c->dir * 1.f, c->up);
 }
 
-Mat4f
-CameraView()
-{
+Mat4f CameraView() {
   Camera* c = CameraGetCurrent();
   if (!c) return math::Identity();
   switch (c->mode) {
@@ -298,9 +257,7 @@ CameraView()
   return math::Identity();
 }
 
-v3f
-CameraRayFromMouse(const v2f& screen)
-{
+v3f CameraRayFromMouse(const v2f& screen) {
   Camera* c = CameraGetCurrent();
   if (!c) return {};
   v4f ray_clip(
@@ -313,9 +270,7 @@ CameraRayFromMouse(const v2f& screen)
   return math::Normalize((camera_inv * ray_eye).xyz());
 }
 
-v3f
-CameraRayFromMouseToWorld(const v2f& screen, r32 plane_z)
-{
+v3f CameraRayFromMouseToWorld(const v2f& screen, r32 plane_z) {
   v3f ray = CameraRayFromMouse(screen);
   v3f n(0.f, 0.f, 1.f);
   r32 t = -(math::Dot(CameraPosition(), n) + plane_z) / math::Dot(ray, n);

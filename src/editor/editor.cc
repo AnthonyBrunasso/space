@@ -55,31 +55,69 @@ static s32 kExplorerWidth = 300;
 static s32 kRenderViewStart = 300;
 //static s32 kRenderViewWidth = 600;
 
-// This gives the renderable rect at the nearest point that a pixel won't be clipped out. It's a bit of a hack
-// because basically if you try to render from 0, 0 to 0, view_height you won't see the line, likely due because
-// it's clipped out of the texture.
-Rectf EditorRenderableViewRect() {
-  // TODO: Change this to take into consideration edges given by camera... This will become important when 
-  // we want to zoom around.
-  static const r32 kHackOffset = 0.01f;
-  Rectf hack_renderable_edges = kEditorState.render_viewport;
-  hack_renderable_edges.x = hack_renderable_edges.x - (hack_renderable_edges.width / 2.f) + kHackOffset;
-  hack_renderable_edges.y = hack_renderable_edges.y - (hack_renderable_edges.height / 2.f) + kHackOffset;
-  hack_renderable_edges.width -= (2.f * kHackOffset);
-  hack_renderable_edges.height -= (2.f * kHackOffset);
-  /*LOG(INFO, "Rect(%.2f, %.2f, %.2f, %.2f)", 
-      hack_renderable_edges.x,
-      hack_renderable_edges.y,
-      hack_renderable_edges.width,
-      hack_renderable_edges.height);*/
-  return hack_renderable_edges;
+r32 EditorViewportCurrentScale();
+
+// We hand screw the scale to avoid avoid scaling in shaders. This gives tighter control of of pixely things.
+// Idk if this is the correct move (instead of using camera scale and in shader). But This is the world
+// we live in.
+v2f Vec2ToWorld(const v2f& vec) {
+  r32 scale = EditorViewportCurrentScale();
+  return vec * scale;
+}
+
+r32 R32ToWorld(r32 v) {
+  r32 scale = EditorViewportCurrentScale();
+  return v * scale;
+}
+
+Rectf EditorRectToWorld(const Rectf& rect) {
+  r32 scale = EditorViewportCurrentScale();
+  Rectf dest = rect;
+  if (scale != 1.f) {
+    dest.width = dest.width * scale;
+    dest.height = dest.height * scale;
+  }
+  dest.x -= dest.width / 2.f;
+  dest.y -= dest.height / 2.f;
+  return dest;
+}
+
+Rectf EditorViewportToWorld() {
+  Rectf renderable_edges = kEditorState.render_viewport;
+  return EditorRectToWorld(renderable_edges);
 }
 
 #include "asset_viewer.cc"
 #include "game_viewer.cc"
 
+r32 EditorViewportCurrentScale() {
+  switch (kEditorState.mode) {
+    case EDITOR_MODE_GAME: {
+      return EditorGameViewerScale();
+    } break;
+    case EDITOR_MODE_ASSET_VIEWER: {
+      return EditorAssetViewerScale();
+    } break;
+  }
+  return 1.f;
+}
+
+
+
 void EditorExit() {
   exit(0);
+}
+
+rgg::Camera* EditorViewportCurrentCamera() {
+  switch (kEditorState.mode) {
+    case EDITOR_MODE_GAME: {
+      return EditorGameViewerCamera();
+    } break;
+    case EDITOR_MODE_ASSET_VIEWER: {
+      return EditorAssetViewerCamera();
+    } break;
+  }
+  return nullptr;
 }
 
 void EditorProcessEvent(PlatformEvent& event) {
@@ -88,6 +126,30 @@ void EditorProcessEvent(PlatformEvent& event) {
       switch (event.key) {
         case KEY_ESC: {
           EditorExit();
+        } break;
+        case KEY_ARROW_UP: {
+          rgg::Camera* camera = EditorViewportCurrentCamera();
+          if (camera) {
+            camera->position += v2f(0.f, 16.f);
+          }
+        } break;
+        case KEY_ARROW_RIGHT: {
+          rgg::Camera* camera = EditorViewportCurrentCamera();
+          if (camera) {
+            camera->position += v2f(16.f, 0.f);
+          }
+        } break;
+        case KEY_ARROW_DOWN: {
+          rgg::Camera* camera = EditorViewportCurrentCamera();
+          if (camera) {
+            camera->position += v2f(0.f, -16.f);
+          }
+        } break;
+        case KEY_ARROW_LEFT: {
+          rgg::Camera* camera = EditorViewportCurrentCamera();
+          if (camera) {
+            camera->position += v2f(-16.f, 0.f);
+          }
         } break;
       }
     } break;
@@ -170,29 +232,6 @@ void EditorFileBrowser() {
   ImGui::End();
 }
 
-rgg::Camera* EditorViewportCurrentCamera() {
-  switch (kEditorState.mode) {
-    case EDITOR_MODE_GAME: {
-      return EditorGameViewerCamera();
-    } break;
-    case EDITOR_MODE_ASSET_VIEWER: {
-      return EditorAssetViewerCamera();
-    } break;
-  }
-  return nullptr;
-}
-
-r32 EditorViewportCurrentScale() {
-  switch (kEditorState.mode) {
-    case EDITOR_MODE_GAME: {
-      return EditorGameViewerScale();
-    } break;
-    case EDITOR_MODE_ASSET_VIEWER: {
-      return EditorAssetViewerScale();
-    } break;
-  }
-  return 1.f;
-}
 
 void EditorDebugMenu() {
   ImGuiWindowFlags window_flags = 0;
@@ -275,7 +314,12 @@ void EditorUpdateCursor() {
   ImGuiStyle& style = ImGui::GetStyle();
   kCursor.viewport_screen = v2f(cursor.x - kExplorerWidth - style.WindowPadding.x, cursor.y);
   kCursor.viewport_world_unscaled = kCursor.viewport_screen - kEditorState.render_viewport.Dims() / 2.f;
-  kCursor.viewport_world = kCursor.viewport_world_unscaled / EditorViewportCurrentScale();
+  r32 scale = EditorViewportCurrentScale();
+  kCursor.viewport_world = kCursor.viewport_world_unscaled / scale;
+  rgg::Camera* camera = EditorViewportCurrentCamera();
+  if (camera) {
+    kCursor.viewport_world += (camera->position.xy() / scale);
+  }
   kCursor.is_in_viewport = math::PointInRect(kCursor.global_screen, kEditorState.render_viewport_in_editor);
   // Clamp to nearest grid edge.
   Rectf rgrid;

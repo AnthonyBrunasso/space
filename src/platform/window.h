@@ -8,10 +8,17 @@
 // on supporting making multiple.
 
 constexpr s32 KEY_ESC = 27;
+#ifdef _WIN32
 constexpr s32 KEY_ARROW_UP = 0;
 constexpr s32 KEY_ARROW_RIGHT = 3;
 constexpr s32 KEY_ARROW_DOWN = 1;
 constexpr s32 KEY_ARROW_LEFT = 2;
+#else
+constexpr s32 KEY_ARROW_UP = 82;
+constexpr s32 KEY_ARROW_RIGHT = 83;
+constexpr s32 KEY_ARROW_DOWN = 84;
+constexpr s32 KEY_ARROW_LEFT = 81;
+#endif
 
 enum PlatformEventType {
   NOT_IMPLEMENTED,  // Event does not have translation implemented yet.

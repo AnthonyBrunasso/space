@@ -12,18 +12,15 @@
 struct Rectf {
   Rectf() = default;
   Rectf(const v2f& min, const v2f& dims)
-      : x(min.x), y(min.y), width(dims.x), height(dims.y)
-  {
+      : x(min.x), y(min.y), width(dims.x), height(dims.y) {
   }
 
   Rectf(const v2f& min, r32 width, r32 height)
-      : x(min.x), y(min.y), width(width), height(height)
-  {
+      : x(min.x), y(min.y), width(width), height(height) {
   }
 
   Rectf(r32 x, r32 y, r32 width, r32 height)
-      : x(x), y(y), width(width), height(height)
-  {
+      : x(x), y(y), width(width), height(height) {
   }
 
   r32 x;
@@ -31,33 +28,39 @@ struct Rectf {
   r32 width;
   r32 height;
 
-  v2f
-  Dims() const
-  {
+  v2f Dims() const {
     return v2f(width, height);
   }
 
-  v2f
-  Center() const
-  {
+  v2f Center() const {
     return v2f(x + .5f * width, y + .5f * height);
   }
 
-  v2f
-  Min() const
-  {
+  v2f TopLeft() const {
+    return Min() + v2f(0.f, height);
+  }
+
+  v2f TopRight() const {
+    return Max();
+  }
+
+  v2f BottomLeft() const {
+    return Min();
+  }
+
+  v2f BottomRight() const {
+    return Min() + v2f(width, 0.f);
+  }
+
+  v2f Min() const {
     return v2f(x, y);
   }
 
-  v2f
-  Max() const
-  {
+  v2f Max() const {
     return v2f(x + width, y + height);
   }
 
-  math::Polygon<4>
-  Polygon() const
-  {
+  math::Polygon<4> Polygon() const {
     math::Polygon<4> poly;
     poly.vertex[0] = v2f(x, y);
     poly.vertex[1] = v2f(x, y + height);
@@ -66,9 +69,7 @@ struct Rectf {
     return poly;
   }
 
-  math::Polygon<4>
-  Rotate(r32 rotation) const
-  {
+  math::Polygon<4> Rotate(r32 rotation) const {
     // Avoid cos / sin.
     if (rotation == 0.f) return Polygon();
     math::Polygon<4> poly;
@@ -87,21 +88,15 @@ struct Rectf {
     return poly;
   }
 
-  Rectf
-  RightHalf()
-  {
+  Rectf RightHalf() {
     return Rectf(x + width / 2.f, y, width / 2.f, height);
   }
 
-  Rectf
-  LeftHalf()
-  {
+  Rectf LeftHalf() {
     return Rectf(x, y, width / 2.f, height);
   }
 
-  void
-  DebugPrint()
-  {
+  void DebugPrint() {
     printf("Rectf(x:%.2f, y:%.2f, width:%.2f, height:%.2f)\n", x, y, width, height);
   }
 };
@@ -109,23 +104,17 @@ struct Rectf {
 namespace math
 {
 
-Rectf
-MakeRect(v2f min, v2f max)
-{
+Rectf MakeRect(v2f min, v2f max) {
   return Rectf(min.x, min.y, max.x - min.x, max.y - min.y);
 }
 
-void
-PrintRect(const Rectf& rect)
-{
+void PrintRect(const Rectf& rect) {
   printf("Rect(%.2f,%.2f,%.2f,%.2f)\n",
          rect.x, rect.y, rect.width, rect.height);
 }
 
 // Orients a rect so that it has positive widths and heights.
-Rectf
-OrientToAabb(const Rectf& rect)
-{
+Rectf OrientToAabb(const Rectf& rect) {
   Rectf r = rect;
   if (rect.height < 0.f) {
     r.y += rect.height;
@@ -138,9 +127,7 @@ OrientToAabb(const Rectf& rect)
   return r;
 }
 
-v2f
-RandomPointInRect(const Rectf& rect)
-{
+v2f RandomPointInRect(const Rectf& rect) {
   r32 min_x = rect.x;
   r32 max_x = rect.x + rect.width;
   r32 min_y = rect.y;
@@ -161,9 +148,7 @@ RandomPointInRect(const Rectf& rect)
 // 7. Project that point to top and right vectors made by rect.
 // 8. Save vector with min projection distance.
 // 9. Return the min of distances from 4, 8 and retranslate to exterior.
-v2f
-RandomPointOnRect(const Rectf& rect)
-{
+v2f RandomPointOnRect(const Rectf& rect) {
   Rectf r = OrientToAabb(rect);
   v2f t(r.x, r.y);
   // Orient rect to origin.
@@ -194,16 +179,12 @@ RandomPointOnRect(const Rectf& rect)
   return pkeep + t;
 }
 
-b8
-PointInRect(const v2f& point, const Rectf& rect)
-{
+b8 PointInRect(const v2f& point, const Rectf& rect) {
   return (point.x >= rect.x && point.x <= rect.x + rect.width) &&
          (point.y >= rect.y && point.y <= rect.y + rect.height);
 }
 
-b8
-IntersectRect(const Rectf& a, const Rectf& b, Rectf* intersection = nullptr)
-{
+b8 IntersectRect(const Rectf& a, const Rectf& b, Rectf* intersection = nullptr) {
   v2f amin = a.Min();
   v2f amax = a.Max();
   v2f bmin = b.Min();
@@ -221,9 +202,7 @@ IntersectRect(const Rectf& a, const Rectf& b, Rectf* intersection = nullptr)
 }
 
 // Check if a is full contained in b.
-b8
-IsContainedInRect(const Rectf& a, const Rectf& b)
-{
+b8 IsContainedInRect(const Rectf& a, const Rectf& b) {
   v2f amin = a.Min();
   v2f amax = a.Max();
   v2f bmin = b.Min();
@@ -233,9 +212,7 @@ IsContainedInRect(const Rectf& a, const Rectf& b)
   return true;
 }
 
-r32
-DistanceBetween(const Rectf& a, const Rectf& b)
-{
+r32 DistanceBetween(const Rectf& a, const Rectf& b) {
   v2f atl = a.Min() + v2f(0.f, a.height);
   v2f abl = a.Min();
   v2f atr = a.Min() + v2f(a.width, a.height);

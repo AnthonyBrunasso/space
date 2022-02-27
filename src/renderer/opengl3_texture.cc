@@ -25,9 +25,7 @@ struct TextureInfo {
   GLuint mag_filter = GL_LINEAR;
 };
 
-TextureInfo
-DefaultTextureInfo()
-{
+TextureInfo DefaultTextureInfo() {
   TextureInfo info;
   return info;
 }
@@ -39,9 +37,7 @@ struct UV {
 
 static TextureState kTextureState;
 
-b8
-SetupTexture()
-{
+b8 SetupTexture() {
   GLuint vert_shader, frag_shader;
   if (!GLCompileShader(GL_VERTEX_SHADER, &kTextureVertexShader,
                          &vert_shader)) {
@@ -134,9 +130,7 @@ Texture CreateEmptyTexture2D(GLenum format, uint64_t width, uint64_t height) {
   return texture;
 }
 
-b8
-LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
-{
+b8 LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture) {
   // Texture already loaded.
   if (texture->IsValid()) {
     return true;
@@ -231,9 +225,7 @@ LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture)
   return true;
 }
 
-void
-BeginRenderTo(const Texture& texture)
-{
+void BeginRenderTo(const Texture& texture) {
   // The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
   if (kTextureState.frame_buffer == GLuint(-1)) {
     glGenFramebuffers(1, &kTextureState.frame_buffer);
@@ -246,18 +238,13 @@ BeginRenderTo(const Texture& texture)
   glViewport(0, 0, texture.width, texture.height);
 }
 
-void
-EndRenderTo()
-{
+void EndRenderTo() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   auto dims = window::GetWindowSize();
   glViewport(0, 0, dims.x, dims.y);
 }
 
-void
-RenderTexture(const Texture& texture, const Rectf& src,
-              const Rectf& dest, bool mirror = false)
-{
+void RenderTexture(const Texture& texture, const Rectf& src, const Rectf& dest, bool mirror = false) {
   glUseProgram(kTextureState.program);
   glBindTexture(GL_TEXTURE_2D, texture.reference);
   glBindVertexArray(kTextureState.vao_reference_static);

@@ -7,7 +7,8 @@ struct EditorState {
   u64 frame_rate = 60;
   window::CreateInfo window_create_info;
   platform::Clock clock;
-  v2f render_dims;
+  Rectf render_viewport_in_editor;
+  Rectf render_viewport;
 };
 
 static EditorState kEditorState;
@@ -22,9 +23,20 @@ static s32 kRenderViewStart = 300;
 // because basically if you try to render from 0, 0 to 0, view_height you won't see the line, likely due because
 // it's clipped out of the texture.
 Rectf EditorRenderableViewRect() {
-  return math::MakeRect(
-      v2f(-kEditorState.render_dims.x / 2.f + 0.01f, -kEditorState.render_dims.y / 2.f + 0.01f),
-      v2f(kEditorState.render_dims.x / 2.f - 0.01f, kEditorState.render_dims.y / 2.f - 0.01f));
+  // TODO: Change this to take into consideration edges given by camera... This will become important when 
+  // we want to zoom around.
+  static const r32 kHackOffset = 0.01f;
+  Rectf hack_renderable_edges = kEditorState.render_viewport;
+  hack_renderable_edges.x = hack_renderable_edges.x - (hack_renderable_edges.width / 2.f) + kHackOffset;
+  hack_renderable_edges.y = hack_renderable_edges.y - (hack_renderable_edges.height / 2.f) + kHackOffset;
+  hack_renderable_edges.width -= (2.f * kHackOffset);
+  hack_renderable_edges.height -= (2.f * kHackOffset);
+  /*LOG(INFO, "Rect(%.2f, %.2f, %.2f, %.2f)", 
+      hack_renderable_edges.x,
+      hack_renderable_edges.y,
+      hack_renderable_edges.width,
+      hack_renderable_edges.height);*/
+  return hack_renderable_edges;
 }
 
 #include "asset_viewer.cc"
@@ -130,8 +142,13 @@ void EditorRenderViewport() {
   float item_height = ImGui::GetTextLineHeightWithSpacing();
   r32 render_view_width = wsize.x - kExplorerWidth;
   ImVec2 imsize = ImVec2(render_view_width, wsize.y);
-  kEditorState.render_dims.x = imsize.x - 15.f;
-  kEditorState.render_dims.y = imsize.y - 50.f;
+  // The viewport as it exists in the global bounds of the editor window.
+  kEditorState.render_viewport_in_editor = Rectf(
+    kRenderViewStart, item_height + 1.f,
+    imsize.x - 15.f, imsize.y - 50.f);
+  // The viewport as it exists in the local bounds of the viewport.
+  kEditorState.render_viewport = Rectf(
+    0.f, 0.f, imsize.x - 15.f, imsize.y - 50.f);
   ImGui::SetNextWindowSize(imsize);
   ImGui::SetNextWindowPos(ImVec2(kRenderViewStart, item_height + 1.f), ImGuiCond_Always);
   static const s32 kTabCount = 2;

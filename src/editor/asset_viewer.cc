@@ -18,6 +18,7 @@ struct AssetViewer {
   u32 camera_index;
   std::string chosen_asset_path;
   bool is_grid_to_texture = true;
+  bool clamp_cursor_to_nearest = false;
 };
 
 static AssetViewer kAssetViewer;
@@ -42,11 +43,12 @@ void EditorAssetViewerDrawAxis(v2f origin) {
                   v4f(0.f, 1.f, 0.f, 0.5f));
   rgg::RenderLine(__svec(v2f(view_rect.Min().x, origin.y)),
                   __svec(v2f(view_rect.Max().x, origin.y)),
-                  v4f(1.f, 0.f, 0.f, 0.5f));
+                  v4f(0.f, 0.f, 1.f, 0.5f));
 }
 
-v2f EditorAssetViewerCursorInTexture(v2f cursor, const rgg::Texture& texture) {
-  return cursor;
+v2f EditorAssetViewerCursorInTexture(const rgg::Texture& texture) {
+  v2f viewport_world_to_texture = kCursor.viewport_world + (texture.Rect().Dims() / 2.0);
+  return math::Roundf(viewport_world_to_texture);
 }
 
 void EditorAssetViewerRenderAsset() {
@@ -116,8 +118,11 @@ void EditorAssetViewerInit() {
 void EditorAssetViewerMain() {
   if (!kAssetViewer.chosen_asset_path.empty()) {
     rgg::DestroyTexture2D(&kAssetViewer.texture_asset);
+    rgg::TextureInfo texture_info;
+    texture_info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
+    texture_info.mag_filter = GL_NEAREST;
     if (!rgg::LoadTGA(kAssetViewer.chosen_asset_path.c_str(),
-                      rgg::DefaultTextureInfo(), &kAssetViewer.texture_asset)) {
+                      texture_info, &kAssetViewer.texture_asset)) {
       LOG(WARN, "Unable to load asset %s", kAssetViewer.chosen_asset_path.c_str());
     }
     kAssetViewer.chosen_asset_path.clear();
@@ -155,10 +160,20 @@ void EditorAssetViewerMain() {
 
   Rectf view = EditorRenderableViewRect();
   if (kCursor.is_in_viewport) {
-    rgg::RenderLine(v2f(view.Min().x, kCursor.viewport_world_unscaled.y),
-                    v2f(view.Max().x, kCursor.viewport_world_unscaled.y), v4f(1.f, 0.f, 0.f, .4f));
-    rgg::RenderLine(v2f(kCursor.viewport_world_unscaled.x, view.Min().y),
-                    v2f(kCursor.viewport_world_unscaled.x, view.Max().y), v4f(1.f, 0.f, 0.f, .4f));
+    if (kAssetViewer.clamp_cursor_to_nearest) {
+      v2f unscaled_clamp = Roundf(kCursor.viewport_world_clamped * kAssetViewer.scale);
+      rgg::RenderLine(v2f(view.Min().x, unscaled_clamp.y),
+                      v2f(view.Max().x, unscaled_clamp.y), v4f(1.f, 0.f, 0.f, 1.f));
+      rgg::RenderLine(v2f(unscaled_clamp.x, view.Min().y),
+                      v2f(unscaled_clamp.x, view.Max().y), v4f(1.f, 0.f, 0.f, 1.f));
+
+    }
+    else {
+      rgg::RenderLine(v2f(view.Min().x, kCursor.viewport_world_unscaled.y),
+                      v2f(view.Max().x, kCursor.viewport_world_unscaled.y), v4f(1.f, 0.f, 0.f, 1.f));
+      rgg::RenderLine(v2f(kCursor.viewport_world_unscaled.x, view.Min().y),
+                      v2f(kCursor.viewport_world_unscaled.x, view.Max().y), v4f(1.f, 0.f, 0.f, 1.f));
+    }
   }
 
   rgg::EndRenderTo();
@@ -174,11 +189,12 @@ void EditorAssetViewerDebug() {
     ImGui::Text("File (%s)", filesystem::Filename(kAssetViewer.texture_asset.file).c_str());
     ImGui::Text("  reference  %u", kAssetViewer.texture_asset.reference);
     ImGui::Text("  dims       %.0f %.0f", kAssetViewer.texture_asset.width, kAssetViewer.texture_asset.height);
-    v2f cursor_in_texture = EditorAssetViewerCursorInTexture(v2f(0.f, 0.f), kAssetViewer.texture_asset);
+    v2f cursor_in_texture = EditorAssetViewerCursorInTexture(kAssetViewer.texture_asset);
     ImGui::Text("  texcoord   %.2f %.2f", cursor_in_texture.x, cursor_in_texture.y);
     ImGui::NewLine();
     ImGui::SliderFloat("scale", &kAssetViewer.scale, 1.f, 5.f, "%.3f", ImGuiSliderFlags_None);
     ImGui::Checkbox("orient grid to texture", &kAssetViewer.is_grid_to_texture);
+    ImGui::Checkbox("clamp cursor to nearest edge", &kAssetViewer.clamp_cursor_to_nearest);
     ImGui::NewLine();
   }
   

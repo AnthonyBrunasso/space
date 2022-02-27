@@ -174,6 +174,13 @@ Normalize(const Vec2<T>& v)
 
 template <class T>
 Vec2<T>
+Roundf(const Vec2<T>& v)
+{
+  return Vec2<T>(roundf(v.x), roundf(v.y));
+}
+
+template <class T>
+Vec2<T>
 SafeNormalize(const Vec2<T>& v)
 {
   r32 l = Length(v);

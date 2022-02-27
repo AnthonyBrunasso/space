@@ -65,6 +65,28 @@ struct Rectf {
     y = min.y;
   }
 
+  // Returns the nearest edge from pt
+  v2f NearestEdge(v2f pt) {
+    r32 dist[4] = {
+      math::LengthSquared(pt - BottomLeft()),
+      math::LengthSquared(pt - TopLeft()),
+      math::LengthSquared(pt - TopRight()),
+      math::LengthSquared(pt - BottomRight())};
+    s32 min_idx = 0;
+    r32 min_val = dist[0];
+    for (s32 i = 1; i < 4; ++i) {
+      if (dist[i] < min_val) {
+        min_idx = i;
+        min_val = dist[i];
+      }
+    }
+    assert(min_idx >= 0 && min_idx <= 3);
+    if (min_idx == 0) return BottomLeft();
+    if (min_idx == 1) return TopLeft();
+    if (min_idx == 2) return TopRight();
+    return BottomRight();
+  }
+
   math::Polygon<4> Polygon() const {
     math::Polygon<4> poly;
     poly.vertex[0] = v2f(x, y);

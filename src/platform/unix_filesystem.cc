@@ -46,4 +46,12 @@ const char* GetWorkingDirectory() {
   return cwd;
 }
 
+std::string JoinPath(const char* s1, const char* s2) {
+  // TODO: Make less stupid.
+  std::string ret(s1);
+  ret += "/";
+  ret += std::string(s2);
+  return ret;
+}
+
 }  // namespace filesystem

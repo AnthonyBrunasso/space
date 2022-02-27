@@ -100,7 +100,16 @@ void EditorFilesFrom(const char* dir) {
   }
   ImGui::Indent();
   for (const std::string& file : files) {
-    ImGui::Text("%s", file.c_str());
+    bool kChosen = false;
+    if (EditorCanLoadAsset(file)) {
+      if (ImGui::Selectable(file.c_str(), &kChosen)) {
+        //LOG(INFO, "Chose asset %s", file.c_str());
+        kAssetViewer.chosen_asset_path = filesystem::JoinPath(dir, file);
+      }
+    }
+    else {
+      ImGui::Text("%s", file.c_str());
+    }
   }
 }
 

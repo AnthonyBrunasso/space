@@ -1,11 +1,30 @@
 #pragma once
 
+static const std::vector<std::string> kEditorKnownAssetExtensions = {
+  "tga",
+};
+
+bool EditorCanLoadAsset(const std::string& name) {
+  for (const std::string& ext : kEditorKnownAssetExtensions) {
+    if (filesystem::HasExtension(name.c_str(), ext.c_str())) return true;
+  }
+  return false;
+}
+
 struct AssetViewer {
   rgg::Texture render_target;
+  rgg::Texture texture_asset;
   u32 camera_index;
+  std::string chosen_asset_path;
 };
 
 static AssetViewer kAssetViewer;
+
+void EditorAssetViewerRenderAsset() {
+  const rgg::Texture& tex = kAssetViewer.texture_asset;
+  if (!tex.IsValid()) return;
+  rgg::RenderTexture(tex, tex.Rect(), tex.Rect());
+}
 
 // Just a way to verify lines work with the viewport, etc.
 void EditorAssetViewerDebugLines() {
@@ -53,6 +72,15 @@ void EditorAssetViewerInit() {
 }
 
 void EditorAssetViewerMain() {
+  if (!kAssetViewer.chosen_asset_path.empty()) {
+    rgg::DestroyTexture2D(&kAssetViewer.texture_asset);
+    if (!rgg::LoadTGA(kAssetViewer.chosen_asset_path.c_str(),
+                      rgg::DefaultTextureInfo(), &kAssetViewer.texture_asset)) {
+      LOG(WARN, "Unable to load asset %s", kAssetViewer.chosen_asset_path.c_str());
+    }
+    kAssetViewer.chosen_asset_path.clear();
+  }
+
   EditorAssetViewerInit();
   rgg::CameraSwitch(kAssetViewer.camera_index);
   rgg::Camera* c = rgg::CameraGetCurrent(); 
@@ -67,8 +95,7 @@ void EditorAssetViewerMain() {
   glClear(GL_COLOR_BUFFER_BIT);
   // Fill the background with imgui's background color to maintain beauty.
   rgg::RenderRectangle(EditorRenderableViewRect(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
-  //EditorAssetViewerDebugLines();
-  rgg::RenderRectangle(Rectf(0.f, 0.f, 128.f, 128.f), rgg::kRed);
+  EditorAssetViewerRenderAsset();
   EditorAssetViewerDrawGrid(64, v4f(1.f, 1.f, 1.f, 0.2f));
   EditorAssetViewerDrawGrid(32, v4f(1.f, 1.f, 1.f, 0.1f));
   EditorAssetViewerDrawGrid(16, v4f(1.f, 1.f, 1.f, 0.05f));

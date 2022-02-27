@@ -6,7 +6,13 @@ struct Texture {
   r32 width = 0.f;
   r32 height = 0.f;
   GLenum format;
-  b8 IsValid() const { return width > 0.f && height > 0.f; }
+  Rectf Rect() const {
+    return Rectf(0, 0, width, height);
+  }
+
+  b8 IsValid() const {
+    return width > 0.f && height > 0.f;
+  }
 };
 
 struct TextureState {
@@ -111,6 +117,12 @@ Texture CreateTexture2D(GLenum format, uint64_t width, uint64_t height,
   texture.height = height;
   texture.format = format;
   return texture;
+}
+
+void DestroyTexture2D(Texture* texture) {
+  if (texture->reference == 0) return;
+  glDeleteTextures(1, &texture->reference);
+  *texture = {};
 }
 
 Texture CreateEmptyTexture2D(GLenum format, uint64_t width, uint64_t height) {

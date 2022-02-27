@@ -12,15 +12,11 @@ struct Memory {
 
 thread_local Memory kMemory;
 
-b8
-IsInitialized()
-{
+b8 IsInitialized() {
   return kMemory.storage != nullptr;
 }
 
-bool
-Initialize(u64 storage_bytes)
-{
+bool Initialize(u64 storage_bytes) {
   assert(kMemory.storage == nullptr);
   kMemory.storage_used = 0;
   kMemory.storage_size = storage_bytes;
@@ -28,27 +24,21 @@ Initialize(u64 storage_bytes)
   return IsInitialized();
 }
 
-u8*
-PushBytes(u64 num)
-{
+u8* PushBytes(u64 num) {
   assert(kMemory.storage_used + num < kMemory.storage_size);
   u8* mem = &kMemory.storage[kMemory.storage_used];
   kMemory.storage_used += num;
   return mem;
 }
 
-void
-PopBytes(u64 num)
-{
+void PopBytes(u64 num) {
   assert(kMemory.storage_used >= num);
   kMemory.storage_used -= num;
+  //LOG(INFO, "Storage at %llu", kMemory.storage_used);
   memset(&kMemory.storage[kMemory.storage_used], 0, num);
 }
 
-template <typename T>
-T*
-PushType(u64 num)
-{
+template <typename T> T* PushType(u64 num) {
   u64 sz = num * sizeof(T);
   assert(kMemory.storage_used + sz < kMemory.storage_size);
   T* mem = (T*)&kMemory.storage[kMemory.storage_used];
@@ -56,10 +46,7 @@ PushType(u64 num)
   return mem;
 }
 
-template <typename T>
-void
-PopType(u64 num)
-{
+template <typename T> void PopType(u64 num) {
   u64 sz = num * sizeof(T);
   assert(kMemory.storage_used >= sz);
   kMemory.storage_used -= sz;

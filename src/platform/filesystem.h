@@ -32,6 +32,16 @@ inline void ReplaceFilename(const char* newfname, char* oldfname_with_dir) {
   memcpy(&oldfname_with_dir[idx], newfname, strlen(newfname));
 }
 
+std::string JoinPath(const char* s1, const char* s2);
+
+std::string JoinPath(const char* s1, const std::string& s2) {
+  return JoinPath(s1, s2.c_str());
+}
+
+std::string JoinPath(const std::string& s1, const char* s2) {
+  return JoinPath(s1.c_str(), s2);
+}
+
 b8 MakeDirectory(const char* name);
 void WalkDirectory(const char* dir, const std::function<void(const char*, bool)> file_callback);
 void ChangeDirectory(const char* dir);

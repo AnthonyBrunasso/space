@@ -13,6 +13,10 @@ s32 main(s32 argc, char** argv) {
     return 1;
   }
 
+  if (!memory::Initialize(MiB(10))) {
+    return 1;
+  }
+
   bool show_demo_window = true;
 
   while (1) {

@@ -17,6 +17,23 @@ struct EditorState {
   EditorMode mode;
 };
 
+struct EditorCursor {
+  // x-y coordinates of the cursor in the editor, assuming bottom left is origin.
+  v2f global_screen;
+  // x-y coordinates of the cursor in the game / asset viewer / etc viewport. This will be influenced by
+  // camera / scale / etc.
+  v2f viewport_world;
+  // x-y coordinates of the cursor in the game / asset viewer / etc viewport. Without scale.
+  v2f viewport_world_unscaled;
+  // x-y coordinates of the cursor in the game / asset viewer, assuming bottom left is origin. Not influenced
+  // by scale.
+  v2f viewport_screen;
+  // True when the cursor is in the game / asset viewer.
+  bool is_in_viewport = false;
+};
+
+static EditorCursor kCursor;
+
 static EditorState kEditorState;
 
 static s32 kExplorerStart = 0;
@@ -43,13 +60,6 @@ Rectf EditorRenderableViewRect() {
       hack_renderable_edges.width,
       hack_renderable_edges.height);*/
   return hack_renderable_edges;
-}
-
-v2f EditorCursorToRenderView(v2f cursor) {
-  // TODO: What is going on with this +9.f? I can't seem to accurately align my cursor to what I see
-  // in the render viewport.
-  return v2f(cursor.x - (kExplorerWidth + 9.f) - kEditorState.render_viewport.width / 2.f,
-             cursor.y - kEditorState.render_viewport.height / 2.f);
 }
 
 #include "asset_viewer.cc"
@@ -146,6 +156,30 @@ void EditorFileBrowser() {
   ImGui::End();
 }
 
+rgg::Camera* EditorViewportCurrentCamera() {
+  switch (kEditorState.mode) {
+    case EDITOR_MODE_GAME: {
+      return EditorGameViewerCamera();
+    } break;
+    case EDITOR_MODE_ASSET_VIEWER: {
+      return EditorAssetViewerCamera();
+    } break;
+  }
+  return nullptr;
+}
+
+r32 EditorViewportCurrentScale() {
+  switch (kEditorState.mode) {
+    case EDITOR_MODE_GAME: {
+      return EditorGameViewerScale();
+    } break;
+    case EDITOR_MODE_ASSET_VIEWER: {
+      return EditorAssetViewerScale();
+    } break;
+  }
+  return 1.f;
+}
+
 void EditorDebugMenu() {
   ImGuiWindowFlags window_flags = 0;
   window_flags |= ImGuiWindowFlags_NoCollapse;
@@ -154,14 +188,55 @@ void EditorDebugMenu() {
   float item_height = ImGui::GetTextLineHeightWithSpacing();
   ImGui::SetNextWindowSize(ImVec2(kExplorerWidth, wsize.y * (2 / 5.f)));
   ImGui::SetNextWindowPos(ImVec2(kExplorerStart, (item_height + 1.f) + wsize.y * (3 / 5.f)), ImGuiCond_Always);
+  static const s32 kTabCount = 2;
+  static const char* kTabs[kTabCount] = {
+    "Contextual",
+    "System"
+  };
+  static bool kOpened[kTabCount] = { true, true }; // Persistent user state
   ImGui::Begin("Debug", nullptr, window_flags);
-  switch (kEditorState.mode) {
-    case EDITOR_MODE_GAME: {
-      EditorGameViewerDebug();
-    } break;
-    case EDITOR_MODE_ASSET_VIEWER: {
-      EditorAssetViewerDebug();
-    } break;
+  if (ImGui::BeginTabBar("Debug Tabs")) {
+    for (s32 i = 0; i < kTabCount; ++i) {
+      if (kOpened[i] && ImGui::BeginTabItem(kTabs[i], &kOpened[i], ImGuiTabItemFlags_None)) {
+        if (i == 0) {
+          switch (kEditorState.mode) {
+            case EDITOR_MODE_GAME: {
+              EditorGameViewerDebug();
+            } break;
+            case EDITOR_MODE_ASSET_VIEWER: {
+              EditorAssetViewerDebug();
+            } break;
+          }
+        }
+        else if (i == 1) {
+          ImGui::Text("Cursor");
+          ImGui::Text("  global screen             %.0f %.0f",
+                      kCursor.global_screen.x, kCursor.global_screen.y);
+          if (kCursor.is_in_viewport) {
+            ImGui::Text("  viewport world unscaled   %.0f %.0f",
+                        kCursor.viewport_world_unscaled.x, kCursor.viewport_world_unscaled.y);
+            ImGui::Text("  viewport world            %.0f %.0f",
+                        kCursor.viewport_world.x, kCursor.viewport_world.y);
+            ImGui::Text("  viewport screen           %.0f %.0f",
+                        kCursor.viewport_screen.x, kCursor.viewport_screen.y);
+          }
+          else {
+            ImGui::Text("  viewport world            x x");
+            ImGui::Text("  viewport screen           x x");
+          }
+          rgg::Camera* camera = EditorViewportCurrentCamera();
+          if (camera) {
+            ImGui::Text("Camera");
+            ImGui::Text("  pos    %.1f %.1f %.1f", camera->position.x, camera->position.y, camera->position.z);
+            ImGui::Text("  dir    %.1f %.1f %.1f", camera->dir.x, camera->dir.y, camera->dir.z);
+            ImGui::Text("  up     %.1f %.1f %.1f", camera->up.x, camera->up.y, camera->up.z);
+            ImGui::Text("  vp     %.1f %.1f", camera->viewport.x, camera->viewport.y);
+          }
+        }
+        ImGui::EndTabItem();
+      }
+    }
+    ImGui::EndTabBar();
   }
   ImGui::End();
 }
@@ -176,7 +251,18 @@ void EditorMainMenuBar() {
   }
 }
 
+void EditorUpdateCursor() {
+  v2f cursor = window::GetCursorPosition();
+  kCursor.global_screen = cursor;
+  ImGuiStyle& style = ImGui::GetStyle();
+  kCursor.viewport_screen = v2f(cursor.x - kExplorerWidth - style.WindowPadding.x, cursor.y);
+  kCursor.viewport_world_unscaled = kCursor.viewport_screen - kEditorState.render_viewport.Dims() / 2.f;
+  kCursor.viewport_world = kCursor.viewport_world_unscaled / EditorViewportCurrentScale();
+  kCursor.is_in_viewport = math::PointInRect(kCursor.global_screen, kEditorState.render_viewport_in_editor);
+}
+
 void EditorRenderViewport() {
+  EditorUpdateCursor();
   ImGuiWindowFlags window_flags = 0;
   window_flags |= ImGuiWindowFlags_NoCollapse;
   window_flags |= ImGuiWindowFlags_NoTitleBar;
@@ -185,8 +271,9 @@ void EditorRenderViewport() {
   r32 render_view_width = wsize.x - kExplorerWidth;
   ImVec2 imsize = ImVec2(render_view_width, wsize.y);
   // The viewport as it exists in the global bounds of the editor window.
+  ImGuiStyle& style = ImGui::GetStyle();
   kEditorState.render_viewport_in_editor = Rectf(
-    kRenderViewStart, 0.f, imsize.x - 15.f, imsize.y - 50.f);
+    kRenderViewStart + style.WindowPadding.x, 0.f, imsize.x - 15.f, imsize.y - 50.f);
   // The viewport as it exists in the local bounds of the viewport.
   kEditorState.render_viewport = Rectf(
     0.f, 0.f, imsize.x - 15.f, imsize.y - 50.f);

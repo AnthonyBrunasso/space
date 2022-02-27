@@ -44,8 +44,16 @@ void CameraResetAll() {
   }
 }
 
+Camera* CameraGet(u32 camera_tag, u32 camera_index) {
+  return &kCamera[camera_tag][camera_index];
+}
+
+Camera* CameraGet(u32 camera_index) {
+  return &kCamera[kLocalCameraTag][camera_index];
+}
+
 Camera* CameraGetCurrent() {
-  return &kCamera[kCameraState.camera_tag][kCameraState.camera_index];
+  return CameraGet(kCameraState.camera_tag, kCameraState.camera_index);
 }
 
 // Current camera will set its direction to be towards target

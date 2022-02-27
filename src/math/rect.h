@@ -60,6 +60,11 @@ struct Rectf {
     return v2f(x + width, y + height);
   }
 
+  void SetMin(v2f min) {
+    x = min.x;
+    y = min.y;
+  }
+
   math::Polygon<4> Polygon() const {
     math::Polygon<4> poly;
     poly.vertex[0] = v2f(x, y);

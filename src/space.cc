@@ -3,8 +3,8 @@
 #include "editor/editor.cc"
 
 s32 main(s32 argc, char** argv) {
-  kEditorState.window_create_info.window_width = 1280;
-  kEditorState.window_create_info.window_height = 720;
+  kEditorState.window_create_info.window_width = 1600;
+  kEditorState.window_create_info.window_height = 900;
   if (!window::Create("Space", kEditorState.window_create_info)) {
     return 1;
   }

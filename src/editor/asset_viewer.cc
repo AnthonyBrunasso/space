@@ -15,6 +15,24 @@ void EditorAssetViewerDebugLines() {
   rgg::RenderLineRectangle(view_rect, rgg::kRed);
 }
 
+void EditorAssetViewerDrawGrid(r32 space, v4f color) {
+  const Rectf& view_rect = EditorRenderableViewRect();
+  // Lets draw a line every 64 px from origin to the edge of the viewport
+  for (r32 start_x = 0.f; start_x < view_rect.Max().x; start_x += space) {
+    rgg::RenderLine(v2f(start_x, view_rect.Min().y), v2f(start_x, view_rect.Max().y), color);
+    if (start_x > 0) {
+      rgg::RenderLine(v2f(-start_x, view_rect.Min().y), v2f(-start_x, view_rect.Max().y), color);
+    }
+  }
+
+  for (r32 start_y = 0.f; start_y < view_rect.Max().y; start_y += space) {
+    rgg::RenderLine(v2f(view_rect.Min().x, start_y), v2f(view_rect.Max().x, start_y), color);
+    if (start_y > 0) {
+      rgg::RenderLine(v2f(view_rect.Min().x, -start_y), v2f(view_rect.Max().x, -start_y), color);
+    }
+  }
+}
+
 void EditorAssetViewerInit() {
   static bool kInitOnce = true;
   if (!kInitOnce) {
@@ -49,24 +67,12 @@ void EditorAssetViewerMain() {
   glClear(GL_COLOR_BUFFER_BIT);
   // Fill the background with imgui's background color to maintain beauty.
   rgg::RenderRectangle(EditorRenderableViewRect(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
-  EditorAssetViewerDebugLines();
-  // Render a graph every 50 pixels
-    /*for (r32 start_x = -kEditorState.render_viewport.x / 2.f;
-       start_x <= kEditorState.render_viewport.x / 2.f;
-       start_x += 50.f) {
-    rgg::RenderLine(
-        v2f(start_x, -kEditorState.render_viewport.y / 2.f),
-        v2f(start_x, kEditorState.render_viewport.y / 2.f),
-        v4f(1.f, 1.f, 1.f, 0.5f));
-  }
-  for (r32 start_y = -kEditorState.render_viewport.y / 2.f;
-       start_y <= kEditorState.render_viewport.y / 2.f;
-       start_y += 50.f) {
-    rgg::RenderLine(
-        v2f(-kEditorState.render_viewport.x / 2.f, start_y),
-        v2f(kEditorState.render_viewport.x / 2.f, start_y),
-        v4f(1.f, 1.f, 1.f, 0.5f));
-  }*/
+  //EditorAssetViewerDebugLines();
+  rgg::RenderRectangle(Rectf(0.f, 0.f, 128.f, 128.f), rgg::kRed);
+  EditorAssetViewerDrawGrid(64, v4f(1.f, 1.f, 1.f, 0.2f));
+  EditorAssetViewerDrawGrid(32, v4f(1.f, 1.f, 1.f, 0.1f));
+  EditorAssetViewerDrawGrid(16, v4f(1.f, 1.f, 1.f, 0.05f));
+
   rgg::EndRenderTo();
   ImGui::Begin("Debug");
   //ImGui::Text("%.2f %.2f");

@@ -32,6 +32,12 @@ inline void ReplaceFilename(const char* newfname, char* oldfname_with_dir) {
   memcpy(&oldfname_with_dir[idx], newfname, strlen(newfname));
 }
 
+std::string Filename(const char* fullname);
+
+std::string Filename(const std::string& fullname) {
+  return Filename(fullname.c_str());
+}
+
 std::string JoinPath(const char* s1, const char* s2);
 
 std::string JoinPath(const char* s1, const std::string& s2) {

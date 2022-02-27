@@ -294,7 +294,7 @@ v2f GetPrimaryMonitorSize() {
 }
 
 v2f GetCursorPosition() {
-  return v2f(kMouseX, kMouseY);
+  return v2f(kMouseX, kHeightPixels - kMouseY);
 }
 
 b8 ShouldClose() {

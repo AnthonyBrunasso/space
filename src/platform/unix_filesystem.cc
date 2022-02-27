@@ -46,6 +46,13 @@ const char* GetWorkingDirectory() {
   return cwd;
 }
 
+std::string Filename(const char* fullname) {
+  s32 sz = strlen(fullname);
+  s32 i = sz - 1;
+  while (fullname[i--] != '/');
+  return std::string(fullname, i + 2, sz);
+}
+
 std::string JoinPath(const char* s1, const char* s2) {
   // TODO: Make less stupid.
   std::string ret(s1);

@@ -3,12 +3,18 @@
 // ImGui
 //    * Top left is origin.
 
+enum EditorMode {
+  EDITOR_MODE_GAME = 0,
+  EDITOR_MODE_ASSET_VIEWER = 1,
+};
+
 struct EditorState {
   u64 frame_rate = 60;
   window::CreateInfo window_create_info;
   platform::Clock clock;
   Rectf render_viewport_in_editor;
   Rectf render_viewport;
+  EditorMode mode;
 };
 
 static EditorState kEditorState;
@@ -37,6 +43,13 @@ Rectf EditorRenderableViewRect() {
       hack_renderable_edges.width,
       hack_renderable_edges.height);*/
   return hack_renderable_edges;
+}
+
+v2f EditorCursorToRenderView(v2f cursor) {
+  // TODO: What is going on with this +9.f? I can't seem to accurately align my cursor to what I see
+  // in the render viewport.
+  return v2f(cursor.x - (kExplorerWidth + 9.f) - kEditorState.render_viewport.width / 2.f,
+             cursor.y - kEditorState.render_viewport.height / 2.f);
 }
 
 #include "asset_viewer.cc"
@@ -119,7 +132,7 @@ void EditorFileBrowser() {
   window_flags |= ImGuiWindowFlags_NoTitleBar;
   v2f wsize = window::GetWindowSize();
   float item_height = ImGui::GetTextLineHeightWithSpacing();
-  ImGui::SetNextWindowSize(ImVec2(kExplorerWidth, wsize.y));
+  ImGui::SetNextWindowSize(ImVec2(kExplorerWidth, wsize.y * (3 / 5.f)));
   ImGui::SetNextWindowPos(ImVec2(kExplorerStart, item_height + 1.f), ImGuiCond_Always);
   ImGui::Begin("File Browser", nullptr, window_flags);
   char dir[256] = {};
@@ -130,6 +143,26 @@ void EditorFileBrowser() {
   strcat(dir, "/../");
 #endif
   EditorFilesFrom(dir);
+  ImGui::End();
+}
+
+void EditorDebugMenu() {
+  ImGuiWindowFlags window_flags = 0;
+  window_flags |= ImGuiWindowFlags_NoCollapse;
+  window_flags |= ImGuiWindowFlags_NoTitleBar;
+  v2f wsize = window::GetWindowSize();
+  float item_height = ImGui::GetTextLineHeightWithSpacing();
+  ImGui::SetNextWindowSize(ImVec2(kExplorerWidth, wsize.y * (2 / 5.f)));
+  ImGui::SetNextWindowPos(ImVec2(kExplorerStart, (item_height + 1.f) + wsize.y * (3 / 5.f)), ImGuiCond_Always);
+  ImGui::Begin("Debug", nullptr, window_flags);
+  switch (kEditorState.mode) {
+    case EDITOR_MODE_GAME: {
+      EditorGameViewerDebug();
+    } break;
+    case EDITOR_MODE_ASSET_VIEWER: {
+      EditorAssetViewerDebug();
+    } break;
+  }
   ImGui::End();
 }
 
@@ -153,8 +186,7 @@ void EditorRenderViewport() {
   ImVec2 imsize = ImVec2(render_view_width, wsize.y);
   // The viewport as it exists in the global bounds of the editor window.
   kEditorState.render_viewport_in_editor = Rectf(
-    kRenderViewStart, item_height + 1.f,
-    imsize.x - 15.f, imsize.y - 50.f);
+    kRenderViewStart, 0.f, imsize.x - 15.f, imsize.y - 50.f);
   // The viewport as it exists in the local bounds of the viewport.
   kEditorState.render_viewport = Rectf(
     0.f, 0.f, imsize.x - 15.f, imsize.y - 50.f);
@@ -171,8 +203,14 @@ void EditorRenderViewport() {
     for (s32 i = 0; i < kTabCount; ++i) {
       if (kOpened[i] && ImGui::BeginTabItem(kTabs[i], &kOpened[i], ImGuiTabItemFlags_None)) {
         //ImGui::Text("Tab %s", kTabs[i]);
-        if (i == 0) EditorGameViewerMain();
-        else if (i == 1) EditorAssetViewerMain();
+        if (i == 0) {
+          EditorGameViewerMain();
+          kEditorState.mode = EDITOR_MODE_GAME;
+        }
+        else if (i == 1) {
+          EditorAssetViewerMain();
+          kEditorState.mode = EDITOR_MODE_ASSET_VIEWER;
+        }
         ImGui::EndTabItem();
       }
     }
@@ -185,5 +223,6 @@ void EditorRenderViewport() {
 void EditorMain() {
   EditorMainMenuBar();
   EditorFileBrowser();
+  EditorDebugMenu();
   EditorRenderViewport();
 }

@@ -19,6 +19,7 @@ struct AssetViewer {
   std::string chosen_asset_path;
   bool is_grid_to_texture = true;
   bool clamp_cursor_to_nearest = false;
+  bool show_crosshair = true;
 };
 
 static AssetViewer kAssetViewer;
@@ -150,8 +151,11 @@ void EditorAssetViewerMain() {
     EditorAssetViewerDrawGrid(v2f(0.f, 0.f), R32ToWorld(16), v4f(1.f, 1.f, 1.f, 0.05f));
   }
 
+  // Useful for debugging cursor stuff
+  //rgg::RenderLine(kCursor.viewport_world_unscaled, v2f(0.f, 0.f), rgg::kWhite);
+
   Rectf view = EditorViewportToWorld();
-  if (kCursor.is_in_viewport) {
+  if (kCursor.is_in_viewport && kAssetViewer.show_crosshair) {
     if (kAssetViewer.clamp_cursor_to_nearest) {
       v2f unscaled_clamp = Roundf(kCursor.viewport_world_clamped * kAssetViewer.scale);
       rgg::RenderLine(v2f(view.Min().x, unscaled_clamp.y),
@@ -186,12 +190,12 @@ void EditorAssetViewerDebug() {
     Rectf wrect = EditorRectToWorld(kAssetViewer.texture_asset.Rect());
     ImGui::Text("  origin     %.2f %.2f", wrect.x, wrect.y);
     ImGui::NewLine();
-    ImGui::SliderFloat("scale", &kAssetViewer.scale, 1.f, 5.f, "%.1f", ImGuiSliderFlags_None);
-    ImGui::Checkbox("orient grid to texture", &kAssetViewer.is_grid_to_texture);
-    ImGui::Checkbox("clamp cursor to nearest edge", &kAssetViewer.clamp_cursor_to_nearest);
-    ImGui::NewLine();
   }
-  
+  ImGui::SliderFloat("scale", &kAssetViewer.scale, 1.f, 5.f, "%.0f", ImGuiSliderFlags_None);
+  ImGui::Checkbox("orient grid to texture", &kAssetViewer.is_grid_to_texture);
+  ImGui::Checkbox("clamp cursor to nearest edge", &kAssetViewer.clamp_cursor_to_nearest);
+  ImGui::Checkbox("render crosshair", &kAssetViewer.show_crosshair);
+  ImGui::NewLine();
 }
 
 rgg::Camera* EditorAssetViewerCamera() {

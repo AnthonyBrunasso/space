@@ -313,12 +313,13 @@ void EditorUpdateCursor() {
   kCursor.global_screen = cursor;
   ImGuiStyle& style = ImGui::GetStyle();
   kCursor.viewport_screen = v2f(cursor.x - kExplorerWidth - style.WindowPadding.x, cursor.y);
-  kCursor.viewport_world_unscaled = kCursor.viewport_screen - kEditorState.render_viewport.Dims() / 2.f;
+  kCursor.viewport_world_unscaled = kCursor.viewport_screen - (kEditorState.render_viewport.Dims() / 2.f);
   r32 scale = EditorViewportCurrentScale();
   kCursor.viewport_world = kCursor.viewport_world_unscaled / scale;
   rgg::Camera* camera = EditorViewportCurrentCamera();
   if (camera) {
     kCursor.viewport_world += (camera->position.xy() / scale);
+    kCursor.viewport_world_unscaled += camera->position.xy();
   }
   kCursor.is_in_viewport = math::PointInRect(kCursor.global_screen, kEditorState.render_viewport_in_editor);
   // Clamp to nearest grid edge.

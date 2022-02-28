@@ -48,8 +48,14 @@ void EditorAssetViewerDrawAxis(v2f origin_scaled) {
 }
 
 v2f EditorAssetViewerCursorInTexture(const rgg::Texture& texture) {
-  v2f viewport_world_to_texture = kCursor.viewport_world + (texture.Rect().Dims() / 2.0);
-  return math::Roundf(viewport_world_to_texture);
+  v2f world_to_texture;
+  if (kAssetViewer.clamp_cursor_to_nearest) {
+    world_to_texture = kCursor.world_clamped + (texture.Rect().Dims() / 2.0);
+  }
+  else {
+    world_to_texture = kCursor.world + (texture.Rect().Dims() / 2.0);
+  }
+  return math::Roundf(world_to_texture);
 }
 
 void EditorAssetViewerRenderAsset() {
@@ -67,25 +73,54 @@ void EditorAssetViewerDebugLines() {
   rgg::RenderLineRectangle(view_rect, rgg::kRed);
 }
 
-// Could alternatively render this to a texture once and use that for the lifespan of the asset
-// that's being viewed.
-void EditorAssetViewerDrawGrid(v2f start_scaled, r32 space_scaled, v4f color) {
+r32 __get_grid_line_color(s32 alpha_num, s32 alpha_1, s32 alpha_2, s32 alpha_3) {
+  if (alpha_num == alpha_1) return .1f;
+  if (alpha_num == alpha_2) return .2f;
+  if (alpha_num == alpha_3) return .4f;
+  return .1f;
+}
+
+void EditorAssetViewerDrawGrid(v2f start_scaled, const EditorGrid& grid, v4f color) {
   const Rectf& view_rect = ScaleEditorViewport();
+  s32 scaled_width = ScaleS32(grid.cell_width);
+  s32 scaled_height = ScaleS32(grid.cell_height);
+  s32 alpha_1_width = scaled_width;
+  s32 alpha_2_width = alpha_1_width * 2;
+  s32 alpha_3_width = alpha_2_width * 2;
+  s32 alpha_1_height = scaled_height;
+  s32 alpha_2_height = alpha_1_height * 2;
+  s32 alpha_3_height = alpha_2_height * 2;
   // Draw lines right
-  for (r32 start_x = start_scaled.x; start_x <= view_rect.Max().x; start_x += space_scaled) {
+  s32 alpha_num = 0;
+  for (r32 start_x = start_scaled.x; start_x <= view_rect.Max().x; start_x += scaled_width) {
+    color.w = __get_grid_line_color(alpha_num, alpha_1_width, alpha_2_width, alpha_3_width);
     rgg::RenderLine(v2f(start_x, view_rect.Min().y), v2f(start_x, view_rect.Max().y), color);
+    alpha_num += scaled_width;
+    if (alpha_num > alpha_3_width) alpha_num = alpha_1_width;
   }
   // Draw lines left
-  for (r32 start_x = start_scaled.x - space_scaled; start_x >= view_rect.Min().x; start_x -= space_scaled) {
+  alpha_num = alpha_1_width;
+  for (r32 start_x = start_scaled.x - scaled_width; start_x >= view_rect.Min().x; start_x -= scaled_width) {
+    color.w = __get_grid_line_color(alpha_num, alpha_1_width, alpha_2_width, alpha_3_width);
     rgg::RenderLine(v2f(start_x, view_rect.Min().y), v2f(start_x, view_rect.Max().y), color);
+    alpha_num += scaled_width;
+    if (alpha_num > alpha_3_width) alpha_num = alpha_1_width;
   }
   // Draw lines up
-  for (r32 start_y = start_scaled.y; start_y <= view_rect.Max().y; start_y += space_scaled) {
+  alpha_num = 0;
+  for (r32 start_y = start_scaled.y; start_y <= view_rect.Max().y; start_y += scaled_height) {
+    color.w = __get_grid_line_color(alpha_num, alpha_1_height, alpha_2_height, alpha_3_height);
     rgg::RenderLine(v2f(view_rect.Min().x, start_y), v2f(view_rect.Max().x, start_y), color);
+    alpha_num += scaled_height;
+    if (alpha_num > alpha_3_height) alpha_num = alpha_1_height;
   }
   // Draw lines down
-  for (r32 start_y = start_scaled.y - space_scaled; start_y >= view_rect.Min().y; start_y -= space_scaled) {
+  alpha_num = alpha_1_height;
+  for (r32 start_y = start_scaled.y - scaled_height; start_y >= view_rect.Min().y; start_y -= scaled_height) {
+    color.w = __get_grid_line_color(alpha_num, alpha_1_height, alpha_2_height, alpha_3_height);
     rgg::RenderLine(v2f(view_rect.Min().x, start_y), v2f(view_rect.Max().x, start_y), color);
+    alpha_num += scaled_height;
+    if (alpha_num > alpha_3_height) alpha_num = alpha_1_height;
   }
 }
 
@@ -118,6 +153,7 @@ void EditorAssetViewerMain() {
                       texture_info, &kAssetViewer.texture_asset)) {
       LOG(WARN, "Unable to load asset %s", kAssetViewer.chosen_asset_path.c_str());
     }
+    kGrid.origin = EditorAssetViewerTextureBottomLeft(kAssetViewer.texture_asset);
     kAssetViewer.chosen_asset_path.clear();
   }
 
@@ -138,37 +174,32 @@ void EditorAssetViewerMain() {
   rgg::RenderRectangle(ScaleEditorViewport(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
   EditorAssetViewerRenderAsset();
 
+  v2f origin_scaled = ScaleVec2(v2f(0.f, 0.f));
   if (kAssetViewer.texture_asset.IsValid() && kAssetViewer.is_grid_to_texture) {
-    v2f origin_scaled = ScaleVec2(EditorAssetViewerTextureBottomLeft(kAssetViewer.texture_asset));
-    EditorAssetViewerDrawGrid(origin_scaled, ScaleR32(64), v4f(1.f, 1.f, 1.f, 0.2f));
-    EditorAssetViewerDrawGrid(origin_scaled, ScaleR32(32), v4f(1.f, 1.f, 1.f, 0.1f));
-    EditorAssetViewerDrawGrid(origin_scaled, ScaleR32(16), v4f(1.f, 1.f, 1.f, 0.05f));
-    EditorAssetViewerDrawAxis(origin_scaled);
-  }
-  else {
-    EditorAssetViewerDrawGrid(v2f(0.f, 0.f), ScaleR32(64), v4f(1.f, 1.f, 1.f, 0.2f));
-    EditorAssetViewerDrawGrid(v2f(0.f, 0.f), ScaleR32(32), v4f(1.f, 1.f, 1.f, 0.1f));
-    EditorAssetViewerDrawGrid(v2f(0.f, 0.f), ScaleR32(16), v4f(1.f, 1.f, 1.f, 0.05f));
+    origin_scaled = ScaleVec2(kGrid.origin);
   }
 
+  EditorAssetViewerDrawGrid(origin_scaled, kGrid, v4f(1.f, 1.f, 1.f, 0.2f));
+  EditorAssetViewerDrawAxis(origin_scaled);
+
   // Useful for debugging cursor stuff
-  //rgg::RenderLine(kCursor.viewport_world_unscaled, v2f(0.f, 0.f), rgg::kWhite);
+  //rgg::RenderLine(kCursor.world, v2f(0.f, 0.f), rgg::kWhite);
 
   Rectf view = ScaleEditorViewport();
   if (kCursor.is_in_viewport && kAssetViewer.show_crosshair) {
     if (kAssetViewer.clamp_cursor_to_nearest) {
-      v2f unscaled_clamp = Roundf(kCursor.viewport_world_clamped * kAssetViewer.scale);
-      rgg::RenderLine(v2f(view.Min().x, unscaled_clamp.y),
-                      v2f(view.Max().x, unscaled_clamp.y), v4f(1.f, 0.f, 0.f, 1.f));
-      rgg::RenderLine(v2f(unscaled_clamp.x, view.Min().y),
-                      v2f(unscaled_clamp.x, view.Max().y), v4f(1.f, 0.f, 0.f, 1.f));
+      v2f scaled_clamp = kCursor.world_clamped * kAssetViewer.scale;
+      rgg::RenderLine(v2f(view.Min().x, scaled_clamp.y),
+                      v2f(view.Max().x, scaled_clamp.y), v4f(1.f, 0.f, 0.f, 1.f));
+      rgg::RenderLine(v2f(scaled_clamp.x, view.Min().y),
+                      v2f(scaled_clamp.x, view.Max().y), v4f(1.f, 0.f, 0.f, 1.f));
 
     }
     else {
-      rgg::RenderLine(v2f(view.Min().x, kCursor.viewport_world_unscaled.y),
-                      v2f(view.Max().x, kCursor.viewport_world_unscaled.y), v4f(1.f, 0.f, 0.f, 1.f));
-      rgg::RenderLine(v2f(kCursor.viewport_world_unscaled.x, view.Min().y),
-                      v2f(kCursor.viewport_world_unscaled.x, view.Max().y), v4f(1.f, 0.f, 0.f, 1.f));
+      rgg::RenderLine(v2f(view.Min().x, kCursor.world_scaled.y),
+                      v2f(view.Max().x, kCursor.world_scaled.y), v4f(1.f, 0.f, 0.f, 1.f));
+      rgg::RenderLine(v2f(kCursor.world_scaled.x, view.Min().y),
+                      v2f(kCursor.world_scaled.x, view.Max().y), v4f(1.f, 0.f, 0.f, 1.f));
     }
   }
 

@@ -27,31 +27,31 @@ struct EditorState {
 };
 
 struct EditorGrid {
-  s32 cell_size;
-  //s32
+  s32 cell_width = 16;
+  s32 cell_height = 16;
+  v2f origin = v2f(0.f, 0.f);
 };
 
-static const s32 kGridClamp = 16;
 
 struct EditorCursor {
   // x-y coordinates of the cursor in the editor, assuming bottom left is origin.
   v2f global_screen;
   // x-y coordinates of the cursor in the game / asset viewer / etc viewport. This will be influenced by
-  // camera / scale / etc.
-  v2f viewport_world;
-  // Viewport world clamped to nearest multiple of kGridClamp.
-  v2f viewport_world_clamped;
-  // x-y coordinates of the cursor in the game / asset viewer / etc viewport. Without scale.
-  v2f viewport_world_unscaled;
-  // x-y coordinates of the cursor in the game / asset viewer, assuming bottom left is origin. Not influenced
-  // by scale.
-  v2f viewport_screen_scaled;
+  // camera / scale / etc. This is in the space that'd be used during rendering.
+  v2f world_scaled;
+  // x-y coordinates of the cursor in the game / asset viewer / etc viewport. This is the space that all game
+  // logic should take place in before scaling for rendering.
+  v2f world;
+  // x-y coordinate of the nearest edge given by kGrid.
+  v2f world_clamped;
+  // x-y coordinates of the cursor in the game / asset viewer, assuming bottom left is origin.
+  v2f local_screen;
   // True when the cursor is in the game / asset viewer.
   bool is_in_viewport = false;
 };
 
 static EditorCursor kCursor;
-
+static EditorGrid kGrid;
 static EditorState kEditorState;
 
 static s32 kExplorerStart = 0;
@@ -75,6 +75,11 @@ r32 ScaleR32(r32 v) {
   return v * scale;
 }
 
+s32 ScaleS32(s32 v) {
+  r32 scale = EditorViewportCurrentScale();
+  return v * scale;
+}
+
 Rectf ScaleEditorRect(const Rectf& rect) {
   r32 scale = EditorViewportCurrentScale();
   Rectf dest = rect;
@@ -87,9 +92,26 @@ Rectf ScaleEditorRect(const Rectf& rect) {
   return dest;
 }
 
+Rectf RectToWorld(const Rectf& rect) {
+  Rectf dest = rect;
+  dest.x -= dest.width / 2.f;
+  dest.y -= dest.height / 2.f;
+  return dest;
+}
+
 Rectf ScaleEditorViewport() {
   Rectf renderable_edges = kEditorState.render_viewport;
   return ScaleEditorRect(renderable_edges);
+}
+
+EditorGrid ScaleGrid(const EditorGrid& grid) {
+  r32 scale = EditorViewportCurrentScale();
+  EditorGrid scaled_grid;
+  scaled_grid.cell_width = grid.cell_width * scale;
+  scaled_grid.cell_height = grid.cell_height * scale;
+  scaled_grid.origin.x = grid.origin.x * scale;
+  scaled_grid.origin.y = grid.origin.y * scale;
+  return scaled_grid;
 }
 
 #include "asset_viewer.cc"
@@ -135,25 +157,25 @@ void EditorProcessEvent(PlatformEvent& event) {
         case KEY_ARROW_UP: {
           rgg::Camera* camera = EditorViewportCurrentCamera();
           if (camera) {
-            camera->position += v2f(0.f, 16.f);
+            camera->position += v2f(0.f, ScaleR32(16.f));
           }
         } break;
         case KEY_ARROW_RIGHT: {
           rgg::Camera* camera = EditorViewportCurrentCamera();
           if (camera) {
-            camera->position += v2f(16.f, 0.f);
+            camera->position += v2f(ScaleR32(16.f), 0.f);
           }
         } break;
         case KEY_ARROW_DOWN: {
           rgg::Camera* camera = EditorViewportCurrentCamera();
           if (camera) {
-            camera->position += v2f(0.f, -16.f);
+            camera->position += v2f(0.f, ScaleR32(-16.f));
           }
         } break;
         case KEY_ARROW_LEFT: {
           rgg::Camera* camera = EditorViewportCurrentCamera();
           if (camera) {
-            camera->position += v2f(-16.f, 0.f);
+            camera->position += v2f(ScaleR32(-16.f), 0.f);
           }
         } break;
       }
@@ -271,19 +293,20 @@ void EditorDebugMenu() {
           ImGui::Text("  global screen             %.0f %.0f",
                       kCursor.global_screen.x, kCursor.global_screen.y);
           if (kCursor.is_in_viewport) {
-            ImGui::Text("  viewport world unscaled   %.0f %.0f",
-                        kCursor.viewport_world_unscaled.x, kCursor.viewport_world_unscaled.y);
-            ImGui::Text("  viewport world            %.0f %.0f",
-                        kCursor.viewport_world.x, kCursor.viewport_world.y);
-            ImGui::Text("  viewport world clamped    %.0f %.0f",
-                        kCursor.viewport_world_clamped.x, kCursor.viewport_world_clamped.y);
-            ImGui::Text("  viewport screen scaled    %.0f %.0f",
-                        kCursor.viewport_screen_scaled.x, kCursor.viewport_screen_scaled.y);
+            ImGui::Text("  world                     %.0f %.0f",
+                        kCursor.world.x, kCursor.world.y);
+            ImGui::Text("  world scaled              %.0f %.0f",
+                        kCursor.world_scaled.x, kCursor.world_scaled.y);
+            ImGui::Text("  world clamped             %.0f %.0f",
+                        kCursor.world_clamped.x, kCursor.world_clamped.y);
+            ImGui::Text("  local screen              %.0f %.0f",
+                        kCursor.local_screen.x, kCursor.local_screen.y);
           }
           else {
-            ImGui::Text("  viewport world unscaled   x x");
-            ImGui::Text("  viewport world            x x");
-            ImGui::Text("  viewport screen scaled    x x");
+            ImGui::Text("  world                     x x");
+            ImGui::Text("  world scaled              x x");
+            ImGui::Text("  world clamped             x x");
+            ImGui::Text("  local screen              x x");
           }
           ImGui::NewLine();
           rgg::Camera* camera = EditorViewportCurrentCamera();
@@ -293,7 +316,12 @@ void EditorDebugMenu() {
             ImGui::Text("  dir    %.1f %.1f %.1f", camera->dir.x, camera->dir.y, camera->dir.z);
             ImGui::Text("  up     %.1f %.1f %.1f", camera->up.x, camera->up.y, camera->up.z);
             ImGui::Text("  vp     %.1f %.1f", camera->viewport.x, camera->viewport.y);
+            ImGui::NewLine();
           }
+
+          ImGui::Text("World grid origin (%.1f %.1f)", kGrid.origin.x, kGrid.origin.y);
+          ImGui::SliderInt("cellw", &kGrid.cell_width, 16, 64);
+          ImGui::SliderInt("cellh", &kGrid.cell_height, 16, 64);
         }
         ImGui::EndTabItem();
       }
@@ -317,27 +345,30 @@ void EditorUpdateCursor() {
   v2f cursor = window::GetCursorPosition();
   kCursor.global_screen = cursor;
   ImGuiStyle& style = ImGui::GetStyle();
-  kCursor.viewport_screen_scaled = v2f(cursor.x - kExplorerWidth - style.WindowPadding.x, cursor.y);
-  kCursor.viewport_world_unscaled = kCursor.viewport_screen_scaled - (kEditorState.render_viewport.Dims() / 2.f);
+  kCursor.local_screen = v2f(cursor.x - kExplorerWidth - style.WindowPadding.x, cursor.y);
+  // User sees a scaled version of the world therefore a cursor placed in that space is in scaled world
+  // space
+  kCursor.world_scaled = kCursor.local_screen - (kEditorState.render_viewport.Dims() / 2.f);
   r32 scale = EditorViewportCurrentScale();
-  kCursor.viewport_world = kCursor.viewport_world_unscaled / scale;
+  // To get the inverse world space we divide out the scale.
+  kCursor.world = Roundf(kCursor.world_scaled / scale);
   rgg::Camera* camera = EditorViewportCurrentCamera();
   if (camera) {
-    kCursor.viewport_world += (camera->position.xy() / scale);
-    kCursor.viewport_world_unscaled += camera->position.xy();
+    kCursor.world += (camera->position.xy() / scale);
+    kCursor.world_scaled += camera->position.xy();
   }
   kCursor.is_in_viewport = math::PointInRect(kCursor.global_screen, kEditorState.render_viewport_in_editor);
+  // Move the cursor into grid space in the world
+  v2f cursor_relative = kCursor.world - kGrid.origin;
   // Clamp to nearest grid edge.
   Rectf rgrid;
-  rgrid.x = roundf(kCursor.viewport_world.x - ((int)roundf(kCursor.viewport_world.x) % kGridClamp));
-  rgrid.y = roundf(kCursor.viewport_world.y - ((int)roundf(kCursor.viewport_world.y) % kGridClamp));
-  //kCursor.viewport_world_clamped.x = kCursor.viewport_world.x < 0.f ? rgrid.x - kGridClamp : rgrid.x;
-  //kCursor.viewport_world_clamped.y = kCursor.viewport_world.y < 0.f ? rgrid.y - kGridClamp : rgrid.y;
-  rgrid.x = kCursor.viewport_world.x < 0.f ? rgrid.x - kGridClamp : rgrid.x;
-  rgrid.y = kCursor.viewport_world.y < 0.f ? rgrid.y - kGridClamp : rgrid.y;
-  rgrid.width = kGridClamp;
-  rgrid.height = kGridClamp;
-  kCursor.viewport_world_clamped = Roundf(rgrid.NearestEdge(kCursor.viewport_world));
+  rgrid.x = roundf(cursor_relative.x - ((int)roundf(cursor_relative.x) % kGrid.cell_width));
+  rgrid.y = roundf(cursor_relative.y - ((int)roundf(cursor_relative.y) % kGrid.cell_height));
+  rgrid.x = cursor_relative.x < 0.f ? rgrid.x - kGrid.cell_width : rgrid.x;
+  rgrid.y = cursor_relative.y < 0.f ? rgrid.y - kGrid.cell_height : rgrid.y;
+  rgrid.width = kGrid.cell_width;
+  rgrid.height = kGrid.cell_height;
+  kCursor.world_clamped = Roundf(rgrid.NearestEdge(cursor_relative)) + kGrid.origin;
 }
 
 void EditorRenderViewport() {

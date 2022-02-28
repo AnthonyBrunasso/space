@@ -26,6 +26,11 @@ struct EditorState {
   EditorMode mode;
 };
 
+struct EditorGrid {
+  s32 cell_size;
+  //s32
+};
+
 static const s32 kGridClamp = 16;
 
 struct EditorCursor {
@@ -40,7 +45,7 @@ struct EditorCursor {
   v2f viewport_world_unscaled;
   // x-y coordinates of the cursor in the game / asset viewer, assuming bottom left is origin. Not influenced
   // by scale.
-  v2f viewport_screen;
+  v2f viewport_screen_scaled;
   // True when the cursor is in the game / asset viewer.
   bool is_in_viewport = false;
 };
@@ -60,17 +65,17 @@ r32 EditorViewportCurrentScale();
 // We hand screw the scale to avoid avoid scaling in shaders. This gives tighter control of of pixely things.
 // Idk if this is the correct move (instead of using camera scale and in shader). But This is the world
 // we live in.
-v2f Vec2ToWorld(const v2f& vec) {
+v2f ScaleVec2(const v2f& vec) {
   r32 scale = EditorViewportCurrentScale();
   return vec * scale;
 }
 
-r32 R32ToWorld(r32 v) {
+r32 ScaleR32(r32 v) {
   r32 scale = EditorViewportCurrentScale();
   return v * scale;
 }
 
-Rectf EditorRectToWorld(const Rectf& rect) {
+Rectf ScaleEditorRect(const Rectf& rect) {
   r32 scale = EditorViewportCurrentScale();
   Rectf dest = rect;
   if (scale != 1.f) {
@@ -82,9 +87,9 @@ Rectf EditorRectToWorld(const Rectf& rect) {
   return dest;
 }
 
-Rectf EditorViewportToWorld() {
+Rectf ScaleEditorViewport() {
   Rectf renderable_edges = kEditorState.render_viewport;
-  return EditorRectToWorld(renderable_edges);
+  return ScaleEditorRect(renderable_edges);
 }
 
 #include "asset_viewer.cc"
@@ -272,13 +277,13 @@ void EditorDebugMenu() {
                         kCursor.viewport_world.x, kCursor.viewport_world.y);
             ImGui::Text("  viewport world clamped    %.0f %.0f",
                         kCursor.viewport_world_clamped.x, kCursor.viewport_world_clamped.y);
-            ImGui::Text("  viewport screen           %.0f %.0f",
-                        kCursor.viewport_screen.x, kCursor.viewport_screen.y);
+            ImGui::Text("  viewport screen scaled    %.0f %.0f",
+                        kCursor.viewport_screen_scaled.x, kCursor.viewport_screen_scaled.y);
           }
           else {
             ImGui::Text("  viewport world unscaled   x x");
             ImGui::Text("  viewport world            x x");
-            ImGui::Text("  viewport screen           x x");
+            ImGui::Text("  viewport screen scaled    x x");
           }
           ImGui::NewLine();
           rgg::Camera* camera = EditorViewportCurrentCamera();
@@ -312,8 +317,8 @@ void EditorUpdateCursor() {
   v2f cursor = window::GetCursorPosition();
   kCursor.global_screen = cursor;
   ImGuiStyle& style = ImGui::GetStyle();
-  kCursor.viewport_screen = v2f(cursor.x - kExplorerWidth - style.WindowPadding.x, cursor.y);
-  kCursor.viewport_world_unscaled = kCursor.viewport_screen - (kEditorState.render_viewport.Dims() / 2.f);
+  kCursor.viewport_screen_scaled = v2f(cursor.x - kExplorerWidth - style.WindowPadding.x, cursor.y);
+  kCursor.viewport_world_unscaled = kCursor.viewport_screen_scaled - (kEditorState.render_viewport.Dims() / 2.f);
   r32 scale = EditorViewportCurrentScale();
   kCursor.viewport_world = kCursor.viewport_world_unscaled / scale;
   rgg::Camera* camera = EditorViewportCurrentCamera();

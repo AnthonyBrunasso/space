@@ -37,13 +37,13 @@ v2f __svec(v2f vec) {
   return vec * kAssetViewer.scale;
 }
 
-void EditorAssetViewerDrawAxis(v2f origin_world) {
-  const Rectf& view_rect = EditorViewportToWorld();
-  rgg::RenderLine(v2f(origin_world.x, view_rect.Min().y),
-                  v2f(origin_world.x, view_rect.Max().y),
+void EditorAssetViewerDrawAxis(v2f origin_scaled) {
+  const Rectf& view_rect = ScaleEditorViewport();
+  rgg::RenderLine(v2f(origin_scaled.x, view_rect.Min().y),
+                  v2f(origin_scaled.x, view_rect.Max().y),
                   v4f(0.f, 1.f, 0.f, 0.5f));
-  rgg::RenderLine(v2f(view_rect.Min().x, origin_world.y),
-                  v2f(view_rect.Max().x, origin_world.y),
+  rgg::RenderLine(v2f(view_rect.Min().x, origin_scaled.y),
+                  v2f(view_rect.Max().x, origin_scaled.y),
                   v4f(0.f, 0.f, 1.f, 0.5f));
 }
 
@@ -55,13 +55,13 @@ v2f EditorAssetViewerCursorInTexture(const rgg::Texture& texture) {
 void EditorAssetViewerRenderAsset() {
   const rgg::Texture& tex = kAssetViewer.texture_asset;
   if (!tex.IsValid()) return;
-  Rectf dest = EditorRectToWorld(tex.Rect());
+  Rectf dest = ScaleEditorRect(tex.Rect());
   rgg::RenderTexture(tex, tex.Rect(), dest);
 }
 
 // Just a way to verify lines work with the viewport, etc.
 void EditorAssetViewerDebugLines() {
-  const Rectf& view_rect = EditorViewportToWorld();
+  const Rectf& view_rect = ScaleEditorViewport();
   rgg::RenderLine(view_rect.BottomLeft(), view_rect.TopRight(), rgg::kGreen);
   rgg::RenderLine(view_rect.TopLeft(), view_rect.BottomRight(), rgg::kBlue);
   rgg::RenderLineRectangle(view_rect, rgg::kRed);
@@ -69,22 +69,22 @@ void EditorAssetViewerDebugLines() {
 
 // Could alternatively render this to a texture once and use that for the lifespan of the asset
 // that's being viewed.
-void EditorAssetViewerDrawGrid(v2f start_world, r32 space_world, v4f color) {
-  const Rectf& view_rect = EditorViewportToWorld();
+void EditorAssetViewerDrawGrid(v2f start_scaled, r32 space_scaled, v4f color) {
+  const Rectf& view_rect = ScaleEditorViewport();
   // Draw lines right
-  for (r32 start_x = start_world.x; start_x <= view_rect.Max().x; start_x += space_world) {
+  for (r32 start_x = start_scaled.x; start_x <= view_rect.Max().x; start_x += space_scaled) {
     rgg::RenderLine(v2f(start_x, view_rect.Min().y), v2f(start_x, view_rect.Max().y), color);
   }
   // Draw lines left
-  for (r32 start_x = start_world.x - space_world; start_x >= view_rect.Min().x; start_x -= space_world) {
+  for (r32 start_x = start_scaled.x - space_scaled; start_x >= view_rect.Min().x; start_x -= space_scaled) {
     rgg::RenderLine(v2f(start_x, view_rect.Min().y), v2f(start_x, view_rect.Max().y), color);
   }
   // Draw lines up
-  for (r32 start_y = start_world.y; start_y <= view_rect.Max().y; start_y += space_world) {
+  for (r32 start_y = start_scaled.y; start_y <= view_rect.Max().y; start_y += space_scaled) {
     rgg::RenderLine(v2f(view_rect.Min().x, start_y), v2f(view_rect.Max().x, start_y), color);
   }
   // Draw lines down
-  for (r32 start_y = start_world.y - space_world; start_y >= view_rect.Min().y; start_y -= space_world) {
+  for (r32 start_y = start_scaled.y - space_scaled; start_y >= view_rect.Min().y; start_y -= space_scaled) {
     rgg::RenderLine(v2f(view_rect.Min().x, start_y), v2f(view_rect.Max().x, start_y), color);
   }
 }
@@ -135,26 +135,26 @@ void EditorAssetViewerMain() {
   ImVec4 imcolor = style.Colors[ImGuiCol_WindowBg];
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   // Fill the background with imgui's background color to maintain beauty.
-  rgg::RenderRectangle(EditorViewportToWorld(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
+  rgg::RenderRectangle(ScaleEditorViewport(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
   EditorAssetViewerRenderAsset();
 
   if (kAssetViewer.texture_asset.IsValid() && kAssetViewer.is_grid_to_texture) {
-    v2f origin_world = Vec2ToWorld(EditorAssetViewerTextureBottomLeft(kAssetViewer.texture_asset));
-    EditorAssetViewerDrawGrid(origin_world, R32ToWorld(64), v4f(1.f, 1.f, 1.f, 0.2f));
-    EditorAssetViewerDrawGrid(origin_world, R32ToWorld(32), v4f(1.f, 1.f, 1.f, 0.1f));
-    EditorAssetViewerDrawGrid(origin_world, R32ToWorld(16), v4f(1.f, 1.f, 1.f, 0.05f));
-    EditorAssetViewerDrawAxis(origin_world);
+    v2f origin_scaled = ScaleVec2(EditorAssetViewerTextureBottomLeft(kAssetViewer.texture_asset));
+    EditorAssetViewerDrawGrid(origin_scaled, ScaleR32(64), v4f(1.f, 1.f, 1.f, 0.2f));
+    EditorAssetViewerDrawGrid(origin_scaled, ScaleR32(32), v4f(1.f, 1.f, 1.f, 0.1f));
+    EditorAssetViewerDrawGrid(origin_scaled, ScaleR32(16), v4f(1.f, 1.f, 1.f, 0.05f));
+    EditorAssetViewerDrawAxis(origin_scaled);
   }
   else {
-    EditorAssetViewerDrawGrid(v2f(0.f, 0.f), R32ToWorld(64), v4f(1.f, 1.f, 1.f, 0.2f));
-    EditorAssetViewerDrawGrid(v2f(0.f, 0.f), R32ToWorld(32), v4f(1.f, 1.f, 1.f, 0.1f));
-    EditorAssetViewerDrawGrid(v2f(0.f, 0.f), R32ToWorld(16), v4f(1.f, 1.f, 1.f, 0.05f));
+    EditorAssetViewerDrawGrid(v2f(0.f, 0.f), ScaleR32(64), v4f(1.f, 1.f, 1.f, 0.2f));
+    EditorAssetViewerDrawGrid(v2f(0.f, 0.f), ScaleR32(32), v4f(1.f, 1.f, 1.f, 0.1f));
+    EditorAssetViewerDrawGrid(v2f(0.f, 0.f), ScaleR32(16), v4f(1.f, 1.f, 1.f, 0.05f));
   }
 
   // Useful for debugging cursor stuff
   //rgg::RenderLine(kCursor.viewport_world_unscaled, v2f(0.f, 0.f), rgg::kWhite);
 
-  Rectf view = EditorViewportToWorld();
+  Rectf view = ScaleEditorViewport();
   if (kCursor.is_in_viewport && kAssetViewer.show_crosshair) {
     if (kAssetViewer.clamp_cursor_to_nearest) {
       v2f unscaled_clamp = Roundf(kCursor.viewport_world_clamped * kAssetViewer.scale);
@@ -187,7 +187,7 @@ void EditorAssetViewerDebug() {
     ImGui::Text("  dims       %.0f %.0f", kAssetViewer.texture_asset.width, kAssetViewer.texture_asset.height);
     v2f cursor_in_texture = EditorAssetViewerCursorInTexture(kAssetViewer.texture_asset);
     ImGui::Text("  texcoord   %.2f %.2f", cursor_in_texture.x, cursor_in_texture.y);
-    Rectf wrect = EditorRectToWorld(kAssetViewer.texture_asset.Rect());
+    Rectf wrect = ScaleEditorRect(kAssetViewer.texture_asset.Rect());
     ImGui::Text("  origin     %.2f %.2f", wrect.x, wrect.y);
     ImGui::NewLine();
   }

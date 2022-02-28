@@ -14,3 +14,10 @@ add_executable(space
 if (UNIX)
   target_link_libraries(space X11 EGL GL)
 endif (UNIX)
+
+if (MSVC)
+  set_property(TARGET space PROPERTY CXX_STANDARD 17)
+  add_definitions(-DUNICODE)
+  add_definitions(-D_UNICODE)
+  target_link_libraries(space user32 opengl32 gdi32)
+endif(MSVC)

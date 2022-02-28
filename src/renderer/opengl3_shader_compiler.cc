@@ -6,13 +6,22 @@ constexpr uint64_t length = 4096;
 static char kBuffer[length];
 
 uint64_t GLGetShaderInfoLog(uint32_t shader_reference, uint64_t length, char* log) {
+  // IDK - Hack this because it's not clear to me what the issue is.
+#ifdef _WIN32
+  uint32_t actual_length = 0;
+#else
   GLsizei actual_length = 0;
+#endif
   glGetShaderInfoLog(shader_reference, length, &actual_length, log);
   return actual_length;
 }
 
 uint64_t GLGetProgramInfoLog(uint32_t program_reference, uint64_t length, char* log) {
+#ifdef _WIN32
+  uint32_t actual_length = 0;
+#else
   GLsizei actual_length = 0;
+#endif
   glGetProgramInfoLog(program_reference, length, &actual_length, log);
   return actual_length;
 }
@@ -67,7 +76,11 @@ void GLPrintProgramInfoString(GLuint program_reference) {
   for (GLuint i = 0; i < (GLuint)params; i++) {
     char name[64];
     s32 max_length = 64;
+#ifdef _WIN32
+    uint32_t actual_length = 0;
+#else
     GLsizei actual_length = 0;
+#endif
     s32 size = 0;
     GLenum type;
     glGetActiveAttrib(program_reference, i, max_length, &actual_length, &size,
@@ -91,7 +104,11 @@ void GLPrintProgramInfoString(GLuint program_reference) {
   for (GLuint i = 0; i < (GLuint)params; i++) {
     char name[64];
     s32 max_length = 64;
+#ifdef _WIN32
+    uint32_t actual_length = 0;
+#else
     GLsizei actual_length = 0;
+#endif
     s32 size = 0;
     GLenum type;
     glGetActiveUniform(program_reference, i, max_length, &actual_length, &size,

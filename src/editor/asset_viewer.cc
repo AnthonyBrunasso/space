@@ -95,7 +95,6 @@ void EditorAssetViewerProcessEvent(const PlatformEvent& event) {
       } break;
     } break;
     case KEY_DOWN: {
-      LOG(INFO, "event.key: %u", (u32)event.key);
       switch (event.key) {
         case KEY_NUMPAD_UP:
         case KEY_ARROW_UP: {

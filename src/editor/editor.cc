@@ -307,7 +307,14 @@ void EditorFilesFrom(const char* dir) {
     if (EditorCanLoadAsset(file)) {
       if (ImGui::Selectable(file.c_str(), &kChosen)) {
         //LOG(INFO, "Chose asset %s", file.c_str());
+#ifdef _WIN32
+        // Windows does dumb stuff with their API to recursively expand paths. So fix that here.
+        char corrected_dir[256] = {};
+        strncpy(corrected_dir, dir, strlen(dir) - 2);
+        kAssetViewer.chosen_asset_path = filesystem::JoinPath(corrected_dir, file);
+#else
         kAssetViewer.chosen_asset_path = filesystem::JoinPath(dir, file);
+#endif
         kEditorState.mode = EDITOR_MODE_ASSET_VIEWER;
       }
     }

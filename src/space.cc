@@ -3,8 +3,14 @@
 #include "editor/editor.cc"
 
 s32 main(s32 argc, char** argv) {
+  // Cuz my windows machine gots a bigger montior
+#ifdef _WIN32
+  kEditorState.window_create_info.window_width = 1920;
+  kEditorState.window_create_info.window_height = 1080;
+#else
   kEditorState.window_create_info.window_width = 1600;
   kEditorState.window_create_info.window_height = 900;
+#endif
   if (!window::Create("Space", kEditorState.window_create_info)) {
     return 1;
   }

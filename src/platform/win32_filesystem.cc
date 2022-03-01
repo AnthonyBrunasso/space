@@ -42,4 +42,34 @@ WalkDirectory(const char* dir, const std::function<void(const char*, bool)> file
 void ChangeDirectory(const char* dir) {
 }
 
+std::string Filename(const char* fullname) {
+  s32 sz = strlen(fullname);
+  s32 i = sz - 1;
+  while (fullname[i--] != '\\');
+  return std::string(fullname, i + 2, sz);
+}
+
+const char* GetWorkingDirectory() {
+  static bool kDoOnce = true;
+  static char kStrWorkingDirectoryPath[256];
+  if (kDoOnce) {
+    static TCHAR kBinPath[256];
+    GetCurrentDirectory(256, kBinPath);
+    size_t n = 0;
+    wcstombs_s(&n, kStrWorkingDirectoryPath, 256, kBinPath, 256);
+    kDoOnce = false;
+  }
+  return &kStrWorkingDirectoryPath[0];
+}
+
+std::string JoinPath(const char* s1, const char* s2) {
+  // TODO: Make less stupid.
+  std::string ret(s1);
+  ret += "\\";
+  ret += std::string(s2);
+  return ret;
+}
+
+
+
 }  // namespace filesystem

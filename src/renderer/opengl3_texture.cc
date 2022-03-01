@@ -176,7 +176,7 @@ void EndRenderTo() {
   glViewport(0, 0, dims.x, dims.y);
 }
 
-void RenderTexture(const Texture& texture, const Rectf& src, const Rectf& dest, bool mirror = false, bool debug = false) {
+void RenderTexture(const Texture& texture, const Rectf& src, const Rectf& dest, bool mirror = false) {
   glUseProgram(kTextureState.program);
   glBindTexture(GL_TEXTURE_2D, texture.reference);
   glBindVertexArray(kTextureState.vao_reference_static);
@@ -186,11 +186,6 @@ void RenderTexture(const Texture& texture, const Rectf& src, const Rectf& dest, 
   r32 start_y = src.y / texture.height;
   r32 width = src.width / texture.width;
   r32 height = src.height / texture.height;
-
-  if (debug) {
-    LOG(INFO, "src: %.2f %.2f %.2f %.2f", src.x, src.y, src.width, src.height);
-    LOG(INFO, "uv: %.2f %.2f %.2f %.2f", start_x, start_y, width, height);
-  }
 
   if (mirror) {
     uv[0] = {start_x + width, start_y}; // BR
@@ -207,6 +202,7 @@ void RenderTexture(const Texture& texture, const Rectf& src, const Rectf& dest, 
     uv[4] = {start_x, start_y}; // BL
     uv[5] = {start_x + width, start_y + height}; // TR 
   }
+
 #if 0
   LOG(INFO, "uv[0]=(%.3f, %3.f)", uv[0].u, uv[0].v);
   LOG(INFO, "uv[1]=(%.3f, %3.f)", uv[1].u, uv[1].v);
@@ -215,6 +211,7 @@ void RenderTexture(const Texture& texture, const Rectf& src, const Rectf& dest, 
   LOG(INFO, "uv[4]=(%.3f, %3.f)", uv[4].u, uv[4].v);
   LOG(INFO, "uv[5]=(%.3f, %3.f)", uv[5].u, uv[5].v);
 #endif
+
   glBindBuffer(GL_ARRAY_BUFFER, kTextureState.uv_vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(uv), uv, GL_DYNAMIC_DRAW);
   v3f pos(dest.x + dest.width / 2.f, dest.y + dest.height / 2.f, 0.0f);

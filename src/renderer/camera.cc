@@ -2,9 +2,6 @@
 
 #if 1
 
-namespace rgg
-{
-
 enum CameraMode {
   kCameraOverhead,
   kCameraBrowser,
@@ -284,8 +281,6 @@ v3f CameraRayFromMouseToWorld(const v2f& screen, r32 plane_z) {
   r32 t = -(math::Dot(CameraPosition(), n) + plane_z) / math::Dot(ray, n);
   v3f out = CameraPosition() + ray * t;
   return out;
-}
-
 }
 
 #else

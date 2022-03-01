@@ -217,6 +217,7 @@ inline constexpr const char* kTextureFragmentShader = R"(
   layout(location = 0) out vec4 frag_color;
   void main() {
   	frag_color = texture(basic_texture, texture_coordinates);
+  	//frag_color = vec4(1.0, 0.0, 0.0, 1.0);
   }
 )";
 

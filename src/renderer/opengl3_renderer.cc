@@ -115,6 +115,7 @@ static RGG kRGG;
 #include "opengl3_texture.cc"
 #include "texture_cache.cc"
 #include "opengl3_ui.cc"
+#include "camera.cc"
 
 Mat4f
 DefaultPerspective(const v2f& dims, r32 fov = 64.f)
@@ -138,6 +139,16 @@ class ModifyObserver
     view_ = kObserver.view;
     kObserver.projection = proj;
     kObserver.view = view;
+  }
+
+  ModifyObserver(const rgg::Camera& camera)
+  {
+    projection_ = kObserver.projection;
+    view_ = kObserver.view;
+    kObserver.projection =
+        math::Ortho(camera.viewport.x, 0.f, camera.viewport.y, 0.f, -1.f, 1.f);
+    kObserver.view = math::LookAt(
+        camera.position, camera.position + v3f(0.f, 0.f, 1.f), v3f(0.f, -1.f, 0.f));
   }
 
   ~ModifyObserver()

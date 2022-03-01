@@ -180,6 +180,7 @@ rgg::Camera* EditorViewportCurrentCamera() {
       return EditorAssetViewerCamera();
     } break;
   }
+  
   return nullptr;
 }
 
@@ -231,30 +232,6 @@ void EditorProcessEvent(const PlatformEvent& event) {
       switch (event.key) {
         case KEY_ESC: {
           EditorExit();
-        } break;
-        case KEY_ARROW_UP: {
-          rgg::Camera* camera = EditorViewportCurrentCamera();
-          if (camera) {
-            camera->position += v2f(0.f, ScaleR32(16.f));
-          }
-        } break;
-        case KEY_ARROW_RIGHT: {
-          rgg::Camera* camera = EditorViewportCurrentCamera();
-          if (camera) {
-            camera->position += v2f(ScaleR32(16.f), 0.f);
-          }
-        } break;
-        case KEY_ARROW_DOWN: {
-          rgg::Camera* camera = EditorViewportCurrentCamera();
-          if (camera) {
-            camera->position += v2f(0.f, ScaleR32(-16.f));
-          }
-        } break;
-        case KEY_ARROW_LEFT: {
-          rgg::Camera* camera = EditorViewportCurrentCamera();
-          if (camera) {
-            camera->position += v2f(ScaleR32(-16.f), 0.f);
-          }
         } break;
       }
     } break;

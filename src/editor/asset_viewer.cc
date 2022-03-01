@@ -59,6 +59,10 @@ bool EditorAssetViewerCursorInSelection() {
               math::PointInRect(kCursor.global_screen, kAssetViewerSelection.viewport);
 }
 
+rgg::Camera* EditorAssetViewerCamera() {
+  return rgg::CameraGet(kAssetViewer.camera_index);
+}
+
 void EditorAssetViewerProcessEvent(const PlatformEvent& event) {
   switch(event.type) {
     case MOUSE_DOWN: {
@@ -89,6 +93,39 @@ void EditorAssetViewerProcessEvent(const PlatformEvent& event) {
           }
         } break;
       } break;
+    } break;
+    case KEY_DOWN: {
+      LOG(INFO, "event.key: %u", (u32)event.key);
+      switch (event.key) {
+        case KEY_NUMPAD_UP:
+        case KEY_ARROW_UP: {
+          rgg::Camera* camera = EditorAssetViewerCamera();
+          if (camera) {
+            camera->position += v2f(0.f, ScaleR32(16.f));
+          }
+        } break;
+        case KEY_NUMPAD_RIGHT:
+        case KEY_ARROW_RIGHT: {
+          rgg::Camera* camera = EditorAssetViewerCamera();
+          if (camera) {
+            camera->position += v2f(ScaleR32(16.f), 0.f);
+          }
+        } break;
+        case KEY_NUMPAD_DOWN:
+        case KEY_ARROW_DOWN: {
+          rgg::Camera* camera = EditorAssetViewerCamera();
+          if (camera) {
+            camera->position += v2f(0.f, ScaleR32(-16.f));
+          }
+        } break;
+        case KEY_NUMPAD_LEFT:
+        case KEY_ARROW_LEFT: {
+          rgg::Camera* camera = EditorAssetViewerCamera();
+          if (camera) {
+            camera->position += v2f(ScaleR32(-16.f), 0.f);
+          }
+        } break;
+      }
     } break;
   }
 }
@@ -316,10 +353,6 @@ void EditorAssetViewerDebug() {
   ImGui::Checkbox("render crosshair", &kAssetViewer.show_crosshair);
   ImGui::NewLine();
   EditorDebugMenuGrid();
-}
-
-rgg::Camera* EditorAssetViewerCamera() {
-  return rgg::CameraGet(kAssetViewer.camera_index);
 }
 
 r32 EditorAssetViewerScale() {

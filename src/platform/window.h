@@ -18,6 +18,10 @@ constexpr s32 KEY_ARROW_UP = 82;
 constexpr s32 KEY_ARROW_RIGHT = 83;
 constexpr s32 KEY_ARROW_DOWN = 84;
 constexpr s32 KEY_ARROW_LEFT = 81;
+constexpr s32 KEY_NUMPAD_UP = 4294967191;
+constexpr s32 KEY_NUMPAD_RIGHT = 4294967192;
+constexpr s32 KEY_NUMPAD_DOWN = 4294967193;
+constexpr s32 KEY_NUMPAD_LEFT = 4294967190;
 #endif
 
 enum PlatformEventType {

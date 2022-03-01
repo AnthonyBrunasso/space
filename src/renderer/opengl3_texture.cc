@@ -1,5 +1,8 @@
 #pragma once
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 struct Texture {
   char file[64];
   GLuint reference = 0;
@@ -142,98 +145,15 @@ Texture CreateEmptyTexture2D(GLenum format, uint64_t width, uint64_t height) {
   return texture;
 }
 
-b8 LoadTGA(const char* file, const TextureInfo& texture_info, Texture* texture) {
-  // Texture already loaded.
-  if (texture->IsValid()) {
-    return true;
-  }
-#pragma pack(push, 1)
-  struct TgaImageSpec {
-    u16 x_origin;
-    u16 y_origin;
-    u16 image_width;
-    u16 image_height;
-    u8 pixel_depth;
-    u8 image_descriptor;
-  };
-  struct TgaHeader {
-    u8 id_length;
-    u8 color_map_type;
-    u8 image_type;
-    u8 color_map_spec[5];
-  };
-#pragma pack(pop)
-
-  FILE* fptr;
-  u8* buffer;
-  u32 file_length;
-
-  fptr = fopen(file, "rb");
-  if (!fptr) {
-    printf("Failed  to load %s\n", file);
-    return false;
-  }
-  fseek(fptr, 0, SEEK_END);
-  file_length = ftell(fptr);
-  rewind(fptr);
-  buffer = memory::PushBytes(file_length);
-  fread(buffer, file_length, 1, fptr);
-
-  // First load the header.
-  TgaHeader* header = (TgaHeader*)buffer;
-  // Just don't even support colors.
-  assert(header->id_length == 0);
-  assert(header->color_map_type == 0);
-  // Get the image_spec. This has overall image details.
-  TgaImageSpec* image_spec = (TgaImageSpec*)(&buffer[sizeof(TgaHeader)]);
-
-#if 1
-  LOG(INFO, "TGA file: %s header", file);
-  LOG(INFO, "header->id_length: %i", header->id_length);
-  LOG(INFO, "header->color_map_type: %i", header->color_map_type);
-  LOG(INFO, "header->image_type: %i", header->image_type); 
-  LOG(INFO, "TGA file: %s Image Spec", file);
-  LOG(INFO, "image_spec->x_origin: %i", image_spec->x_origin);
-  LOG(INFO, "image_spec->y_origin: %i", image_spec->y_origin);
-  LOG(INFO, "image_spec->image_width: %i", image_spec->image_width);
-  LOG(INFO, "image_spec->image_height: %i", image_spec->image_height);
-  LOG(INFO, "image_spec->pixel_depth: %i", image_spec->pixel_depth);
-  LOG(INFO, "image_spec->image_descriptor: %i", image_spec->image_descriptor);
-#endif
-
-  // Image bytes sz
-  u8* image_bytes = &buffer[sizeof(TgaHeader) + sizeof(TgaImageSpec)];
-  GLenum format = GL_BGRA;
-  if (image_spec->pixel_depth == 8) format = GL_RED;
-  else if (image_spec->pixel_depth == 24) format = GL_RGB;
-  else if (image_spec->pixel_depth == 32) format = GL_RGBA;
-  else {
-    LOG(WARN, "Unsupported tga pixel depth\n");
-    memory::PopBytes(file_length);
-    fclose(fptr);
-    return false;
-  }
-  if (format == GL_RGB || format == GL_RGBA) {
-    s32 stride = image_spec->pixel_depth / 8;
-    u32 image_bytes_size =
-        image_spec->image_width * image_spec->image_height * stride;
-    for (s32 i = 0; i < image_bytes_size; i += stride) {
-      // Swap bytes for red and blue
-      u8 t = image_bytes[i];
-      image_bytes[i] = image_bytes[i + 2];
-      image_bytes[i + 2] = t;
-    }
-  }
-
-  *texture = CreateTexture2D(format, image_spec->image_width,
-                             image_spec->image_height, texture_info,
-                             image_bytes);
-
+b8 LoadFromFile(const char* file, const TextureInfo& texture_info, Texture* texture) {
+  s32 image_width;
+  s32 image_height;
+  int n;
+  stbi_set_flip_vertically_on_load(1);
+  u8* image_bytes = stbi_load(file, &image_width, &image_height, &n, 4);
+  *texture = CreateTexture2D(GL_RGBA, image_width, image_height, texture_info, image_bytes);
   strcpy(texture->file, file);
-
-  // Free buffer used to read in file.
-  memory::PopBytes(file_length);
-  fclose(fptr);
+  free(image_bytes);
   return true;
 }
 
@@ -256,7 +176,7 @@ void EndRenderTo() {
   glViewport(0, 0, dims.x, dims.y);
 }
 
-void RenderTexture(const Texture& texture, const Rectf& src, const Rectf& dest, bool mirror = false) {
+void RenderTexture(const Texture& texture, const Rectf& src, const Rectf& dest, bool mirror = false, bool debug = false) {
   glUseProgram(kTextureState.program);
   glBindTexture(GL_TEXTURE_2D, texture.reference);
   glBindVertexArray(kTextureState.vao_reference_static);
@@ -267,20 +187,25 @@ void RenderTexture(const Texture& texture, const Rectf& src, const Rectf& dest, 
   r32 width = src.width / texture.width;
   r32 height = src.height / texture.height;
 
+  if (debug) {
+    LOG(INFO, "src: %.2f %.2f %.2f %.2f", src.x, src.y, src.width, src.height);
+    LOG(INFO, "uv: %.2f %.2f %.2f %.2f", start_x, start_y, width, height);
+  }
+
   if (mirror) {
-    uv[0] = {start_x + width, start_y + height}; // BR
-    uv[1] = {start_x + width, start_y}; // TR 
-    uv[2] = {start_x, start_y}; // TL
-    uv[3] = {start_x, start_y + height}; // BL
-    uv[4] = {start_x + width, start_y + height}; // BR
-    uv[5] = {start_x, start_y}; // TL
+    uv[0] = {start_x + width, start_y}; // BR
+    uv[1] = {start_x + width, start_y + height}; // TR 
+    uv[2] = {start_x, start_y + height}; // TL
+    uv[3] = {start_x, start_y}; // BL
+    uv[4] = {start_x + width, start_y}; // BR
+    uv[5] = {start_x, start_y + height}; // TL
   } else {
-    uv[0] = {start_x, start_y + height}; // BL
-    uv[1] = {start_x, start_y}; // TL
-    uv[2] = {start_x + width, start_y}; // TR 
-    uv[3] = {start_x + width, start_y + height}; // BR
-    uv[4] = {start_x, start_y + height}; // BL
-    uv[5] = {start_x + width, start_y}; // TR 
+    uv[0] = {start_x, start_y}; // BL
+    uv[1] = {start_x, start_y + height}; // TL
+    uv[2] = {start_x + width, start_y + height}; // TR 
+    uv[3] = {start_x + width, start_y}; // BR
+    uv[4] = {start_x, start_y}; // BL
+    uv[5] = {start_x + width, start_y + height}; // TR 
   }
 #if 0
   LOG(INFO, "uv[0]=(%.3f, %3.f)", uv[0].u, uv[0].v);
@@ -292,7 +217,7 @@ void RenderTexture(const Texture& texture, const Rectf& src, const Rectf& dest, 
 #endif
   glBindBuffer(GL_ARRAY_BUFFER, kTextureState.uv_vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(uv), uv, GL_DYNAMIC_DRAW);
-  v3f pos(dest.x + dest.width / 2.f, dest.y + dest.height / 2.f,0.0f);
+  v3f pos(dest.x + dest.width / 2.f, dest.y + dest.height / 2.f, 0.0f);
   v3f scale(dest.width, dest.height, 1.f);
   Mat4f model = math::Model(pos, scale);
   Mat4f matrix = kObserver.projection * kObserver.view * model;

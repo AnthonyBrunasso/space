@@ -240,6 +240,7 @@ void EditorAssetViewerUpdateSelectionTexture(rgg::Texture* texture, const Rectf&
     *texture = rgg::CreateEmptyTexture2D(GL_RGB, rect.width, rect.height);
   }
   Rectf texrect = kAssetViewerSelection.TexRect();
+  //texrect.y = texrect.height - texrect.y;
   rgg::BeginRenderTo(*texture);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   rgg::RenderTexture(
@@ -254,8 +255,8 @@ void EditorAssetViewerMain() {
     rgg::TextureInfo texture_info;
     texture_info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
     texture_info.mag_filter = GL_NEAREST;
-    if (!rgg::LoadTGA(kAssetViewer.chosen_asset_path.c_str(),
-                      texture_info, &kAssetViewer.texture_asset)) {
+    if (!rgg::LoadFromFile(kAssetViewer.chosen_asset_path.c_str(),
+                           texture_info, &kAssetViewer.texture_asset)) {
       LOG(WARN, "Unable to load asset %s", kAssetViewer.chosen_asset_path.c_str());
     }
     kGrid.origin = EditorAssetViewerTextureBottomLeft(kAssetViewer.texture_asset);

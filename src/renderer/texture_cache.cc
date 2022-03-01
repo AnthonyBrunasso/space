@@ -24,7 +24,7 @@ LoadTexture(const char* texture_file, const TextureInfo& texture_info)
   if (loaded_file_to_id) return loaded_file_to_id->id;
   assert(kUsedTextureHandle < TEXTURE_MAX);
   TextureHandle* t = UseTextureHandle();
-  if (!LoadTGA(texture_file, texture_info, &t->texture)) {
+  if (!LoadFromFile(texture_file, texture_info, &t->texture)) {
     return 0;
   }
   TextureFileToId* file_to_id = UseTextureFileToId(texture_file, len);
@@ -42,7 +42,7 @@ LoadTextureAndSprite(const char* texture_file, const char* sprite_file,
   if (loaded_file_to_id) return loaded_file_to_id->id;
   assert(kUsedTextureHandle < TEXTURE_MAX);
   TextureHandle* t = UseTextureHandle();
-  if (!LoadTGA(texture_file, texture_info, &t->texture)) {
+  if (!LoadFromFile(texture_file, texture_info, &t->texture)) {
     return 0;
   }
   if (!LoadAnimation(sprite_file, &t->sprite)) {

@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
 project(space)
 include_directories(third_party/imgui)
+include_directories(third_party/stb)
 add_subdirectory(src)

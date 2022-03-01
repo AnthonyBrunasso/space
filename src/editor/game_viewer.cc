@@ -1,8 +1,10 @@
 #pragma once
 
-void EditorGameViewerMain() {
+void EditorGameViewerProcessEvent(const PlatformEvent& event) {
 }
 
+void EditorGameViewerMain() {
+}
 
 void EditorGameViewerDebug() {
   ImGui::Text("Game");

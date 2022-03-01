@@ -114,6 +114,39 @@ EditorGrid ScaleGrid(const EditorGrid& grid) {
   return scaled_grid;
 }
 
+struct AssetViewerSelection {
+  // 0 means selection has not started, 1 means the the first selection has been made, 2 means the final
+  // selection has been made.
+  s32 action = 0;
+  v2f start_texcoord;
+  v2f end_texcoord;
+  Rectf TexRect() const {
+    return math::OrientToAabb(math::MakeRect(start_texcoord, end_texcoord));
+  }
+  v2f start_world;
+  v2f end_world;
+  Rectf WorldRect() const {
+    return math::OrientToAabb(math::MakeRect(start_world, end_world));
+  }
+  Rectf WorldRectScaled() const;
+  Rectf viewport;
+};
+
+static AssetViewerSelection kAssetViewerSelection;
+
+void EditorDebugMenuGrid() {
+  ImGui::Text("World grid origin (%.1f %.1f)", kGrid.origin.x, kGrid.origin.y);
+  ImGui::SliderInt("cellw", &kGrid.cell_width, 1, 64);
+  ImGui::SliderInt("cellh", &kGrid.cell_height, 1, 64);
+  if (kAssetViewerSelection.action == 2) {
+    ImGui::Text("asset viewer %.1f %.1f %.1f %.1f", 
+                kAssetViewerSelection.viewport.x,
+                kAssetViewerSelection.viewport.y,
+                kAssetViewerSelection.viewport.width,
+                kAssetViewerSelection.viewport.height);
+  }
+}
+
 #include "asset_viewer.cc"
 #include "game_viewer.cc"
 
@@ -129,7 +162,10 @@ r32 EditorViewportCurrentScale() {
   return 1.f;
 }
 
-
+Rectf AssetViewerSelection::WorldRectScaled() const {
+  r32 scale = EditorViewportCurrentScale();
+  return math::OrientToAabb(math::MakeRect(start_world * scale, end_world * scale));
+}
 
 void EditorExit() {
   exit(0);
@@ -147,7 +183,49 @@ rgg::Camera* EditorViewportCurrentCamera() {
   return nullptr;
 }
 
-void EditorProcessEvent(PlatformEvent& event) {
+void EditorUpdateCursor() {
+  v2f cursor = window::GetCursorPosition();
+  kCursor.global_screen = cursor;
+  ImGuiStyle& style = ImGui::GetStyle();
+  kCursor.local_screen = v2f(cursor.x - kExplorerWidth - style.WindowPadding.x, cursor.y);
+  // User sees a scaled version of the world therefore a cursor placed in that space is in scaled world
+  // space
+  kCursor.world_scaled = kCursor.local_screen - (kEditorState.render_viewport.Dims() / 2.f);
+  r32 scale = EditorViewportCurrentScale();
+  // To get the inverse world space we divide out the scale.
+  kCursor.world = Roundf(kCursor.world_scaled / scale);
+  rgg::Camera* camera = EditorViewportCurrentCamera();
+  if (camera) {
+    kCursor.world += (camera->position.xy() / scale);
+    kCursor.world_scaled += camera->position.xy();
+  }
+  kCursor.is_in_viewport = math::PointInRect(kCursor.global_screen, kEditorState.render_viewport_in_editor);
+  // Move the cursor into grid space in the world
+  v2f cursor_relative = kCursor.world - kGrid.origin;
+  // Clamp to nearest grid edge.
+  Rectf rgrid;
+  rgrid.x = roundf(cursor_relative.x - ((int)roundf(cursor_relative.x) % kGrid.cell_width));
+  rgrid.y = roundf(cursor_relative.y - ((int)roundf(cursor_relative.y) % kGrid.cell_height));
+  rgrid.x = cursor_relative.x < 0.f ? rgrid.x - kGrid.cell_width : rgrid.x;
+  rgrid.y = cursor_relative.y < 0.f ? rgrid.y - kGrid.cell_height : rgrid.y;
+  rgrid.width = kGrid.cell_width;
+  rgrid.height = kGrid.cell_height;
+  kCursor.world_clamped = Roundf(rgrid.NearestEdge(cursor_relative)) + kGrid.origin;
+}
+
+void EditorProcessEvent(const PlatformEvent& event) {
+  // Update cursor state.
+  EditorUpdateCursor();
+
+  switch (kEditorState.mode) {
+    case EDITOR_MODE_GAME: {
+      EditorGameViewerProcessEvent(event);
+    } break;
+    case EDITOR_MODE_ASSET_VIEWER: {
+      EditorAssetViewerProcessEvent(event);
+    } break;
+  }
+
   switch(event.type) {
     case KEY_DOWN: {
       switch (event.key) {
@@ -318,10 +396,7 @@ void EditorDebugMenu() {
             ImGui::Text("  vp     %.1f %.1f", camera->viewport.x, camera->viewport.y);
             ImGui::NewLine();
           }
-
-          ImGui::Text("World grid origin (%.1f %.1f)", kGrid.origin.x, kGrid.origin.y);
-          ImGui::SliderInt("cellw", &kGrid.cell_width, 16, 64);
-          ImGui::SliderInt("cellh", &kGrid.cell_height, 16, 64);
+          EditorDebugMenuGrid();
         }
         ImGui::EndTabItem();
       }
@@ -341,41 +416,11 @@ void EditorMainMenuBar() {
   }
 }
 
-void EditorUpdateCursor() {
-  v2f cursor = window::GetCursorPosition();
-  kCursor.global_screen = cursor;
-  ImGuiStyle& style = ImGui::GetStyle();
-  kCursor.local_screen = v2f(cursor.x - kExplorerWidth - style.WindowPadding.x, cursor.y);
-  // User sees a scaled version of the world therefore a cursor placed in that space is in scaled world
-  // space
-  kCursor.world_scaled = kCursor.local_screen - (kEditorState.render_viewport.Dims() / 2.f);
-  r32 scale = EditorViewportCurrentScale();
-  // To get the inverse world space we divide out the scale.
-  kCursor.world = Roundf(kCursor.world_scaled / scale);
-  rgg::Camera* camera = EditorViewportCurrentCamera();
-  if (camera) {
-    kCursor.world += (camera->position.xy() / scale);
-    kCursor.world_scaled += camera->position.xy();
-  }
-  kCursor.is_in_viewport = math::PointInRect(kCursor.global_screen, kEditorState.render_viewport_in_editor);
-  // Move the cursor into grid space in the world
-  v2f cursor_relative = kCursor.world - kGrid.origin;
-  // Clamp to nearest grid edge.
-  Rectf rgrid;
-  rgrid.x = roundf(cursor_relative.x - ((int)roundf(cursor_relative.x) % kGrid.cell_width));
-  rgrid.y = roundf(cursor_relative.y - ((int)roundf(cursor_relative.y) % kGrid.cell_height));
-  rgrid.x = cursor_relative.x < 0.f ? rgrid.x - kGrid.cell_width : rgrid.x;
-  rgrid.y = cursor_relative.y < 0.f ? rgrid.y - kGrid.cell_height : rgrid.y;
-  rgrid.width = kGrid.cell_width;
-  rgrid.height = kGrid.cell_height;
-  kCursor.world_clamped = Roundf(rgrid.NearestEdge(cursor_relative)) + kGrid.origin;
-}
-
 void EditorRenderViewport() {
-  EditorUpdateCursor();
   ImGuiWindowFlags window_flags = 0;
   window_flags |= ImGuiWindowFlags_NoCollapse;
   window_flags |= ImGuiWindowFlags_NoTitleBar;
+  window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
   v2f wsize = window::GetWindowSize();
   float item_height = ImGui::GetTextLineHeightWithSpacing();
   r32 render_view_width = wsize.x - kExplorerWidth;

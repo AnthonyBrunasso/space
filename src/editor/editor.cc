@@ -330,12 +330,13 @@ void EditorDebugMenu() {
   float item_height = ImGui::GetTextLineHeightWithSpacing();
   ImGui::SetNextWindowSize(ImVec2(kExplorerWidth, wsize.y * (2 / 5.f)));
   ImGui::SetNextWindowPos(ImVec2(kExplorerStart, (item_height + 1.f) + wsize.y * (3 / 5.f)), ImGuiCond_Always);
-  static const s32 kTabCount = 2;
+  static const s32 kTabCount = 3;
   static const char* kTabs[kTabCount] = {
     "Contextual",
-    "System"
+    "System",
+    "Textures"
   };
-  static bool kOpened[kTabCount] = { true, true }; // Persistent user state
+  static bool kOpened[kTabCount] = { true, true, true }; // Persistent user state
   ImGui::Begin("Debug", nullptr, window_flags);
   if (ImGui::BeginTabBar("Debug Tabs")) {
     for (s32 i = 0; i < kTabCount; ++i) {
@@ -381,6 +382,17 @@ void EditorDebugMenu() {
             ImGui::NewLine();
           }
           EditorDebugMenuGrid();
+        }
+        else if (i == 2) {
+          ImGui::Text("Cached Textures (%lu/%u)", rgg::kUsedTextureHandle, RGG_TEXTURE_MAX);
+          ImGui::NewLine();
+          rgg::IterateTextures([](const rgg::TextureHandle* handle) {
+            ImGui::Text("Fullpath (%s)", handle->texture.file.c_str());
+            ImGui::Text("  name    %s", filesystem::Filename(handle->texture.file).c_str());
+            ImGui::Text("  id      %u", handle->id);
+            ImGui::Text("  gl id   %u", handle->texture.reference);
+            ImGui::Text("  dims    %.2f %.2f", handle->texture.width, handle->texture.height);
+          });
         }
         ImGui::EndTabItem();
       }

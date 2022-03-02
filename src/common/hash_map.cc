@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <cstring>
 
-constexpr u32 kMaxHashKeyLength = 64;
+constexpr u32 kMaxHashKeyLength = 128;
 
 struct HashMapStrEntry {
   char str[kMaxHashKeyLength];

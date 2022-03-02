@@ -2,6 +2,7 @@
 
 static const std::vector<std::string> kEditorKnownAssetExtensions = {
   "tga",
+  "png",
 };
 
 bool EditorCanLoadAsset(const std::string& name) {
@@ -176,6 +177,7 @@ void EditorAssetViewerDrawGrid(v2f start_scaled, const EditorGrid& grid, v4f col
   const Rectf& view_rect = ScaleEditorViewport();
   s32 scaled_width = ScaleS32(grid.cell_width);
   s32 scaled_height = ScaleS32(grid.cell_height);
+  assert(scaled_width != 0 && scaled_height != 0);
   s32 alpha_1_width = scaled_width;
   s32 alpha_2_width = alpha_1_width * 2;
   s32 alpha_3_width = alpha_2_width * 2;

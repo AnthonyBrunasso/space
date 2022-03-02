@@ -4,7 +4,7 @@
 #include "stb_image.h"
 
 struct Texture {
-  char file[64];
+  std::string file;
   GLuint reference = 0;
   r32 width = 0.f;
   r32 height = 0.f;
@@ -151,8 +151,9 @@ b8 LoadFromFile(const char* file, const TextureInfo& texture_info, Texture* text
   int n;
   stbi_set_flip_vertically_on_load(1);
   u8* image_bytes = stbi_load(file, &image_width, &image_height, &n, 4);
+  assert(image_bytes != nullptr);
   *texture = CreateTexture2D(GL_RGBA, image_width, image_height, texture_info, image_bytes);
-  strcpy(texture->file, file);
+  texture->file = std::string(file);
   free(image_bytes);
   return true;
 }

@@ -12,16 +12,12 @@ struct HashMapStrEntry {
   u32 array_index = 0;
 };
 
-b8
-CompareHashMapEntry(const char* str, u32 len, const HashMapStrEntry& entry)
-{
+b8 CompareHashMapEntry(const char* str, u32 len, const HashMapStrEntry& entry) {
   if (len != entry.len) return false;
   return strncmp(str, entry.str, len) == 0;
 }
 
-u32
-GetHash(const char* str, u32 len)
-{
+u32 GetHash(const char* str, u32 len) {
   // djb2_hash_more collides a lot for some reason - using this instead.
   // Call imui::DebugPane to see hash collisions on panes.
   u32 hash = 7;

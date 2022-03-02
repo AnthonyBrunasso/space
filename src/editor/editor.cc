@@ -30,6 +30,10 @@ struct EditorGrid {
   s32 cell_width = 16;
   s32 cell_height = 16;
   v2f origin = v2f(0.f, 0.f);
+  v2f GetOrigin() const {
+    return origin + origin_offset;
+  }
+  v2f origin_offset = v2f(0.f, 0.f);
 };
 
 
@@ -104,16 +108,6 @@ Rectf ScaleEditorViewport() {
   return ScaleEditorRect(renderable_edges);
 }
 
-EditorGrid ScaleGrid(const EditorGrid& grid) {
-  r32 scale = EditorViewportCurrentScale();
-  EditorGrid scaled_grid;
-  scaled_grid.cell_width = grid.cell_width * scale;
-  scaled_grid.cell_height = grid.cell_height * scale;
-  scaled_grid.origin.x = grid.origin.x * scale;
-  scaled_grid.origin.y = grid.origin.y * scale;
-  return scaled_grid;
-}
-
 struct AssetViewerSelection {
   // 0 means selection has not started, 1 means the the first selection has been made, 2 means the final
   // selection has been made.
@@ -129,21 +123,22 @@ struct AssetViewerSelection {
     return math::OrientToAabb(math::MakeRect(start_world, end_world));
   }
   Rectf WorldRectScaled() const;
-  Rectf viewport;
 };
 
 static AssetViewerSelection kAssetViewerSelection;
 
 void EditorDebugMenuGrid() {
-  ImGui::Text("World grid origin (%.1f %.1f)", kGrid.origin.x, kGrid.origin.y);
+  ImGui::Text("World grid origin (%.1f %.1f)", kGrid.GetOrigin().x, kGrid.GetOrigin().y);
   ImGui::SliderInt("cellw", &kGrid.cell_width, 1, 64);
   ImGui::SliderInt("cellh", &kGrid.cell_height, 1, 64);
+  ImGui::SliderFloat("offsetx", &kGrid.origin_offset.x, -64.f, 64.f, "%.0f");
+  ImGui::SliderFloat("offsety", &kGrid.origin_offset.y, -64.f, 64.f, "%.0f");
   if (kAssetViewerSelection.action == 2) {
-    ImGui::Text("asset viewer %.1f %.1f %.1f %.1f", 
+    /*ImGui::Text("asset viewer %.1f %.1f %.1f %.1f", 
                 kAssetViewerSelection.viewport.x,
                 kAssetViewerSelection.viewport.y,
                 kAssetViewerSelection.viewport.width,
-                kAssetViewerSelection.viewport.height);
+                kAssetViewerSelection.viewport.height);*/
   }
 }
 
@@ -202,7 +197,7 @@ void EditorUpdateCursor() {
   }
   kCursor.is_in_viewport = math::PointInRect(kCursor.global_screen, kEditorState.render_viewport_in_editor);
   // Move the cursor into grid space in the world
-  v2f cursor_relative = kCursor.world - kGrid.origin;
+  v2f cursor_relative = kCursor.world - kGrid.GetOrigin();
   // Clamp to nearest grid edge.
   Rectf rgrid;
   rgrid.x = roundf(cursor_relative.x - ((int)roundf(cursor_relative.x) % kGrid.cell_width));
@@ -211,7 +206,7 @@ void EditorUpdateCursor() {
   rgrid.y = cursor_relative.y < 0.f ? rgrid.y - kGrid.cell_height : rgrid.y;
   rgrid.width = kGrid.cell_width;
   rgrid.height = kGrid.cell_height;
-  kCursor.world_clamped = Roundf(rgrid.NearestEdge(cursor_relative)) + kGrid.origin;
+  kCursor.world_clamped = Roundf(rgrid.NearestEdge(cursor_relative)) + kGrid.GetOrigin();
 }
 
 void EditorProcessEvent(const PlatformEvent& event) {

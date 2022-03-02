@@ -13,7 +13,30 @@ bool EditorCanLoadAsset(const std::string& name) {
 }
 
 // Necessary state to show a selection on the asset viewer.
-struct AssetView {
+//struct AssetView {
+//};
+
+struct AssetViewerFrame {
+  static AssetViewerFrame Create(rgg::TextureId texture_id, const Rectf& selection_rect);
+  void Release();
+  void Render();
+
+  // Src texture this frame was taken frame.
+  rgg::TextureId texture_id;
+  // The camera under which to render this frame.
+  rgg::Camera camera;
+  // The texture to render the frame to.
+  rgg::Texture render_target;
+  // The selection rect in world space that made this frame.
+  Rectf selection_rect;
+  // The texture coordinates to grab from texture_id.
+  Rectf texture_src_rect;
+  // The imgui rect.
+  Rectf panel_rect;
+  // Unique id of the asset viewer frame.
+  u32 id;
+  // Whether this thing should render or not.
+  bool is_running;
 };
 
 struct AssetViewer {
@@ -29,11 +52,71 @@ struct AssetViewer {
   // Camera for the subselection.
   u32 subview_camera_index;
   std::string chosen_asset_path;
+  std::vector<AssetViewerFrame> frames;
   bool clamp_cursor_to_nearest = false;
   bool show_crosshair = true;
 };
 
 static AssetViewer kAssetViewer;
+
+AssetViewerFrame AssetViewerFrame::Create(rgg::TextureId texture_id, const Rectf& selection_rect) {
+  AssetViewerFrame frame;
+  frame.render_target = rgg::CreateEmptyTexture2D(GL_RGB, selection_rect.width, selection_rect.height);
+  frame.is_running = true;
+  frame.texture_id = texture_id;
+  frame.selection_rect = selection_rect;
+  frame.texture_src_rect = kAssetViewerSelection.TexRect();
+  frame.camera.position = v3f(0.f, 0.f, 0.f);
+  frame.camera.dir = v3f(0.f, 0.f, -1.f);
+  frame.camera.up = v3f(0.f, 1.f, 0.f);
+  frame.camera.mode = rgg::kCameraBrowser;
+  frame.camera.viewport = selection_rect.Dims();
+  static u32 kUniqueId = 1;
+  frame.id = kUniqueId++;
+  return frame;
+}
+
+void AssetViewerFrame::Release() {
+  rgg::DestroyTexture2D(&render_target);
+  render_target = {};
+}
+
+void AssetViewerFrame::Render() {
+  if (!render_target.IsValid()) {
+    is_running = false;
+    return;
+  }
+  rgg::ModifyObserver mod(camera);
+  rgg::BeginRenderTo(render_target);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  const rgg::Texture* texture_render_from = rgg::GetTexture(texture_id);
+  assert(texture_render_from);
+  rgg::RenderTexture(
+      *texture_render_from,
+      texture_src_rect, Rectf(-selection_rect.width / 2.f, -selection_rect.height / 2.f,
+                              selection_rect.width, selection_rect.height));
+  rgg::EndRenderTo();
+  bool open = true;
+  char panel_name[128];
+  snprintf(panel_name, 128, "%s/%i", filesystem::Filename(texture_render_from->file).c_str(), id);
+  ImGui::Begin(panel_name, &open);
+  ImVec2 pos = ImGui::GetWindowPos();
+  ImVec2 size = ImGui::GetWindowSize();
+  panel_rect.x = pos.x;
+  v2f wsize = window::GetWindowSize();
+  // Imgui uses top left of screen as origin.
+  panel_rect.y = wsize.y - pos.y - size.y;
+  panel_rect.width = size.x;
+  panel_rect.height = size.y;
+  //static rgg::Texture subtexture = rgg::CreateEmptyTexture2D(GL_RGB, rect.width, rect.height);
+  //EditorAssetViewerUpdateSelectionTexture(&subtexture, rect);
+  ImGui::Image((void*)(intptr_t)render_target.reference, ImVec2(selection_rect.width, selection_rect.height));
+  ImGui::End();
+  if (open == false) {
+    Release();
+    is_running = false;
+  }
+}
 
 v2f EditorAssetViewerTextureBottomLeft(const rgg::Texture& tex) {
   return v2f(-tex.width / 2.f, -tex.height / 2.f);
@@ -67,8 +150,12 @@ v2f EditorAssetViewerCursorWorld() {
 }
 
 bool EditorAssetViewerCursorInSelection() {
-  return kAssetViewerSelection.action == 2 &&
-              math::PointInRect(kCursor.global_screen, kAssetViewerSelection.viewport);
+  for (const AssetViewerFrame& frame : kAssetViewer.frames) {
+    if (math::PointInRect(kCursor.global_screen, frame.panel_rect)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 rgg::Camera* EditorAssetViewerCamera() {
@@ -283,6 +370,7 @@ void EditorAssetViewerMain() {
     else {
       texture = rgg::GetTexture(kAssetViewer.texture_id);
       kGrid.origin = EditorAssetViewerTextureBottomLeft(*texture);
+      kGrid.origin_offset = v2f(0.f, 0.f);
       kAssetViewer.chosen_asset_path.clear();
     }
   }
@@ -308,7 +396,7 @@ void EditorAssetViewerMain() {
 
   v2f origin_scaled = ScaleVec2(v2f(0.f, 0.f));
   if (texture && texture->IsValid()) {
-    origin_scaled = ScaleVec2(kGrid.origin);
+    origin_scaled = ScaleVec2(kGrid.GetOrigin());
   }
 
   EditorAssetViewerDrawGrid(origin_scaled, kGrid, v4f(1.f, 1.f, 1.f, 0.2f));
@@ -327,44 +415,34 @@ void EditorAssetViewerMain() {
     }
   }
 
-  if (kAssetViewerSelection.action) {
-    if (kAssetViewerSelection.action == 1) {
-      EditorAssetViewerDrawCrosshair(kAssetViewerSelection.start_world * kAssetViewer.scale, rgg::kPurple);
-    }
-    else if (kAssetViewerSelection.action == 2) {
-      EditorAssetViewerDrawCrosshair(kAssetViewerSelection.start_world * kAssetViewer.scale, rgg::kPurple);
-      EditorAssetViewerDrawCrosshair(kAssetViewerSelection.end_world * kAssetViewer.scale, rgg::kPurple);
+  if (kAssetViewerSelection.action == 1) {
+    EditorAssetViewerDrawCrosshair(kAssetViewerSelection.start_world * kAssetViewer.scale, rgg::kPurple);
+  }
+
+  for (const AssetViewerFrame& frame : kAssetViewer.frames) {
+    if (frame.texture_id == kAssetViewer.texture_id) {
+      rgg::RenderLineRectangle(frame.selection_rect, rgg::kPurple);
     }
   }
 
   rgg::EndRenderTo();
   ImGui::Image((void*)(intptr_t)kAssetViewer.render_target.reference,
                ImVec2(kEditorState.render_viewport.width, kEditorState.render_viewport.height));
-
   if (kAssetViewerSelection.action == 2) {
-    Rectf rect = kAssetViewerSelection.WorldRectScaled();
-    float item_height = ImGui::GetTextLineHeightWithSpacing();
-    ImGuiStyle& style = ImGui::GetStyle();
-    ImGui::SetNextWindowSize(
-        ImVec2(rect.width + style.WindowPadding.x,
-               rect.height + item_height + style.WindowPadding.y + 10.f));
-    bool open = true;
-    ImGui::Begin("Asset Selection", &open);
-    ImVec2 pos = ImGui::GetWindowPos();
-    ImVec2 size = ImGui::GetWindowSize();
-    kAssetViewerSelection.viewport.x = pos.x;
-    v2f wsize = window::GetWindowSize();
-    // Imgui uses top left of screen as origin.
-    kAssetViewerSelection.viewport.y = wsize.y - pos.y - size.y;
-    kAssetViewerSelection.viewport.width = size.x;
-    kAssetViewerSelection.viewport.height = size.y;
-    static rgg::Texture subtexture = rgg::CreateEmptyTexture2D(GL_RGB, rect.width, rect.height);
-    EditorAssetViewerUpdateSelectionTexture(&subtexture, rect);
-    ImGui::Image((void*)(intptr_t)subtexture.reference, ImVec2(rect.width, rect.height));
-    ImGui::End();
-    if (open == false) {
-      kAssetViewerSelection.action = 0;
+    Rectf selection_rect = kAssetViewerSelection.WorldRectScaled();
+    AssetViewerFrame frame = AssetViewerFrame::Create(kAssetViewer.texture_id, selection_rect);
+    kAssetViewerSelection.action = 0;
+    kAssetViewer.frames.push_back(frame);
+  }
+
+  for (std::vector<AssetViewerFrame>::iterator itr = kAssetViewer.frames.begin();
+       itr != kAssetViewer.frames.end(); ) {
+    itr->Render();
+    if (itr->is_running) {
+      ++itr;
+      continue;
     }
+    kAssetViewer.frames.erase(itr);
   }
 }
 

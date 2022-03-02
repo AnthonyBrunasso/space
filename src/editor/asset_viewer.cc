@@ -17,7 +17,7 @@ bool EditorCanLoadAsset(const std::string& name) {
 //};
 
 struct AssetViewerFrame {
-  static AssetViewerFrame Create(rgg::TextureId texture_id, const Rectf& selection_rect);
+  static AssetViewerFrame Create(rgg::TextureId texture_id, const Rectf& selection_rect_scaled);
   void Release();
   void Render();
 
@@ -27,7 +27,9 @@ struct AssetViewerFrame {
   rgg::Camera camera;
   // The texture to render the frame to.
   rgg::Texture render_target;
-  // The selection rect in world space that made this frame.
+  // The selection rect scaled from world.
+  Rectf selection_rect_scaled;
+  // The selection in world.
   Rectf selection_rect;
   // The texture coordinates to grab from texture_id.
   Rectf texture_src_rect;
@@ -59,18 +61,23 @@ struct AssetViewer {
 
 static AssetViewer kAssetViewer;
 
-AssetViewerFrame AssetViewerFrame::Create(rgg::TextureId texture_id, const Rectf& selection_rect) {
+AssetViewerFrame AssetViewerFrame::Create(rgg::TextureId texture_id, const Rectf& selection_rect_scaled) {
   AssetViewerFrame frame;
-  frame.render_target = rgg::CreateEmptyTexture2D(GL_RGB, selection_rect.width, selection_rect.height);
+  frame.render_target = rgg::CreateEmptyTexture2D(GL_RGB, selection_rect_scaled.width, selection_rect_scaled.height);
   frame.is_running = true;
   frame.texture_id = texture_id;
-  frame.selection_rect = selection_rect;
+  frame.selection_rect_scaled = selection_rect_scaled;
   frame.texture_src_rect = kAssetViewerSelection.TexRect();
   frame.camera.position = v3f(0.f, 0.f, 0.f);
   frame.camera.dir = v3f(0.f, 0.f, -1.f);
   frame.camera.up = v3f(0.f, 1.f, 0.f);
   frame.camera.mode = rgg::kCameraBrowser;
-  frame.camera.viewport = selection_rect.Dims();
+  frame.camera.viewport = selection_rect_scaled.Dims();
+  frame.selection_rect = Rectf(
+      selection_rect_scaled.x / kAssetViewer.scale, 
+      selection_rect_scaled.y / kAssetViewer.scale, 
+      selection_rect_scaled.width / kAssetViewer.scale, 
+      selection_rect_scaled.height / kAssetViewer.scale);
   static u32 kUniqueId = 1;
   frame.id = kUniqueId++;
   return frame;
@@ -93,8 +100,8 @@ void AssetViewerFrame::Render() {
   assert(texture_render_from);
   rgg::RenderTexture(
       *texture_render_from,
-      texture_src_rect, Rectf(-selection_rect.width / 2.f, -selection_rect.height / 2.f,
-                              selection_rect.width, selection_rect.height));
+      texture_src_rect, Rectf(-selection_rect_scaled.width / 2.f, -selection_rect_scaled.height / 2.f,
+                              selection_rect_scaled.width, selection_rect_scaled.height));
   rgg::EndRenderTo();
   bool open = true;
   char panel_name[128];
@@ -110,7 +117,7 @@ void AssetViewerFrame::Render() {
   panel_rect.height = size.y;
   //static rgg::Texture subtexture = rgg::CreateEmptyTexture2D(GL_RGB, rect.width, rect.height);
   //EditorAssetViewerUpdateSelectionTexture(&subtexture, rect);
-  ImGui::Image((void*)(intptr_t)render_target.reference, ImVec2(selection_rect.width, selection_rect.height));
+  ImGui::Image((void*)(intptr_t)render_target.reference, ImVec2(selection_rect_scaled.width, selection_rect_scaled.height));
   ImGui::End();
   if (open == false) {
     Release();
@@ -421,16 +428,17 @@ void EditorAssetViewerMain() {
 
   for (const AssetViewerFrame& frame : kAssetViewer.frames) {
     if (frame.texture_id == kAssetViewer.texture_id) {
-      rgg::RenderLineRectangle(frame.selection_rect, rgg::kPurple);
+      rgg::RenderLineRectangle(ScaleRect(frame.selection_rect), rgg::kPurple);
     }
   }
 
   rgg::EndRenderTo();
   ImGui::Image((void*)(intptr_t)kAssetViewer.render_target.reference,
                ImVec2(kEditorState.render_viewport.width, kEditorState.render_viewport.height));
+
   if (kAssetViewerSelection.action == 2) {
-    Rectf selection_rect = kAssetViewerSelection.WorldRectScaled();
-    AssetViewerFrame frame = AssetViewerFrame::Create(kAssetViewer.texture_id, selection_rect);
+    Rectf selection_rect_scaled = kAssetViewerSelection.WorldRectScaled();
+    AssetViewerFrame frame = AssetViewerFrame::Create(kAssetViewer.texture_id, selection_rect_scaled);
     kAssetViewerSelection.action = 0;
     kAssetViewer.frames.push_back(frame);
   }

@@ -108,6 +108,16 @@ Rectf ScaleEditorViewport() {
   return ScaleEditorRect(renderable_edges);
 }
 
+Rectf ScaleRect(const Rectf& rect) {
+  r32 scale = EditorViewportCurrentScale();
+  Rectf scaled_rect = rect;
+  scaled_rect.x *= scale;
+  scaled_rect.y *= scale;
+  scaled_rect.width *= scale;
+  scaled_rect.height *= scale;
+  return scaled_rect;
+}
+
 struct AssetViewerSelection {
   // 0 means selection has not started, 1 means the the first selection has been made, 2 means the final
   // selection has been made.

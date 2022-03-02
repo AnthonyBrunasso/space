@@ -23,7 +23,7 @@ struct AssetViewer {
   };
 
   rgg::Texture render_target;
-  rgg::Texture texture_asset;
+  rgg::TextureId texture_id;
   r32 scale = 1.0f;
   u32 camera_index;
   // Camera for the subselection.
@@ -84,7 +84,8 @@ void EditorAssetViewerProcessEvent(const PlatformEvent& event) {
             break;
           }
           // Not viewing an asset.
-          if (!kAssetViewer.texture_asset.IsValid()) break;
+          const rgg::Texture* texture = rgg::GetTexture(kAssetViewer.texture_id);
+          if (!texture || !texture->IsValid()) break;
           // Cursor isn't in the viewer.
           if (!kCursor.is_in_viewport) break;
           if (kAssetViewerSelection.action == 2) {
@@ -93,13 +94,13 @@ void EditorAssetViewerProcessEvent(const PlatformEvent& event) {
           }
           if (kAssetViewerSelection.action == 0) {
             kAssetViewerSelection.start_texcoord =
-                EditorAssetViewerCursorInTexture(kAssetViewer.texture_asset);
+                EditorAssetViewerCursorInTexture(*texture);
             kAssetViewerSelection.start_world = EditorAssetViewerCursorWorld();
             kAssetViewerSelection.action = 1;
           }
           else if (kAssetViewerSelection.action == 1) {
             kAssetViewerSelection.end_texcoord =
-                EditorAssetViewerCursorInTexture(kAssetViewer.texture_asset);
+                EditorAssetViewerCursorInTexture(*texture);
             kAssetViewerSelection.end_world = EditorAssetViewerCursorWorld();
             kAssetViewerSelection.action = 2;
           }
@@ -152,10 +153,10 @@ void EditorAssetViewerDrawAxis(v2f origin_scaled) {
 }
 
 void EditorAssetViewerRenderAsset() {
-  const rgg::Texture& tex = kAssetViewer.texture_asset;
-  if (!tex.IsValid()) return;
-  Rectf dest = ScaleEditorRect(tex.Rect());
-  rgg::RenderTexture(tex, tex.Rect(), dest);
+  const rgg::Texture* tex = rgg::GetTexture(kAssetViewer.texture_id);
+  if (!tex || !tex->IsValid()) return;
+  Rectf dest = ScaleEditorRect(tex->Rect());
+  rgg::RenderTexture(*tex, tex->Rect(), dest);
 }
 
 // Just a way to verify lines work with the viewport, etc.
@@ -260,26 +261,33 @@ void EditorAssetViewerUpdateSelectionTexture(rgg::Texture* texture, const Rectf&
   rgg::ModifyObserver mod(*camera);
   rgg::BeginRenderTo(*texture);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  const rgg::Texture* texture_render_from = rgg::GetTexture(kAssetViewer.texture_id);
+  assert(texture_render_from);
   rgg::RenderTexture(
-      kAssetViewer.texture_asset,
+      *texture_render_from,
       texrect, Rectf(-rect.width / 2.f, -rect.height / 2.f, rect.width, rect.height));
   rgg::EndRenderTo();
   rgg::CameraSwitch(kAssetViewer.camera_index);
 }
 
 void EditorAssetViewerMain() {
+  const rgg::Texture* texture = nullptr;
   if (!kAssetViewer.chosen_asset_path.empty()) {
-    rgg::DestroyTexture2D(&kAssetViewer.texture_asset);
     rgg::TextureInfo texture_info;
     texture_info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
     texture_info.mag_filter = GL_NEAREST;
-    if (!rgg::LoadFromFile(kAssetViewer.chosen_asset_path.c_str(),
-                           texture_info, &kAssetViewer.texture_asset)) {
+    kAssetViewer.texture_id = rgg::LoadTexture(kAssetViewer.chosen_asset_path.c_str(), texture_info); 
+    if (kAssetViewer.texture_id == 0) {
       LOG(WARN, "Unable to load asset %s", kAssetViewer.chosen_asset_path.c_str());
     }
-    kGrid.origin = EditorAssetViewerTextureBottomLeft(kAssetViewer.texture_asset);
-    kAssetViewer.chosen_asset_path.clear();
+    else {
+      texture = rgg::GetTexture(kAssetViewer.texture_id);
+      kGrid.origin = EditorAssetViewerTextureBottomLeft(*texture);
+      kAssetViewer.chosen_asset_path.clear();
+    }
   }
+
+  texture = rgg::GetTexture(kAssetViewer.texture_id);
 
   EditorAssetViewerInit();
 
@@ -299,7 +307,7 @@ void EditorAssetViewerMain() {
   EditorAssetViewerRenderAsset();
 
   v2f origin_scaled = ScaleVec2(v2f(0.f, 0.f));
-  if (kAssetViewer.texture_asset.IsValid()) {
+  if (texture && texture->IsValid()) {
     origin_scaled = ScaleVec2(kGrid.origin);
   }
 
@@ -361,10 +369,12 @@ void EditorAssetViewerMain() {
 }
 
 void EditorAssetViewerDebug() {
-  if (kAssetViewer.texture_asset.IsValid()) {
-    ImGui::Text("File (%s)", filesystem::Filename(kAssetViewer.texture_asset.file).c_str());
-    ImGui::Text("  dims          %.0f %.0f", kAssetViewer.texture_asset.width, kAssetViewer.texture_asset.height);
-    v2f cursor_in_texture = EditorAssetViewerCursorInTexture(kAssetViewer.texture_asset);
+  const rgg::Texture* texture = rgg::GetTexture(kAssetViewer.texture_id);
+  if (texture && texture->IsValid()) {
+    ImGui::Text("File (%s)", filesystem::Filename(texture->file).c_str());
+    ImGui::Text("  texture id    %u", kAssetViewer.texture_id);
+    ImGui::Text("  dims          %.0f %.0f", texture->width, texture->height);
+    v2f cursor_in_texture = EditorAssetViewerCursorInTexture(*texture);
     ImGui::Text("  texcoord      %.2f %.2f", cursor_in_texture.x, cursor_in_texture.y);
     ImGui::Text("  select start  %.2f %.2f",
                 kAssetViewerSelection.start_texcoord.x,

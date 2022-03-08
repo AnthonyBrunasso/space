@@ -16,13 +16,19 @@ bool EditorCanLoadAsset(const std::string& name) {
 //struct AssetView {
 //};
 
+struct AssetFrame {
+  // Src texture this frame was taken frame.
+  rgg::TextureId texture_id;
+  // The texture coordinates to grab from texture_id.
+  Rectf src_rect;
+};
+
 struct AssetViewerFrame {
   static AssetViewerFrame Create(rgg::TextureId texture_id, const Rectf& selection_rect_scaled);
   void Release();
   void Render();
 
-  // Src texture this frame was taken frame.
-  rgg::TextureId texture_id;
+  AssetFrame frame;
   // The camera under which to render this frame.
   rgg::Camera camera;
   // The texture to render the frame to.
@@ -31,8 +37,6 @@ struct AssetViewerFrame {
   Rectf selection_rect_scaled;
   // The selection in world.
   Rectf selection_rect;
-  // The texture coordinates to grab from texture_id.
-  Rectf texture_src_rect;
   // The imgui rect.
   Rectf panel_rect;
   // Unique id of the asset viewer frame.
@@ -42,11 +46,6 @@ struct AssetViewerFrame {
 };
 
 struct AssetViewer {
-  enum Mode {
-    VIEW = 0,         // Selecting pixels will show the frame in view.
-    FRAME_PICKER = 1, // Selecting frames will who up individually and concat them into the view.
-  };
-
   rgg::Texture render_target;
   rgg::TextureId texture_id;
   r32 scale = 1.0f;
@@ -55,19 +54,21 @@ struct AssetViewer {
   u32 subview_camera_index;
   std::string chosen_asset_path;
   std::vector<AssetViewerFrame> frames;
-  bool clamp_cursor_to_nearest = false;
+  bool clamp_cursor_to_nearest = true;
   bool show_crosshair = true;
+  bool animate_frames = false;
 };
 
 static AssetViewer kAssetViewer;
 
 AssetViewerFrame AssetViewerFrame::Create(rgg::TextureId texture_id, const Rectf& selection_rect_scaled) {
   AssetViewerFrame frame;
-  frame.render_target = rgg::CreateEmptyTexture2D(GL_RGB, selection_rect_scaled.width, selection_rect_scaled.height);
+  frame.render_target = rgg::CreateEmptyTexture2D(
+      GL_RGB, selection_rect_scaled.width, selection_rect_scaled.height);
   frame.is_running = true;
-  frame.texture_id = texture_id;
   frame.selection_rect_scaled = selection_rect_scaled;
-  frame.texture_src_rect = kAssetViewerSelection.TexRect();
+  frame.frame.texture_id = texture_id;
+  frame.frame.src_rect = kAssetViewerSelection.TexRect();
   frame.camera.position = v3f(0.f, 0.f, 0.f);
   frame.camera.dir = v3f(0.f, 0.f, -1.f);
   frame.camera.up = v3f(0.f, 1.f, 0.f);
@@ -96,11 +97,11 @@ void AssetViewerFrame::Render() {
   rgg::ModifyObserver mod(camera);
   rgg::BeginRenderTo(render_target);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  const rgg::Texture* texture_render_from = rgg::GetTexture(texture_id);
+  const rgg::Texture* texture_render_from = rgg::GetTexture(frame.texture_id);
   assert(texture_render_from);
   rgg::RenderTexture(
       *texture_render_from,
-      texture_src_rect, Rectf(-selection_rect_scaled.width / 2.f, -selection_rect_scaled.height / 2.f,
+      frame.src_rect, Rectf(-selection_rect_scaled.width / 2.f, -selection_rect_scaled.height / 2.f,
                               selection_rect_scaled.width, selection_rect_scaled.height));
   rgg::EndRenderTo();
   bool open = true;
@@ -427,7 +428,7 @@ void EditorAssetViewerMain() {
   }
 
   for (const AssetViewerFrame& frame : kAssetViewer.frames) {
-    if (frame.texture_id == kAssetViewer.texture_id) {
+    if (frame.frame.texture_id == kAssetViewer.texture_id) {
       rgg::RenderLineRectangle(ScaleRect(frame.selection_rect), rgg::kPurple);
     }
   }
@@ -470,9 +471,13 @@ void EditorAssetViewerDebug() {
                 kAssetViewerSelection.end_texcoord.y);
     ImGui::NewLine();
   }
-  ImGui::SliderFloat("scale", &kAssetViewer.scale, 1.f, 5.f, "%.0f", ImGuiSliderFlags_None);
+  ImGui::SliderFloat("scale", &kAssetViewer.scale, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
   ImGui::Checkbox("clamp cursor to nearest edge", &kAssetViewer.clamp_cursor_to_nearest);
   ImGui::Checkbox("render crosshair", &kAssetViewer.show_crosshair);
+  bool pre_value = kAssetViewer.animate_frames;
+  ImGui::Checkbox("animate frames", &kAssetViewer.animate_frames);
+  if (kAssetViewer.animate_frames == true && pre_value == false) {
+  }
   ImGui::NewLine();
   EditorDebugMenuGrid();
 }

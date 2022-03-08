@@ -333,8 +333,8 @@ void EditorDebugMenu() {
   window_flags |= ImGuiWindowFlags_NoTitleBar;
   v2f wsize = window::GetWindowSize();
   float item_height = ImGui::GetTextLineHeightWithSpacing();
-  ImGui::SetNextWindowSize(ImVec2(kExplorerWidth, wsize.y * (2 / 5.f)));
-  ImGui::SetNextWindowPos(ImVec2(kExplorerStart, (item_height + 1.f) + wsize.y * (3 / 5.f)), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(kExplorerWidth, wsize.y * (2 / 5.f) - item_height));
+  ImGui::SetNextWindowPos(ImVec2(kExplorerStart, wsize.y * (3 / 5.f) + item_height), ImGuiCond_Always);
   static const s32 kTabCount = 3;
   static const char* kTabs[kTabCount] = {
     "Contextual",

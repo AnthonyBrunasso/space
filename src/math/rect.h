@@ -28,6 +28,10 @@ struct Rectf {
   r32 width;
   r32 height;
 
+  bool operator==(const Rectf& rhs) const {
+    return x == rhs.x && y == rhs.y && width == rhs.width && height == rhs.height;
+  }
+
   v2f Dims() const {
     return v2f(width, height);
   }

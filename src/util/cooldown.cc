@@ -11,23 +11,17 @@ struct Cooldown {
   b8 overwrite_ready = false;
 };
 
-void
-CooldownReset(Cooldown* cooldown)
-{
+void CooldownReset(Cooldown* cooldown) {
   platform::ClockStart(&cooldown->clock);
   cooldown->overwrite_ready = false;
 }
 
-void
-CooldownInitialize(Cooldown* cooldown)
-{
+void CooldownInitialize(Cooldown* cooldown) {
   CooldownReset(cooldown);
   cooldown->overwrite_ready = true;
 }
 
-bool
-CooldownReady(Cooldown* cooldown)
-{
+bool CooldownReady(Cooldown* cooldown) {
   platform::ClockEnd(&cooldown->clock);
   if (cooldown->overwrite_ready) return true;
   return platform::ClockDeltaUsec(cooldown->clock) > cooldown->usec;
@@ -42,29 +36,21 @@ struct FrameCooldown {
 
 static u64 kFrameNum = 0;
 
-void
-FrameCooldownUpdate()
-{
+void FrameCooldownUpdate() {
   ++kFrameNum;
 }
 
-void
-FrameCooldownReset(FrameCooldown* cooldown)
-{
+void FrameCooldownReset(FrameCooldown* cooldown) {
   cooldown->frame_start = kFrameNum;
   cooldown->overwrite_ready = false;
 }
 
-void
-FrameCooldownInitialize(FrameCooldown* cooldown)
-{
+void FrameCooldownInitialize(FrameCooldown* cooldown) {
   FrameCooldownReset(cooldown);
   cooldown->overwrite_ready = true;
 }
 
-bool
-FrameCooldownReady(FrameCooldown* cooldown)
-{
+bool FrameCooldownReady(FrameCooldown* cooldown) {
   if (cooldown->overwrite_ready) return true;
   return kFrameNum - cooldown->frame_start > cooldown->frame;
 }

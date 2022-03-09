@@ -138,18 +138,10 @@ struct AssetViewerSelection {
 static AssetViewerSelection kAssetViewerSelection;
 
 void EditorDebugMenuGrid() {
-  ImGui::Text("World grid origin (%.1f %.1f)", kGrid.GetOrigin().x, kGrid.GetOrigin().y);
   ImGui::SliderInt("cellw", &kGrid.cell_width, 1, 64);
   ImGui::SliderInt("cellh", &kGrid.cell_height, 1, 64);
   ImGui::SliderFloat("offsetx", &kGrid.origin_offset.x, -64.f, 64.f, "%.0f");
   ImGui::SliderFloat("offsety", &kGrid.origin_offset.y, -64.f, 64.f, "%.0f");
-  if (kAssetViewerSelection.action == 2) {
-    /*ImGui::Text("asset viewer %.1f %.1f %.1f %.1f", 
-                kAssetViewerSelection.viewport.x,
-                kAssetViewerSelection.viewport.y,
-                kAssetViewerSelection.viewport.width,
-                kAssetViewerSelection.viewport.height);*/
-  }
 }
 
 #include "asset_viewer.cc"

@@ -13,7 +13,8 @@
 #define MiB(bytes) (KiB(bytes) * 1024LL)
 #define GiB(bytes) (MiB(bytes) * 1024LL)
 
-#define SECONDS(usec) (u64)(usec * 1e6)
+#define SECONDS(usec) ((u64)(usec / 1e6))
+#define SECONDS_R32(usec) ((r32)((r64)usec / 1000000.0))
 
 #define MIN(x, y) ((y) ^ (((x) ^ (y)) & -((x) < (y))))
 #define MAX(x, y) ((x) ^ (((x) ^ (y)) & -((x) < (y))))

@@ -7,16 +7,15 @@ namespace platform {
 struct Clock;
 
 // Sets the start time for the clock.
-void
-ClockStart(Clock* clock);
+void ClockStart(Clock* clock);
 
 // Sets the end time for the clock and returns the elapsed microseconds.
-u64
-ClockEnd(Clock* clock);
+u64 ClockEnd(Clock* clock);
 
 // Returns the clocks elapsed microseconds.
-u64
-ClockDeltaUsec(const Clock& clock);
+u64 ClockDeltaUsec(const Clock& clock);
+
+r32 ClockDeltaSec(const Clock& clock);
 
 }
 

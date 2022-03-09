@@ -13,30 +13,30 @@ struct Clock {
   struct timespec end;
 };
 
-void
-ClockStart(Clock* clock)
-{
+void ClockStart(Clock* clock) {
   struct timespec t;
   if(clock_gettime(CLOCK_MONOTONIC, &clock->start) == -1) {
     printf("Error ClockStart\n");
   }
+  // First call to ClockDeltaUsec can just return 0.
+  clock->end = clock->start;
 }
 
-u64
-ClockDeltaUsec(const Clock& clock)
-{
+u64 ClockDeltaUsec(const Clock& clock) {
   return (1000000000L * (clock.end.tv_sec - clock.start.tv_sec) +
       clock.end.tv_nsec - clock.start.tv_nsec) / 1e3;
 }
 
-u64
-ClockEnd(Clock* clock)
-{
+u64 ClockEnd(Clock* clock) {
   struct timespec t;
   if(clock_gettime(CLOCK_MONOTONIC, &clock->end) == -1) {
     printf("Error ClockStart\n");
   }
   return ClockDeltaUsec(*clock);
+}
+
+r32 ClockDeltaSec(const Clock& clock) {
+  return SECONDS_R32(ClockDeltaUsec(clock));
 }
 
 }

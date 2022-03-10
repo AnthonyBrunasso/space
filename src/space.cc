@@ -5,13 +5,13 @@
 s32 main(s32 argc, char** argv) {
   // Cuz my windows machine gots a bigger montior
 #ifdef _WIN32
-  kEditorState.window_create_info.window_width = 1920;
-  kEditorState.window_create_info.window_height = 1080;
+  kEditor.window_create_info.window_width = 1920;
+  kEditor.window_create_info.window_height = 1080;
 #else
-  kEditorState.window_create_info.window_width = 1600;
-  kEditorState.window_create_info.window_height = 900;
+  kEditor.window_create_info.window_width = 1600;
+  kEditor.window_create_info.window_height = 900;
 #endif
-  if (!window::Create("Space", kEditorState.window_create_info)) {
+  if (!window::Create("Space", kEditor.window_create_info)) {
     return 1;
   }
 
@@ -22,7 +22,7 @@ s32 main(s32 argc, char** argv) {
   bool show_demo_window = true;
 
   while (1) {
-    platform::ClockStart(&kEditorState.clock);
+    platform::ClockStart(&kEditor.clock);
     if (window::ShouldClose()) break;
     ImGuiImplNewFrame();
     ImGui::NewFrame();

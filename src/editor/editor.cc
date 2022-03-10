@@ -1,5 +1,6 @@
 #pragma once
 
+
 // ImGui
 //    * Top left is origin.
 
@@ -17,7 +18,7 @@ static const char* kViewportTabs[kViewportTabCount] = {
 
 static bool kOpened[kViewportTabCount] = { true, true };
 
-struct EditorState {
+struct Editor {
   u64 frame_rate = 60;
   window::CreateInfo window_create_info;
   platform::Clock clock;
@@ -56,13 +57,14 @@ struct EditorCursor {
 
 static EditorCursor kCursor;
 static EditorGrid kGrid;
-static EditorState kEditorState;
+static Editor kEditor;
 
 static s32 kExplorerStart = 0;
 static s32 kExplorerWidth = 300;
 
 static s32 kRenderViewStart = 300;
-//static s32 kRenderViewWidth = 600;
+
+#include "editor_render_target.cc"
 
 r32 EditorViewportCurrentScale();
 
@@ -104,7 +106,7 @@ Rectf RectToWorld(const Rectf& rect) {
 }
 
 Rectf ScaleEditorViewport() {
-  Rectf renderable_edges = kEditorState.render_viewport;
+  Rectf renderable_edges = kEditor.render_viewport;
   return ScaleEditorRect(renderable_edges);
 }
 
@@ -144,11 +146,79 @@ void EditorDebugMenuGrid() {
   ImGui::SliderFloat("offsety", &kGrid.origin_offset.y, -64.f, 64.f, "%.0f");
 }
 
+r32 __get_grid_line_color(s32 alpha_num, s32 alpha_1, s32 alpha_2, s32 alpha_3) {
+  if (alpha_num == alpha_1) return .1f;
+  if (alpha_num == alpha_2) return .2f;
+  if (alpha_num == alpha_3) return .4f;
+  return .1f;
+}
+
+void EditorRenderGrid(v2f start_scaled, const EditorGrid& grid, v4f color) {
+  const Rectf& view_rect = ScaleEditorViewport();
+  s32 scaled_width = ScaleS32(grid.cell_width);
+  s32 scaled_height = ScaleS32(grid.cell_height);
+  assert(scaled_width != 0 && scaled_height != 0);
+  s32 alpha_1_width = scaled_width;
+  s32 alpha_2_width = alpha_1_width * 2;
+  s32 alpha_3_width = alpha_2_width * 2;
+  s32 alpha_1_height = scaled_height;
+  s32 alpha_2_height = alpha_1_height * 2;
+  s32 alpha_3_height = alpha_2_height * 2;
+  // Draw lines right
+  s32 alpha_num = 0;
+  for (r32 start_x = start_scaled.x; start_x <= view_rect.Max().x; start_x += scaled_width) {
+    color.w = __get_grid_line_color(alpha_num, alpha_1_width, alpha_2_width, alpha_3_width);
+    rgg::RenderLine(v2f(start_x, view_rect.Min().y), v2f(start_x, view_rect.Max().y), color);
+    alpha_num += scaled_width;
+    if (alpha_num > alpha_3_width) alpha_num = alpha_1_width;
+  }
+  // Draw lines left
+  alpha_num = alpha_1_width;
+  for (r32 start_x = start_scaled.x - scaled_width; start_x >= view_rect.Min().x; start_x -= scaled_width) {
+    color.w = __get_grid_line_color(alpha_num, alpha_1_width, alpha_2_width, alpha_3_width);
+    rgg::RenderLine(v2f(start_x, view_rect.Min().y), v2f(start_x, view_rect.Max().y), color);
+    alpha_num += scaled_width;
+    if (alpha_num > alpha_3_width) alpha_num = alpha_1_width;
+  }
+  // Draw lines up
+  alpha_num = 0;
+  for (r32 start_y = start_scaled.y; start_y <= view_rect.Max().y; start_y += scaled_height) {
+    color.w = __get_grid_line_color(alpha_num, alpha_1_height, alpha_2_height, alpha_3_height);
+    rgg::RenderLine(v2f(view_rect.Min().x, start_y), v2f(view_rect.Max().x, start_y), color);
+    alpha_num += scaled_height;
+    if (alpha_num > alpha_3_height) alpha_num = alpha_1_height;
+  }
+  // Draw lines down
+  alpha_num = alpha_1_height;
+  for (r32 start_y = start_scaled.y - scaled_height; start_y >= view_rect.Min().y; start_y -= scaled_height) {
+    color.w = __get_grid_line_color(alpha_num, alpha_1_height, alpha_2_height, alpha_3_height);
+    rgg::RenderLine(v2f(view_rect.Min().x, start_y), v2f(view_rect.Max().x, start_y), color);
+    alpha_num += scaled_height;
+    if (alpha_num > alpha_3_height) alpha_num = alpha_1_height;
+  }
+}
+
+void EditorRenderAxis(v2f origin_scaled, const Rectf& view_rect) {
+  rgg::RenderLine(v2f(origin_scaled.x, view_rect.Min().y),
+                  v2f(origin_scaled.x, view_rect.Max().y),
+                  v4f(0.f, 1.f, 0.f, 0.5f));
+  rgg::RenderLine(v2f(view_rect.Min().x, origin_scaled.y),
+                  v2f(view_rect.Max().x, origin_scaled.y),
+                  v4f(0.f, 0.f, 1.f, 0.5f));
+}
+
+void EditorRenderCrosshair(v2f point_scaled, const Rectf& view, const v4f& color = rgg::kRed) {
+  rgg::RenderLine(v2f(view.Min().x, point_scaled.y),
+                  v2f(view.Max().x, point_scaled.y), color);
+  rgg::RenderLine(v2f(point_scaled.x, view.Min().y),
+                  v2f(point_scaled.x, view.Max().y), color);
+}
+
 #include "asset_viewer.cc"
 #include "game_viewer.cc"
 
 r32 EditorViewportCurrentScale() {
-  switch (kEditorState.mode) {
+  switch (kEditor.mode) {
     case EDITOR_MODE_GAME: {
       return EditorGameViewerScale();
     } break;
@@ -169,7 +239,7 @@ void EditorExit() {
 }
 
 rgg::Camera* EditorViewportCurrentCamera() {
-  switch (kEditorState.mode) {
+  switch (kEditor.mode) {
     case EDITOR_MODE_GAME: {
       return EditorGameViewerCamera();
     } break;
@@ -188,7 +258,7 @@ void EditorUpdateCursor() {
   kCursor.local_screen = v2f(cursor.x - kExplorerWidth - style.WindowPadding.x, cursor.y);
   // User sees a scaled version of the world therefore a cursor placed in that space is in scaled world
   // space
-  kCursor.world_scaled = kCursor.local_screen - (kEditorState.render_viewport.Dims() / 2.f);
+  kCursor.world_scaled = kCursor.local_screen - (kEditor.render_viewport.Dims() / 2.f);
   r32 scale = EditorViewportCurrentScale();
   // To get the inverse world space we divide out the scale.
   kCursor.world = Roundf(kCursor.world_scaled / scale);
@@ -197,7 +267,7 @@ void EditorUpdateCursor() {
     kCursor.world += (camera->position.xy() / scale);
     kCursor.world_scaled += camera->position.xy();
   }
-  kCursor.is_in_viewport = math::PointInRect(kCursor.global_screen, kEditorState.render_viewport_in_editor);
+  kCursor.is_in_viewport = math::PointInRect(kCursor.global_screen, kEditor.render_viewport_in_editor);
   // Move the cursor into grid space in the world
   v2f cursor_relative = kCursor.world - kGrid.GetOrigin();
   // Clamp to nearest grid edge.
@@ -215,7 +285,7 @@ void EditorProcessEvent(const PlatformEvent& event) {
   // Update cursor state.
   EditorUpdateCursor();
 
-  switch (kEditorState.mode) {
+  switch (kEditor.mode) {
     case EDITOR_MODE_GAME: {
       EditorGameViewerProcessEvent(event);
     } break;
@@ -285,11 +355,11 @@ void EditorFilesFrom(const char* dir) {
         // Windows does dumb stuff with their API to recursively expand paths. So fix that here.
         char corrected_dir[256] = {};
         strncpy(corrected_dir, dir, strlen(dir) - 2);
-        kAssetViewer.chosen_asset_path = filesystem::JoinPath(corrected_dir, file);
+        kAssetViewer.chosen_asset_path_ = filesystem::JoinPath(corrected_dir, file);
 #else
-        kAssetViewer.chosen_asset_path = filesystem::JoinPath(dir, file);
+        kAssetViewer.chosen_asset_path_ = filesystem::JoinPath(dir, file);
 #endif
-        kEditorState.mode = EDITOR_MODE_ASSET_VIEWER;
+        kEditor.mode = EDITOR_MODE_ASSET_VIEWER;
       }
     }
     else {
@@ -339,7 +409,7 @@ void EditorDebugMenu() {
     for (s32 i = 0; i < kTabCount; ++i) {
       if (kOpened[i] && ImGui::BeginTabItem(kTabs[i], &kOpened[i], ImGuiTabItemFlags_None)) {
         if (i == 0) {
-          switch (kEditorState.mode) {
+          switch (kEditor.mode) {
             case EDITOR_MODE_GAME: {
               EditorGameViewerDebug();
             } break;
@@ -420,10 +490,10 @@ void EditorRenderViewport() {
   ImVec2 imsize = ImVec2(render_view_width, wsize.y);
   // The viewport as it exists in the global bounds of the editor window.
   ImGuiStyle& style = ImGui::GetStyle();
-  kEditorState.render_viewport_in_editor = Rectf(
+  kEditor.render_viewport_in_editor = Rectf(
     kRenderViewStart + style.WindowPadding.x, 0.f, imsize.x - 15.f, imsize.y - 50.f);
   // The viewport as it exists in the local bounds of the viewport.
-  kEditorState.render_viewport = Rectf(
+  kEditor.render_viewport = Rectf(
     0.f, 0.f, imsize.x - 15.f, imsize.y - 50.f);
   ImGui::SetNextWindowSize(imsize);
   ImGui::SetNextWindowPos(ImVec2(kRenderViewStart, item_height + 1.f), ImGuiCond_Always);
@@ -434,11 +504,11 @@ void EditorRenderViewport() {
         //ImGui::Text("Tab %s", kViewportTabs[i]);
         if (i == 0) {
           EditorGameViewerMain();
-          kEditorState.mode = EDITOR_MODE_GAME;
+          kEditor.mode = EDITOR_MODE_GAME;
         }
         else if (i == 1) {
           EditorAssetViewerMain();
-          kEditorState.mode = EDITOR_MODE_ASSET_VIEWER;
+          kEditor.mode = EDITOR_MODE_ASSET_VIEWER;
         }
         ImGui::EndTabItem();
       }

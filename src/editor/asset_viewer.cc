@@ -12,10 +12,6 @@ bool EditorCanLoadAsset(const std::string& name) {
   return false;
 }
 
-// Necessary state to show a selection on the asset viewer.
-//struct AssetView {
-//};
-
 struct AssetFrame {
   // Src texture this frame was taken frame.
   rgg::TextureId texture_id;
@@ -65,21 +61,104 @@ struct AssetViewerAnimator {
 
 static AssetViewerAnimator kAssetViewerAnimator;
 
-struct AssetViewer {
-  rgg::Texture render_target;
-  rgg::TextureId texture_id;
-  r32 scale = 1.0f;
-  u32 camera_index;
-  // Camera for the subselection.
-  u32 subview_camera_index;
-  std::string chosen_asset_path;
-  std::vector<AssetViewerFrame> frames;
-  bool clamp_cursor_to_nearest = true;
-  bool show_crosshair = true;
-  bool animate_frames = false;
+class AssetViewer : public EditorRenderTarget {
+public:
+  void OnRender() override;
+
+  rgg::TextureId texture_id_;
+  r32 scale_ = 1.0f;
+  std::string chosen_asset_path_;
+  std::vector<AssetViewerFrame> frames_;
+  bool clamp_cursor_to_nearest_ = true;
+  bool show_crosshair_ = true;
+  bool animate_frames_ = false;
 };
 
 static AssetViewer kAssetViewer;
+
+v2f EditorAssetViewerTextureBottomLeft(const rgg::Texture& tex) {
+  return v2f(-tex.width / 2.f, -tex.height / 2.f);
+}
+
+void EditorAssetViewerRenderAsset() {
+  const rgg::Texture* tex = rgg::GetTexture(kAssetViewer.texture_id_);
+  if (!tex || !tex->IsValid()) return;
+  Rectf dest = ScaleEditorRect(tex->Rect());
+  rgg::RenderTexture(*tex, tex->Rect(), dest);
+}
+
+bool EditorAssetViewerCursorInSelection() {
+  if (kAssetViewerAnimator.is_running &&
+      math::PointInRect(kCursor.global_screen, kAssetViewerAnimator.panel_rect)) {
+    return true;
+  }
+  for (const AssetViewerFrame& frame : kAssetViewer.frames_) {
+    if (math::PointInRect(kCursor.global_screen, frame.panel_rect)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void AssetViewer::OnRender() {
+  const rgg::Texture* texture = nullptr;
+  if (!chosen_asset_path_.empty()) {
+    rgg::TextureInfo texture_info;
+    texture_info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
+    texture_info.mag_filter = GL_NEAREST;
+    texture_id_ = rgg::LoadTexture(chosen_asset_path_.c_str(), texture_info); 
+    if (texture_id_ == 0) {
+      LOG(WARN, "Unable to load asset %s", chosen_asset_path_.c_str());
+    }
+    else {
+      texture = rgg::GetTexture(texture_id_);
+      kGrid.origin = EditorAssetViewerTextureBottomLeft(*texture);
+      kGrid.origin_offset = v2f(0.f, 0.f);
+      chosen_asset_path_.clear();
+    }
+  }
+
+  texture = rgg::GetTexture(texture_id_);
+  ImGuiStyle& style = ImGui::GetStyle();
+  ImVec4 imcolor = style.Colors[ImGuiCol_WindowBg];
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  // Fill the background with imgui's background color to maintain beauty.
+  rgg::RenderRectangle(ScaleEditorViewport(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
+  EditorAssetViewerRenderAsset();
+
+  v2f origin_scaled = ScaleVec2(v2f(0.f, 0.f));
+  if (texture && texture->IsValid()) {
+    origin_scaled = ScaleVec2(kGrid.GetOrigin());
+  }
+
+  EditorRenderGrid(origin_scaled, kGrid, v4f(1.f, 1.f, 1.f, 0.2f));
+  EditorRenderAxis(origin_scaled, ScaleEditorViewport());
+
+  // Useful for debugging cursor stuff
+  //rgg::RenderLine(kCursor.world, v2f(0.f, 0.f), rgg::kWhite);
+
+  if (kCursor.is_in_viewport && show_crosshair_ && !EditorAssetViewerCursorInSelection()) {
+    if (clamp_cursor_to_nearest_) {
+      v2f scaled_clamp = kCursor.world_clamped * scale_;
+      EditorRenderCrosshair(scaled_clamp, ScaleEditorViewport());
+    }
+    else {
+      EditorRenderCrosshair(kCursor.world_clamped, ScaleEditorViewport());
+    }
+  }
+
+  if (kAssetViewerSelection.action == 1) {
+    EditorRenderCrosshair(kAssetViewerSelection.start_world * scale_, ScaleEditorViewport(), rgg::kPurple);
+  }
+
+  for (const AssetViewerFrame& frame : frames_) {
+    if (frame.frame.texture_id == texture_id_) {
+      rgg::RenderLineRectangle(ScaleRect(frame.selection_rect), rgg::kPurple);
+    }
+  }
+
+  ImGuiImage();
+}
 
 AssetViewerFrame AssetViewerFrame::Create(rgg::TextureId texture_id, const Rectf& selection_rect_scaled) {
   AssetViewerFrame frame;
@@ -95,10 +174,10 @@ AssetViewerFrame AssetViewerFrame::Create(rgg::TextureId texture_id, const Rectf
   frame.camera.mode = rgg::kCameraBrowser;
   frame.camera.viewport = frame.frame.dest_rect.Dims();
   frame.selection_rect = Rectf(
-      frame.frame.dest_rect.x / kAssetViewer.scale, 
-      frame.frame.dest_rect.y / kAssetViewer.scale, 
-      frame.frame.dest_rect.width / kAssetViewer.scale, 
-      frame.frame.dest_rect.height / kAssetViewer.scale);
+      frame.frame.dest_rect.x / kAssetViewer.scale_, 
+      frame.frame.dest_rect.y / kAssetViewer.scale_, 
+      frame.frame.dest_rect.width / kAssetViewer.scale_, 
+      frame.frame.dest_rect.height / kAssetViewer.scale_);
   static u32 kUniqueId = 1;
   frame.id = kUniqueId++;
   return frame;
@@ -136,8 +215,6 @@ void AssetViewerFrame::Render() {
   panel_rect.y = wsize.y - pos.y - size.y;
   panel_rect.width = size.x;
   panel_rect.height = size.y;
-  //static rgg::Texture subtexture = rgg::CreateEmptyTexture2D(GL_RGB, rect.width, rect.height);
-  //EditorAssetViewerUpdateSelectionTexture(&subtexture, rect);
   ImGui::Image((void*)(intptr_t)render_target.reference, ImVec2(frame.dest_rect.width, frame.dest_rect.height));
   ImGui::End();
   if (open == false) {
@@ -159,7 +236,7 @@ void AssetViewerAnimator::Initialize() {
 }
 
 void AssetViewerAnimator::UpdateFrameTimes() {
-  if (kAssetViewer.frames.empty())
+  if (kAssetViewer.frames_.empty())
     return;
 
   r32 now = platform::ClockDeltaSec(clock);
@@ -167,7 +244,7 @@ void AssetViewerAnimator::UpdateFrameTimes() {
     last_frame_time_sec = next_frame_time_sec;
     next_frame_time_sec += frequency;
     frame_index += 1;
-    frame_index = (frame_index % kAssetViewer.frames.size());
+    frame_index = (frame_index % kAssetViewer.frames_.size());
   }
 }
 
@@ -187,8 +264,8 @@ void AssetViewerAnimator::Render() {
   panel_rect.height = size.y;
 
   const AssetViewerFrame* cf = nullptr;
-  if (kAssetViewer.frames.size() > 0) {
-    cf = &kAssetViewer.frames[frame_index];
+  if (kAssetViewer.frames_.size() > 0) {
+    cf = &kAssetViewer.frames_[frame_index];
   }
 
   if (!render_target.IsValid() && cf) {
@@ -237,22 +314,18 @@ void AssetViewerAnimator::ResetClock() {
   platform::ClockStart(&clock);
 }
 
-v2f EditorAssetViewerTextureBottomLeft(const rgg::Texture& tex) {
-  return v2f(-tex.width / 2.f, -tex.height / 2.f);
-}
-
 // Scale the value given our scale value
 r32 __sval(r32 val) {
-  return val * kAssetViewer.scale;
+  return val * kAssetViewer.scale_;
 }
 
 v2f __svec(v2f vec) {
-  return vec * kAssetViewer.scale;
+  return vec * kAssetViewer.scale_;
 }
 
 v2f EditorAssetViewerCursorInTexture(const rgg::Texture& texture) {
   v2f world_to_texture;
-  if (kAssetViewer.clamp_cursor_to_nearest) {
+  if (kAssetViewer.clamp_cursor_to_nearest_) {
     world_to_texture = kCursor.world_clamped + (texture.Rect().Dims() / 2.0);
   }
   else {
@@ -262,27 +335,14 @@ v2f EditorAssetViewerCursorInTexture(const rgg::Texture& texture) {
 }
 
 v2f EditorAssetViewerCursorWorld() {
-  if (kAssetViewer.clamp_cursor_to_nearest) {
+  if (kAssetViewer.clamp_cursor_to_nearest_) {
     return kCursor.world_clamped;
   }
   return kCursor.world;
 }
 
-bool EditorAssetViewerCursorInSelection() {
-  if (kAssetViewerAnimator.is_running &&
-      math::PointInRect(kCursor.global_screen, kAssetViewerAnimator.panel_rect)) {
-    return true;
-  }
-  for (const AssetViewerFrame& frame : kAssetViewer.frames) {
-    if (math::PointInRect(kCursor.global_screen, frame.panel_rect)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 rgg::Camera* EditorAssetViewerCamera() {
-  return rgg::CameraGet(kAssetViewer.camera_index);
+  return kAssetViewer.camera();
 }
 
 void EditorAssetViewerProcessEvent(const PlatformEvent& event) {
@@ -294,7 +354,7 @@ void EditorAssetViewerProcessEvent(const PlatformEvent& event) {
             break;
           }
           // Not viewing an asset.
-          const rgg::Texture* texture = rgg::GetTexture(kAssetViewer.texture_id);
+          const rgg::Texture* texture = rgg::GetTexture(kAssetViewer.texture_id_);
           if (!texture || !texture->IsValid()) break;
           // Cursor isn't in the viewer.
           if (!kCursor.is_in_viewport) break;
@@ -352,23 +412,6 @@ void EditorAssetViewerProcessEvent(const PlatformEvent& event) {
   }
 }
 
-void EditorAssetViewerDrawAxis(v2f origin_scaled) {
-  const Rectf& view_rect = ScaleEditorViewport();
-  rgg::RenderLine(v2f(origin_scaled.x, view_rect.Min().y),
-                  v2f(origin_scaled.x, view_rect.Max().y),
-                  v4f(0.f, 1.f, 0.f, 0.5f));
-  rgg::RenderLine(v2f(view_rect.Min().x, origin_scaled.y),
-                  v2f(view_rect.Max().x, origin_scaled.y),
-                  v4f(0.f, 0.f, 1.f, 0.5f));
-}
-
-void EditorAssetViewerRenderAsset() {
-  const rgg::Texture* tex = rgg::GetTexture(kAssetViewer.texture_id);
-  if (!tex || !tex->IsValid()) return;
-  Rectf dest = ScaleEditorRect(tex->Rect());
-  rgg::RenderTexture(*tex, tex->Rect(), dest);
-}
-
 // Just a way to verify lines work with the viewport, etc.
 void EditorAssetViewerDebugLines() {
   const Rectf& view_rect = ScaleEditorViewport();
@@ -377,213 +420,51 @@ void EditorAssetViewerDebugLines() {
   rgg::RenderLineRectangle(view_rect, rgg::kRed);
 }
 
-r32 __get_grid_line_color(s32 alpha_num, s32 alpha_1, s32 alpha_2, s32 alpha_3) {
-  if (alpha_num == alpha_1) return .1f;
-  if (alpha_num == alpha_2) return .2f;
-  if (alpha_num == alpha_3) return .4f;
-  return .1f;
-}
-
-void EditorAssetViewerDrawGrid(v2f start_scaled, const EditorGrid& grid, v4f color) {
-  const Rectf& view_rect = ScaleEditorViewport();
-  s32 scaled_width = ScaleS32(grid.cell_width);
-  s32 scaled_height = ScaleS32(grid.cell_height);
-  assert(scaled_width != 0 && scaled_height != 0);
-  s32 alpha_1_width = scaled_width;
-  s32 alpha_2_width = alpha_1_width * 2;
-  s32 alpha_3_width = alpha_2_width * 2;
-  s32 alpha_1_height = scaled_height;
-  s32 alpha_2_height = alpha_1_height * 2;
-  s32 alpha_3_height = alpha_2_height * 2;
-  // Draw lines right
-  s32 alpha_num = 0;
-  for (r32 start_x = start_scaled.x; start_x <= view_rect.Max().x; start_x += scaled_width) {
-    color.w = __get_grid_line_color(alpha_num, alpha_1_width, alpha_2_width, alpha_3_width);
-    rgg::RenderLine(v2f(start_x, view_rect.Min().y), v2f(start_x, view_rect.Max().y), color);
-    alpha_num += scaled_width;
-    if (alpha_num > alpha_3_width) alpha_num = alpha_1_width;
-  }
-  // Draw lines left
-  alpha_num = alpha_1_width;
-  for (r32 start_x = start_scaled.x - scaled_width; start_x >= view_rect.Min().x; start_x -= scaled_width) {
-    color.w = __get_grid_line_color(alpha_num, alpha_1_width, alpha_2_width, alpha_3_width);
-    rgg::RenderLine(v2f(start_x, view_rect.Min().y), v2f(start_x, view_rect.Max().y), color);
-    alpha_num += scaled_width;
-    if (alpha_num > alpha_3_width) alpha_num = alpha_1_width;
-  }
-  // Draw lines up
-  alpha_num = 0;
-  for (r32 start_y = start_scaled.y; start_y <= view_rect.Max().y; start_y += scaled_height) {
-    color.w = __get_grid_line_color(alpha_num, alpha_1_height, alpha_2_height, alpha_3_height);
-    rgg::RenderLine(v2f(view_rect.Min().x, start_y), v2f(view_rect.Max().x, start_y), color);
-    alpha_num += scaled_height;
-    if (alpha_num > alpha_3_height) alpha_num = alpha_1_height;
-  }
-  // Draw lines down
-  alpha_num = alpha_1_height;
-  for (r32 start_y = start_scaled.y - scaled_height; start_y >= view_rect.Min().y; start_y -= scaled_height) {
-    color.w = __get_grid_line_color(alpha_num, alpha_1_height, alpha_2_height, alpha_3_height);
-    rgg::RenderLine(v2f(view_rect.Min().x, start_y), v2f(view_rect.Max().x, start_y), color);
-    alpha_num += scaled_height;
-    if (alpha_num > alpha_3_height) alpha_num = alpha_1_height;
-  }
-}
-
-void EditorAssetViewerDrawCrosshair(v2f point_scaled, v4f color = rgg::kRed) {
-  Rectf view = ScaleEditorViewport();
-  rgg::RenderLine(v2f(view.Min().x, point_scaled.y),
-                  v2f(view.Max().x, point_scaled.y), color);
-  rgg::RenderLine(v2f(point_scaled.x, view.Min().y),
-                  v2f(point_scaled.x, view.Max().y), color);
-}
-
-
-void EditorAssetViewerInit() {
-  static bool kInitOnce = true;
-  if (!kInitOnce) {
+void EditorAssetViewerInitialize() {
+  static bool do_once = true;
+  if (!do_once) {
     return;
   }
-  kAssetViewer.render_target =
-      rgg::CreateEmptyTexture2D(GL_RGB, kEditorState.render_viewport.width, kEditorState.render_viewport.height);
-  rgg::Camera camera;
-  camera.position = v3f(0.f, 0.f, 0.f);
-  camera.dir = v3f(0.f, 0.f, -1.f);
-  camera.up = v3f(0.f, 1.f, 0.f);
-  camera.mode = rgg::kCameraBrowser;
-  camera.speed = v3f(5.f, 5.f, 0.0f);
-  camera.viewport = kEditorState.render_viewport.Dims();
-  camera.camera_control = false;
-  kAssetViewer.camera_index = rgg::CameraInit(camera);
-  kAssetViewer.subview_camera_index = rgg::CameraInit(camera);
-  kInitOnce = false;
-}
-
-void EditorAssetViewerUpdateSelectionTexture(rgg::Texture* texture, const Rectf& rect) {
-  if (!texture) return;
-  if (texture->width != rect.width || texture->height != rect.height) {
-    rgg::DestroyTexture2D(texture);
-    *texture = rgg::CreateEmptyTexture2D(GL_RGB, rect.width, rect.height);
-  }
-  Rectf texrect = kAssetViewerSelection.TexRect();
-  rgg::CameraSwitch(kAssetViewer.subview_camera_index);
-  rgg::Camera* camera = rgg::CameraGetCurrent();
-  camera->viewport = rect.Dims();
-  rgg::ModifyObserver mod(*camera);
-  rgg::BeginRenderTo(*texture);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  const rgg::Texture* texture_render_from = rgg::GetTexture(kAssetViewer.texture_id);
-  assert(texture_render_from);
-  rgg::RenderTexture(
-      *texture_render_from,
-      texrect, Rectf(-rect.width / 2.f, -rect.height / 2.f, rect.width, rect.height));
-  rgg::EndRenderTo();
-  rgg::CameraSwitch(kAssetViewer.camera_index);
+  kAssetViewer.Initialize(kEditor.render_viewport.width, kEditor.render_viewport.height);
+  do_once = false;
 }
 
 void EditorAssetViewerMain() {
-  const rgg::Texture* texture = nullptr;
-  if (!kAssetViewer.chosen_asset_path.empty()) {
-    rgg::TextureInfo texture_info;
-    texture_info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
-    texture_info.mag_filter = GL_NEAREST;
-    kAssetViewer.texture_id = rgg::LoadTexture(kAssetViewer.chosen_asset_path.c_str(), texture_info); 
-    if (kAssetViewer.texture_id == 0) {
-      LOG(WARN, "Unable to load asset %s", kAssetViewer.chosen_asset_path.c_str());
-    }
-    else {
-      texture = rgg::GetTexture(kAssetViewer.texture_id);
-      kGrid.origin = EditorAssetViewerTextureBottomLeft(*texture);
-      kGrid.origin_offset = v2f(0.f, 0.f);
-      kAssetViewer.chosen_asset_path.clear();
-    }
-  }
-
-  texture = rgg::GetTexture(kAssetViewer.texture_id);
-
-  EditorAssetViewerInit();
-
-  rgg::CameraSwitch(kAssetViewer.camera_index);
-  rgg::Camera* c = rgg::CameraGetCurrent(); 
-  rgg::ModifyObserver mod(
-      math::Ortho(kEditorState.render_viewport.width, 0.f,
-                  kEditorState.render_viewport.height, 0.f, -1.f, 1.f),
-      math::LookAt(c->position, c->position + v3f(0.f, 0.f, 1.f),
-                   v3f(0.f, -1.f, 0.f)));
-  rgg::BeginRenderTo(kAssetViewer.render_target);
-  ImGuiStyle& style = ImGui::GetStyle();
-  ImVec4 imcolor = style.Colors[ImGuiCol_WindowBg];
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  // Fill the background with imgui's background color to maintain beauty.
-  rgg::RenderRectangle(ScaleEditorViewport(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
-  EditorAssetViewerRenderAsset();
+  EditorAssetViewerInitialize();
+  kAssetViewer.Render();
   kAssetViewerAnimator.Render();
-
-  v2f origin_scaled = ScaleVec2(v2f(0.f, 0.f));
-  if (texture && texture->IsValid()) {
-    origin_scaled = ScaleVec2(kGrid.GetOrigin());
-  }
-
-  EditorAssetViewerDrawGrid(origin_scaled, kGrid, v4f(1.f, 1.f, 1.f, 0.2f));
-  EditorAssetViewerDrawAxis(origin_scaled);
-
-  // Useful for debugging cursor stuff
-  //rgg::RenderLine(kCursor.world, v2f(0.f, 0.f), rgg::kWhite);
-
-  if (kCursor.is_in_viewport && kAssetViewer.show_crosshair && !EditorAssetViewerCursorInSelection()) {
-    if (kAssetViewer.clamp_cursor_to_nearest) {
-      v2f scaled_clamp = kCursor.world_clamped * kAssetViewer.scale;
-      EditorAssetViewerDrawCrosshair(scaled_clamp);
-    }
-    else {
-      EditorAssetViewerDrawCrosshair(kCursor.world_scaled);
-    }
-  }
-
-  if (kAssetViewerSelection.action == 1) {
-    EditorAssetViewerDrawCrosshair(kAssetViewerSelection.start_world * kAssetViewer.scale, rgg::kPurple);
-  }
-
-  for (const AssetViewerFrame& frame : kAssetViewer.frames) {
-    if (frame.frame.texture_id == kAssetViewer.texture_id) {
-      rgg::RenderLineRectangle(ScaleRect(frame.selection_rect), rgg::kPurple);
-    }
-  }
-
-  rgg::EndRenderTo();
-  ImGui::Image((void*)(intptr_t)kAssetViewer.render_target.reference,
-               ImVec2(kEditorState.render_viewport.width, kEditorState.render_viewport.height));
 
   if (kAssetViewerSelection.action == 2) {
     Rectf selection_rect_scaled = kAssetViewerSelection.WorldRectScaled();
-    AssetViewerFrame frame = AssetViewerFrame::Create(kAssetViewer.texture_id, selection_rect_scaled);
+    AssetViewerFrame frame = AssetViewerFrame::Create(kAssetViewer.texture_id_, selection_rect_scaled);
     kAssetViewerSelection.action = 0;
-    kAssetViewer.frames.push_back(frame);
+    kAssetViewer.frames_.push_back(frame);
   }
 
-  for (std::vector<AssetViewerFrame>::iterator itr = kAssetViewer.frames.begin();
-       itr != kAssetViewer.frames.end(); ) {
+  for (std::vector<AssetViewerFrame>::iterator itr = kAssetViewer.frames_.begin();
+       itr != kAssetViewer.frames_.end(); ) {
     itr->Render();
     if (itr->is_running) {
       ++itr;
       continue;
     }
-    kAssetViewer.frames.erase(itr);
+    kAssetViewer.frames_.erase(itr);
   }
 }
 
 void EditorAssetViewerDebug() {
-  const rgg::Texture* texture = rgg::GetTexture(kAssetViewer.texture_id);
+  const rgg::Texture* texture = rgg::GetTexture(kAssetViewer.texture_id_);
   if (texture && texture->IsValid()) {
     ImGui::Text("File (%s)", filesystem::Filename(texture->file).c_str());
-    ImGui::Text("  texture id    %u", kAssetViewer.texture_id);
+    ImGui::Text("  texture id    %u", kAssetViewer.texture_id_);
     ImGui::Text("  dims          %.0f %.0f", texture->width, texture->height);
     v2f cursor_in_texture = EditorAssetViewerCursorInTexture(*texture);
     ImGui::Text("  texcoord      %.2f %.2f", cursor_in_texture.x, cursor_in_texture.y);
     ImGui::NewLine();
   }
-  ImGui::SliderFloat("scale", &kAssetViewer.scale, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
-  ImGui::Checkbox("clamp cursor to nearest edge", &kAssetViewer.clamp_cursor_to_nearest);
-  ImGui::Checkbox("render crosshair", &kAssetViewer.show_crosshair);
+  ImGui::SliderFloat("scale", &kAssetViewer.scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
+  ImGui::Checkbox("clamp cursor to nearest edge", &kAssetViewer.clamp_cursor_to_nearest_);
+  ImGui::Checkbox("render crosshair", &kAssetViewer.show_crosshair_);
   bool pre_is_animate_running = kAssetViewerAnimator.is_running;
   ImGui::Checkbox("animate frames", &kAssetViewerAnimator.is_running);
   if (pre_is_animate_running != kAssetViewerAnimator.is_running) {
@@ -594,5 +475,5 @@ void EditorAssetViewerDebug() {
 }
 
 r32 EditorAssetViewerScale() {
-  return kAssetViewer.scale;
+  return kAssetViewer.scale_;
 }

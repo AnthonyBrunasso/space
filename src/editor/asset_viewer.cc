@@ -12,13 +12,22 @@ bool EditorCanLoadAsset(const std::string& name) {
   return false;
 }
 
-struct AssetFrame {
+class AssetFrame {
+public:
+  Rectf src_rect() const {
+    Rectf src = src_rect_;
+    src.x += src_rect_offset_.x;
+    src.y += src_rect_offset_.y;
+    return src;
+  }
   // Src texture this frame was taken frame.
-  rgg::TextureId texture_id;
+  rgg::TextureId texture_id_;
   // The texture coordinates to grab from texture_id.
-  Rectf src_rect;
+  Rectf src_rect_;
   // How big to render the resulting frame.
-  Rectf dest_rect;
+  Rectf dest_rect_;
+  // Allows for offsetting texture coordinates
+  v2f src_rect_offset_;
 };
 
 class AssetViewerFrame : public EditorRenderTarget {
@@ -147,8 +156,8 @@ void AssetViewer::OnRender() {
   }
 
   for (const AssetViewerFrame& frame : frames_) {
-    if (frame.frame_.texture_id == texture_id_) {
-      rgg::RenderLineRectangle(frame.frame_.dest_rect, rgg::kPurple);
+    if (frame.frame_.texture_id_ == texture_id_) {
+      rgg::RenderLineRectangle(frame.frame_.dest_rect_, rgg::kPurple);
     }
   }
 }
@@ -162,16 +171,16 @@ void AssetViewerFrame::OnRender() {
     is_running_ = false;
     return;
   }
-  const rgg::Texture* texture_render_from = rgg::GetTexture(frame_.texture_id);
+  const rgg::Texture* texture_render_from = rgg::GetTexture(frame_.texture_id_);
   assert(texture_render_from);
   rgg::RenderTexture(
       *texture_render_from,
-      frame_.src_rect, Rectf(-frame_.dest_rect.width / 2.f, -frame_.dest_rect.height / 2.f,
-                             frame_.dest_rect.width, frame_.dest_rect.height));
+      frame_.src_rect(), Rectf(-frame_.dest_rect_.width / 2.f, -frame_.dest_rect_.height / 2.f,
+                             frame_.dest_rect_.width, frame_.dest_rect_.height));
 }
 
 void AssetViewerFrame::OnImGui() {
-  const rgg::Texture* texture_render_from = rgg::GetTexture(frame_.texture_id);
+  const rgg::Texture* texture_render_from = rgg::GetTexture(frame_.texture_id_);
   assert(texture_render_from);
   bool open = true;
   char panel_name[128];
@@ -179,21 +188,22 @@ void AssetViewerFrame::OnImGui() {
   ImGui::Begin(panel_name, &open);
   UpdateImguiPanelRect();
   ImGuiImage();
+  ImGui::SliderFloat("offsetx", &frame_.src_rect_offset_.x, -64.f, 64.f, "%.0f");
+  ImGui::SliderFloat("offsety", &frame_.src_rect_offset_.y, -64.f, 64.f, "%.0f");
   ImGui::End();
-  //EditorExit();
-  /*if (open == false) {
-    ReleaseTexture();
+  if (open == false) {
+    ReleaseSurface();
     is_running_ = false;
-  }*/
+  }
 }
 
 AssetViewerFrame AssetViewerFrame::Create(rgg::TextureId texture_id, const Rectf& selection_rect_scaled) {
   AssetViewerFrame frame;
   frame.Initialize(selection_rect_scaled.width, selection_rect_scaled.height);
   frame.is_running_ = true;
-  frame.frame_.dest_rect = selection_rect_scaled;
-  frame.frame_.texture_id = texture_id;
-  frame.frame_.src_rect = kAssetViewerSelection.TexRect();
+  frame.frame_.dest_rect_ = selection_rect_scaled;
+  frame.frame_.texture_id_ = texture_id;
+  frame.frame_.src_rect_ = kAssetViewerSelection.TexRect();
   static u32 kUniqueId = 1;
   frame.id_ = kUniqueId++;
   return frame;
@@ -245,7 +255,7 @@ void AssetViewerAnimator::Render() {
   }
 
   if (!render_target.IsValid() && cf) {
-    render_target = rgg::CreateSurface(GL_RGB, cf->frame_.dest_rect.width, cf->frame_.dest_rect.height);
+    render_target = rgg::CreateSurface(GL_RGB, cf->frame_.dest_rect_.width, cf->frame_.dest_rect_.height);
   }
 
   ImGui::Begin("Animator", &kAssetViewerAnimator.is_running);
@@ -256,22 +266,22 @@ void AssetViewerAnimator::Render() {
     camera.dir = v3f(0.f, 0.f, -1.f);
     camera.up = v3f(0.f, 1.f, 0.f);
     camera.mode = rgg::kCameraBrowser;
-    camera.viewport = cf->frame_.dest_rect.Dims();
+    camera.viewport = cf->frame_.dest_rect_.Dims();
     rgg::ModifyObserver mod(camera);
     rgg::BeginRenderTo(render_target);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    const rgg::Texture* texture_render_from = rgg::GetTexture(cf->frame_.texture_id);
+    const rgg::Texture* texture_render_from = rgg::GetTexture(cf->frame_.texture_id_);
     rgg::RenderTexture(*texture_render_from,
-                       cf->frame_.src_rect,
-                       Rectf(-cf->frame_.dest_rect.width / 2.f, -cf->frame_.dest_rect.height / 2.f,
-                             cf->frame_.dest_rect.width, cf->frame_.dest_rect.height));
+                       cf->frame_.src_rect(),
+                       Rectf(-cf->frame_.dest_rect_.width / 2.f, -cf->frame_.dest_rect_.height / 2.f,
+                             cf->frame_.dest_rect_.width, cf->frame_.dest_rect_.height));
     rgg::EndRenderTo();
 
   }
 
   if (render_target.IsValid()) {
     ImGui::Image((void*)(intptr_t)render_target.texture.reference,
-                 ImVec2(cf->frame_.dest_rect.width, cf->frame_.dest_rect.height));
+                 ImVec2(cf->frame_.dest_rect_.width, cf->frame_.dest_rect_.height));
   }
 
   // Walk all the frames at a certain cadence and play them.

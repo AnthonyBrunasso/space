@@ -5,7 +5,7 @@ public:
   void Initialize(s32 width, s32 height);
   void SetupCamera(s32 width, s32 height);
   void SetupTexture(s32 width, s32 height);
-  void ReleaseTexture();
+  void ReleaseSurface();
 
   void UpdateImguiPanelRect();
   bool IsMouseInside() const;
@@ -43,14 +43,14 @@ void EditorRenderTarget::SetupCamera(s32 width, s32 height) {
   camera_.viewport = v2f(width, height);
 }
 
-void EditorRenderTarget::ReleaseTexture() {
+void EditorRenderTarget::ReleaseSurface() {
   if (render_target_.IsValid()) {
     rgg::DestroySurface(&render_target_);
   }
 }
 
 void EditorRenderTarget::SetupTexture(s32 width, s32 height) {
-  ReleaseTexture();
+  ReleaseSurface();
   render_target_ = rgg::CreateSurface(GL_RGB, width, height);
 }
 

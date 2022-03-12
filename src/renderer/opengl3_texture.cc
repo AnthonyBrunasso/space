@@ -18,6 +18,14 @@ struct Texture {
   }
 };
 
+struct Surface {
+  Texture texture;
+  GLuint frame_buffer = -1;
+  b8 IsValid() const {
+    return texture.IsValid() && frame_buffer != (GLuint)-1;
+  }
+};
+
 struct TextureState {
   GLuint vao_reference;
   GLuint vbo_reference;
@@ -26,7 +34,6 @@ struct TextureState {
   GLuint texture_uniform;
   GLuint matrix_uniform;
   GLuint uv_vbo;
-  GLuint frame_buffer = -1;
 };
 
 struct TextureInfo {
@@ -145,6 +152,19 @@ Texture CreateEmptyTexture2D(GLenum format, uint64_t width, uint64_t height) {
   return texture;
 }
 
+Surface CreateSurface(GLenum format, uint64_t width, uint64_t height) {
+  Surface surface;
+  surface.texture = CreateEmptyTexture2D(format, width, height);
+  glGenFramebuffers(1, &surface.frame_buffer);
+  return surface;
+}
+
+void DestroySurface(Surface* surface) {
+  DestroyTexture2D(&surface->texture);
+  glDeleteFramebuffers(1, &surface->frame_buffer);
+  *surface = {};
+}
+
 b8 LoadFromFile(const char* file, const TextureInfo& texture_info, Texture* texture) {
   s32 image_width;
   s32 image_height;
@@ -158,22 +178,18 @@ b8 LoadFromFile(const char* file, const TextureInfo& texture_info, Texture* text
   return true;
 }
 
-void BeginRenderTo(const Texture& texture) {
-  // The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
-  if (kTextureState.frame_buffer == GLuint(-1)) {
-    glGenFramebuffers(1, &kTextureState.frame_buffer);
-  }
-  glBindFramebuffer(GL_FRAMEBUFFER, kTextureState.frame_buffer);
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture.reference, 0);
+void BeginRenderTo(const Surface& surface) {
+  assert(surface.IsValid());
+  glBindFramebuffer(GL_FRAMEBUFFER, surface.frame_buffer);
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, surface.texture.reference, 0);
   GLenum draw_buffers[1] = {GL_COLOR_ATTACHMENT0};
   glDrawBuffers(1, draw_buffers);
-  glBindFramebuffer(GL_FRAMEBUFFER, kTextureState.frame_buffer);
-  glViewport(0, 0, texture.width, texture.height);
+  glViewport(0, 0, surface.texture.width, surface.texture.height);
 }
 
 void EndRenderTo() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  auto dims = window::GetWindowSize();
+  v2f dims = window::GetWindowSize();
   glViewport(0, 0, dims.x, dims.y);
 }
 

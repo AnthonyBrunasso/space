@@ -21,24 +21,18 @@ struct AssetFrame {
   Rectf dest_rect;
 };
 
-struct AssetViewerFrame {
+class AssetViewerFrame : public EditorRenderTarget {
+public:
   static AssetViewerFrame Create(rgg::TextureId texture_id, const Rectf& selection_rect_scaled);
-  void Release();
-  void Render();
+  void OnRender() override;
+  void OnImGui() override;
 
-  AssetFrame frame;
-  // The camera under which to render this frame.
-  rgg::Camera camera;
-  // The texture to render the frame to.
-  rgg::Texture render_target;
-  // The selection in world.
-  Rectf selection_rect;
-  // The imgui rect.
-  Rectf panel_rect;
+  // Texture and src / dest rect.
+  AssetFrame frame_;
   // Unique id of the asset viewer frame.
-  u32 id;
+  u32 id_;
   // Whether this thing should render or not.
-  bool is_running;
+  bool is_running_;
 };
 
 struct AssetViewerAnimator {
@@ -54,7 +48,7 @@ struct AssetViewerAnimator {
   r32 last_frame_time_sec;
   r32 next_frame_time_sec;
   s32 frame_index;
-  rgg::Texture render_target;
+  rgg::Surface render_target;
   rgg::Camera camera;
   bool is_running;
 };
@@ -64,6 +58,7 @@ static AssetViewerAnimator kAssetViewerAnimator;
 class AssetViewer : public EditorRenderTarget {
 public:
   void OnRender() override;
+  void OnImGui() override;
 
   rgg::TextureId texture_id_;
   r32 scale_ = 1.0f;
@@ -93,7 +88,7 @@ bool EditorAssetViewerCursorInSelection() {
     return true;
   }
   for (const AssetViewerFrame& frame : kAssetViewer.frames_) {
-    if (math::PointInRect(kCursor.global_screen, frame.panel_rect)) {
+    if (math::PointInRect(kCursor.global_screen, frame.imgui_panel_rect())) {
       return true;
     }
   }
@@ -152,75 +147,56 @@ void AssetViewer::OnRender() {
   }
 
   for (const AssetViewerFrame& frame : frames_) {
-    if (frame.frame.texture_id == texture_id_) {
-      rgg::RenderLineRectangle(ScaleRect(frame.selection_rect), rgg::kPurple);
+    if (frame.frame_.texture_id == texture_id_) {
+      rgg::RenderLineRectangle(frame.frame_.dest_rect, rgg::kPurple);
     }
   }
+}
 
+void AssetViewer::OnImGui() {
   ImGuiImage();
+}
+
+void AssetViewerFrame::OnRender() {
+  if (!IsRenderTargetValid()) {
+    is_running_ = false;
+    return;
+  }
+  const rgg::Texture* texture_render_from = rgg::GetTexture(frame_.texture_id);
+  assert(texture_render_from);
+  rgg::RenderTexture(
+      *texture_render_from,
+      frame_.src_rect, Rectf(-frame_.dest_rect.width / 2.f, -frame_.dest_rect.height / 2.f,
+                             frame_.dest_rect.width, frame_.dest_rect.height));
+}
+
+void AssetViewerFrame::OnImGui() {
+  const rgg::Texture* texture_render_from = rgg::GetTexture(frame_.texture_id);
+  assert(texture_render_from);
+  bool open = true;
+  char panel_name[128];
+  snprintf(panel_name, 128, "%s/%i", filesystem::Filename(texture_render_from->file).c_str(), id_);
+  ImGui::Begin(panel_name, &open);
+  UpdateImguiPanelRect();
+  ImGuiImage();
+  ImGui::End();
+  //EditorExit();
+  /*if (open == false) {
+    ReleaseTexture();
+    is_running_ = false;
+  }*/
 }
 
 AssetViewerFrame AssetViewerFrame::Create(rgg::TextureId texture_id, const Rectf& selection_rect_scaled) {
   AssetViewerFrame frame;
-  frame.render_target = rgg::CreateEmptyTexture2D(
-      GL_RGB, selection_rect_scaled.width, selection_rect_scaled.height);
-  frame.is_running = true;
-  frame.frame.dest_rect = selection_rect_scaled;
-  frame.frame.texture_id = texture_id;
-  frame.frame.src_rect = kAssetViewerSelection.TexRect();
-  frame.camera.position = v3f(0.f, 0.f, 0.f);
-  frame.camera.dir = v3f(0.f, 0.f, -1.f);
-  frame.camera.up = v3f(0.f, 1.f, 0.f);
-  frame.camera.mode = rgg::kCameraBrowser;
-  frame.camera.viewport = frame.frame.dest_rect.Dims();
-  frame.selection_rect = Rectf(
-      frame.frame.dest_rect.x / kAssetViewer.scale_, 
-      frame.frame.dest_rect.y / kAssetViewer.scale_, 
-      frame.frame.dest_rect.width / kAssetViewer.scale_, 
-      frame.frame.dest_rect.height / kAssetViewer.scale_);
+  frame.Initialize(selection_rect_scaled.width, selection_rect_scaled.height);
+  frame.is_running_ = true;
+  frame.frame_.dest_rect = selection_rect_scaled;
+  frame.frame_.texture_id = texture_id;
+  frame.frame_.src_rect = kAssetViewerSelection.TexRect();
   static u32 kUniqueId = 1;
-  frame.id = kUniqueId++;
+  frame.id_ = kUniqueId++;
   return frame;
-}
-
-void AssetViewerFrame::Release() {
-  rgg::DestroyTexture2D(&render_target);
-  render_target = {};
-}
-
-void AssetViewerFrame::Render() {
-  if (!render_target.IsValid()) {
-    is_running = false;
-    return;
-  }
-  rgg::ModifyObserver mod(camera);
-  rgg::BeginRenderTo(render_target);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  const rgg::Texture* texture_render_from = rgg::GetTexture(frame.texture_id);
-  assert(texture_render_from);
-  rgg::RenderTexture(
-      *texture_render_from,
-      frame.src_rect, Rectf(-frame.dest_rect.width / 2.f, -frame.dest_rect.height / 2.f,
-                            frame.dest_rect.width, frame.dest_rect.height));
-  rgg::EndRenderTo();
-  bool open = true;
-  char panel_name[128];
-  snprintf(panel_name, 128, "%s/%i", filesystem::Filename(texture_render_from->file).c_str(), id);
-  ImGui::Begin(panel_name, &open);
-  ImVec2 pos = ImGui::GetWindowPos();
-  ImVec2 size = ImGui::GetWindowSize();
-  panel_rect.x = pos.x;
-  v2f wsize = window::GetWindowSize();
-  // Imgui uses top left of screen as origin.
-  panel_rect.y = wsize.y - pos.y - size.y;
-  panel_rect.width = size.x;
-  panel_rect.height = size.y;
-  ImGui::Image((void*)(intptr_t)render_target.reference, ImVec2(frame.dest_rect.width, frame.dest_rect.height));
-  ImGui::End();
-  if (open == false) {
-    Release();
-    is_running = false;
-  }
 }
 
 void AssetViewerAnimator::Initialize() {
@@ -228,7 +204,7 @@ void AssetViewerAnimator::Initialize() {
   frame_index = 0;
   frequency = 1.f;
   if (render_target.IsValid()) {
-    rgg::DestroyTexture2D(&render_target);
+    rgg::DestroySurface(&render_target);
   }
   ResetClock();
   last_frame_time_sec = platform::ClockDeltaSec(clock);
@@ -269,7 +245,7 @@ void AssetViewerAnimator::Render() {
   }
 
   if (!render_target.IsValid() && cf) {
-    render_target = rgg::CreateEmptyTexture2D(GL_RGB, cf->frame.dest_rect.width, cf->frame.dest_rect.height);
+    render_target = rgg::CreateSurface(GL_RGB, cf->frame_.dest_rect.width, cf->frame_.dest_rect.height);
   }
 
   ImGui::Begin("Animator", &kAssetViewerAnimator.is_running);
@@ -280,22 +256,22 @@ void AssetViewerAnimator::Render() {
     camera.dir = v3f(0.f, 0.f, -1.f);
     camera.up = v3f(0.f, 1.f, 0.f);
     camera.mode = rgg::kCameraBrowser;
-    camera.viewport = cf->frame.dest_rect.Dims();
+    camera.viewport = cf->frame_.dest_rect.Dims();
     rgg::ModifyObserver mod(camera);
     rgg::BeginRenderTo(render_target);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    const rgg::Texture* texture_render_from = rgg::GetTexture(cf->frame.texture_id);
+    const rgg::Texture* texture_render_from = rgg::GetTexture(cf->frame_.texture_id);
     rgg::RenderTexture(*texture_render_from,
-                       cf->frame.src_rect,
-                       Rectf(-cf->frame.dest_rect.width / 2.f, -cf->frame.dest_rect.height / 2.f,
-                             cf->frame.dest_rect.width, cf->frame.dest_rect.height));
+                       cf->frame_.src_rect,
+                       Rectf(-cf->frame_.dest_rect.width / 2.f, -cf->frame_.dest_rect.height / 2.f,
+                             cf->frame_.dest_rect.width, cf->frame_.dest_rect.height));
     rgg::EndRenderTo();
 
   }
 
   if (render_target.IsValid()) {
-    ImGui::Image((void*)(intptr_t)render_target.reference,
-                 ImVec2(cf->frame.dest_rect.width, cf->frame.dest_rect.height));
+    ImGui::Image((void*)(intptr_t)render_target.texture.reference,
+                 ImVec2(cf->frame_.dest_rect.width, cf->frame_.dest_rect.height));
   }
 
   // Walk all the frames at a certain cadence and play them.
@@ -430,9 +406,12 @@ void EditorAssetViewerInitialize() {
 }
 
 void EditorAssetViewerMain() {
+  static bool first_run = false;
   EditorAssetViewerInitialize();
   kAssetViewer.Render();
   kAssetViewerAnimator.Render();
+
+  //if (first_run) EditorExit();
 
   if (kAssetViewerSelection.action == 2) {
     Rectf selection_rect_scaled = kAssetViewerSelection.WorldRectScaled();
@@ -444,7 +423,8 @@ void EditorAssetViewerMain() {
   for (std::vector<AssetViewerFrame>::iterator itr = kAssetViewer.frames_.begin();
        itr != kAssetViewer.frames_.end(); ) {
     itr->Render();
-    if (itr->is_running) {
+    first_run = true;
+    if (itr->is_running_) {
       ++itr;
       continue;
     }

@@ -214,6 +214,10 @@ void EditorRenderCrosshair(v2f point_scaled, const Rectf& view, const v4f& color
                   v2f(point_scaled.x, view.Max().y), color);
 }
 
+void EditorExit() {
+  exit(0);
+}
+
 #include "asset_viewer.cc"
 #include "game_viewer.cc"
 
@@ -232,10 +236,6 @@ r32 EditorViewportCurrentScale() {
 Rectf AssetViewerSelection::WorldRectScaled() const {
   r32 scale = EditorViewportCurrentScale();
   return math::OrientToAabb(math::MakeRect(start_world * scale, end_world * scale));
-}
-
-void EditorExit() {
-  exit(0);
 }
 
 rgg::Camera* EditorViewportCurrentCamera() {

@@ -5,22 +5,27 @@ public:
   void Initialize(s32 width, s32 height);
   void SetupCamera(s32 width, s32 height);
   void SetupTexture(s32 width, s32 height);
+  void ReleaseTexture();
 
   void UpdateImguiPanelRect();
   bool IsMouseInside() const;
+  bool IsRenderTargetValid() const { return render_target_.IsValid(); }
 
-  // Do imgui stuff + rendering to texture.
+  // During this call the render_target is bound and all OpenGL calls are issued against that target.
   virtual void OnRender() {}
+  // Do UI stuff in here so we can guarantee the render target is unbound.
+  virtual void OnImGui() {}
   void ImGuiImage();
   void Render();
 
   rgg::Camera* camera() { return &camera_; }
+  Rectf imgui_panel_rect() const { return imgui_panel_rect_; }
 
 private:
   // Camera to render from perspective
   rgg::Camera camera_;
   // The render target all draw calls will go to.
-  rgg::Texture render_target_;
+  rgg::Surface render_target_;
   // Rectf that represents where in world space the frame lives.
   Rectf imgui_panel_rect_;
 };
@@ -38,11 +43,15 @@ void EditorRenderTarget::SetupCamera(s32 width, s32 height) {
   camera_.viewport = v2f(width, height);
 }
 
-void EditorRenderTarget::SetupTexture(s32 width, s32 height) {
+void EditorRenderTarget::ReleaseTexture() {
   if (render_target_.IsValid()) {
-    rgg::DestroyTexture2D(&render_target_);
+    rgg::DestroySurface(&render_target_);
   }
-  render_target_ = rgg::CreateEmptyTexture2D(GL_RGB, width, height);
+}
+
+void EditorRenderTarget::SetupTexture(s32 width, s32 height) {
+  ReleaseTexture();
+  render_target_ = rgg::CreateSurface(GL_RGB, width, height);
 }
 
 void EditorRenderTarget::UpdateImguiPanelRect() {
@@ -61,8 +70,8 @@ bool EditorRenderTarget::IsMouseInside() const {
 
 void EditorRenderTarget::ImGuiImage() {
   ImGui::Image(
-      (void*)(intptr_t)render_target_.reference,
-      ImVec2(render_target_.width, render_target_.height));
+      (void*)(intptr_t)render_target_.texture.reference,
+      ImVec2(render_target_.texture.width, render_target_.texture.height));
 }
 
 void EditorRenderTarget::Render() {
@@ -71,4 +80,5 @@ void EditorRenderTarget::Render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   OnRender();
   rgg::EndRenderTo();
+  OnImGui();
 }

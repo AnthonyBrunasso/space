@@ -1,8 +1,15 @@
+#define GL_ASSERT_INFO()                  \
+  {                                       \
+    GLuint err = glGetError();            \
+    if (err > 0) {                        \
+      LOG(ERR, "glGetError() = %u", err); \
+      assert(err == 0);                   \
+    }                                     \
+  }                                       
+
 namespace rgg
 {
-const char*
-GLTypeToString(int type)
-{
+const char* GLTypeToString(int type) {
   switch (type) {
     case GL_BOOL:
       return "bool";
@@ -36,9 +43,7 @@ GLTypeToString(int type)
   return "other";
 }
 
-const char*
-GLEnumToString(int type)
-{
+const char* GLEnumToString(int type) {
   switch (type) {
     case GL_RED:
       return "GL_RED";
@@ -52,9 +57,7 @@ GLEnumToString(int type)
   return "Unknown";
 }
 
-uint32_t
-GLCreateGeometryVAO(int len, GLfloat* verts, GLuint* points_vbo)
-{
+uint32_t GLCreateGeometryVAO(int len, GLfloat* verts, GLuint* points_vbo) {
   // Create points VBO.
   *points_vbo = 0;
   glGenBuffers(1, points_vbo);
@@ -70,9 +73,7 @@ GLCreateGeometryVAO(int len, GLfloat* verts, GLuint* points_vbo)
   return vao;
 }
 
-uint32_t
-GLCreateGeometryVAOWithNormals(int len, GLfloat* verts, GLfloat* normals)
-{
+uint32_t GLCreateGeometryVAOWithNormals(int len, GLfloat* verts, GLfloat* normals) {
   GLuint points_vbo = 0;
   glGenBuffers(1, &points_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, points_vbo);

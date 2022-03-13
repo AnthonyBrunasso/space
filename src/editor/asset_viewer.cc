@@ -44,22 +44,22 @@ public:
   bool is_running_;
 };
 
-struct AssetViewerAnimator {
-  void Initialize();
-  void Render();
+class AssetViewerAnimator : public EditorRenderTarget {
+public:
   void ResetClock();
   void UpdateFrameTimes();
 
-  Rectf panel_rect;
-  platform::Clock clock;
+  void OnInitialize() override;
+  void OnRender() override;
+  void OnImGui() override;
+
+  platform::Clock clock_;
   // Frequency to switch frames in seconds.
-  r32 frequency;
-  r32 last_frame_time_sec;
-  r32 next_frame_time_sec;
-  s32 frame_index;
-  rgg::Surface render_target;
-  rgg::Camera camera;
-  bool is_running;
+  r32 frequency_;
+  r32 last_frame_time_sec_;
+  r32 next_frame_time_sec_;
+  s32 frame_index_;
+  bool is_running_;
 };
 
 static AssetViewerAnimator kAssetViewerAnimator;
@@ -92,12 +92,11 @@ void EditorAssetViewerRenderAsset() {
 }
 
 bool EditorAssetViewerCursorInSelection() {
-  if (kAssetViewerAnimator.is_running &&
-      math::PointInRect(kCursor.global_screen, kAssetViewerAnimator.panel_rect)) {
+  if (kAssetViewerAnimator.is_running_ && kAssetViewerAnimator.IsMouseInside()) {
     return true;
   }
   for (const AssetViewerFrame& frame : kAssetViewer.frames_) {
-    if (math::PointInRect(kCursor.global_screen, frame.imgui_panel_rect())) {
+    if (frame.IsMouseInside()) {
       return true;
     }
   }
@@ -209,104 +208,59 @@ AssetViewerFrame AssetViewerFrame::Create(rgg::TextureId texture_id, const Rectf
   return frame;
 }
 
-void AssetViewerAnimator::Initialize() {
-  is_running = true;
-  frame_index = 0;
-  frequency = 1.f;
-  if (render_target.IsValid()) {
-    rgg::DestroySurface(&render_target);
-  }
+void AssetViewerAnimator::ResetClock() {
+  platform::ClockStart(&clock_);
+}
+
+void AssetViewerAnimator::OnInitialize() {
+  is_running_ = true;
+  frame_index_ = 0;
+  frequency_ = 1.f;
   ResetClock();
-  last_frame_time_sec = platform::ClockDeltaSec(clock);
-  next_frame_time_sec = last_frame_time_sec + frequency;
+  last_frame_time_sec_ = platform::ClockDeltaSec(clock_);
+  next_frame_time_sec_ = last_frame_time_sec_ + frequency_;
 }
 
 void AssetViewerAnimator::UpdateFrameTimes() {
   if (kAssetViewer.frames_.empty())
     return;
 
-  r32 now = platform::ClockDeltaSec(clock);
-  if (now >= next_frame_time_sec) {
-    last_frame_time_sec = next_frame_time_sec;
-    next_frame_time_sec += frequency;
-    frame_index += 1;
-    frame_index = (frame_index % kAssetViewer.frames_.size());
+  r32 now = platform::ClockDeltaSec(clock_);
+  if (now >= next_frame_time_sec_) {
+    last_frame_time_sec_ = next_frame_time_sec_;
+    next_frame_time_sec_ += frequency_;
+    frame_index_ += 1;
+    frame_index_ = (frame_index_ % kAssetViewer.frames_.size());
   }
 }
 
-void AssetViewerAnimator::Render() {
-  if (!is_running)
-    return;
-
+void AssetViewerAnimator::OnRender() {
   UpdateFrameTimes();
-
-  ImVec2 pos = ImGui::GetWindowPos();
-  ImVec2 size = ImGui::GetWindowSize();
-  v2f wsize = window::GetWindowSize();
-
-  panel_rect.x = pos.x;
-  panel_rect.y = wsize.y - pos.y - size.y;
-  panel_rect.width = size.x;
-  panel_rect.height = size.y;
 
   const AssetViewerFrame* cf = nullptr;
   if (kAssetViewer.frames_.size() > 0) {
-    cf = &kAssetViewer.frames_[frame_index];
-  }
-
-  if (!render_target.IsValid() && cf) {
-    render_target = rgg::CreateSurface(GL_RGB, cf->frame_.dest_rect_.width, cf->frame_.dest_rect_.height);
-  }
-
-  ImGui::Begin("Animator", &kAssetViewerAnimator.is_running);
-
-  if (render_target.IsValid() && cf) {
-    rgg::Camera camera;
-    camera.position = v3f(0.f, 0.f, 0.f);
-    camera.dir = v3f(0.f, 0.f, -1.f);
-    camera.up = v3f(0.f, 1.f, 0.f);
-    camera.mode = rgg::kCameraBrowser;
-    camera.viewport = cf->frame_.dest_rect_.Dims();
-    rgg::ModifyObserver mod(camera);
-    rgg::BeginRenderTo(render_target);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    cf = &kAssetViewer.frames_[frame_index_];
     const rgg::Texture* texture_render_from = rgg::GetTexture(cf->frame_.texture_id_);
     rgg::RenderTexture(*texture_render_from,
                        cf->frame_.src_rect(),
                        Rectf(-cf->frame_.dest_rect_.width / 2.f, -cf->frame_.dest_rect_.height / 2.f,
                              cf->frame_.dest_rect_.width, cf->frame_.dest_rect_.height));
-    rgg::EndRenderTo();
-
   }
+}
 
-  if (render_target.IsValid()) {
-    ImGui::Image((void*)(intptr_t)render_target.texture.reference,
-                 ImVec2(cf->frame_.dest_rect_.width, cf->frame_.dest_rect_.height));
-  }
-
+void AssetViewerAnimator::OnImGui() {
+  ImGui::Begin("Animator", &kAssetViewerAnimator.is_running_);
+  ImGuiImage();
+  UpdateImguiPanelRect();
   // Walk all the frames at a certain cadence and play them.
-  ImGui::SliderFloat("frequency", &frequency, 0.f, 2.f, "%.01f", ImGuiSliderFlags_None);
+  ImGui::SliderFloat("frequency", &frequency_, 0.f, 2.f, "%.01f", ImGuiSliderFlags_None);
   if (ImGui::Button("reset clock")) {
     ResetClock();
   }
-  ImGui::Text("Clock: %.2f", platform::ClockDeltaSec(clock));
-  ImGui::Text("%i %.2f / %.2f", frame_index, last_frame_time_sec, next_frame_time_sec);
+  ImGui::Text("Clock: %.2f", platform::ClockDeltaSec(clock_));
+  ImGui::Text("%i %.2f / %.2f", frame_index_, last_frame_time_sec_, next_frame_time_sec_);
   ImGui::End();
-
-  platform::ClockEnd(&clock);
-}
-
-void AssetViewerAnimator::ResetClock() {
-  platform::ClockStart(&clock);
-}
-
-// Scale the value given our scale value
-r32 __sval(r32 val) {
-  return val * kAssetViewer.scale_;
-}
-
-v2f __svec(v2f vec) {
-  return vec * kAssetViewer.scale_;
+  platform::ClockEnd(&clock_);
 }
 
 v2f EditorAssetViewerCursorInTexture(const rgg::Texture& texture) {
@@ -419,9 +373,9 @@ void EditorAssetViewerMain() {
   static bool first_run = false;
   EditorAssetViewerInitialize();
   kAssetViewer.Render();
-  kAssetViewerAnimator.Render();
-
-  //if (first_run) EditorExit();
+  if (kAssetViewerAnimator.is_running_) {
+    kAssetViewerAnimator.Render();
+  }
 
   if (kAssetViewerSelection.action == 2) {
     Rectf selection_rect_scaled = kAssetViewerSelection.WorldRectScaled();
@@ -455,11 +409,22 @@ void EditorAssetViewerDebug() {
   ImGui::SliderFloat("scale", &kAssetViewer.scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
   ImGui::Checkbox("clamp cursor to nearest edge", &kAssetViewer.clamp_cursor_to_nearest_);
   ImGui::Checkbox("render crosshair", &kAssetViewer.show_crosshair_);
-  bool pre_is_animate_running = kAssetViewerAnimator.is_running;
-  ImGui::Checkbox("animate frames", &kAssetViewerAnimator.is_running);
-  if (pre_is_animate_running != kAssetViewerAnimator.is_running) {
-    kAssetViewerAnimator.Initialize();
+  bool pre_is_animate_running = kAssetViewerAnimator.is_running_;
+  ImGui::Checkbox("animate frames", &kAssetViewerAnimator.is_running_);
+  bool should_init_animator = pre_is_animate_running != kAssetViewerAnimator.is_running_;
+  if (should_init_animator) {
+    if (!kAssetViewer.frames_.empty()) {
+      const AssetViewerFrame* cf = &kAssetViewer.frames_[0];
+      // TODO: This assumes all the frames are the same size. I think that's ok for now?
+      kAssetViewerAnimator.Initialize(cf->frame_.dest_rect_.width, cf->frame_.dest_rect_.height);
+    }
+    else {
+      // No frames selected for animating.
+      kAssetViewerAnimator.is_running_ = false;
+      LOG(WARN, "Tried to run animator with no frames.");
+    }
   }
+
   ImGui::NewLine();
   EditorDebugMenuGrid();
 }

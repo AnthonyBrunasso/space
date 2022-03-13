@@ -11,10 +11,14 @@ public:
   bool IsMouseInside() const;
   bool IsRenderTargetValid() const { return render_target_.IsValid(); }
 
+  // Run once when render target is created. Initialization resets underlying surface.
+  // So don't mess with rendering surfaces here.
+  virtual void OnInitialize() {}
   // During this call the render_target is bound and all OpenGL calls are issued against that target.
   virtual void OnRender() {}
   // Do UI stuff in here so we can guarantee the render target is unbound.
   virtual void OnImGui() {}
+
   void ImGuiImage();
   void Render();
 
@@ -33,6 +37,7 @@ private:
 void EditorRenderTarget::Initialize(s32 width, s32 height) {
   SetupCamera(width, height);
   SetupTexture(width, height);
+  OnInitialize();
 }
 
 void EditorRenderTarget::SetupCamera(s32 width, s32 height) {

@@ -140,8 +140,8 @@ struct AssetViewerSelection {
 static AssetViewerSelection kAssetViewerSelection;
 
 void EditorDebugMenuGrid() {
-  ImGui::SliderInt("cellw", &kGrid.cell_width, 1, 64);
-  ImGui::SliderInt("cellh", &kGrid.cell_height, 1, 64);
+  ImGui::SliderInt("cellw", &kGrid.cell_width, 1, 128);
+  ImGui::SliderInt("cellh", &kGrid.cell_height, 1, 128);
   ImGui::SliderFloat("offsetx", &kGrid.origin_offset.x, -64.f, 64.f, "%.0f");
   ImGui::SliderFloat("offsety", &kGrid.origin_offset.y, -64.f, 64.f, "%.0f");
 }

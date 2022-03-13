@@ -15,7 +15,9 @@ u64 ClockEnd(Clock* clock);
 // Returns the clocks elapsed microseconds.
 u64 ClockDeltaUsec(const Clock& clock);
 
-r32 ClockDeltaSec(const Clock& clock);
+r32 ClockDeltaSec(const Clock& clock) {
+  return SECONDS_R32(ClockDeltaUsec(clock));
+}
 
 }
 

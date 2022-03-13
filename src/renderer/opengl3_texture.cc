@@ -20,7 +20,7 @@ struct Texture {
 
 struct Surface {
   Texture texture;
-  GLuint frame_buffer = -1;
+  GLuint frame_buffer = (GLuint)-1;
   b8 IsValid() const {
     return texture.IsValid() && frame_buffer != (GLuint)-1;
   }

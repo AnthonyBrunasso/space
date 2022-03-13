@@ -159,6 +159,8 @@ typedef void glDeleteShader_Func(GLuint);
 static glDeleteShader_Func* glDeleteShader;
 typedef void glGenFramebuffers_Func(GLsizei, GLuint*);
 static glGenFramebuffers_Func* glGenFramebuffers;
+typedef void glDeleteFramebuffers_Func(GLsizei, GLuint*);
+static glDeleteFramebuffers_Func* glDeleteFramebuffers;
 typedef void glBindFramebuffer_Func(GLenum, GLuint);
 static glBindFramebuffer_Func* glBindFramebuffer;
 typedef void glFramebufferTexture_Func(GLenum, GLenum, GLuint, GLint);
@@ -236,6 +238,7 @@ SetupGLFunctions() {
   glUniform1i = (glUniform1i_Func*)GetGLFunction("glUniform1i");
   glDeleteShader = (glDeleteShader_Func*)GetGLFunction("glDeleteShader");
   glGenFramebuffers = (glGenFramebuffers_Func*)GetGLFunction("glGenFramebuffers");
+  glDeleteFramebuffers = (glDeleteFramebuffers_Func*)GetGLFunction("glDeleteFramebuffers");
   glBindFramebuffer = (glBindFramebuffer_Func*)GetGLFunction("glBindFramebuffer");
   glFramebufferTexture = (glFramebufferTexture_Func*)GetGLFunction("glFramebufferTexture");
   glDrawBuffers = (glDrawBuffers_Func*)GetGLFunction("glDrawBuffers");

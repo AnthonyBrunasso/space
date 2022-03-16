@@ -213,10 +213,10 @@ void AssetViewerAnimator::ResetClock() {
 }
 
 void AssetViewerAnimator::OnInitialize() {
+  ResetClock();
   is_running_ = true;
   frame_index_ = 0;
   frequency_ = 1.f;
-  ResetClock();
   last_frame_time_sec_ = platform::ClockDeltaSec(clock_);
   next_frame_time_sec_ = last_frame_time_sec_ + frequency_;
 }

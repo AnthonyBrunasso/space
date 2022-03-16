@@ -20,22 +20,23 @@ void ClockStart(Clock* clock) {
   if (!kClockFrequency) {
     LARGE_INTEGER freq;
     if (!QueryPerformanceFrequency(&freq)) {
-      printf("Issue querying performance frequency\n");
+      LOG(ERR, "Issue querying performance frequency");
     }
     kClockFrequency = freq.QuadPart;
   }
 
   LARGE_INTEGER now;
   if (!QueryPerformanceCounter(&now)) {
-    printf("Issue querying performance counter\n");
+    LOG(ERR, "Issue querying performance counter\n");
   }
   clock->start_tick = now.QuadPart;
+  clock->end_tick = now.QuadPart;
 }
 
 u64 ClockEnd(Clock* clock) {
   LARGE_INTEGER now;
   if (!QueryPerformanceCounter(&now)) {
-    printf("Issue querying performance counter\n");
+    LOG(ERR, "Issue querying performance counter\n");
   }
   clock->end_tick = now.QuadPart;
   return ClockDeltaUsec(*clock);

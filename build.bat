@@ -11,5 +11,5 @@ if not defined VisualStudioVersion (
 IF NOT EXIST "build\" mkdir build
 cd build
 IF NOT EXIST build.ninja cmake ..\ -G Ninja
-ninja
+ninja && src\space.exe
 cd ..\

@@ -370,7 +370,6 @@ void EditorAssetViewerInitialize() {
 }
 
 void EditorAssetViewerMain() {
-  static bool first_run = false;
   EditorAssetViewerInitialize();
   kAssetViewer.Render();
   if (kAssetViewerAnimator.is_running_) {
@@ -387,7 +386,6 @@ void EditorAssetViewerMain() {
   for (std::vector<AssetViewerFrame>::iterator itr = kAssetViewer.frames_.begin();
        itr != kAssetViewer.frames_.end(); ) {
     itr->Render();
-    first_run = true;
     if (itr->is_running_) {
       ++itr;
       continue;

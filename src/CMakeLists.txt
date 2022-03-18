@@ -10,6 +10,7 @@ add_executable(space
   ../third_party/imgui/imgui_tables.cpp
   ../third_party/imgui/imgui_widgets.cpp
   ../third_party/imgui/imgui_demo.cpp
+  ../build/proto/test.pb.cc
 )
 
 if (UNIX)
@@ -18,7 +19,16 @@ endif (UNIX)
 
 if (MSVC)
   set_property(TARGET space PROPERTY CXX_STANDARD 17)
+  # Just match the runtime library of protobuf. Can investigate changing this if it becomes a problem.
+  set_property(TARGET space PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
   add_definitions(-DUNICODE)
   add_definitions(-D_UNICODE)
-  target_link_libraries(space user32 opengl32 gdi32 libprotobuf)
+  target_link_libraries(space user32 opengl32 gdi32)
 endif(MSVC)
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  target_link_libraries(space libprotobufd)
+else ()
+  target_link_libraries(space libprotobuf)
+endif()
+

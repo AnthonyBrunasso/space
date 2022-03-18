@@ -12,7 +12,7 @@ if [ ! -f "Makefile" ]; then
   cmake ../
 fi
 
-make -j 8
+make space -j 8
 
 if [ $? -eq 0 ]; then
   ./src/space

@@ -35,6 +35,8 @@ public:
   static AssetViewerFrame Create(rgg::TextureId texture_id, const Rectf& selection_rect_scaled);
   void OnRender() override;
   void OnImGui() override;
+  void SetIsAnimating(bool val) { is_animating_ = val; }
+
 
   // Texture and src / dest rect.
   AssetFrame frame_;
@@ -42,6 +44,8 @@ public:
   u32 id_;
   // Whether this thing should render or not.
   bool is_running_;
+  // If true will set a red outline in the frame to indicate this is the currently animating frame.
+  bool is_animating_;
 };
 
 class AssetViewerAnimator : public EditorRenderTarget {
@@ -172,10 +176,18 @@ void AssetViewerFrame::OnRender() {
   }
   const rgg::Texture* texture_render_from = rgg::GetTexture(frame_.texture_id_);
   assert(texture_render_from);
-  rgg::RenderTexture(
-      *texture_render_from,
-      frame_.src_rect(), Rectf(-frame_.dest_rect_.width / 2.f, -frame_.dest_rect_.height / 2.f,
-                             frame_.dest_rect_.width, frame_.dest_rect_.height));
+  Rectf target_rect(
+      -frame_.dest_rect_.width / 2.f, -frame_.dest_rect_.height / 2.f,
+      frame_.dest_rect_.width, frame_.dest_rect_.height);
+  rgg::RenderTexture(*texture_render_from, frame_.src_rect(), target_rect);
+  if (is_animating_) {
+    Rectf visible_rect = target_rect;
+    // First pixel appears clipped out, so move the frame a bit to see the red outline.
+    visible_rect.x += 1.f;
+    visible_rect.width -= 1.f;
+    visible_rect.height -= 1.f;
+    rgg::RenderLineRectangle(visible_rect, rgg::kRed);
+  }
 }
 
 void AssetViewerFrame::OnImGui() {
@@ -187,8 +199,8 @@ void AssetViewerFrame::OnImGui() {
   ImGui::Begin(panel_name, &open);
   UpdateImguiPanelRect();
   ImGuiImage();
-  ImGui::SliderFloat("offsetx", &frame_.src_rect_offset_.x, -64.f, 64.f, "%.0f");
-  ImGui::SliderFloat("offsety", &frame_.src_rect_offset_.y, -64.f, 64.f, "%.0f");
+  ImGui::SliderFloat("offsetx", &frame_.src_rect_offset_.x, -16.f, 16.f, "%.0f");
+  ImGui::SliderFloat("offsety", &frame_.src_rect_offset_.y, -16.f, 16.f, "%.0f");
   ImGui::End();
   if (open == false) {
     ReleaseSurface();
@@ -199,6 +211,7 @@ void AssetViewerFrame::OnImGui() {
 AssetViewerFrame AssetViewerFrame::Create(rgg::TextureId texture_id, const Rectf& selection_rect_scaled) {
   AssetViewerFrame frame;
   frame.Initialize(selection_rect_scaled.width, selection_rect_scaled.height);
+  frame.is_animating_ = false;
   frame.is_running_ = true;
   frame.frame_.dest_rect_ = selection_rect_scaled;
   frame.frame_.texture_id_ = texture_id;
@@ -216,6 +229,9 @@ void AssetViewerAnimator::OnInitialize() {
   ResetClock();
   is_running_ = true;
   frame_index_ = 0;
+  if (!kAssetViewer.frames_.empty()) {
+    kAssetViewer.frames_[frame_index_].SetIsAnimating(true);
+  }
   frequency_ = 1.f;
   last_frame_time_sec_ = platform::ClockDeltaSec(clock_);
   next_frame_time_sec_ = last_frame_time_sec_ + frequency_;
@@ -229,8 +245,11 @@ void AssetViewerAnimator::UpdateFrameTimes() {
   if (now >= next_frame_time_sec_) {
     last_frame_time_sec_ = next_frame_time_sec_;
     next_frame_time_sec_ += frequency_;
+    s32 pre_index = frame_index_;
     frame_index_ += 1;
     frame_index_ = (frame_index_ % kAssetViewer.frames_.size());
+    kAssetViewer.frames_[pre_index].SetIsAnimating(false);
+    kAssetViewer.frames_[frame_index_].SetIsAnimating(true);
   }
 }
 

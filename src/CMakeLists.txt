@@ -1,4 +1,5 @@
 include_directories(SYSTEM "./")
+
 # Setup MSVC parallelized builds
 add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
 add_executable(space

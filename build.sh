@@ -2,8 +2,16 @@
 
 param_one="$1"
 
+if [ ! -d "third_party/protobuf/build_output" ]; then
+  source tools/unix/build_protobuf.sh
+fi
+
 if [ ! -d "build" ]; then
   mkdir build
+fi
+
+if [ ! -d "build/proto" ]; then
+  source tools/unix/gen_proto.sh
 fi
 
 cd build

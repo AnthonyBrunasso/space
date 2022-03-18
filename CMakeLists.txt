@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.10)
 project(space)
 include_directories(third_party/imgui)
 include_directories(third_party/stb)

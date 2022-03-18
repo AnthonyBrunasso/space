@@ -1,5 +1,7 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.20)
 project(space)
 include_directories(third_party/imgui)
 include_directories(third_party/stb)
+include_directories(third_party/protobuf/include)
+link_directories(third_party/protobuf/build_output)
 add_subdirectory(src)

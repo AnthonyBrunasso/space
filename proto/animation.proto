@@ -16,8 +16,10 @@ message AnimationFrame2d {
 };
 
 message Animation2d {
+  // Animations need a unique name, e.g. knight_walk / knight_idle / fire_spirit_attack / etc.
+  optional string animation_name = 1;
   // Name of asset file, the png for example this frame comes from.
-  optional string asset_name = 1;
+  optional string asset_name = 2;
   // Frames to that compose this animation.
-  repeated AnimationFrame2d frames = 2;
+  repeated AnimationFrame2d frames = 3;
 };

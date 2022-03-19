@@ -1,5 +1,7 @@
 #pragma once
 
+#include "animation.pb.h"
+
 static const std::vector<std::string> kEditorKnownAssetExtensions = {
   "tga",
   "png",
@@ -278,6 +280,16 @@ void AssetViewerAnimator::OnImGui() {
   }
   ImGui::Text("Clock: %.2f", platform::ClockDeltaSec(clock_));
   ImGui::Text("%i %.2f / %.2f", frame_index_, last_frame_time_sec_, next_frame_time_sec_);
+  if (ImGui::Button("Generate") && !kAssetViewer.frames_.empty()) {
+    LOG(INFO, "Generating animation for %u frames.", kAssetViewer.frames_.size());
+    const rgg::Texture* texture = rgg::GetTexture(kAssetViewer.frames_[0].frame_.texture_id_);
+    proto::Animation2d anim_proto;
+    anim_proto.set_animation_name("test");
+    anim_proto.set_asset_name(texture->file);
+    /*for (const AssetFrame& frame : kAssetViewer.frames_) {
+    }*/
+    LOG(INFO, "Anim file: %s", anim_proto.DebugString().c_str());
+  }
   ImGui::End();
   platform::ClockEnd(&clock_);
 }

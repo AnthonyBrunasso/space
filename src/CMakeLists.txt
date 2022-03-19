@@ -10,7 +10,7 @@ add_executable(space
   ../third_party/imgui/imgui_tables.cpp
   ../third_party/imgui/imgui_widgets.cpp
   ../third_party/imgui/imgui_demo.cpp
-  ../build/proto/test.pb.cc
+  ../build/proto/animation.pb.cc
 )
 
 if (UNIX)

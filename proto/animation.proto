@@ -1,0 +1,23 @@
+syntax = "proto2";
+
+package proto;
+
+message AnimationFrame2d {
+  // x, y of frame in texture
+  optional float texture_x = 1;
+  optional float texture_y = 2;
+  // The width / height of the given frame.
+  optional float texture_width = 3;
+  optional float texture_height = 4;
+  // How many frames to display this image during the animation.
+  optional int32 frames = 5;
+  // How long to play this animation for.
+  optional float time = 6;
+};
+
+message Animation2d {
+  // Name of asset file, the png for example this frame comes from.
+  optional string asset_name = 1;
+  // Frames to that compose this animation.
+  repeated AnimationFrame2d frames = 2;
+};

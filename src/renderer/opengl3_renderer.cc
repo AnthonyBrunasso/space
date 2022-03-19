@@ -117,17 +117,12 @@ static RGG kRGG;
 #include "opengl3_ui.cc"
 #include "camera.cc"
 
-Mat4f
-DefaultPerspective(const v2f& dims, r32 fov = 64.f)
-{
+Mat4f DefaultPerspective(const v2f& dims, r32 fov = 64.f) {
   return math::Perspective(fov, dims.x / dims.y, 1.f, 1000.f);
 }
 
-Mat4f
-DefaultOrtho(const v2f& dims)
-{
+Mat4f DefaultOrtho(const v2f& dims) {
   return math::Ortho(dims.x, 0.f, dims.y, 0.f, 2000.f, .1f);
-
 }
 
 class ModifyObserver
@@ -162,15 +157,11 @@ class ModifyObserver
   Mat4f view_;
 };
 
-Observer*
-GetObserver()
-{
+Observer* GetObserver() {
   return &kObserver;
 }
 
-b8
-SetupGeometryProgram3d()
-{
+b8 SetupGeometryProgram3d() {
   GLuint vert_shader, frag_shader;
   if (!GLCompileShader(GL_VERTEX_SHADER, &kVertexShader3d, &vert_shader)) {
     return false;
@@ -217,9 +208,7 @@ SetupGeometryProgram3d()
 }
 
 
-b8
-SetupGeometryProgram()
-{
+b8 SetupGeometryProgram() {
   GLuint vert_shader, frag_shader;
   if (!GLCompileShader(GL_VERTEX_SHADER, &kVertexShader, &vert_shader)) {
     return false;
@@ -280,9 +269,7 @@ SetupGeometryProgram()
   return true;
 }
 
-b8
-SetupCircleProgram()
-{
+b8 SetupCircleProgram() {
   GLuint vert_shader, frag_shader;
   if (!GLCompileShader(GL_VERTEX_SHADER, &kCircleVertexShader,
                          &vert_shader)) {
@@ -324,18 +311,14 @@ SetupCircleProgram()
   return true;
 }
 
-void
-DebugReset()
-{
+void DebugReset() {
   kUsedDebugSphere = 0;
   kUsedDebugCube = 0;
   kUsedDebugPoint = 0;
   kUsedDebugRect = 0;
 }
 
-b8
-Initialize()
-{
+b8 Initialize() {
   const GLubyte* renderer = glGetString(GL_RENDERER);
   const GLubyte* version = glGetString(GL_VERSION);
   LOG(INFO, "Renderer: %s Version: %s", renderer, version);
@@ -440,9 +423,7 @@ Initialize()
   return true;
 }
 
-RenderTag
-CreateRenderable(int vert_count, GLfloat* verts, GLenum mode)
-{
+RenderTag CreateRenderable(int vert_count, GLfloat* verts, GLenum mode) {
   RenderTag tag = {};
   GLuint vbo;
   tag.vao_reference = GLCreateGeometryVAO(vert_count * 3, verts, &vbo);
@@ -451,10 +432,8 @@ CreateRenderable(int vert_count, GLfloat* verts, GLenum mode)
   return tag;
 }
 
-void
-RenderTag(const RenderTag& tag, const v3f& position, const v3f& scale,
-          const Quatf& orientation, const v4f& color)
-{
+void RenderTag(const RenderTag& tag, const v3f& position, const v3f& scale,
+               const Quatf& orientation, const v4f& color) {
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(tag.vao_reference);
   // Translate and rotate the triangle appropriately.
@@ -467,10 +446,8 @@ RenderTag(const RenderTag& tag, const v3f& position, const v3f& scale,
   glDrawArrays(tag.mode, 0, tag.vert_count);
 }
 
-void
-RenderTriangle(const v3f& position, const v3f& scale,
-               const Quatf& orientation, const v4f& color)
-{
+void RenderTriangle(const v3f& position, const v3f& scale,
+                    const Quatf& orientation, const v4f& color) {
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.triangle_vao_reference);
   // Translate and rotate the triangle appropriately.
@@ -483,17 +460,11 @@ RenderTriangle(const v3f& position, const v3f& scale,
   glDrawArrays(GL_LINE_LOOP, 0, 3);
 }
 
-void
-RenderTriangle(const v2f& p, r32 half_height, const v4f& color)
-{
+void RenderTriangle(const v2f& p, r32 half_height, const v4f& color) {
   glUseProgram(kRGG.geometry_program.reference);
-  // Texture state has quad with length 1 geometry. This makes scaling simpler
-  // as we can use the width / height directly in scale matrix.
   glBindVertexArray(kTextureState.vao_reference);
   Mat4f view_projection = kObserver.projection * kObserver.view;
-  Print4x4Matrix(view_projection);
-  glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
-              color.w);
+  glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z, color.w);
   glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
                      &view_projection.data_[0]);
   v2f top = p + v2f(0.f, half_height);
@@ -507,13 +478,10 @@ RenderTriangle(const v2f& p, r32 half_height, const v4f& color)
   glBindBuffer(GL_ARRAY_BUFFER, kTextureState.vbo_reference);
   glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_DYNAMIC_DRAW);
   glDrawArrays(GL_TRIANGLES, 0, 3);
-
 }
 
-void
-RenderRectangle(const v3f& position, const v3f& scale,
-                const Quatf& orientation, const v4f& color)
-{
+void RenderRectangle(const v3f& position, const v3f& scale,
+                     const Quatf& orientation, const v4f& color) {
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.rectangle_vao_reference);
   // Translate and rotate the rectangle appropriately.
@@ -526,9 +494,7 @@ RenderRectangle(const v3f& position, const v3f& scale,
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void
-RenderRectangle(const Rectf& rect, r32 z, r32 rotation, const v4f& color)
-{
+void RenderRectangle(const Rectf& rect, r32 z, r32 rotation, const v4f& color) {
   glUseProgram(kRGG.geometry_program.reference);
   // Texture state has quad with length 1 geometry. This makes scaling simpler
   // as we can use the width / height directly in scale matrix.
@@ -552,17 +518,13 @@ RenderRectangle(const Rectf& rect, r32 z, r32 rotation, const v4f& color)
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void
-RenderRectangle(const Rectf& rect, const v4f& color)
-{
+void RenderRectangle(const Rectf& rect, const v4f& color) {
   RenderRectangle(rect, 0.f, 0.f, color);
 }
 
 void RenderLine(const v3f& start, const v3f& end, const v4f& color);
 
-void
-RenderLineRectangle(const Rectf& rect, r32 z, r32 rotate, const v4f& color)
-{
+void RenderLineRectangle(const Rectf& rect, r32 z, r32 rotate, const v4f& color) {
   glUseProgram(kRGG.geometry_program.reference);
   // Texture state has quad with length 1 geometry. This makes scaling simpler
   // as we can use the width / height directly in scale matrix.
@@ -584,16 +546,11 @@ RenderLineRectangle(const Rectf& rect, r32 z, r32 rotate, const v4f& color)
   glDrawArrays(GL_LINE_LOOP, 0, 4);
 }
 
-void
-RenderLineRectangle(const Rectf& rect, const v4f& color)
-{
+void RenderLineRectangle(const Rectf& rect, const v4f& color) {
   RenderLineRectangle(rect, 0.f, 0.f, color);
 }
 
-void
-RenderSmoothRectangle(const Rectf& rect, r32 smoothing_radius,
-                      const v4f& color)
-{
+void RenderSmoothRectangle(const Rectf& rect, r32 smoothing_radius, const v4f& color) {
   glUseProgram(kRGG.smooth_rectangle_program.reference);
   glBindVertexArray(kTextureState.vao_reference_static);
   v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, 0.0f);
@@ -611,10 +568,7 @@ RenderSmoothRectangle(const Rectf& rect, r32 smoothing_radius,
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void
-RenderCircle(const v3f& position, r32 inner_radius, r32 outer_radius,
-             const v4f& color)
-{
+void RenderCircle(const v3f& position, r32 inner_radius, r32 outer_radius, const v4f& color) {
   glUseProgram(kRGG.circle_program.reference);
   glBindVertexArray(kTextureState.vao_reference_static);
   // Translate and rotate the circle appropriately.
@@ -632,15 +586,11 @@ RenderCircle(const v3f& position, r32 inner_radius, r32 outer_radius,
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void
-RenderCircle(const v3f& position, r32 radius, const v4f& color)
-{
+void RenderCircle(const v3f& position, r32 radius, const v4f& color) {
   RenderCircle(position, 0.0f, radius, color);
 }
 
-void
-RenderLine(const v3f& start, const v3f& end, const v4f& color)
-{
+void RenderLine(const v3f& start, const v3f& end, const v4f& color) {
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.line_vao_reference);
   // Model matrix unneeded here due to verts being set directly.
@@ -655,10 +605,7 @@ RenderLine(const v3f& start, const v3f& end, const v4f& color)
   glDrawArrays(GL_LINES, 0, 2);
 }
 
-void
-RenderGrid(const v2f& grid, const Rectf& bounds, uint64_t color_count,
-           v4f* color)
-{
+void RenderGrid(const v2f& grid, const Rectf& bounds, uint64_t color_count, v4f* color) {
   // Prepare Geometry and color
   glUseProgram(kRGG.geometry_program.reference);
   glBindVertexArray(kRGG.line_vao_reference);
@@ -684,9 +631,7 @@ RenderGrid(const v2f& grid, const Rectf& bounds, uint64_t color_count,
     i = (i != color_count) * i;
   }
 }
-void
-SetDefaultSurfaceMaterial()
-{
+void SetDefaultSurfaceMaterial() {
   // Set some reasonable lighting defaults.
   glUniform3f(kRGG.geometry_program_3d.suface_specular_uniform,
               1.f, 1.f, 1.f);
@@ -696,10 +641,7 @@ SetDefaultSurfaceMaterial()
               1.f, 1.f, 1.f);
 }
 
-void
-Render3d(const v3f& pos, const v3f& scale, const v4f& color, GLuint vao,
-         s32 verts)
-{
+void Render3d(const v3f& pos, const v3f& scale, const v4f& color, GLuint vao, s32 verts) {
   glUseProgram(kRGG.geometry_program_3d.reference);
   glBindVertexArray(vao);
   Mat4f model = math::Model(pos, scale);
@@ -718,10 +660,7 @@ Render3d(const v3f& pos, const v3f& scale, const v4f& color, GLuint vao,
   glDrawArrays(GL_TRIANGLES, 0, verts);
 }
 
-void
-Render3d(const v3f& pos, const v3f& scale, const v4f& color, GLuint vao,
-         s32 verts, const Mat4f& perspective)
-{
+void Render3d(const v3f& pos, const v3f& scale, const v4f& color, GLuint vao, s32 verts, const Mat4f& perspective) {
   glUseProgram(kRGG.geometry_program_3d.reference);
   glBindVertexArray(vao);
   Mat4f model = math::Model(pos, scale);
@@ -740,10 +679,7 @@ Render3d(const v3f& pos, const v3f& scale, const v4f& color, GLuint vao,
   glDrawArrays(GL_TRIANGLES, 0, verts);
 }
 
-void
-Render3dWithRotation(const v3f& pos, const v3f& scale, const Quatf& quat,
-                     const v4f& color, GLuint vao, s32 verts)
-{
+void Render3dWithRotation(const v3f& pos, const v3f& scale, const Quatf& quat, const v4f& color, GLuint vao, s32 verts) {
   glUseProgram(kRGG.geometry_program_3d.reference);
   glBindVertexArray(vao);
   Mat4f model = math::Model(pos, scale, quat);
@@ -762,10 +698,7 @@ Render3dWithRotation(const v3f& pos, const v3f& scale, const Quatf& quat,
   glDrawArrays(GL_TRIANGLES, 0, verts);
 }
 
-void
-RenderMesh(const Mesh& mesh, const Mat4f& model, 
-           const v4f& color = v4f(1.f, 1.f, 1.f, 1.f))
-{
+void RenderMesh(const Mesh& mesh, const Mat4f& model, const v4f& color = v4f(1.f, 1.f, 1.f, 1.f)) {
   if (kRGG.geometry_program_3d.color_uniform != u32(-1)) {
     glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y,
                 color.z, color.w);
@@ -801,10 +734,7 @@ RenderMesh(const Mesh& mesh, const Mat4f& model,
 }
 
 // Leaving color as default will only use lighting properties.
-void
-RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
-           const Quatf& quat, const v4f& color = v4f(1.f, 1.f, 1.f, 1.f))
-{
+void RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale, const Quatf& quat, const v4f& color = v4f(1.f, 1.f, 1.f, 1.f)) {
   if (!mesh.IsValid()) return;
   glUseProgram(kRGG.geometry_program_3d.reference);
   glBindVertexArray(mesh.vao);
@@ -812,11 +742,9 @@ RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
   RenderMesh(mesh, model, color);
 }
 
-void
-RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
+void RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
            r32 x_rotation, r32 y_rotation, r32 z_rotation,
-           const v4f& color = v4f(1.f, 1.f, 1.f, 1.f))
-{
+           const v4f& color = v4f(1.f, 1.f, 1.f, 1.f)) {
   if (!mesh.IsValid()) return;
   glUseProgram(kRGG.geometry_program_3d.reference);
   glBindVertexArray(mesh.vao);
@@ -825,48 +753,35 @@ RenderMesh(const Mesh& mesh, const v3f& pos, const v3f& scale,
   RenderMesh(mesh, model, color);
 }
 
-void
-RenderCube(const Cubef& cube, const v4f& color)
-{
+void RenderCube(const Cubef& cube, const v4f& color) {
   Render3d(cube.pos, v3f(cube.width, cube.height, cube.depth), color,
            kRGG.cube_vao_reference, kCubeVertCount);
 }
 
-void
-RenderCube(const Cubef& cube, const v4f& color, const Mat4f& perspective)
-{
+void RenderCube(const Cubef& cube, const v4f& color, const Mat4f& perspective) {
   Render3d(cube.pos, v3f(cube.width, cube.height, cube.depth), color,
            kRGG.cube_vao_reference, kCubeVertCount, perspective);
 }
 
-void
-RenderCube(const Cubef& cube, const Quatf& orientation, const v4f& color) {
+void RenderCube(const Cubef& cube, const Quatf& orientation, const v4f& color) {
   Render3dWithRotation(cube.pos, v3f(cube.width, cube.height, cube.depth),
                        orientation, color, kRGG.cube_vao_reference,
                        kCubeVertCount);
 }
 
-void
-RenderHexagon(const v3f& pos, const v3f& scale, const v4f& color)
-{
+void RenderHexagon(const v3f& pos, const v3f& scale, const v4f& color) {
   Render3d(pos, scale, color, kRGG.hex_vao_reference, kHexVertCount);
 }
 
-void
-RenderCone(v3f pos, v3f scale, const v4f& color)
-{
+void RenderCone(v3f pos, v3f scale, const v4f& color) {
   Render3d(pos, scale, color, kRGG.cone_vao_reference, kConeVertCount);
 }
 
-void
-RenderSphere(v3f pos, v3f scale, const v4f& color)
-{
+void RenderSphere(v3f pos, v3f scale, const v4f& color) {
   Render3d(pos, scale, color, kRGG.sphere_vao_reference, kSphereVertCount);
 }
 
-void
-RenderLineCube(const Cubef& cube, const v4f& color)
-{
+void RenderLineCube(const Cubef& cube, const v4f& color) {
   glUseProgram(kRGG.geometry_program.reference);
   Mat4f matrix = kObserver.view * kObserver.projection;
   glUniform4f(kRGG.geometry_program_3d.color_uniform, color.x, color.y,
@@ -907,9 +822,7 @@ RenderLineCube(const Cubef& cube, const v4f& color)
   RenderLine(front_top_left, front_top_right, color);
 }
 
-void
-RenderLineHexagon(const v3f& center, r32 size, const v4f& color)
-{
+void RenderLineHexagon(const v3f& center, r32 size, const v4f& color) {
   v3f points[6];
   for (s32 i = 1; i <= 6; ++i) {
     points[i - 1] = v3f(math::HexCorner(center.xy(), 5.f, i));
@@ -923,11 +836,9 @@ RenderLineHexagon(const v3f& center, r32 size, const v4f& color)
   RenderLine(points[4], points[5], color);
 }
 
-void
-RenderProgressBar(const Rectf& rect, r32 z, r32 current_progress,
+void RenderProgressBar(const Rectf& rect, r32 z, r32 current_progress,
                   r32 max_progress, const v4f& fill_color,
-                  const v4f& outline_color)
-{
+                  const v4f& outline_color) {
   if (current_progress > FLT_EPSILON) {
     Rectf fill_rect(
         rect.x, rect.y,
@@ -939,9 +850,7 @@ RenderProgressBar(const Rectf& rect, r32 z, r32 current_progress,
   RenderLineRectangle(rect, z, 0.f, outline_color);
 }
 
-void
-DebugRenderWorldPrimitives()
-{
+void DebugRenderWorldPrimitives() {
   // Perspetive / world debugging.
   for (s32 i = 0; i < kUsedDebugSphere; ++i) {
     r32 r = kDebugSphere[i].radius;
@@ -971,9 +880,7 @@ DebugRenderWorldPrimitives()
   }
 }
 
-void
-DebugRenderUIPrimitives()
-{
+void DebugRenderUIPrimitives() {
   glDisable(GL_DEPTH_TEST);
   glBlendFunc(GL_ONE, GL_ZERO);
   // Orthographic / UI debugging
@@ -996,41 +903,30 @@ DebugRenderUIPrimitives()
   glEnable(GL_DEPTH_TEST);
 }
 
-void
-DebugRenderPrimitives()
-{
+void DebugRenderPrimitives() {
   DebugRenderWorldPrimitives();
   DebugRenderUIPrimitives();
 }
 
-void
-DebugPushSphere(const v3f& position, r32 radius, const v4f& color)
-{
+void DebugPushSphere(const v3f& position, r32 radius, const v4f& color) {
   DebugSphere* dsphere = UseDebugSphere();
   dsphere->position = position;
   dsphere->radius = radius;
   dsphere->color = color;
 } 
 
-void
-DebugPushCube(const Cubef& cube, const v4f& color, b8 fill)
-{
+void DebugPushCube(const Cubef& cube, const v4f& color, b8 fill) {
   DebugCube* dcube = UseDebugCube();
   dcube->cube = cube;
   dcube->color = color;
   dcube->fill = fill;
 }
 
-void
-DebugPushCube(const Cubef& cube, const v4f& color)
-{
+void DebugPushCube(const Cubef& cube, const v4f& color) {
   DebugPushCube(cube, color, false);
 }
 
-void
-DebugPushPoint(const v3f& position, r32 radius, const v4f& color,
-               DebugType type)
-{
+void DebugPushPoint(const v3f& position, r32 radius, const v4f& color, DebugType type) {
   DebugPoint* dpoint = UseDebugPoint();
   dpoint->position = position;
   dpoint->radius = radius;
@@ -1038,16 +934,12 @@ DebugPushPoint(const v3f& position, r32 radius, const v4f& color,
   dpoint->type = type;
 }
 
-void
-DebugPushPoint(const v3f& position, r32 radius, const v4f& color)
-{
+void DebugPushPoint(const v3f& position, r32 radius, const v4f& color) {
   DebugPushPoint(position, radius, color, kDebugWorld);
 }
 
 
-void
-DebugPushRect(const Rectf& rect, const v4f& color, DebugType type)
-{
+void DebugPushRect(const Rectf& rect, const v4f& color, DebugType type) {
   DebugRect* drect = UseDebugRect();
   drect->rect = rect;
   drect->color = color;

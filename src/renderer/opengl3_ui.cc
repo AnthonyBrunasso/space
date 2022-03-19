@@ -20,9 +20,7 @@ struct UI {
 
 static UI kUI;
 
-b8
-SetupUI()
-{
+b8 SetupUI() {
   Font& font = kUI.font;
   font.texture = CreateTexture2D(GL_RED, kFontWidth, kFontHeight,
                                  TextureInfo(), kFontData);
@@ -57,9 +55,7 @@ SetupUI()
   return true;
 }
 
-s32
-GetNextKerning(const char* msg, s32 msg_len, s32 first, s32 second)
-{
+s32 GetNextKerning(const char* msg, s32 msg_len, s32 first, s32 second) {
   if (first == msg_len - 1) return 0;
   const FontMetadataRow* row = &kFontMetadataRow[msg[first]];
   for (s32 i = 0; i < row->kcount; ++i) {
@@ -70,10 +66,8 @@ GetNextKerning(const char* msg, s32 msg_len, s32 first, s32 second)
   return 0;
 }
 
-void
-GetTextInfo(const char* msg, s32 msg_len, r32* width, r32* height,
-            r32* min_y_offset)
-{
+void GetTextInfo(const char* msg, s32 msg_len, r32* width, r32* height,
+                 r32* min_y_offset) {
   auto& font = kUI.font;
   *height = kFontLineHeight;
   *width = 0.0f;
@@ -88,24 +82,18 @@ GetTextInfo(const char* msg, s32 msg_len, r32* width, r32* height,
   }
 }
 
-Rectf
-GetTextRect(const char* msg, s32 msg_len, v2f pos, r32 scale)
-{
+Rectf GetTextRect(const char* msg, s32 msg_len, v2f pos, r32 scale) {
   r32 width, height, min_y_offset;
   GetTextInfo(msg, msg_len, &width, &height, &min_y_offset);
   return Rectf(
       pos.x, pos.y, width * scale, height * scale - min_y_offset * scale);
 }
 
-Rectf
-GetTextRect(const char* msg, s32 msg_len, v2f pos)
-{
+Rectf GetTextRect(const char* msg, s32 msg_len, v2f pos) {
   return GetTextRect(msg, msg_len, pos, 1.0f);
 }
 
-void
-RenderText(const char* msg, v2f pos, r32 scale, const v4f& color)
-{
+void RenderText(const char* msg, v2f pos, r32 scale, const v4f& color) {
   auto& font = kUI.font;
 
   struct TextPoint {
@@ -191,14 +179,11 @@ RenderText(const char* msg, v2f pos, r32 scale, const v4f& color)
   }
 }
 
-void
-RenderText(const char* msg, v2f pos, const v4f& color)
-{
+void RenderText(const char* msg, v2f pos, const v4f& color) {
   RenderText(msg, pos, 1.0f, color);
 }
 
-void
-RenderButton(const char* text, const Rectf& rect, const v4f& color) {
+void RenderButton(const char* text, const Rectf& rect, const v4f& color) {
   glUseProgram(kRGG.smooth_rectangle_program.reference);
   glBindVertexArray(kTextureState.vao_reference);
   v3f pos(rect.x + rect.width / 2.f, rect.y + rect.height / 2.f, 0.0f);

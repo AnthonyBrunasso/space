@@ -20,7 +20,6 @@ endif (UNIX)
 if (MSVC)
   set_property(TARGET space PROPERTY CXX_STANDARD 17)
   # Just match the runtime library of protobuf. Can investigate changing this if it becomes a problem.
-  set_property(TARGET space PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
   add_definitions(-DUNICODE)
   add_definitions(-D_UNICODE)
   target_link_libraries(space user32 opengl32 gdi32)

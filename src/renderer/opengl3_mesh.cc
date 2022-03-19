@@ -37,9 +37,7 @@ struct Mesh {
 
 constexpr s32 kMaxVertCount = 65538;
 
-bool
-LoadMTL(const char* filename, Material* material, u32* material_count)
-{
+bool LoadMTL(const char* filename, Material* material, u32* material_count) {
   *material = {};
   FILE* f = fopen(filename, "rb");
   if (!f) {
@@ -150,9 +148,7 @@ SetupMesh(Mesh* mesh, r32* verts, u32 verts_count, r32* norms, u32 norms_count)
   return true;
 }
 
-bool
-LoadOBJ(const char* filename, Mesh* mesh)
-{
+bool LoadOBJ(const char* filename, Mesh* mesh) {
   *mesh = {};
   static v3f v[kMaxVertCount];
   static u32 cv = 0;

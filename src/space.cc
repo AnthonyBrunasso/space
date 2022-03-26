@@ -2,6 +2,18 @@
 
 #include "editor/editor.cc"
 
+bool SetupWorkingDirectory() {
+  bool result = false;
+  // Check the directory the binary is run from and one backwards then give up.
+  if (!filesystem::WorkingDirectoryContains("asset")) {
+    filesystem::ChangeDirectory("../");
+    result = filesystem::WorkingDirectoryContains("asset"); 
+  } else {
+    result = true;
+  }
+  return result;
+}
+
 s32 main(s32 argc, char** argv) {
   // Cuz my windows machine gots a bigger montior
 #ifdef _WIN32
@@ -11,6 +23,14 @@ s32 main(s32 argc, char** argv) {
   kEditor.window_create_info.window_width = 1600;
   kEditor.window_create_info.window_height = 900;
 #endif
+
+  if (!SetupWorkingDirectory()) {
+    LOG(ERR, "Unable to setup working directory.");
+    return 1;
+  }
+
+  LOG(INFO, "Working dir: %s", filesystem::GetWorkingDirectory());
+
   if (!window::Create("Space", kEditor.window_create_info)) {
     return 1;
   }

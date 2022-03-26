@@ -50,6 +50,19 @@ std::string JoinPath(const std::string& s1, const char* s2) {
 
 b8 MakeDirectory(const char* name);
 void WalkDirectory(const char* dir, const std::function<void(const char*, bool)> file_callback);
+void WalkDirectory(const std::string& dir, const std::function<void(const char*, bool)> file_callback) {
+  WalkDirectory(dir.c_str(), file_callback);
+}
 void ChangeDirectory(const char* dir);
 const char* GetWorkingDirectory();
+
+// Check if the current working directory contains a specific directory.
+inline b8 WorkingDirectoryContains(const char* dir) {
+  b8 contains = false;
+  WalkDirectory(JoinPath(GetWorkingDirectory(), "/"), [&](const char* name, bool is_dir) {
+    if (is_dir && strcmp(dir, name) == 0) contains = true;
+  });
+  return contains;
+}
+
 }

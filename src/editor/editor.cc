@@ -380,9 +380,9 @@ void EditorFileBrowser() {
   char dir[256] = {};
   strcat(dir, filesystem::GetWorkingDirectory());
 #ifdef _WIN32
-  strcat(dir, "\\..\\*");
+  strcat(dir, "\\*");
 #else
-  strcat(dir, "/../");
+  strcat(dir, "/");
 #endif
   EditorFilesFrom(dir);
   ImGui::End();

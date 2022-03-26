@@ -59,7 +59,11 @@ const char* GetWorkingDirectory();
 // Check if the current working directory contains a specific directory.
 inline b8 WorkingDirectoryContains(const char* dir) {
   b8 contains = false;
+#ifdef _WIN32
+  WalkDirectory(JoinPath(GetWorkingDirectory(), "\\"), [&](const char* name, bool is_dir) {
+#else
   WalkDirectory(JoinPath(GetWorkingDirectory(), "/"), [&](const char* name, bool is_dir) {
+#endif
     if (is_dir && strcmp(dir, name) == 0) contains = true;
   });
   return contains;

@@ -322,10 +322,10 @@ bool EditorShouldIgnoreFile(const char* filename) {
 void EditorFilesFrom(const char* dir) {
   std::vector<std::string> files;
   std::vector<std::string> dirs;
-  filesystem::WalkDirectory(dir, [&files, &dirs](const char* filename, bool is_dir) {
+  filesystem::WalkDirectory(dir, [&files, &dir, &dirs](const char* filename, bool is_dir) {
     if (EditorShouldIgnoreFile(filename)) return;
     if (is_dir) dirs.push_back(std::string(filename));
-    else files.push_back(std::string(filename));
+    else files.push_back(filesystem::JoinPath(dir, std::string(filename)));
   });
   for (const std::string& d : dirs) {
     if (ImGui::TreeNode(d.c_str())) {
@@ -348,22 +348,16 @@ void EditorFilesFrom(const char* dir) {
   ImGui::Indent();
   for (const std::string& file : files) {
     bool kChosen = false;
+    std::string filename = filesystem::Filename(file.c_str());
     if (EditorCanLoadAsset(file)) {
-      if (ImGui::Selectable(file.c_str(), &kChosen)) {
-        //LOG(INFO, "Chose asset %s", file.c_str());
-#ifdef _WIN32
-        // Windows does dumb stuff with their API to recursively expand paths. So fix that here.
-        char corrected_dir[256] = {};
-        strncpy(corrected_dir, dir, strlen(dir) - 2);
-        kAssetViewer.chosen_asset_path_ = filesystem::JoinPath(corrected_dir, file);
-#else
-        kAssetViewer.chosen_asset_path_ = filesystem::JoinPath(dir, file);
-#endif
+      if (ImGui::Selectable(filename.c_str(), &kChosen)) {
+        LOG(INFO, "Chose asset %s", file.c_str());
+        kAssetViewer.chosen_asset_path_ = file;
         kEditor.mode = EDITOR_MODE_ASSET_VIEWER;
       }
     }
     else {
-      ImGui::Text("%s", file.c_str());
+      ImGui::Text("%s", filename.c_str());
     }
   }
 }
@@ -378,11 +372,10 @@ void EditorFileBrowser() {
   ImGui::SetNextWindowPos(ImVec2(kExplorerStart, item_height + 1.f), ImGuiCond_Always);
   ImGui::Begin("File Browser", nullptr, window_flags);
   char dir[256] = {};
-  strcat(dir, filesystem::GetWorkingDirectory());
 #ifdef _WIN32
   strcat(dir, "\\*");
 #else
-  strcat(dir, "/");
+  strcat(dir, "./");
 #endif
   EditorFilesFrom(dir);
   ImGui::End();

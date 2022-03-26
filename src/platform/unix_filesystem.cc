@@ -56,7 +56,9 @@ std::string Filename(const char* fullname) {
 std::string JoinPath(const char* s1, const char* s2) {
   // TODO: Make less stupid.
   std::string ret(s1);
-  ret += "/";
+  assert(ret.size() != 0);
+  assert(strlen(s2) != 0);
+  if (ret[ret.size() - 1] != '/') ret += "/";
   ret += std::string(s2);
   return ret;
 }

@@ -13,21 +13,29 @@ add_executable(space
   ../build/proto/animation.pb.cc
 )
 
+set_property(TARGET space PROPERTY CXX_STANDARD 17)
+
+message("${CMAKE_BUILD_TYPE}")
+
 if (UNIX)
   target_link_libraries(space X11 EGL GL)
+  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_link_libraries(space -l:libprotobufd.a)
+  else ()
+    target_link_libraries(space -l:libprotobuf.a)
+  endif()
 endif (UNIX)
 
 if (MSVC)
-  set_property(TARGET space PROPERTY CXX_STANDARD 17)
   # Just match the runtime library of protobuf. Can investigate changing this if it becomes a problem.
   add_definitions(-DUNICODE)
   add_definitions(-D_UNICODE)
   target_link_libraries(space user32 opengl32 gdi32)
+  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_link_libraries(space libprotobufd)
+  else ()
+    target_link_libraries(space libprotobuf)
+  endif()
 endif(MSVC)
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  target_link_libraries(space libprotobufd)
-else ()
-  target_link_libraries(space libprotobuf)
-endif()
 

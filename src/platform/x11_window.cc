@@ -306,3 +306,5 @@ const char* GetBinaryPath() {
 }
 
 }  // namespace window
+
+#undef Status

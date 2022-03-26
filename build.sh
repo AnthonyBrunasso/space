@@ -17,7 +17,7 @@ fi
 cd build
 
 if [ ! -f "Makefile" ]; then
-  cmake ../
+  cmake -DCMAKE_BUILD_TYPE=Debug ../
 fi
 
 make space -j 8

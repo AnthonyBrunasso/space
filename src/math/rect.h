@@ -135,10 +135,6 @@ struct Rectf {
 namespace math
 {
 
-Rectf MakeRect(v2f min, v2f max) {
-  return Rectf(min.x, min.y, max.x - min.x, max.y - min.y);
-}
-
 void PrintRect(const Rectf& rect) {
   printf("Rect(%.2f,%.2f,%.2f,%.2f)\n",
          rect.x, rect.y, rect.width, rect.height);
@@ -156,6 +152,10 @@ Rectf OrientToAabb(const Rectf& rect) {
     r.width *= -1.f;
   }
   return r;
+}
+
+Rectf MakeRect(v2f min, v2f max) {
+  return OrientToAabb(Rectf(min.x, min.y, max.x - min.x, max.y - min.y));
 }
 
 v2f RandomPointInRect(const Rectf& rect) {

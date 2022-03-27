@@ -1,5 +1,6 @@
 #pragma once
 
+DEFINE_EDITOR_CALLBACK(AssetBoxSelect, AssetSelection);
 
 static const std::vector<std::string> kEditorKnownAssetExtensions = {
   "tga",
@@ -13,33 +14,29 @@ bool EditorCanLoadAsset(const std::string& name) {
   return false;
 }
 
-
-class AssetViewerFrame : public EditorRenderTarget {
-public:
-  static AssetViewerFrame Create(rgg::TextureId texture_id, const Rectf& selection_rect_scaled);
-  void OnRender() override;
-  void OnImGui() override;
-  void SetIsAnimating(bool val) { is_animating_ = val; }
-
-  // Texture and src / dest rect.
-  AnimFrame2d frame_;
-  // How big to render the resulting frame.
-  Rectf dest_rect_;
-  // Unique id of the asset viewer frame.
-  u32 id_;
-  // Whether this thing should render or not.
-  bool is_running_;
-  // If true will set a red outline in the frame to indicate this is the currently animating frame.
-  bool is_animating_;
-};
-
 class AssetViewerAnimator : public EditorRenderTarget {
 public:
-  void OnInitialize() override;
+  AssetViewerAnimator();
+  AssetViewerAnimator(const AssetViewerAnimator& anim) = delete;
+
+  static void HandleAssetBoxSelect(const AssetSelection& selection);
+
   void OnRender() override;
   void OnImGui() override;
 
+  bool IsMouseInside() const override;
+
+  void AddFrame(const AnimFrame2d& frame, v2f dims, r32 duration = 1.f);
+  void Clear();
+
   AnimSequence2d anim_sequence_;
+  struct Frame {
+    EditorSurface editor_surface;
+    Rectf imgui_rect;
+    void ImGui(AnimSequence2d::SequenceFrame& sframe, s32 id);
+  };
+
+  std::vector<Frame> anim_frames_;
   bool is_running_;
 };
 
@@ -53,7 +50,6 @@ public:
   rgg::TextureId texture_id_;
   r32 scale_ = 1.0f;
   std::string chosen_asset_path_;
-  std::vector<AssetViewerFrame> frames_;
   bool clamp_cursor_to_nearest_ = true;
   bool show_crosshair_ = true;
   bool animate_frames_ = false;
@@ -75,11 +71,6 @@ void EditorAssetViewerRenderAsset() {
 bool EditorAssetViewerCursorInSelection() {
   if (kAssetViewerAnimator.is_running_ && kAssetViewerAnimator.IsMouseInside()) {
     return true;
-  }
-  for (const AssetViewerFrame& frame : kAssetViewer.frames_) {
-    if (frame.IsMouseInside()) {
-      return true;
-    }
   }
   return false;
 }
@@ -134,106 +125,48 @@ void AssetViewer::OnRender() {
   if (kAssetViewerSelection.action == 1) {
     EditorRenderCrosshair(kAssetViewerSelection.start_world * scale_, ScaleEditorViewport(), rgg::kPurple);
   }
-
-  for (const AssetViewerFrame& frame : frames_) {
-    if (frame.frame_.texture_id_ == texture_id_) {
-      rgg::RenderLineRectangle(frame.dest_rect_, rgg::kPurple);
-    }
-  }
 }
 
 void AssetViewer::OnImGui() {
   ImGuiImage();
 }
 
-void AssetViewerFrame::OnRender() {
-  if (!IsRenderTargetValid()) {
-    is_running_ = false;
-    return;
-  }
-  const rgg::Texture* texture_render_from = rgg::GetTexture(frame_.texture_id_);
-  assert(texture_render_from);
-  Rectf target_rect(
-      -dest_rect_.width / 2.f, -dest_rect_.height / 2.f,
-      dest_rect_.width, dest_rect_.height);
-  rgg::RenderTexture(*texture_render_from, frame_.src_rect(), target_rect);
-  if (is_animating_) {
-    Rectf visible_rect = target_rect;
-    // First pixel appears clipped out, so move the frame a bit to see the red outline.
-    visible_rect.x += 1.f;
-    visible_rect.width -= 1.f;
-    visible_rect.height -= 1.f;
-    rgg::RenderLineRectangle(visible_rect, rgg::kRed);
+void AssetViewerAnimator::HandleAssetBoxSelect(const AssetSelection& selection) {
+  AnimFrame2d frame;
+  frame.texture_id_ = kAssetViewer.texture_id_;
+  frame.src_rect_ = selection.tex_rect;
+  kAssetViewerAnimator.AddFrame(frame, selection.world_rect_scaled.Dims(), 1.f);
+  kAssetViewerAnimator.anim_sequence_.Start();
+  if (!kAssetViewerAnimator.IsRenderTargetValid()) {
+    kAssetViewerAnimator.Initialize(selection.world_rect_scaled.width, selection.world_rect_scaled.height);
   }
 }
 
-void AssetViewerFrame::OnImGui() {
-  const rgg::Texture* texture_render_from = rgg::GetTexture(frame_.texture_id_);
-  assert(texture_render_from);
-  bool open = true;
-  char panel_name[128];
-  snprintf(panel_name, 128, "%s/%i", filesystem::Filename(texture_render_from->file).c_str(), id_);
-  ImGui::Begin(panel_name, &open);
-  UpdateImguiPanelRect();
-  ImGuiImage();
-  
-  if (ImGui::Button("-")) frame_.src_rect_.x += 1.f;
-  ImGui::SameLine();
-  if (ImGui::Button("+")) frame_.src_rect_.x -= 1.f;
-  ImGui::SameLine();
-  ImGui::Text("x");
-
-  if (ImGui::Button("v")) frame_.src_rect_.y += 1.f;
-  ImGui::SameLine();
-  if (ImGui::Button("^")) frame_.src_rect_.y -= 1.f;
-  ImGui::SameLine();
-  ImGui::Text("y");
-
-  ImGui::Text("rect: %.0f %.0f %.0f %.0f",
-              frame_.src_rect_.x,
-              frame_.src_rect_.y,
-              frame_.src_rect_.width,
-              frame_.src_rect_.height);
-
-  ImGui::End();
-  if (open == false) {
-    ReleaseSurface();
-    is_running_ = false;
-  }
-}
-
-AssetViewerFrame AssetViewerFrame::Create(rgg::TextureId texture_id, const Rectf& selection_rect_scaled) {
-  AssetViewerFrame frame;
-  frame.Initialize(selection_rect_scaled.width, selection_rect_scaled.height);
-  frame.is_animating_ = false;
-  frame.is_running_ = true;
-  frame.dest_rect_ = selection_rect_scaled;
-  frame.frame_.texture_id_ = texture_id;
-  frame.frame_.src_rect_ = kAssetViewerSelection.TexRect();
-  static u32 kUniqueId = 1;
-  frame.id_ = kUniqueId++;
-  return frame;
-}
-
-void AssetViewerAnimator::OnInitialize() {
-  for (const AssetViewerFrame& asset_frame : kAssetViewer.frames_) {
-    anim_sequence_.AddFrame(asset_frame.frame_, 1.f);
-  }
-  anim_sequence_.Start();
+AssetViewerAnimator::AssetViewerAnimator() {
+  SubscribeAssetBoxSelect(&HandleAssetBoxSelect);
 }
 
 void AssetViewerAnimator::OnRender() {
   anim_sequence_.Update();
 
-  if (kAssetViewer.frames_.size() > 0) {
-    const AssetViewerFrame* cf = &kAssetViewer.frames_[anim_sequence_.frame_index_];
+  if (!anim_sequence_.IsEmpty()) {
+    //const AssetViewerFrame* cf = &kAssetViewer.frames_[anim_sequence_.frame_index_];
     const AnimFrame2d& aframe = anim_sequence_.CurrentFrame();
     const rgg::Texture* texture_render_from = rgg::GetTexture(aframe.texture_id_);
     rgg::RenderTexture(*texture_render_from,
                        aframe.src_rect(),
-                       Rectf(-cf->dest_rect_.width / 2.f, -cf->dest_rect_.height / 2.f,
-                             cf->dest_rect_.width, cf->dest_rect_.height));
+                       Rectf(-GetRenderTargetWidth() / 2.f, -GetRenderTargetHeight() / 2.f,
+                             GetRenderTargetWidth(), GetRenderTargetHeight()));
   }
+}
+
+void AssetViewerAnimator::Clear() {
+  anim_sequence_.Clear();
+  ReleaseSurface();
+  for (Frame& frame : anim_frames_) {
+    DestroyEditorSurface(&frame.editor_surface);
+  }
+  anim_frames_.clear();
 }
 
 void AssetViewerAnimator::OnImGui() {
@@ -250,15 +183,49 @@ void AssetViewerAnimator::OnImGui() {
               anim_sequence_.frame_index_,
               anim_sequence_.last_frame_time_sec_,
               anim_sequence_.next_frame_time_sec_);
-  /*if (ImGui::Button("Generate") && !kAssetViewer.frames_.empty()) {
-    LOG(INFO, "Generating animation for %u frames.", kAssetViewer.frames_.size());
-    const rgg::Texture* texture = rgg::GetTexture(kAssetViewer.frames_[0].frame_.texture_id_);
-    proto::Animation2d anim_proto;
-    anim_proto.set_animation_name("test");
-    anim_proto.set_asset_name(texture->file);
-    LOG(INFO, "Anim file: %s", anim_proto.DebugString().c_str());
-  }*/
+  if (ImGui::Button("Clear")) {
+    Clear();
+  }
   ImGui::End();
+
+  if (!anim_sequence_.IsEmpty()) {
+    assert(anim_sequence_.FrameCount() == anim_frames_.size());
+    int i = 0;
+    for (AnimSequence2d::SequenceFrame& sequence_frame : anim_sequence_.sequence_frames_) {
+      Frame* render_frame = &anim_frames_[i];
+      render_frame->ImGui(sequence_frame, i);
+      ++i;
+    }
+  }
+}
+
+void AssetViewerAnimator::Frame::ImGui(AnimSequence2d::SequenceFrame& sframe, s32 id) {
+  const rgg::Texture* texture = rgg::GetTexture(sframe.frame.texture_id_);
+  // At this point if the texture isn't loaded we have a deeper problem. Load textures before animating.
+  assert(texture != nullptr);
+  char panel_name[128];
+  snprintf(panel_name, 128, "%s/%i", filesystem::Filename(texture->file).c_str(), id);
+  ImGui::Begin(panel_name);
+  GetImGuiPanelRect(&imgui_rect);
+  RenderSurfaceToImGuiImage(editor_surface, texture, sframe.frame.src_rect());
+  ImGui::End();
+}
+
+bool AssetViewerAnimator::IsMouseInside() const {
+  if (EditorRenderTarget::IsMouseInside()) return true;
+  for (const Frame& frame : anim_frames_) {
+    if (math::PointInRect(kCursor.global_screen, frame.imgui_rect)) return true;
+  }
+  return false;
+}
+
+void AssetViewerAnimator::AddFrame(const AnimFrame2d& frame, v2f dims, r32 duration) {
+  anim_sequence_.AddFrame(frame, 1.f);
+  Frame asset_frame;
+  asset_frame.editor_surface = CreateEditorSurface(dims.x, dims.y);
+  asset_frame.imgui_rect = {};
+  assert(asset_frame.editor_surface.IsValid());
+  anim_frames_.push_back(asset_frame);
 }
 
 v2f EditorAssetViewerCursorInTexture(const rgg::Texture& texture) {
@@ -311,6 +278,13 @@ void EditorAssetViewerProcessEvent(const PlatformEvent& event) {
                 EditorAssetViewerCursorInTexture(*texture);
             kAssetViewerSelection.end_world = EditorAssetViewerCursorWorld();
             kAssetViewerSelection.action = 2;
+            AssetSelection selection;
+            selection.tex_rect = math::MakeRect(
+                kAssetViewerSelection.start_texcoord, kAssetViewerSelection.end_texcoord);
+            selection.world_rect = math::MakeRect(
+                kAssetViewerSelection.start_world, kAssetViewerSelection.end_world);
+            selection.world_rect_scaled = kAssetViewerSelection.WorldRectScaled();
+            DispatchAssetBoxSelect(selection);
           }
         } break;
       } break;
@@ -376,19 +350,7 @@ void EditorAssetViewerMain() {
 
   if (kAssetViewerSelection.action == 2) {
     Rectf selection_rect_scaled = kAssetViewerSelection.WorldRectScaled();
-    AssetViewerFrame frame = AssetViewerFrame::Create(kAssetViewer.texture_id_, selection_rect_scaled);
     kAssetViewerSelection.action = 0;
-    kAssetViewer.frames_.push_back(frame);
-  }
-
-  for (std::vector<AssetViewerFrame>::iterator itr = kAssetViewer.frames_.begin();
-       itr != kAssetViewer.frames_.end(); ) {
-    itr->Render();
-    if (itr->is_running_) {
-      ++itr;
-      continue;
-    }
-    kAssetViewer.frames_.erase(itr);
   }
 }
 
@@ -407,19 +369,6 @@ void EditorAssetViewerDebug() {
   ImGui::Checkbox("render crosshair", &kAssetViewer.show_crosshair_);
   bool pre_is_animate_running = kAssetViewerAnimator.is_running_;
   ImGui::Checkbox("animate frames", &kAssetViewerAnimator.is_running_);
-  bool should_init_animator = pre_is_animate_running != kAssetViewerAnimator.is_running_;
-  if (should_init_animator) {
-    if (!kAssetViewer.frames_.empty()) {
-      const AssetViewerFrame* cf = &kAssetViewer.frames_[0];
-      // TODO: This assumes all the frames are the same size. I think that's ok for now?
-      kAssetViewerAnimator.Initialize(cf->dest_rect_.width, cf->dest_rect_.height);
-    }
-    else {
-      // No frames selected for animating.
-      kAssetViewerAnimator.is_running_ = false;
-      LOG(WARN, "Tried to run animator with no frames.");
-    }
-  }
 
   ImGui::NewLine();
   EditorDebugMenuGrid();

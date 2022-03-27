@@ -28,6 +28,11 @@ public:
 
   void AddFrame(const AnimFrame2d& frame, r32 duration_sec);
 
+  // Clear all internal data.
+  void Clear();
+  s32 FrameCount() const { return sequence_frames_.size(); }
+  bool IsEmpty() const { return sequence_frames_.empty(); }
+
   std::vector<SequenceFrame> sequence_frames_;
   r32 last_frame_time_sec_;
   r32 next_frame_time_sec_;
@@ -74,3 +79,12 @@ const AnimFrame2d& AnimSequence2d::CurrentFrame() {
   assert(frame_index_ < sequence_frames_.size());
   return sequence_frames_[frame_index_].frame;
 }
+
+void AnimSequence2d::Clear() {
+  sequence_frames_.clear();
+  clock_ = {};
+  last_frame_time_sec_ = 0.f;
+  next_frame_time_sec_ = 0.f;
+  frame_index_ = 0;
+}
+

@@ -64,6 +64,7 @@ static s32 kExplorerWidth = 300;
 
 static s32 kRenderViewStart = 300;
 
+#include "callback.cc"
 #include "editor_render_target.cc"
 
 r32 EditorViewportCurrentScale();

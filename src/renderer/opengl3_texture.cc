@@ -21,6 +21,12 @@ struct Texture {
 struct Surface {
   Texture texture;
   GLuint frame_buffer = (GLuint)-1;
+  r32 width() const {
+    return texture.width;
+  }
+  r32 height() const {
+    return texture.height;
+  }
   b8 IsValid() const {
     return texture.IsValid() && frame_buffer != (GLuint)-1;
   }

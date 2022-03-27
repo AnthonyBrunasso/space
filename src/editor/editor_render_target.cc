@@ -1,15 +1,81 @@
 #pragma once
 
+void GetImGuiPanelRect(Rectf* rect) {
+  ImVec2 pos = ImGui::GetWindowPos();
+  ImVec2 size = ImGui::GetWindowSize();
+  v2f wsize = window::GetWindowSize();
+  rect->x = pos.x;
+  rect->y = wsize.y - pos.y - size.y;
+  rect->width = size.x;
+  rect->height = size.y;
+}
+
+// TODO: This might be a decent low level renderer thing to have?
+struct EditorSurface {
+  bool IsValid() const { return render_target.IsValid(); }
+  r32 width() const { return render_target.width(); }
+  r32 height() const { return render_target.height(); }
+  rgg::Camera camera;
+  rgg::Surface render_target;
+};
+
+EditorSurface CreateEditorSurface(r32 width, r32 height) {
+  EditorSurface surface;
+  surface.camera.position = v3f(0.f, 0.f, 0.f);
+  surface.camera.dir = v3f(0.f, 0.f, -1.f);
+  surface.camera.up = v3f(0.f, 1.f, 0.f);
+  surface.camera.viewport = v2f(width, height);
+  surface.render_target = rgg::CreateSurface(GL_RGB, width, height);
+  return surface;
+}
+
+void DestroyEditorSurface(EditorSurface* surface) {
+  if (surface->IsValid()) {
+    rgg::DestroySurface(&surface->render_target);
+  }
+  *surface = {};
+}
+
+class RenderToEditorSurface {
+public:
+  RenderToEditorSurface(const EditorSurface& surface);
+  ~RenderToEditorSurface();
+
+  rgg::ModifyObserver mod_observer_;
+};
+
+void RenderSurfaceToImGuiImage(const EditorSurface& surface, const rgg::Texture* texture, const Rectf& tex_rect) {
+  assert(surface.IsValid());
+  RenderToEditorSurface render_to(surface);
+  rgg::RenderTexture(
+      *texture, tex_rect, 
+      Rectf(-surface.width() / 2.f, -surface.height() / 2.f,
+            surface.width(), surface.height()));
+  ImGui::Image(
+    (void*)(intptr_t)surface.render_target.texture.reference,
+    ImVec2(surface.width(), surface.height()));
+}
+
+RenderToEditorSurface::RenderToEditorSurface(const EditorSurface& surface) : mod_observer_(surface.camera) {
+  rgg::BeginRenderTo(surface.render_target);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+RenderToEditorSurface::~RenderToEditorSurface() {
+  rgg::EndRenderTo();
+}
+
 class EditorRenderTarget {
 public:
   void Initialize(s32 width, s32 height);
-  void SetupCamera(s32 width, s32 height);
-  void SetupTexture(s32 width, s32 height);
   void ReleaseSurface();
 
   void UpdateImguiPanelRect();
-  bool IsMouseInside() const;
-  bool IsRenderTargetValid() const { return render_target_.IsValid(); }
+  virtual bool IsMouseInside() const;
+  bool IsRenderTargetValid() const { return editor_surface_.IsValid(); }
+
+  r32 GetRenderTargetWidth() { return editor_surface_.render_target.width(); }
+  r32 GetRenderTargetHeight() { return editor_surface_.render_target.height(); }
 
   // Run once when render target is created. Initialization resets underlying surface.
   // So don't mess with rendering surfaces here.
@@ -22,68 +88,44 @@ public:
   void ImGuiImage();
   void Render();
 
-  rgg::Camera* camera() { return &camera_; }
+  rgg::Camera* camera() { return &editor_surface_.camera; }
   Rectf imgui_panel_rect() const { return imgui_panel_rect_; }
 
-private:
-  // Camera to render from perspective
-  rgg::Camera camera_;
-  // The render target all draw calls will go to.
-  rgg::Surface render_target_;
+protected:
+  EditorSurface editor_surface_;
   // Rectf that represents where in world space the frame lives.
   Rectf imgui_panel_rect_;
 };
 
 void EditorRenderTarget::Initialize(s32 width, s32 height) {
-  SetupCamera(width, height);
-  SetupTexture(width, height);
+  if (IsRenderTargetValid()) DestroyEditorSurface(&editor_surface_);
+  editor_surface_ = CreateEditorSurface(width, height);
   OnInitialize();
 }
 
-void EditorRenderTarget::SetupCamera(s32 width, s32 height) {
-  // Not sure these ever have to change for UI cameras.
-  camera_.position = v3f(0.f, 0.f, 0.f);
-  camera_.dir = v3f(0.f, 0.f, -1.f);
-  camera_.up = v3f(0.f, 1.f, 0.f);
-  camera_.viewport = v2f(width, height);
-}
-
 void EditorRenderTarget::ReleaseSurface() {
-  if (render_target_.IsValid()) {
-    rgg::DestroySurface(&render_target_);
-  }
-}
-
-void EditorRenderTarget::SetupTexture(s32 width, s32 height) {
-  ReleaseSurface();
-  render_target_ = rgg::CreateSurface(GL_RGB, width, height);
+  DestroyEditorSurface(&editor_surface_);
 }
 
 void EditorRenderTarget::UpdateImguiPanelRect() {
-  ImVec2 pos = ImGui::GetWindowPos();
-  ImVec2 size = ImGui::GetWindowSize();
-  v2f wsize = window::GetWindowSize();
-  imgui_panel_rect_.x = pos.x;
-  imgui_panel_rect_.y = wsize.y - pos.y - size.y;
-  imgui_panel_rect_.width = size.x;
-  imgui_panel_rect_.height = size.y;
+  GetImGuiPanelRect(&imgui_panel_rect_);
 }
 
 bool EditorRenderTarget::IsMouseInside() const {
   return math::PointInRect(kCursor.global_screen, imgui_panel_rect_);
 }
 
+
 void EditorRenderTarget::ImGuiImage() {
   ImGui::Image(
-      (void*)(intptr_t)render_target_.texture.reference,
-      ImVec2(render_target_.texture.width, render_target_.texture.height));
+      (void*)(intptr_t)editor_surface_.render_target.texture.reference,
+      ImVec2(editor_surface_.render_target.width(), editor_surface_.render_target.height()));
 }
 
 void EditorRenderTarget::Render() {
-  rgg::ModifyObserver mod(camera_);
-  rgg::BeginRenderTo(render_target_);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  OnRender();
-  rgg::EndRenderTo();
+  if (IsRenderTargetValid()) {
+    RenderToEditorSurface render_to(editor_surface_);
+    OnRender();
+  }
   OnImGui();
 }

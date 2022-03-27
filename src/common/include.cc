@@ -21,8 +21,8 @@
 #include "asset/sphere.cc"
 #include "asset/font.cc"
 
-#include "animation/sprite.cc"
 #include "renderer/opengl3_includes.cc"
+#include "animation/anim2d.cc"
 
 #include "math/math.cc"
 #include "util/cooldown.cc"

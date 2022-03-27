@@ -351,7 +351,7 @@ void EditorFilesFrom(const char* dir) {
     std::string filename = filesystem::Filename(file.c_str());
     if (EditorCanLoadAsset(file)) {
       if (ImGui::Selectable(filename.c_str(), &kChosen)) {
-        LOG(INFO, "Chose asset %s", file.c_str());
+        //LOG(INFO, "Chose asset %s", file.c_str());
         kAssetViewer.chosen_asset_path_ = file;
         kEditor.mode = EDITOR_MODE_ASSET_VIEWER;
       }

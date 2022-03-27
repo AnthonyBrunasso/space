@@ -1,6 +1,5 @@
 #pragma once
 
-#include "animation.pb.h"
 
 static const std::vector<std::string> kEditorKnownAssetExtensions = {
   "tga",
@@ -14,23 +13,6 @@ bool EditorCanLoadAsset(const std::string& name) {
   return false;
 }
 
-class AssetFrame {
-public:
-  Rectf src_rect() const {
-    Rectf src = src_rect_;
-    src.x += src_rect_offset_.x;
-    src.y += src_rect_offset_.y;
-    return src;
-  }
-  // Src texture this frame was taken frame.
-  rgg::TextureId texture_id_;
-  // The texture coordinates to grab from texture_id.
-  Rectf src_rect_;
-  // How big to render the resulting frame.
-  Rectf dest_rect_;
-  // Allows for offsetting texture coordinates
-  v2f src_rect_offset_;
-};
 
 class AssetViewerFrame : public EditorRenderTarget {
 public:
@@ -39,9 +21,10 @@ public:
   void OnImGui() override;
   void SetIsAnimating(bool val) { is_animating_ = val; }
 
-
   // Texture and src / dest rect.
-  AssetFrame frame_;
+  AnimFrame2d frame_;
+  // How big to render the resulting frame.
+  Rectf dest_rect_;
   // Unique id of the asset viewer frame.
   u32 id_;
   // Whether this thing should render or not.
@@ -52,19 +35,11 @@ public:
 
 class AssetViewerAnimator : public EditorRenderTarget {
 public:
-  void ResetClock();
-  void UpdateFrameTimes();
-
   void OnInitialize() override;
   void OnRender() override;
   void OnImGui() override;
 
-  platform::Clock clock_;
-  // Frequency to switch frames in seconds.
-  r32 frequency_;
-  r32 last_frame_time_sec_;
-  r32 next_frame_time_sec_;
-  s32 frame_index_;
+  AnimSequence2d anim_sequence_;
   bool is_running_;
 };
 
@@ -162,7 +137,7 @@ void AssetViewer::OnRender() {
 
   for (const AssetViewerFrame& frame : frames_) {
     if (frame.frame_.texture_id_ == texture_id_) {
-      rgg::RenderLineRectangle(frame.frame_.dest_rect_, rgg::kPurple);
+      rgg::RenderLineRectangle(frame.dest_rect_, rgg::kPurple);
     }
   }
 }
@@ -179,8 +154,8 @@ void AssetViewerFrame::OnRender() {
   const rgg::Texture* texture_render_from = rgg::GetTexture(frame_.texture_id_);
   assert(texture_render_from);
   Rectf target_rect(
-      -frame_.dest_rect_.width / 2.f, -frame_.dest_rect_.height / 2.f,
-      frame_.dest_rect_.width, frame_.dest_rect_.height);
+      -dest_rect_.width / 2.f, -dest_rect_.height / 2.f,
+      dest_rect_.width, dest_rect_.height);
   rgg::RenderTexture(*texture_render_from, frame_.src_rect(), target_rect);
   if (is_animating_) {
     Rectf visible_rect = target_rect;
@@ -201,8 +176,25 @@ void AssetViewerFrame::OnImGui() {
   ImGui::Begin(panel_name, &open);
   UpdateImguiPanelRect();
   ImGuiImage();
-  ImGui::SliderFloat("offsetx", &frame_.src_rect_offset_.x, -16.f, 16.f, "%.0f");
-  ImGui::SliderFloat("offsety", &frame_.src_rect_offset_.y, -16.f, 16.f, "%.0f");
+  
+  if (ImGui::Button("-")) frame_.src_rect_.x += 1.f;
+  ImGui::SameLine();
+  if (ImGui::Button("+")) frame_.src_rect_.x -= 1.f;
+  ImGui::SameLine();
+  ImGui::Text("x");
+
+  if (ImGui::Button("v")) frame_.src_rect_.y += 1.f;
+  ImGui::SameLine();
+  if (ImGui::Button("^")) frame_.src_rect_.y -= 1.f;
+  ImGui::SameLine();
+  ImGui::Text("y");
+
+  ImGui::Text("rect: %.0f %.0f %.0f %.0f",
+              frame_.src_rect_.x,
+              frame_.src_rect_.y,
+              frame_.src_rect_.width,
+              frame_.src_rect_.height);
+
   ImGui::End();
   if (open == false) {
     ReleaseSurface();
@@ -215,7 +207,7 @@ AssetViewerFrame AssetViewerFrame::Create(rgg::TextureId texture_id, const Rectf
   frame.Initialize(selection_rect_scaled.width, selection_rect_scaled.height);
   frame.is_animating_ = false;
   frame.is_running_ = true;
-  frame.frame_.dest_rect_ = selection_rect_scaled;
+  frame.dest_rect_ = selection_rect_scaled;
   frame.frame_.texture_id_ = texture_id;
   frame.frame_.src_rect_ = kAssetViewerSelection.TexRect();
   static u32 kUniqueId = 1;
@@ -223,49 +215,24 @@ AssetViewerFrame AssetViewerFrame::Create(rgg::TextureId texture_id, const Rectf
   return frame;
 }
 
-void AssetViewerAnimator::ResetClock() {
-  platform::ClockStart(&clock_);
-}
-
 void AssetViewerAnimator::OnInitialize() {
-  ResetClock();
-  is_running_ = true;
-  frame_index_ = 0;
-  if (!kAssetViewer.frames_.empty()) {
-    kAssetViewer.frames_[frame_index_].SetIsAnimating(true);
+  for (const AssetViewerFrame& asset_frame : kAssetViewer.frames_) {
+    anim_sequence_.AddFrame(asset_frame.frame_, 1.f);
   }
-  frequency_ = 1.f;
-  last_frame_time_sec_ = platform::ClockDeltaSec(clock_);
-  next_frame_time_sec_ = last_frame_time_sec_ + frequency_;
-}
-
-void AssetViewerAnimator::UpdateFrameTimes() {
-  if (kAssetViewer.frames_.empty())
-    return;
-
-  r32 now = platform::ClockDeltaSec(clock_);
-  if (now >= next_frame_time_sec_) {
-    last_frame_time_sec_ = next_frame_time_sec_;
-    next_frame_time_sec_ += frequency_;
-    s32 pre_index = frame_index_;
-    frame_index_ += 1;
-    frame_index_ = (frame_index_ % kAssetViewer.frames_.size());
-    kAssetViewer.frames_[pre_index].SetIsAnimating(false);
-    kAssetViewer.frames_[frame_index_].SetIsAnimating(true);
-  }
+  anim_sequence_.Start();
 }
 
 void AssetViewerAnimator::OnRender() {
-  UpdateFrameTimes();
+  anim_sequence_.Update();
 
-  const AssetViewerFrame* cf = nullptr;
   if (kAssetViewer.frames_.size() > 0) {
-    cf = &kAssetViewer.frames_[frame_index_];
-    const rgg::Texture* texture_render_from = rgg::GetTexture(cf->frame_.texture_id_);
+    const AssetViewerFrame* cf = &kAssetViewer.frames_[anim_sequence_.frame_index_];
+    const AnimFrame2d& aframe = anim_sequence_.CurrentFrame();
+    const rgg::Texture* texture_render_from = rgg::GetTexture(aframe.texture_id_);
     rgg::RenderTexture(*texture_render_from,
-                       cf->frame_.src_rect(),
-                       Rectf(-cf->frame_.dest_rect_.width / 2.f, -cf->frame_.dest_rect_.height / 2.f,
-                             cf->frame_.dest_rect_.width, cf->frame_.dest_rect_.height));
+                       aframe.src_rect(),
+                       Rectf(-cf->dest_rect_.width / 2.f, -cf->dest_rect_.height / 2.f,
+                             cf->dest_rect_.width, cf->dest_rect_.height));
   }
 }
 
@@ -274,24 +241,24 @@ void AssetViewerAnimator::OnImGui() {
   ImGuiImage();
   UpdateImguiPanelRect();
   // Walk all the frames at a certain cadence and play them.
-  ImGui::SliderFloat("frequency", &frequency_, 0.f, 2.f, "%.01f", ImGuiSliderFlags_None);
+  //ImGui::SliderFloat("frequency", &frequency_, 0.f, 2.f, "%.01f", ImGuiSliderFlags_None);
   if (ImGui::Button("reset clock")) {
-    ResetClock();
+    anim_sequence_.Start();
   }
-  ImGui::Text("Clock: %.2f", platform::ClockDeltaSec(clock_));
-  ImGui::Text("%i %.2f / %.2f", frame_index_, last_frame_time_sec_, next_frame_time_sec_);
-  if (ImGui::Button("Generate") && !kAssetViewer.frames_.empty()) {
+  ImGui::Text("Clock: %.2f", platform::ClockDeltaSec(anim_sequence_.clock_));
+  ImGui::Text("%i %.2f / %.2f",
+              anim_sequence_.frame_index_,
+              anim_sequence_.last_frame_time_sec_,
+              anim_sequence_.next_frame_time_sec_);
+  /*if (ImGui::Button("Generate") && !kAssetViewer.frames_.empty()) {
     LOG(INFO, "Generating animation for %u frames.", kAssetViewer.frames_.size());
     const rgg::Texture* texture = rgg::GetTexture(kAssetViewer.frames_[0].frame_.texture_id_);
     proto::Animation2d anim_proto;
     anim_proto.set_animation_name("test");
     anim_proto.set_asset_name(texture->file);
-    /*for (const AssetFrame& frame : kAssetViewer.frames_) {
-    }*/
     LOG(INFO, "Anim file: %s", anim_proto.DebugString().c_str());
-  }
+  }*/
   ImGui::End();
-  platform::ClockEnd(&clock_);
 }
 
 v2f EditorAssetViewerCursorInTexture(const rgg::Texture& texture) {
@@ -445,7 +412,7 @@ void EditorAssetViewerDebug() {
     if (!kAssetViewer.frames_.empty()) {
       const AssetViewerFrame* cf = &kAssetViewer.frames_[0];
       // TODO: This assumes all the frames are the same size. I think that's ok for now?
-      kAssetViewerAnimator.Initialize(cf->frame_.dest_rect_.width, cf->frame_.dest_rect_.height);
+      kAssetViewerAnimator.Initialize(cf->dest_rect_.width, cf->dest_rect_.height);
     }
     else {
       // No frames selected for animating.

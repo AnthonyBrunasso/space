@@ -37,7 +37,7 @@ public:
   };
 
   std::vector<Frame> anim_frames_;
-  bool is_running_;
+  bool is_running_ = true;
 };
 
 static AssetViewerAnimator kAssetViewerAnimator;
@@ -52,7 +52,6 @@ public:
   std::string chosen_asset_path_;
   bool clamp_cursor_to_nearest_ = true;
   bool show_crosshair_ = true;
-  bool animate_frames_ = false;
 };
 
 static AssetViewer kAssetViewer;
@@ -183,6 +182,10 @@ void AssetViewerAnimator::OnImGui() {
               anim_sequence_.frame_index_,
               anim_sequence_.last_frame_time_sec_,
               anim_sequence_.next_frame_time_sec_);
+  if (ImGui::Button("Generate")) {
+    proto::Animation2d proto = anim_sequence_.ToProto();
+    LOG(INFO, "%s", proto.DebugString().c_str());
+  }
   if (ImGui::Button("Clear")) {
     Clear();
   }
@@ -205,9 +208,40 @@ void AssetViewerAnimator::Frame::ImGui(AnimSequence2d::SequenceFrame& sframe, s3
   assert(texture != nullptr);
   char panel_name[128];
   snprintf(panel_name, 128, "%s/%i", filesystem::Filename(texture->file).c_str(), id);
+
   ImGui::Begin(panel_name);
   GetImGuiPanelRect(&imgui_rect);
-  RenderSurfaceToImGuiImage(editor_surface, texture, sframe.frame.src_rect());
+
+  RenderSurfaceToImGuiImage(editor_surface, texture, sframe.frame.src_rect(), sframe.is_active);
+
+  if (ImGui::Button("-##x")) sframe.frame.src_rect_.x += 1.f;
+  ImGui::SameLine();
+  if (ImGui::Button("+##x")) sframe.frame.src_rect_.x -= 1.f;
+  ImGui::SameLine();
+  ImGui::Text("x");
+
+  if (ImGui::Button("-##y")) sframe.frame.src_rect_.y += 1.f;
+  ImGui::SameLine();
+  if (ImGui::Button("+##y")) sframe.frame.src_rect_.y -= 1.f;
+  ImGui::SameLine();
+  ImGui::Text("y");
+
+  ImGui::Text("t: %.2f", sframe.duration_sec);
+  if (ImGui::Button("-1s")) sframe.duration_sec -= 1.f;
+  ImGui::SameLine();
+  if (ImGui::Button("-.1s")) sframe.duration_sec -= 0.1f;
+  ImGui::SameLine();
+  if (ImGui::Button("-.01s")) sframe.duration_sec -= 0.01f;
+
+  if (ImGui::Button("+1s")) sframe.duration_sec += 1.f;
+  ImGui::SameLine();
+  if (ImGui::Button("+.1s")) sframe.duration_sec += 0.1f;
+  ImGui::SameLine();
+  if (ImGui::Button("+.01s")) sframe.duration_sec += 0.01f;
+
+  // The min we can possibly leave an open frame.
+  if (sframe.duration_sec < 0.01f) sframe.duration_sec = 0.01f;
+
   ImGui::End();
 }
 

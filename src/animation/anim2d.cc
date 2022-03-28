@@ -20,6 +20,7 @@ public:
   struct SequenceFrame {
     AnimFrame2d frame;
     r32 duration_sec = 1.f;
+    b8 is_active = false;
   };
 
   void Start();
@@ -32,6 +33,8 @@ public:
   void Clear();
   s32 FrameCount() const { return sequence_frames_.size(); }
   bool IsEmpty() const { return sequence_frames_.empty(); }
+
+  proto::Animation2d ToProto() const;
 
   std::vector<SequenceFrame> sequence_frames_;
   r32 last_frame_time_sec_;
@@ -47,6 +50,7 @@ void AnimSequence2d::Start() {
   frame_index_ = 0;
   last_frame_time_sec_ = platform::ClockDeltaSec(clock_);
   next_frame_time_sec_ = last_frame_time_sec_ + sequence_frames_[frame_index_].duration_sec;
+  sequence_frames_[frame_index_].is_active = true;
 }
 
 void AnimSequence2d::Update() {
@@ -58,11 +62,13 @@ void AnimSequence2d::Update() {
 
   r32 now = platform::ClockDeltaSec(clock_);
   if (now >= next_frame_time_sec_) {
+    sequence_frames_[frame_index_].is_active = false;
     last_frame_time_sec_ = next_frame_time_sec_;
     s32 pre_index = frame_index_;
     frame_index_ += 1;
     frame_index_ = (frame_index_ % sequence_frames_.size());
     next_frame_time_sec_ += sequence_frames_[frame_index_].duration_sec;
+    sequence_frames_[frame_index_].is_active = true;
   }
 
   platform::ClockEnd(&clock_);
@@ -88,3 +94,18 @@ void AnimSequence2d::Clear() {
   frame_index_ = 0;
 }
 
+proto::Animation2d AnimSequence2d::ToProto() const {
+  proto::Animation2d proto;
+  for (const SequenceFrame& sframe : sequence_frames_) {
+    const rgg::Texture* atex = rgg::GetTexture(sframe.frame.texture_id_);
+    assert(atex != nullptr);
+    proto::AnimationFrame2d* aframe = proto.add_frames();
+    aframe->set_asset_name(atex->file);
+    aframe->set_texture_x(sframe.frame.src_rect_.x);
+    aframe->set_texture_y(sframe.frame.src_rect_.y);
+    aframe->set_texture_width(sframe.frame.src_rect_.width);
+    aframe->set_texture_height(sframe.frame.src_rect_.height);
+    aframe->set_duration_sec(sframe.duration_sec);
+  }
+  return proto;
+}

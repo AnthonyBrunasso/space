@@ -7,22 +7,60 @@
 // Notably this module creates a single window and does not intend
 // on supporting making multiple.
 
-constexpr s32 KEY_ESC = 27;
+constexpr u32 KEY_ESC = 65307;
+constexpr u32 KEY_A = 97;
+constexpr u32 KEY_B = 98;
+constexpr u32 KEY_C = 99;
+constexpr u32 KEY_D = 100;
+constexpr u32 KEY_E = 101;
+constexpr u32 KEY_F = 102;
+constexpr u32 KEY_G = 103;
+constexpr u32 KEY_H = 104;
+constexpr u32 KEY_I = 105;
+constexpr u32 KEY_J = 106;
+constexpr u32 KEY_K = 107;
+constexpr u32 KEY_L = 108;
+constexpr u32 KEY_M = 109;
+constexpr u32 KEY_N = 110;
+constexpr u32 KEY_O = 111;
+constexpr u32 KEY_P = 112;
+constexpr u32 KEY_Q = 113;
+constexpr u32 KEY_R = 114;
+constexpr u32 KEY_S = 115;
+constexpr u32 KEY_T = 116;
+constexpr u32 KEY_U = 117;
+constexpr u32 KEY_V = 118;
+constexpr u32 KEY_W = 119;
+constexpr u32 KEY_X = 120;
+constexpr u32 KEY_Y = 121;
+constexpr u32 KEY_Z = 122;
+constexpr u32 KEY_RETURN = 65293;
+constexpr u32 KEY_TAB = 65289;
+constexpr u32 KEY_HOME = 65360;
+constexpr u32 KEY_END = 65367;
+constexpr u32 KEY_DEL = 65535;
+constexpr u32 KEY_BACKSPACE = 65288;
+constexpr u32 KEY_SPACE = 32;
+constexpr u32 KEY_COMMA = 44;
+constexpr u32 KEY_PERIOD = 46;
+constexpr u32 KEY_SLASH = 47;
+constexpr u32 KEY_SEMICOLON = 59;
+constexpr u32 KEY_EQUALS = 61;
 #ifdef _WIN32
-constexpr s32 KEY_ARROW_UP = 0;
-constexpr s32 KEY_ARROW_RIGHT = 3;
-constexpr s32 KEY_ARROW_DOWN = 1;
-constexpr s32 KEY_ARROW_LEFT = 2;
+constexpr u32 KEY_ARROW_UP = 0;
+constexpr u32 KEY_ARROW_RIGHT = 3;
+constexpr u32 KEY_ARROW_DOWN = 1;
+constexpr u32 KEY_ARROW_LEFT = 2;
 #else
-constexpr s32 KEY_ARROW_UP = 82;
-constexpr s32 KEY_ARROW_RIGHT = 83;
-constexpr s32 KEY_ARROW_DOWN = 84;
-constexpr s32 KEY_ARROW_LEFT = 81;
+constexpr u32 KEY_ARROW_UP = 65362;
+constexpr u32 KEY_ARROW_RIGHT = 65363; 
+constexpr u32 KEY_ARROW_DOWN = 65364;
+constexpr u32 KEY_ARROW_LEFT = 65361;
 #endif
-constexpr s32 KEY_NUMPAD_UP = 4294967191;
-constexpr s32 KEY_NUMPAD_RIGHT = 4294967192;
-constexpr s32 KEY_NUMPAD_DOWN = 4294967193;
-constexpr s32 KEY_NUMPAD_LEFT = 4294967190;
+constexpr u32 KEY_NUMPAD_UP = 65431;
+constexpr u32 KEY_NUMPAD_RIGHT = 65432;
+constexpr u32 KEY_NUMPAD_DOWN = 65433;
+constexpr u32 KEY_NUMPAD_LEFT = 65430;
 
 enum PlatformEventType {
   NOT_IMPLEMENTED,  // Event does not have translation implemented yet.
@@ -86,7 +124,7 @@ struct PlatformEvent {
   // Event Detail
   union {
     r32 wheel_delta;
-    char key;
+    u32 key;
     PlatformButton button;
     ControllerState controller;
   };

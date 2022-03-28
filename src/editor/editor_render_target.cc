@@ -44,16 +44,19 @@ public:
   rgg::ModifyObserver mod_observer_;
 };
 
-void RenderSurfaceToImGuiImage(const EditorSurface& surface, const rgg::Texture* texture, const Rectf& tex_rect) {
+void RenderSurfaceToImGuiImage(
+    const EditorSurface& surface, const rgg::Texture* texture, const Rectf& tex_rect, bool outline = false) {
   assert(surface.IsValid());
   RenderToEditorSurface render_to(surface);
-  rgg::RenderTexture(
-      *texture, tex_rect, 
-      Rectf(-surface.width() / 2.f, -surface.height() / 2.f,
-            surface.width(), surface.height()));
+  Rectf dest = Rectf(-surface.width() / 2.f, -surface.height() / 2.f, surface.width(), surface.height());
+  rgg::RenderTexture(*texture, tex_rect, dest);
   ImGui::Image(
     (void*)(intptr_t)surface.render_target.texture.reference,
     ImVec2(surface.width(), surface.height()));
+  if (outline) {
+    rgg::RenderLineRectangle(
+        Rectf(dest.x + 1.f, dest.y + 1.f, dest.width - 1.f, dest.height - 2.f), rgg::kRed);
+  }
 }
 
 RenderToEditorSurface::RenderToEditorSurface(const EditorSurface& surface) : mod_observer_(surface.camera) {

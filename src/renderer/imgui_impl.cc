@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdio.h>
+#include <stdlib.h>
+
 static b8 ImGuiImplInitForOpenGL() {
   GLint major, minor;
   glGetIntegerv(GL_MAJOR_VERSION, &major);
@@ -23,6 +26,51 @@ static void ImGuiImplNewFrame() {
 
 static void ImGuiImplRenderDrawData() {
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+static ImGuiKey ImGuiImplPlatformKeyToImguiKey(u32 keycode) {
+  switch (keycode) {
+    case KEY_ESC: return ImGuiKey_Escape;
+    case KEY_A: return ImGuiKey_A;
+    case KEY_B: return ImGuiKey_B;
+    case KEY_C: return ImGuiKey_C;
+    case KEY_D: return ImGuiKey_D;
+    case KEY_E: return ImGuiKey_E;
+    case KEY_F: return ImGuiKey_F;
+    case KEY_G: return ImGuiKey_G;
+    case KEY_H: return ImGuiKey_H;
+    case KEY_I: return ImGuiKey_I;
+    case KEY_J: return ImGuiKey_J;
+    case KEY_K: return ImGuiKey_K;
+    case KEY_L: return ImGuiKey_L;
+    case KEY_M: return ImGuiKey_M;
+    case KEY_N: return ImGuiKey_N;
+    case KEY_O: return ImGuiKey_O;
+    case KEY_P: return ImGuiKey_P;
+    case KEY_Q: return ImGuiKey_Q;
+    case KEY_R: return ImGuiKey_R;
+    case KEY_S: return ImGuiKey_S;
+    case KEY_T: return ImGuiKey_T;
+    case KEY_U: return ImGuiKey_U;
+    case KEY_V: return ImGuiKey_V;
+    case KEY_W: return ImGuiKey_W;
+    case KEY_X: return ImGuiKey_X;
+    case KEY_Y: return ImGuiKey_Y;
+    case KEY_Z: return ImGuiKey_Z;
+    case KEY_RETURN: return ImGuiKey_Enter;
+    case KEY_TAB: return ImGuiKey_Tab;
+    case KEY_HOME: return ImGuiKey_Home;
+    case KEY_END: return ImGuiKey_End;
+    case KEY_DEL: return ImGuiKey_Delete;
+    case KEY_BACKSPACE: return ImGuiKey_Backspace;
+    case KEY_SPACE: return ImGuiKey_Space;
+    case KEY_COMMA: return ImGuiKey_Comma;
+    case KEY_PERIOD: return ImGuiKey_Period;
+    case KEY_SLASH: return ImGuiKey_Slash;
+    case KEY_SEMICOLON: return ImGuiKey_Semicolon;
+    case KEY_EQUALS: return ImGuiKey_Equal;
+  }
+  return ImGuiKey_None;
 }
 
 static bool ImGuiImplProcessEvent(const PlatformEvent& event) {
@@ -50,7 +98,11 @@ static bool ImGuiImplProcessEvent(const PlatformEvent& event) {
     } break;
     case KEY_DOWN:
     case KEY_UP: {
-      // TODO:
+      ImGuiKey key = ImGuiImplPlatformKeyToImguiKey(event.key);
+      io.AddKeyEvent(key, (event.type == KEY_DOWN));
+      if (event.key >= 0 && event.key < 128 && event.type == KEY_UP) {
+        io.AddInputCharactersUTF8((const char*)&event.key);
+      }
       return true;
     } break;
   }

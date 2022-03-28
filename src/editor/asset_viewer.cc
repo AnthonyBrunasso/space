@@ -182,9 +182,14 @@ void AssetViewerAnimator::OnImGui() {
               anim_sequence_.frame_index_,
               anim_sequence_.last_frame_time_sec_,
               anim_sequence_.next_frame_time_sec_);
+  static char kAnimFilename[128] = "gamedata/";
+  ImGui::InputText("file", kAnimFilename, 128); 
   if (ImGui::Button("Generate")) {
     proto::Animation2d proto = anim_sequence_.ToProto();
-    LOG(INFO, "%s", proto.DebugString().c_str());
+    LOG(INFO, "Saving animation as proto %s to file %s", proto.DebugString().c_str(), kAnimFilename);
+    std::fstream fo(kAnimFilename, std::ios::binary | std::ios::out);
+    proto.SerializeToOstream(&fo);
+    fo.close();
   }
   if (ImGui::Button("Clear")) {
     Clear();

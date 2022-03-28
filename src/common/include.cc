@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <fstream>
 
 #include "common/common.cc"
 #include "math/math.cc"

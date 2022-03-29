@@ -30,13 +30,17 @@ public:
   void Clear();
 
   AnimSequence2d anim_sequence_;
+  struct SwapSpec {
+    s32 idx1;
+    s32 idx2;
+  };
   struct Frame {
     EditorSurface editor_surface;
-    Rectf imgui_rect;
-    void ImGui(AnimSequence2d::SequenceFrame& sframe, s32 id);
+    bool ImGui(AnimSequence2d::SequenceFrame& sframe, s32 id, SwapSpec* swap_spec);
   };
 
   std::vector<Frame> anim_frames_;
+  Rectf anim_frames_imgui_rect;
   bool is_running_ = true;
 };
 
@@ -199,61 +203,91 @@ void AssetViewerAnimator::OnImGui() {
   if (!anim_sequence_.IsEmpty()) {
     assert(anim_sequence_.FrameCount() == anim_frames_.size());
     int i = 0;
-    for (AnimSequence2d::SequenceFrame& sequence_frame : anim_sequence_.sequence_frames_) {
-      Frame* render_frame = &anim_frames_[i];
-      render_frame->ImGui(sequence_frame, i);
-      ++i;
+    v2f wsize = window::GetWindowSize();
+    r32 frame_view_width = wsize.x - kExplorerWidth;
+    r32 frame_view_y = wsize.y - kFrameRendererHeight;
+    ImVec2 imsize = ImVec2(frame_view_width, kFrameRendererHeight);
+    ImGui::SetNextWindowSize(imsize);
+    ImGui::SetNextWindowPos(ImVec2(kRenderViewStart, frame_view_y));
+    ImGui::Begin("Frames", nullptr);
+    if (ImGui::BeginTable(
+          "FramesTable", anim_sequence_.sequence_frames_.size(), ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollX )) {
+      SwapSpec swap_spec;
+      bool swap_elements = false;
+      for (AnimSequence2d::SequenceFrame& sequence_frame : anim_sequence_.sequence_frames_) {
+        ImGui::TableNextColumn();
+        Frame* render_frame = &anim_frames_[i];
+        if (render_frame->ImGui(sequence_frame, i, &swap_spec)) {
+          swap_elements = true;
+        }
+        ++i;
+      }
+      if (swap_elements && anim_sequence_.sequence_frames_.size() > 1) {
+        swap_spec.idx1 %= anim_sequence_.sequence_frames_.size();
+        swap_spec.idx2 %= anim_sequence_.sequence_frames_.size();
+        AnimSequence2d::SequenceFrame t = anim_sequence_.sequence_frames_[swap_spec.idx1];
+        anim_sequence_.sequence_frames_[swap_spec.idx1] = anim_sequence_.sequence_frames_[swap_spec.idx2];
+        anim_sequence_.sequence_frames_[swap_spec.idx2] = t;
+      }
+      ImGui::EndTable();
     }
+    GetImGuiPanelRect(&anim_frames_imgui_rect);
+    ImGui::End();
   }
 }
 
-void AssetViewerAnimator::Frame::ImGui(AnimSequence2d::SequenceFrame& sframe, s32 id) {
+bool AssetViewerAnimator::Frame::ImGui(AnimSequence2d::SequenceFrame& sframe, s32 id, SwapSpec* swap_spec) {
   const rgg::Texture* texture = rgg::GetTexture(sframe.frame.texture_id_);
   // At this point if the texture isn't loaded we have a deeper problem. Load textures before animating.
   assert(texture != nullptr);
-  char panel_name[128];
-  snprintf(panel_name, 128, "%s/%i", filesystem::Filename(texture->file).c_str(), id);
-
-  ImGui::Begin(panel_name);
-  GetImGuiPanelRect(&imgui_rect);
 
   RenderSurfaceToImGuiImage(editor_surface, texture, sframe.frame.src_rect(), sframe.is_active);
 
-  if (ImGui::Button("-##x")) sframe.frame.src_rect_.x += 1.f;
+  static char kTempStr[128];
+  snprintf(kTempStr, 128, "-##x%i", id);
+  if (ImGui::Button(kTempStr)) sframe.frame.src_rect_.x += 1.f;
   ImGui::SameLine();
-  if (ImGui::Button("+##x")) sframe.frame.src_rect_.x -= 1.f;
+  snprintf(kTempStr, 128, "+##x%i", id);
+  if (ImGui::Button(kTempStr)) sframe.frame.src_rect_.x -= 1.f;
   ImGui::SameLine();
   ImGui::Text("x");
-
-  if (ImGui::Button("-##y")) sframe.frame.src_rect_.y += 1.f;
   ImGui::SameLine();
-  if (ImGui::Button("+##y")) sframe.frame.src_rect_.y -= 1.f;
+  snprintf(kTempStr, 128, "-##y%i", id);
+  if (ImGui::Button(kTempStr)) sframe.frame.src_rect_.y += 1.f;
+  ImGui::SameLine();
+  snprintf(kTempStr, 128, "+##y%i", id);
+  if (ImGui::Button(kTempStr)) sframe.frame.src_rect_.y -= 1.f;
   ImGui::SameLine();
   ImGui::Text("y");
 
-  ImGui::Text("t: %.2f", sframe.duration_sec);
-  if (ImGui::Button("-1s")) sframe.duration_sec -= 1.f;
-  ImGui::SameLine();
-  if (ImGui::Button("-.1s")) sframe.duration_sec -= 0.1f;
-  ImGui::SameLine();
-  if (ImGui::Button("-.01s")) sframe.duration_sec -= 0.01f;
+  //ImGui::Text("t: %.2f", sframe.duration_sec);
+  snprintf(kTempStr, 128, "time##%i", id);
+  ImGui::SliderFloat(kTempStr, &sframe.duration_sec, 0.1f, 2.f, "%.01f", ImGuiSliderFlags_None);
 
-  if (ImGui::Button("+1s")) sframe.duration_sec += 1.f;
+  bool res = false;
+  snprintf(kTempStr, 128, "<##%i", id);
+  if (ImGui::Button(kTempStr)) {
+    swap_spec->idx1 = id - 1;
+    swap_spec->idx2 = id;
+    res = true;
+  }
   ImGui::SameLine();
-  if (ImGui::Button("+.1s")) sframe.duration_sec += 0.1f;
-  ImGui::SameLine();
-  if (ImGui::Button("+.01s")) sframe.duration_sec += 0.01f;
+  snprintf(kTempStr, 128, ">##%i", id);
+  if (ImGui::Button(kTempStr)) {
+    swap_spec->idx1 = id;
+    swap_spec->idx2 = id + 1;
+    res = true;
+  }
 
   // The min we can possibly leave an open frame.
   if (sframe.duration_sec < 0.01f) sframe.duration_sec = 0.01f;
-
-  ImGui::End();
+  return res;
 }
 
 bool AssetViewerAnimator::IsMouseInside() const {
   if (EditorRenderTarget::IsMouseInside()) return true;
   for (const Frame& frame : anim_frames_) {
-    if (math::PointInRect(kCursor.global_screen, frame.imgui_rect)) return true;
+    if (math::PointInRect(kCursor.global_screen, anim_frames_imgui_rect)) return true;
   }
   return false;
 }
@@ -262,7 +296,6 @@ void AssetViewerAnimator::AddFrame(const AnimFrame2d& frame, v2f dims, r32 durat
   anim_sequence_.AddFrame(frame, 1.f);
   Frame asset_frame;
   asset_frame.editor_surface = CreateEditorSurface(dims.x, dims.y);
-  asset_frame.imgui_rect = {};
   assert(asset_frame.editor_surface.IsValid());
   anim_frames_.push_back(asset_frame);
 }

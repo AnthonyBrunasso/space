@@ -51,6 +51,8 @@ struct EditorCursor {
   v2f world_clamped;
   // x-y coordinates of the cursor in the game / asset viewer, assuming bottom left is origin.
   v2f local_screen;
+  // The grid cell of the current grid.
+  Rectf world_grid_cell;
   // True when the cursor is in the game / asset viewer.
   bool is_in_viewport = false;
 };
@@ -63,6 +65,8 @@ static s32 kExplorerStart = 0;
 static s32 kExplorerWidth = 300;
 
 static s32 kRenderViewStart = 300;
+
+static s32 kFrameRendererHeight = 220.f;
 
 #include "callback.cc"
 #include "editor_render_target.cc"
@@ -279,6 +283,7 @@ void EditorUpdateCursor() {
   rgrid.y = cursor_relative.y < 0.f ? rgrid.y - kGrid.cell_height : rgrid.y;
   rgrid.width = kGrid.cell_width;
   rgrid.height = kGrid.cell_height;
+  kCursor.world_grid_cell = rgrid;
   kCursor.world_clamped = Roundf(rgrid.NearestEdge(cursor_relative)) + kGrid.GetOrigin();
 }
 

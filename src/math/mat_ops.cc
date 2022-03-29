@@ -7,9 +7,7 @@
 namespace math
 {
 
-Mat4f
-Inverse(const Mat4f& m)
-{
+Mat4f Inverse(const Mat4f& m) {
   Mat4f inv;
   inv.data_[0] = m.data_[5]  * m.data_[10] * m.data_[15] - 
            m.data_[5]  * m.data_[11] * m.data_[14] - 
@@ -133,36 +131,28 @@ Inverse(const Mat4f& m)
   return inv;
 }
 
-Mat4f
-Identity()
-{
+Mat4f Identity() {
 return Mat4f(1.0f, 0.0f, 0.0f, 0.0f,
              0.0f, 1.0f, 0.0f, 0.0f,
              0.0f, 0.0f, 1.0f, 0.0f,
              0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-Mat4f
-Translation(const v3f& translation)
-{
+Mat4f Translation(const v3f& translation) {
 return Mat4f(1.0f, 0.0f, 0.0f, 0.0f,
              0.0f, 1.0f, 0.0f, 0.0f,
              0.0f, 0.0f, 1.0f, 0.0f,
              translation.x, translation.y, translation.z, 1.0f);
 }
 
-Mat4f
-Scale(const v3f& scale)
-{
+Mat4f Scale(const v3f& scale) {
   return Mat4f(scale.x, 0.0f,    0.0f, 0.0f,
                0.0f, scale.y,    0.0f, 0.0f,
                0.0f,    0.0f, scale.z, 0.0f,
                0.0f,    0.0f,    0.0f, 1.0f);
 }
 
-Mat4f
-LookAt(const v3f& eye, const v3f& target, const v3f& up)
-{
+Mat4f LookAt(const v3f& eye, const v3f& target, const v3f& up) {
   v3f f = math::Normalize(eye - target);
   v3f r = math::Normalize(math::Cross(up, f));
   v3f u = math::Cross(f, r);
@@ -188,11 +178,9 @@ LookAt(const v3f& eye, const v3f& target, const v3f& up)
 #endif
 }
 
-Mat4f
-Perspective(r32 fov_degrees, r32 aspect, r32 znear, r32 zfar)
-{
-  r32 fov = fov_degrees * ONE_DEG_IN_RAD;
-  r32 thf = tan(fov / 2.f);
+Mat4f Perspective(r32 fov_degrees, r32 aspect, r32 znear, r32 zfar) {
+  r32 fov = fov_degrees * (r32)ONE_DEG_IN_RAD;
+  r32 thf = (r32)tan(fov / 2.f);
   return Mat4f(
       1.f / (aspect * thf), 0.f, 0.f, 0.f,
       0.f, 1.f / thf, 0.f, 0.f,
@@ -200,9 +188,7 @@ Perspective(r32 fov_degrees, r32 aspect, r32 znear, r32 zfar)
       0.f, 0.0f, -(2.f * zfar * znear) / (zfar - znear), 0.0f);
 }
 
-Mat4f
-Ortho(r32 right, r32 left, r32 top, r32 bottom, r32 near_clip, r32 far_clip)
-{
+Mat4f Ortho(r32 right, r32 left, r32 top, r32 bottom, r32 near_clip, r32 far_clip) {
   // Goal with this matrix is to scale a point, in likely screen space relative
   // to the cameras to GL space or the unit cube.
   //
@@ -222,9 +208,7 @@ Ortho(r32 right, r32 left, r32 top, r32 bottom, r32 near_clip, r32 far_clip)
 
 // This function orients origin to bottom left of screen. Useful for UI so
 // points can be specified in actual screen space.
-Mat4f
-Ortho2(r32 right, r32 left, r32 top, r32 bottom, r32 near_clip, r32 far_clip)
-{
+Mat4f Ortho2(r32 right, r32 left, r32 top, r32 bottom, r32 near_clip, r32 far_clip) {
   r32 w = right - left;
   w = w == 0.f ? 1.f : w;
   r32 h = top - bottom;
@@ -240,11 +224,9 @@ Ortho2(r32 right, r32 left, r32 top, r32 bottom, r32 near_clip, r32 far_clip)
                1.f);
 }
 
-Mat4f
-RotationX(r32 angle_degrees)
-{
+Mat4f RotationX(r32 angle_degrees) {
   if (angle_degrees == 0.f) return math::Identity();
-  r32 angle_radians = (angle_degrees)*PI / 180.0f;
+  r32 angle_radians = (angle_degrees) * (r32)PI / 180.0f;
   r32 c = cos(angle_radians);
   r32 s = sin(angle_radians);
   return Mat4f(1.0f, 0.f, 0.f, 0.f, 
@@ -253,11 +235,9 @@ RotationX(r32 angle_degrees)
                0.0f, 0.f, 0.f, 1.f);
 }
 
-Mat4f
-RotationY(r32 angle_degrees)
-{
+Mat4f RotationY(r32 angle_degrees) {
   if (angle_degrees == 0.f) return math::Identity();
-  r32 angle_radians = (angle_degrees)*PI / 180.0f;
+  r32 angle_radians = (angle_degrees) * (r32)PI / 180.0f;
   r32 c = cos(angle_radians);
   r32 s = sin(angle_radians);
   return Mat4f(c   , 0.0f, s   , 0.f, 
@@ -266,11 +246,9 @@ RotationY(r32 angle_degrees)
                0.0f, 0.f , 0.f , 1.f);
 }
 
-Mat4f
-RotationZ(r32 angle_degrees)
-{
+Mat4f RotationZ(r32 angle_degrees) {
   if (angle_degrees == 0.f) return math::Identity();
-  r32 angle_radians = (angle_degrees)*PI / 180.0f;
+  r32 angle_radians = (angle_degrees) * (r32)PI / 180.0f;
   r32 c = cos(angle_radians);
   r32 s = sin(angle_radians);
   return Mat4f(c  , -s , 0.f, 0.f,
@@ -279,8 +257,7 @@ RotationZ(r32 angle_degrees)
                0.f, 0.f, 0.f, 1.f);
 }
 
-Mat4f
-Model(const v3f& position, const v3f& scale, const Quatf& quat) {
+Mat4f Model(const v3f& position, const v3f& scale, const Quatf& quat) {
   Mat4f model;
   model.data_[0] = scale.x * (1.f - 2.f * quat.y * quat.y - 2.f * quat.z * quat.z);
   model.data_[1] = scale.y * (2.f * quat.x * quat.y - 2.f * quat.w * quat.z);
@@ -301,8 +278,7 @@ Model(const v3f& position, const v3f& scale, const Quatf& quat) {
   return model;
 }
 
-Mat4f
-Model(const v3f& position, const v3f& scale) {
+Mat4f Model(const v3f& position, const v3f& scale) {
   Mat4f model;
   model.data_[0] = scale.x;
   model.data_[1] = 0.0f;
@@ -323,10 +299,8 @@ Model(const v3f& position, const v3f& scale) {
   return model;
 }
 
-v3f
-Unproject(const v3f& screen, const Mat4f& model, const Mat4f& proj,
-          v2f viewport)
-{
+v3f Unproject(const v3f& screen, const Mat4f& model, const Mat4f& proj,
+              v2f viewport) {
   Mat4f inv = Inverse(proj * model);
   v4f tmp(screen.x, screen.y, screen.z, 1.f);
   tmp.x = (tmp.x) / (viewport.x);

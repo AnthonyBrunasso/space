@@ -17,7 +17,7 @@ DECLARE_HASH_ARRAY(TextureHandle, RGG_TEXTURE_MAX);
 DECLARE_HASH_MAP_STR(TextureFileToId, RGG_TEXTURE_MAX);
 
 TextureId LoadTexture(const char* texture_file, const TextureInfo& texture_info) {
-  u32 len = strlen(texture_file);
+  u32 len = (u32)strlen(texture_file);
   TextureFileToId* loaded_file_to_id = FindTextureFileToId(texture_file, len);
   if (loaded_file_to_id) return loaded_file_to_id->id;
   assert(kUsedTextureHandle < RGG_TEXTURE_MAX);
@@ -37,7 +37,7 @@ const Texture* GetTexture(TextureId id) {
 }
 
 const Texture* GetTexture(const char* file) {
-  TextureFileToId* file_to_id = FindTextureFileToId(file, strlen(file));
+  TextureFileToId* file_to_id = FindTextureFileToId(file, (u32)strlen(file));
   if (!file_to_id) return nullptr;
   return GetTexture(file_to_id->id);
 }

@@ -22,7 +22,7 @@ inline b8 HasExtension(const char* filename, const char* extension) {
 // Modifies the second param to contain "foo/bar/new_filename.txt".
 inline void ReplaceFilename(const char* newfname, char* oldfname_with_dir) {
   u32 idx = 0;
-  for (s32 i = strlen(oldfname_with_dir) - 1; i > 0; --i) {
+  for (s32 i = (s32)strlen(oldfname_with_dir) - 1; i > 0; --i) {
     if (oldfname_with_dir[i] == '/') {
       idx = i + 1;
       break;
@@ -60,11 +60,13 @@ const char* GetWorkingDirectory();
 inline b8 WorkingDirectoryContains(const char* dir) {
   b8 contains = false;
 #ifdef _WIN32
-  WalkDirectory(JoinPath(GetWorkingDirectory(), "\\"), [&](const char* name, bool is_dir) {
+  WalkDirectory(JoinPath(GetWorkingDirectory(), "*"), [&](const char* name, bool is_dir) {
 #else
   WalkDirectory(JoinPath(GetWorkingDirectory(), "/"), [&](const char* name, bool is_dir) {
 #endif
-    if (is_dir && strcmp(dir, name) == 0) contains = true;
+    if (is_dir && strcmp(dir, name) == 0) {
+      contains = true;
+    }
   });
   return contains;
 }

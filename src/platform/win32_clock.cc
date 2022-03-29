@@ -43,7 +43,7 @@ u64 ClockEnd(Clock* clock) {
 }
 
 u64 ClockDeltaUsec(const Clock& clock) {
-  u64 elapsed = (clock.end_tick - clock.start_tick) * 1e6;
+  u64 elapsed = (clock.end_tick - clock.start_tick) * 1000000u;
   return elapsed / kClockFrequency;
 }
 

@@ -336,7 +336,7 @@ b8 Initialize() {
   if (!SetupCircleProgram()) return false;
 
   // Create the geometry for basic shapes.
-  r32 m = kRGG.meter_size;
+  r32 m = (r32)kRGG.meter_size;
   GLfloat tri[9] = {0.0f, m / 2.f,  0.f,      m / 2.f, -m / 2.f,
                     0.f,  -m / 2.f, -m / 2.f, 0.f};
   GLuint vbo;
@@ -716,7 +716,7 @@ void RenderMesh(const Mesh& mesh, const Mat4f& model, const v4f& color = v4f(1.f
     SetDefaultSurfaceMaterial();
     glDrawArrays(GL_TRIANGLES, 0, mesh.vert_count);
   } else {
-    for (s32 i = 0; i < mesh.material_count; ++i) {
+    for (s32 i = 0; i < (s32)mesh.material_count; ++i) {
       const Material* mat = &mesh.material[i];
       glUniform3f(kRGG.geometry_program_3d.suface_specular_uniform,
                   mat->ks.x, mat->ks.y, mat->ks.z);
@@ -727,7 +727,7 @@ void RenderMesh(const Mesh& mesh, const Mat4f& model, const v4f& color = v4f(1.f
       for (s32 j = 0; j < mat->vert_pair_count; ++j) {
         // Set surface lighting properties.
         const MaterialVertPair* vp = &mat->vert_pair[j];
-        glDrawArrays(GL_TRIANGLES, vp->first, vp->count);
+        glDrawArrays(GL_TRIANGLES, (GLint)vp->first, (GLint)vp->count);
       }
     }
   }

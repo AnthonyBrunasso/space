@@ -12,7 +12,7 @@ uint64_t GLGetShaderInfoLog(uint32_t shader_reference, uint64_t length, char* lo
 #else
   GLsizei actual_length = 0;
 #endif
-  glGetShaderInfoLog(shader_reference, length, &actual_length, log);
+  glGetShaderInfoLog(shader_reference, (u32)length, &actual_length, log);
   return actual_length;
 }
 
@@ -22,7 +22,7 @@ uint64_t GLGetProgramInfoLog(uint32_t program_reference, uint64_t length, char* 
 #else
   GLsizei actual_length = 0;
 #endif
-  glGetProgramInfoLog(program_reference, length, &actual_length, log);
+  glGetProgramInfoLog(program_reference, (u32)length, &actual_length, log);
   return actual_length;
 }
 

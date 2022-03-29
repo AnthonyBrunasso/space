@@ -8,14 +8,11 @@
 #include <gl/gl.h>
 
 
-static DWORD XInputGetState_Stub(DWORD, XINPUT_STATE*)
-{
+static DWORD XInputGetState_Stub(DWORD, XINPUT_STATE*) {
   return 1;
 }
 
-static DWORD XInputSetState_Stub(DWORD, XINPUT_VIBRATION*)
-{
-  return 1;
+static DWORD XInputSetState_Stub(DWORD, XINPUT_VIBRATION*) { return 1;
 }
 
 typedef DWORD XInputGetState_Func(DWORD, XINPUT_STATE*);
@@ -72,19 +69,15 @@ struct Window {
 
 static Window kWindow;
 
-HMONITOR
-GetPrimaryMonitorHandle()
-{
+HMONITOR GetPrimaryMonitorHandle() {
   POINT pt_zero = {};
   return MonitorFromPoint(pt_zero, MONITOR_DEFAULTTOPRIMARY);
 }
 
-void
-HandleKeyEvent(WPARAM wparam, b8 is_down, PlatformEvent* event)
-{
+void HandleKeyEvent(WPARAM wparam, b8 is_down, PlatformEvent* event) {
   event->type = is_down == kTrue ? KEY_DOWN : KEY_UP;
-  if (wparam >= 'A' && wparam <= 'Z') event->key = wparam + 32;
-  else event->key = wparam;
+  if (wparam >= 'A' && wparam <= 'Z') event->key = (u32)wparam + 32;
+  else event->key = (u32)wparam;
   switch (wparam) {
     case VK_OEM_PLUS: {
       event->key = 43;
@@ -95,23 +88,19 @@ HandleKeyEvent(WPARAM wparam, b8 is_down, PlatformEvent* event)
   }
 }
 
-void
-HandleMouseEvent(b8 is_down, PlatformEvent* event, PlatformButton button)
-{
+void HandleMouseEvent(b8 is_down, PlatformEvent* event, PlatformButton button) {
   DWORD message_pos = GetMessagePos();
   POINTS ps = MAKEPOINTS(message_pos);
   POINT p;
   p.x = ps.x; p.y = ps.y;
   ScreenToClient(kWindow.hwnd, &p);
   v2f dims = GetWindowSize();
-  event->position = v2f(p.x, dims.y - p.y);
+  event->position = v2f((r32)p.x, dims.y - (r32)p.y);
   event->type = is_down ? MOUSE_DOWN : MOUSE_UP;
   event->button = button;
 }
 
-LRESULT CALLBACK
-WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
-{
+LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam) {
   PlatformEvent* platform_event = kWindow.platform_event;
   LRESULT result = 0;
 
@@ -155,7 +144,7 @@ WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
       p.x = ps.x; p.y = ps.y;
       ScreenToClient(kWindow.hwnd, &p);
       v2f dims = GetWindowSize();
-      platform_event->position = v2f(p.x, dims.y - p.y);
+      platform_event->position = v2f((r32)p.x, dims.y - (r32)p.y);
       platform_event->type = MOUSE_MOVE;
     } break;
     case WM_MOUSEWHEEL: {
@@ -175,9 +164,7 @@ WindowProc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam)
   return result;
 }
 
-bool
-PollXboxController()
-{
+bool PollXboxController() {
   PlatformEvent* platform_event = kWindow.platform_event;
   static u32 previous_sequence_num = -1;
   // Get state of controller.
@@ -204,9 +191,7 @@ PollXboxController()
   return false;
 }
 
-HWND
-SetupWindow(HINSTANCE inst, const char* name, const CreateInfo& create_info)
-{
+HWND SetupWindow(HINSTANCE inst, const char* name, const CreateInfo& create_info) {
   WNDCLASSA wc = {};
   wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
   wc.lpfnWndProc = WindowProc;
@@ -222,16 +207,16 @@ SetupWindow(HINSTANCE inst, const char* name, const CreateInfo& create_info)
   DWORD window_style = WS_POPUP;
   DWORD window_extended_style = WS_EX_APPWINDOW;
   RECT rect = {};
-  rect.right = create_info.window_width;
-  rect.bottom = create_info.window_height;
+  rect.right = (LONG)create_info.window_width;
+  rect.bottom = (LONG)create_info.window_height;
 
   if (create_info.fullscreen) {
     DEVMODE screen_settings = {};
     // TODO(abrunasso): This doesn't look nice when it's not the users native
     // resolution. Is there a solution to that?
     screen_settings.dmSize = sizeof(DEVMODE);
-    screen_settings.dmPelsWidth = create_info.window_width;
-    screen_settings.dmPelsHeight = create_info.window_height;
+    screen_settings.dmPelsWidth = (DWORD)create_info.window_width;
+    screen_settings.dmPelsHeight = (DWORD)create_info.window_height;
     screen_settings.dmBitsPerPel = 32;
     screen_settings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
     ChangeDisplaySettings(&screen_settings, CDS_FULLSCREEN);
@@ -240,21 +225,21 @@ SetupWindow(HINSTANCE inst, const char* name, const CreateInfo& create_info)
     AdjustWindowRectEx(&rect, window_style, false, WS_EX_APPWINDOW);
   }
 
-  int x = 0;
-  int y = 0;
-  int nw = rect.right - rect.left;
-  int nh = rect.bottom - rect.top;
+  s32 x = 0;
+  s32 y = 0;
+  s32 nw = rect.right - rect.left;
+  s32 nh = rect.bottom - rect.top;
 
   if (!create_info.fullscreen && create_info.window_pos_x == UINT64_MAX &&
       create_info.window_pos_y == UINT64_MAX) {
     // Center the window if the user is not in fullscreen.
     RECT parent_rect;
     GetClientRect(GetDesktopWindow(), &parent_rect);
-    x = (parent_rect.right / 2) - (nw / 2.f);
-    y = (parent_rect.bottom / 2) - (nh / 2.f);
+    x = (parent_rect.right / 2) - (int)(nw / 2.f);
+    y = (parent_rect.bottom / 2) - (int)(nh / 2.f);
   } else if (!create_info.fullscreen) {
-    if (create_info.window_pos_x != UINT64_MAX) x = create_info.window_pos_x;
-    if (create_info.window_pos_y != UINT64_MAX) y = create_info.window_pos_y;
+    if (create_info.window_pos_x != UINT64_MAX) x = (s32)create_info.window_pos_x;
+    if (create_info.window_pos_y != UINT64_MAX) y = (s32)create_info.window_pos_y;
   }
 
   HWND window = CreateWindowExA(WS_EX_APPWINDOW, wc.lpszClassName, name,
@@ -268,9 +253,7 @@ SetupWindow(HINSTANCE inst, const char* name, const CreateInfo& create_info)
   return window;
 }
 
-void
-InitOpenGLExtensions(void)
-{
+void InitOpenGLExtensions(void) {
   // https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL)
   // See "Create a False Context" for why this is necessary.
   WNDCLASSA wc = {};
@@ -344,9 +327,7 @@ InitOpenGLExtensions(void)
   DestroyWindow(dummy_window);
 }
 
-HGLRC
-InitOpenGL(HDC real_dc)
-{
+HGLRC InitOpenGL(HDC real_dc) {
   InitOpenGLExtensions();
 
   int pixel_format_attribs[] = {
@@ -397,9 +378,7 @@ InitOpenGL(HDC real_dc)
 }
 
 
-void
-SetupXboxController()
-{
+void SetupXboxController() {
   HMODULE xinput_library = LoadLibraryW(L"xinput1_4.dll");
   if (!xinput_library) {
     xinput_library = LoadLibraryW(L"xinput9_1_0.dll");
@@ -411,9 +390,7 @@ SetupXboxController()
   __XInputSetState = (XInputSetState_Func*)GetProcAddress(xinput_library, "XInputSetState");
 }
 
-int
-Create(const char* name, int width, int height, b8 fullscreen)
-{ 
+int Create(const char* name, int width, int height, b8 fullscreen) { 
   // TODO: Remove this implementation when other platforms move to new api.
   CreateInfo info;
   info.window_width = width;
@@ -430,9 +407,7 @@ Create(const char* name, int width, int height, b8 fullscreen)
   return 1;
 }
 
-int
-Create(const char* name, const CreateInfo& create_info)
-{
+int Create(const char* name, const CreateInfo& create_info) {
   kWindow.hwnd = SetupWindow(GetModuleHandle(0), name, create_info);
   kWindow.hdc = GetDC(kWindow.hwnd);
   kWindow.hglrc = InitOpenGL(kWindow.hdc);
@@ -445,9 +420,7 @@ Create(const char* name, const CreateInfo& create_info)
   return 1;
 }
 
-b8
-PollEvent(PlatformEvent* event)
-{
+b8 PollEvent(PlatformEvent* event) {
   *event = {};
   kWindow.platform_event = event;
 
@@ -479,35 +452,25 @@ PollEvent(PlatformEvent* event)
   return false;
 }
 
-void
-SwapBuffers()
-{
+void SwapBuffers() {
   SwapBuffers(kWindow.hdc);
 }
 
-b8
-ShouldClose()
-{
+b8 ShouldClose() {
   return kWindow.should_close;
 }
 
-v2f
-GetWindowSize()
-{
+v2f GetWindowSize() {
   RECT rect;
   GetClientRect(kWindow.hwnd, &rect);
   return v2f((r32)rect.right - rect.left, (r32)rect.bottom - rect.top);
 }
 
-v2f
-GetPrimaryMonitorSize()
-{
-  return v2f(GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+v2f GetPrimaryMonitorSize() {
+  return v2f((r32)GetSystemMetrics(SM_CXSCREEN), (r32)GetSystemMetrics(SM_CYSCREEN));
 }
 
-v2f
-GetCursorPosition()
-{
+v2f GetCursorPosition() {
   POINT cursor;
   GetCursorPos(&cursor);
   ScreenToClient(kWindow.hwnd, &cursor);
@@ -515,16 +478,12 @@ GetCursorPosition()
   return v2f((r32)cursor.x, dims.y - (r32)cursor.y);
 }
 
-void
-SetCursorPosition(v2f pos)
-{
+void SetCursorPosition(v2f pos) {
   //v2f dims = GetWindowSize();
-  SetCursorPos(pos.x, pos.y);
+  SetCursorPos((s32)pos.x, (s32)pos.y);
 }
 
-const char*
-GetBinaryPath()
-{
+const char* GetBinaryPath() {
   static bool kDoOnce = true;
   static char kStrBinPath[256];
   if (kDoOnce) {

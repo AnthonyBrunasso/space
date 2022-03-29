@@ -60,7 +60,7 @@ Min(T x, T y)
 r32
 Atan2(r32 y, r32 x)
 {
-  r32 angle = atan2(y, x) * 180.f / PI;
+  r32 angle = atan2(y, x) * 180.f / (r32)PI;
   if (angle < 0.f) angle += 360.f;
   return angle;
 }

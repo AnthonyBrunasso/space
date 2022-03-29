@@ -141,7 +141,7 @@ void AssetViewerAnimator::HandleAssetBoxSelect(const AssetSelection& selection) 
   kAssetViewerAnimator.AddFrame(frame, selection.world_rect_scaled.Dims(), 1.f);
   kAssetViewerAnimator.anim_sequence_.Start();
   if (!kAssetViewerAnimator.IsRenderTargetValid()) {
-    kAssetViewerAnimator.Initialize(selection.world_rect_scaled.width, selection.world_rect_scaled.height);
+    kAssetViewerAnimator.Initialize((s32)selection.world_rect_scaled.width, (s32)selection.world_rect_scaled.height);
   }
 }
 
@@ -206,12 +206,12 @@ void AssetViewerAnimator::OnImGui() {
     v2f wsize = window::GetWindowSize();
     r32 frame_view_width = wsize.x - kExplorerWidth;
     r32 frame_view_y = wsize.y - kFrameRendererHeight;
-    ImVec2 imsize = ImVec2(frame_view_width, kFrameRendererHeight);
+    ImVec2 imsize = ImVec2((float)frame_view_width, (float)kFrameRendererHeight);
     ImGui::SetNextWindowSize(imsize);
-    ImGui::SetNextWindowPos(ImVec2(kRenderViewStart, frame_view_y));
+    ImGui::SetNextWindowPos(ImVec2((float)kRenderViewStart, (float)frame_view_y));
     ImGui::Begin("Frames", nullptr);
     if (ImGui::BeginTable(
-          "FramesTable", anim_sequence_.sequence_frames_.size(), ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollX )) {
+          "FramesTable", (int)anim_sequence_.sequence_frames_.size(), ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollX )) {
       SwapSpec swap_spec;
       bool swap_elements = false;
       for (AnimSequence2d::SequenceFrame& sequence_frame : anim_sequence_.sequence_frames_) {
@@ -409,7 +409,7 @@ void EditorAssetViewerInitialize() {
   if (!do_once) {
     return;
   }
-  kAssetViewer.Initialize(kEditor.render_viewport.width, kEditor.render_viewport.height);
+  kAssetViewer.Initialize((s32)kEditor.render_viewport.width, (s32)kEditor.render_viewport.height);
   do_once = false;
 }
 

@@ -69,7 +69,7 @@ s32 GetNextKerning(const char* msg, s32 msg_len, s32 first, s32 second) {
 void GetTextInfo(const char* msg, s32 msg_len, r32* width, r32* height,
                  r32* min_y_offset) {
   auto& font = kUI.font;
-  *height = kFontLineHeight;
+  *height = (r32)kFontLineHeight;
   *width = 0.0f;
   *min_y_offset = 1000.0f;
   s32 kerning_offset = 0;
@@ -117,7 +117,7 @@ void RenderText(const char* msg, v2f pos, r32 scale, const v4f& color) {
   printf("\n");
 #endif
 
-  s32 msg_len = strlen(msg);
+  s32 msg_len = (s32)strlen(msg);
   s32 kerning_offset = 0;
   for (s32 i = 0; i < msg_len; ++i) {
     const FontMetadataRow* row = &kFontMetadataRow[msg[i]];

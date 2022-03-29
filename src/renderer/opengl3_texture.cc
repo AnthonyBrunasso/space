@@ -109,15 +109,15 @@ Texture CreateTexture2D(GLenum format, uint64_t width, uint64_t height,
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texture_info.mag_filter);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texture_info.min_filter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texture_info.mag_filter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texture_info.min_filter);
 
   glTexImage2D(
     GL_TEXTURE_2D,
     0,
     format,
-    width,
-    height,
+    (GLsizei)width,
+    (GLsizei)height,
     0,
     format,
     GL_UNSIGNED_BYTE,
@@ -129,8 +129,8 @@ Texture CreateTexture2D(GLenum format, uint64_t width, uint64_t height,
       texture_info.min_filter == GL_NEAREST_MIPMAP_NEAREST) {
     glGenerateMipmap(GL_TEXTURE_2D);
   }
-  texture.width = width;
-  texture.height = height;
+  texture.width = (r32)width;
+  texture.height = (r32)height;
   texture.format = format;
   return texture;
 }
@@ -151,9 +151,9 @@ Texture CreateEmptyTexture2D(GLenum format, uint64_t width, uint64_t height) {
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, nullptr);
-  texture.width = width;
-  texture.height = height;
+  glTexImage2D(GL_TEXTURE_2D, 0, format, (GLsizei)width, (GLsizei)height, 0, format, GL_UNSIGNED_BYTE, nullptr);
+  texture.width = (r32)width;
+  texture.height = (r32)height;
   texture.format = format;
   return texture;
 }
@@ -190,13 +190,13 @@ void BeginRenderTo(const Surface& surface) {
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, surface.texture.reference, 0);
   GLenum draw_buffers[1] = {GL_COLOR_ATTACHMENT0};
   glDrawBuffers(1, draw_buffers);
-  glViewport(0, 0, surface.texture.width, surface.texture.height);
+  glViewport(0, 0, (GLsizei)surface.texture.width, (GLsizei)surface.texture.height);
 }
 
 void EndRenderTo() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   v2f dims = window::GetWindowSize();
-  glViewport(0, 0, dims.x, dims.y);
+  glViewport(0, 0, (GLsizei)dims.x, (GLsizei)dims.y);
 }
 
 void RenderTexture(const Texture& texture, const Rectf& src, const Rectf& dest, bool mirror = false) {

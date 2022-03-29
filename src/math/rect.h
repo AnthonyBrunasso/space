@@ -105,7 +105,7 @@ struct Rectf {
     if (rotation == 0.f) return Polygon();
     math::Polygon<4> poly;
     v2f center = Center();
-    r32 angle = rotation * PI / 180.0f;
+    r32 angle = rotation * (r32)PI / 180.0f;
     r32 cos_a = cos(angle);
     r32 sin_a = sin(angle);
     poly.vertex[0] = math::Rotate(Min() - center, cos_a, sin_a);

@@ -31,7 +31,7 @@ public:
 
   // Clear all internal data.
   void Clear();
-  s32 FrameCount() const { return sequence_frames_.size(); }
+  s32 FrameCount() const { return (s32)sequence_frames_.size(); }
   bool IsEmpty() const { return sequence_frames_.empty(); }
 
   proto::Animation2d ToProto() const;

@@ -66,7 +66,7 @@ static s32 kExplorerWidth = 300;
 
 static s32 kRenderViewStart = 300;
 
-static s32 kFrameRendererHeight = 220.f;
+static s32 kFrameRendererHeight = 220;
 
 #include "callback.cc"
 #include "editor_render_target.cc"
@@ -88,7 +88,7 @@ r32 ScaleR32(r32 v) {
 
 s32 ScaleS32(s32 v) {
   r32 scale = EditorViewportCurrentScale();
-  return v * scale;
+  return (s32)(v * scale);
 }
 
 Rectf ScaleEditorRect(const Rectf& rect) {
@@ -281,8 +281,8 @@ void EditorUpdateCursor() {
   rgrid.y = roundf(cursor_relative.y - ((int)roundf(cursor_relative.y) % kGrid.cell_height));
   rgrid.x = cursor_relative.x < 0.f ? rgrid.x - kGrid.cell_width : rgrid.x;
   rgrid.y = cursor_relative.y < 0.f ? rgrid.y - kGrid.cell_height : rgrid.y;
-  rgrid.width = kGrid.cell_width;
-  rgrid.height = kGrid.cell_height;
+  rgrid.width = (r32)kGrid.cell_width;
+  rgrid.height = (r32)kGrid.cell_height;
   kCursor.world_grid_cell = rgrid;
   kCursor.world_clamped = Roundf(rgrid.NearestEdge(cursor_relative)) + kGrid.GetOrigin();
 }
@@ -319,7 +319,7 @@ void EditorMainMenuFile() {
 }
 
 bool EditorShouldIgnoreFile(const char* filename) {
-  int len = strlen(filename);
+  s32 len = (s32)strlen(filename);
   if (filename[0] == '.') return true;
   else if (filename[len - 1] == '~') return true;
   return false;
@@ -374,8 +374,8 @@ void EditorFileBrowser() {
   window_flags |= ImGuiWindowFlags_NoTitleBar;
   v2f wsize = window::GetWindowSize();
   float item_height = ImGui::GetTextLineHeightWithSpacing();
-  ImGui::SetNextWindowSize(ImVec2(kExplorerWidth, wsize.y * (3 / 5.f)));
-  ImGui::SetNextWindowPos(ImVec2(kExplorerStart, item_height + 1.f), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2((float)kExplorerWidth, (float)wsize.y * (3 / 5.f)));
+  ImGui::SetNextWindowPos(ImVec2((float)kExplorerStart, (float)item_height + 1.f), ImGuiCond_Always);
   ImGui::Begin("File Browser", nullptr, window_flags);
   char dir[256] = {};
 #ifdef _WIN32
@@ -394,8 +394,8 @@ void EditorDebugMenu() {
   window_flags |= ImGuiWindowFlags_NoTitleBar;
   v2f wsize = window::GetWindowSize();
   float item_height = ImGui::GetTextLineHeightWithSpacing();
-  ImGui::SetNextWindowSize(ImVec2(kExplorerWidth, wsize.y * (2 / 5.f) - item_height));
-  ImGui::SetNextWindowPos(ImVec2(kExplorerStart, wsize.y * (3 / 5.f) + item_height), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2((float)kExplorerWidth, (float)wsize.y * (2 / 5.f) - item_height));
+  ImGui::SetNextWindowPos(ImVec2((float)kExplorerStart, (float)wsize.y * (3 / 5.f) + item_height), ImGuiCond_Always);
   static const s32 kTabCount = 3;
   static const char* kTabs[kTabCount] = {
     "Contextual",
@@ -495,7 +495,7 @@ void EditorRenderViewport() {
   kEditor.render_viewport = Rectf(
     0.f, 0.f, imsize.x - 15.f, imsize.y - 50.f);
   ImGui::SetNextWindowSize(imsize);
-  ImGui::SetNextWindowPos(ImVec2(kRenderViewStart, item_height + 1.f), ImGuiCond_Always);
+  ImGui::SetNextWindowPos(ImVec2((float)kRenderViewStart, (float)item_height + 1.f), ImGuiCond_Always);
   ImGui::Begin("Render Viewport", nullptr, window_flags);
   if (ImGui::BeginTabBar("Render Tabs")) {
     for (s32 i = 0; i < kViewportTabCount; ++i) {

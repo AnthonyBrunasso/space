@@ -1,12 +1,15 @@
 #include "common/include.cc"
-
 #include "editor/editor.cc"
 
 bool SetupWorkingDirectory() {
   bool result = false;
   // Check the directory the binary is run from and one backwards then give up.
   if (!filesystem::WorkingDirectoryContains("asset")) {
+#ifdef _WIN32
+    filesystem::ChangeDirectory("..\\");
+#else
     filesystem::ChangeDirectory("../");
+#endif
     result = filesystem::WorkingDirectoryContains("asset"); 
   } else {
     result = true;

@@ -4,6 +4,11 @@ namespace rgg {
 
 constexpr int kSphereVertCount = 2280;
 
+#ifdef _WIN32
+#pragma warning( push )
+#pragma warning( disable : 4305 )
+#endif
+
 static float kSphereVerts[6840] = {
   0.149,0.048,-0.988,
   0.127,0.092,-0.988,
@@ -4569,5 +4574,9 @@ static float kSphereVertNorms[6840] = {
   0.191,0.062,0.980,
   -0.000,-0.000,1.000,
 };
+
+#ifdef _WIN32
+#pragma warning( pop )
+#endif
 
 }  // namespace rgg

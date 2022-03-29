@@ -207,7 +207,7 @@ template <class T>
 Vec2<T>
 Rotate(const Vec2<T>& a, r32 angle_degrees)
 {
-  r32 angle = angle_degrees * PI / 180.0f;
+  r32 angle = angle_degrees * (r32)PI / 180.0f;
   return Rotate(a, cos(angle), sin(angle));
 }
 

@@ -215,7 +215,7 @@ bool LoadOBJ(const char* filename, Mesh* mesh) {
     } else if (strcmp(line, "usemtl") == 0) {
       char mtlname[64] = {};
       fscanf(f, "%s\n", mtlname);
-      for (s32 i = 0; i < mesh->material_count; ++i) {
+      for (u32 i = 0; i < mesh->material_count; ++i) {
         if (strcmp(mesh->material[i].name, mtlname) == 0) {
           mtl = &mesh->material[i];
           mtl->vert_pair[mtl->vert_pair_count] = MaterialVertPair();
@@ -225,7 +225,7 @@ bool LoadOBJ(const char* filename, Mesh* mesh) {
         }
       }
     } else if (strcmp(line, "f") == 0) {
-      u32 vert_pair_idx = mtl ? mtl->vert_pair_count - 1 : 0;
+      u32 vert_pair_idx = mtl ? (u32)mtl->vert_pair_count - 1 : 0;
       if (mtl && mtl->vert_pair[vert_pair_idx].first == u64(-1)) {
         mtl->vert_pair[vert_pair_idx].first = verts_count / 3;
       }
@@ -260,7 +260,7 @@ bool LoadOBJ(const char* filename, Mesh* mesh) {
   printf("Loaded Mesh vert count %i verts vbo %i norms vbo %i vao %i \n",
          mesh->vert_count, mesh->vert_vbo, mesh->norm_vbo, mesh->vao);
 
-  for (s32 i = 0; i < mesh->material_count; ++i) {
+  for (u32 i = 0; i < mesh->material_count; ++i) {
     const Material* mat = &mesh->material[i];
     printf("  material %s\n", mat->name);
     for (s32 j = 0; j < mat->vert_pair_count; ++j) {

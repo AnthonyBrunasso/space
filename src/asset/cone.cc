@@ -4,6 +4,11 @@ namespace rgg {
 
 constexpr int kConeVertCount = 114;
 
+#ifdef _WIN32
+#pragma warning( push )
+#pragma warning( disable : 4305 )
+#endif
+
 static float kConeVerts[342] = {
   0.951,0.309,-1.000,
   1.000,-0.000,-1.000,
@@ -237,5 +242,10 @@ static float kConeVertNorms[342] = {
   0.851,0.276,0.447,
   -0.000,0.000,1.000,
 };
+
+
+#ifdef _WIN32
+#pragma warning( pop )
+#endif
 
 }  // namespace rgg

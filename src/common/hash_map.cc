@@ -21,7 +21,7 @@ u32 GetHash(const char* str, u32 len) {
   // djb2_hash_more collides a lot for some reason - using this instead.
   // Call imui::DebugPane to see hash collisions on panes.
   u32 hash = 7;
-  for (s32 i = 0; i < len; ++i) {
+  for (u32 i = 0; i < len; ++i) {
     hash = hash * 31 + str[i];
   }
   return hash;

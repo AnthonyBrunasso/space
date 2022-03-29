@@ -25,7 +25,7 @@ EditorSurface CreateEditorSurface(r32 width, r32 height) {
   surface.camera.dir = v3f(0.f, 0.f, -1.f);
   surface.camera.up = v3f(0.f, 1.f, 0.f);
   surface.camera.viewport = v2f(width, height);
-  surface.render_target = rgg::CreateSurface(GL_RGB, width, height);
+  surface.render_target = rgg::CreateSurface(GL_RGB, (u64)width, (u64)height);
   return surface;
 }
 
@@ -102,7 +102,7 @@ protected:
 
 void EditorRenderTarget::Initialize(s32 width, s32 height) {
   if (IsRenderTargetValid()) DestroyEditorSurface(&editor_surface_);
-  editor_surface_ = CreateEditorSurface(width, height);
+  editor_surface_ = CreateEditorSurface((r32)width, (r32)height);
   OnInitialize();
 }
 

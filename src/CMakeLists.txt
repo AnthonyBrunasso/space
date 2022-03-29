@@ -27,7 +27,7 @@ if (UNIX)
 endif (UNIX)
 
 if (MSVC)
-  # Just match the runtime library of protobuf. Can investigate changing this if it becomes a problem.
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
   add_definitions(-DUNICODE)
   add_definitions(-D_UNICODE)
   target_link_libraries(space user32 opengl32 gdi32)

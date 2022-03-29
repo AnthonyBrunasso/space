@@ -125,9 +125,9 @@ void CameraSwitch(u32 camera_index) {
 s32 CameraInit(u32 camera_tag, const Camera& camera) {
   Camera* c = UseCamera(camera_tag);
   if (!c) return 0;
-  CameraSwitch(camera_tag, kUsedCamera[camera_tag] - 1);
+  CameraSwitch(camera_tag, (u32)(kUsedCamera[camera_tag] - 1));
   *c = camera;
-  return kUsedCamera[camera_tag] - 1;
+  return (s32)(kUsedCamera[camera_tag] - 1);
 }
 
 s32 CameraInit(Camera camera) {

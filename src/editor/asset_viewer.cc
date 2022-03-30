@@ -100,6 +100,7 @@ void AssetViewer::OnRender() {
         for (const AnimSequence2d::SequenceFrame& sequence_frame : loaded_sequence.sequence_frames_) {
           kAssetViewerAnimator.AddFrame(sequence_frame.frame, scaled_dims, sequence_frame.duration_sec);
         }
+        texture_id_ = kAssetViewerAnimator.anim_sequence_.sequence_frames_[0].frame.texture_id_;
         kAssetViewerAnimator.anim_sequence_.Start();
       }
     } else {
@@ -109,6 +110,10 @@ void AssetViewer::OnRender() {
   }
 
   texture = rgg::GetTexture(texture_id_);
+  if (texture) {
+    kGrid.origin = EditorAssetViewerTextureBottomLeft(*texture);
+    kGrid.origin_offset = v2f(0.f, 0.f);
+  }
   ImGuiStyle& style = ImGui::GetStyle();
   ImVec4 imcolor = style.Colors[ImGuiCol_WindowBg];
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -157,10 +162,7 @@ const rgg::Texture* AssetViewer::LoadTexture(const char* tname) {
     LOG(WARN, "Unable to load asset %s", chosen_asset_path_.c_str());
     return nullptr;
   }
-  const rgg::Texture* texture = rgg::GetTexture(texture_id_);
-  kGrid.origin = EditorAssetViewerTextureBottomLeft(*texture);
-  kGrid.origin_offset = v2f(0.f, 0.f);
-  return texture;
+  return rgg::GetTexture(texture_id_);
 }
 
 void AssetViewerAnimator::HandleAssetBoxSelect(const AssetSelection& selection) {

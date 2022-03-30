@@ -28,17 +28,25 @@ public:
   bool IsMouseInside() const override;
 
   void AddFrame(const AnimFrame2d& frame, v2f dims, r32 duration = 1.f);
+  void RemoveFrame(s32 idx);
   void Clear();
   void AddTimeToSequence(r32 time_sec);
 
   AnimSequence2d anim_sequence_;
-  struct SwapSpec {
-    s32 idx1;
-    s32 idx2;
+  struct ModSpec {
+    enum Type {
+      kNone = 0,
+      kSwap = 1,
+      kRemove = 2,
+    };
+    Type type;
+    s32 swap_idx1;
+    s32 swap_idx2;
+    s32 remove_idx;
   };
   struct Frame {
     EditorSurface editor_surface;
-    bool ImGui(AnimSequence2d::SequenceFrame& sframe, s32 id, SwapSpec* swap_spec);
+    void ImGui(AnimSequence2d::SequenceFrame& sframe, s32 id, ModSpec* mod_spec);
   };
 
   std::vector<Frame> anim_frames_;
@@ -265,22 +273,26 @@ void AssetViewerAnimator::OnImGui() {
     ImGui::Begin("Frames", nullptr);
     if (ImGui::BeginTable(
           "FramesTable", (int)anim_sequence_.sequence_frames_.size(), ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollX )) {
-      SwapSpec swap_spec;
-      bool swap_elements = false;
+      ModSpec mod_spec;
       for (AnimSequence2d::SequenceFrame& sequence_frame : anim_sequence_.sequence_frames_) {
         ImGui::TableNextColumn();
         Frame* render_frame = &anim_frames_[i];
-        if (render_frame->ImGui(sequence_frame, i, &swap_spec)) {
-          swap_elements = true;
+        render_frame->ImGui(sequence_frame, i, &mod_spec);
+        if (mod_spec.type == ModSpec::kSwap) {
+          if (anim_sequence_.sequence_frames_.size() > 1) {
+            mod_spec.swap_idx1 %= anim_sequence_.sequence_frames_.size();
+            mod_spec.swap_idx2 %= anim_sequence_.sequence_frames_.size();
+            AnimSequence2d::SequenceFrame t = anim_sequence_.sequence_frames_[mod_spec.swap_idx1];
+            anim_sequence_.sequence_frames_[mod_spec.swap_idx1] =
+                anim_sequence_.sequence_frames_[mod_spec.swap_idx2];
+            anim_sequence_.sequence_frames_[mod_spec.swap_idx2] = t;
+            break;
+          }
+        } else if (mod_spec.type == ModSpec::kRemove) {
+          RemoveFrame(mod_spec.remove_idx);
+          break;
         }
         ++i;
-      }
-      if (swap_elements && anim_sequence_.sequence_frames_.size() > 1) {
-        swap_spec.idx1 %= anim_sequence_.sequence_frames_.size();
-        swap_spec.idx2 %= anim_sequence_.sequence_frames_.size();
-        AnimSequence2d::SequenceFrame t = anim_sequence_.sequence_frames_[swap_spec.idx1];
-        anim_sequence_.sequence_frames_[swap_spec.idx1] = anim_sequence_.sequence_frames_[swap_spec.idx2];
-        anim_sequence_.sequence_frames_[swap_spec.idx2] = t;
       }
       ImGui::EndTable();
     }
@@ -289,7 +301,7 @@ void AssetViewerAnimator::OnImGui() {
   }
 }
 
-bool AssetViewerAnimator::Frame::ImGui(AnimSequence2d::SequenceFrame& sframe, s32 id, SwapSpec* swap_spec) {
+void AssetViewerAnimator::Frame::ImGui(AnimSequence2d::SequenceFrame& sframe, s32 id, ModSpec* mod_spec) {
   const rgg::Texture* texture = rgg::GetTexture(sframe.frame.texture_id_);
   // At this point if the texture isn't loaded we have a deeper problem. Load textures before animating.
   assert(texture != nullptr);
@@ -317,24 +329,30 @@ bool AssetViewerAnimator::Frame::ImGui(AnimSequence2d::SequenceFrame& sframe, s3
   snprintf(kTempStr, 128, "time##%i", id);
   ImGui::SliderFloat(kTempStr, &sframe.duration_sec, 0.1f, 2.f, "%.01f", ImGuiSliderFlags_None);
 
-  bool res = false;
+  mod_spec->type = ModSpec::kNone;
+
+  snprintf(kTempStr, 128, "x##%i", id);
+  if (ImGui::Button(kTempStr)) {
+    mod_spec->type = ModSpec::kRemove;
+    mod_spec->remove_idx = id;
+  }
+
   snprintf(kTempStr, 128, "<##%i", id);
   if (ImGui::Button(kTempStr)) {
-    swap_spec->idx1 = id - 1;
-    swap_spec->idx2 = id;
-    res = true;
+    mod_spec->type = ModSpec::kSwap;
+    mod_spec->swap_idx1 = id - 1;
+    mod_spec->swap_idx2 = id;
   }
   ImGui::SameLine();
   snprintf(kTempStr, 128, ">##%i", id);
   if (ImGui::Button(kTempStr)) {
-    swap_spec->idx1 = id;
-    swap_spec->idx2 = id + 1;
-    res = true;
+    mod_spec->type = ModSpec::kSwap;
+    mod_spec->swap_idx1 = id;
+    mod_spec->swap_idx2 = id + 1;
   }
 
   // The min we can possibly leave an open frame.
   if (sframe.duration_sec < 0.01f) sframe.duration_sec = 0.01f;
-  return res;
 }
 
 bool AssetViewerAnimator::IsMouseInside() const {
@@ -346,11 +364,20 @@ bool AssetViewerAnimator::IsMouseInside() const {
 }
 
 void AssetViewerAnimator::AddFrame(const AnimFrame2d& frame, v2f dims, r32 duration) {
-  anim_sequence_.AddFrame(frame, 1.f);
+  anim_sequence_.AddFrame(frame, duration);
   Frame asset_frame;
   asset_frame.editor_surface = CreateEditorSurface(dims.x, dims.y);
   assert(asset_frame.editor_surface.IsValid());
   anim_frames_.push_back(asset_frame);
+}
+
+void AssetViewerAnimator::RemoveFrame(s32 idx) {
+  assert(idx >= 0 && idx < anim_frames_.size() && idx < anim_sequence_.sequence_frames_.size());
+  Frame* asset_frame = &anim_frames_[idx];
+  DestroyEditorSurface(&asset_frame->editor_surface);
+  anim_frames_.erase(anim_frames_.begin() + idx);
+  anim_sequence_.sequence_frames_.erase(anim_sequence_.sequence_frames_.begin() + idx);
+  anim_sequence_.Start();
 }
 
 v2f EditorAssetViewerCursorInTexture(const rgg::Texture& texture) {

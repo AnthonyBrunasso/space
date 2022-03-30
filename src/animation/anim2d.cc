@@ -79,6 +79,9 @@ bool AnimSequence2d::LoadFromProtoFile(const char* filename, AnimSequence2d* ani
 void AnimSequence2d::Start() {
   // Need at least two frames to have a sequence.
   assert(sequence_frames_.size() >= 1);
+  for (SequenceFrame& frame : sequence_frames_) {
+    frame.is_active = false;
+  }
   platform::ClockStart(&clock_);
   frame_index_ = 0;
   last_frame_time_sec_ = platform::ClockDeltaSec(clock_);

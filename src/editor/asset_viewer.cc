@@ -28,6 +28,7 @@ public:
 
   void AddFrame(const AnimFrame2d& frame, v2f dims, r32 duration = 1.f);
   void Clear();
+  void AddTimeToSequence(r32 time_sec);
 
   AnimSequence2d anim_sequence_;
   struct SwapSpec {
@@ -55,6 +56,7 @@ public:
   r32 scale_ = 1.0f;
   std::string chosen_asset_path_;
   bool clamp_cursor_to_nearest_ = true;
+  bool clamp_cursor_to_rect_ = false;
   bool show_crosshair_ = true;
 };
 
@@ -119,8 +121,10 @@ void AssetViewer::OnRender() {
     if (clamp_cursor_to_nearest_) {
       v2f scaled_clamp = kCursor.world_clamped * scale_;
       EditorRenderCrosshair(scaled_clamp, ScaleEditorViewport());
-    }
-    else {
+    } else if (clamp_cursor_to_rect_) {
+      Rectf scaled_rect = ScaleRect(kCursor.world_grid_cell);
+      rgg::RenderLineRectangle(scaled_rect, rgg::kRed);
+    } else {
       EditorRenderCrosshair(kCursor.world_clamped, ScaleEditorViewport());
     }
   }
@@ -172,6 +176,12 @@ void AssetViewerAnimator::Clear() {
   anim_frames_.clear();
 }
 
+void AssetViewerAnimator::AddTimeToSequence(r32 time_sec) {
+  for (AnimSequence2d::SequenceFrame& sequence_frame : anim_sequence_.sequence_frames_) {
+    sequence_frame.duration_sec += time_sec;
+  }
+}
+
 void AssetViewerAnimator::OnImGui() {
   ImGui::Begin("Animator", &kAssetViewerAnimator.is_running_);
   ImGuiImage();
@@ -195,8 +205,24 @@ void AssetViewerAnimator::OnImGui() {
     proto.SerializeToOstream(&fo);
     fo.close();
   }
+  ImGui::SameLine();
   if (ImGui::Button("Clear")) {
     Clear();
+  }
+  if (anim_sequence_.sequence_frames_.size() > 0) {
+    ImGui::Separator();
+    if (ImGui::Button("-1s")) AddTimeToSequence(-1.f);
+    ImGui::SameLine();
+    if (ImGui::Button("-.1s")) AddTimeToSequence(-.1f);
+    ImGui::SameLine();
+    if (ImGui::Button("-.01s")) AddTimeToSequence(-.01f);
+
+    if (ImGui::Button("+1s")) AddTimeToSequence(1.f);
+    ImGui::SameLine();
+    if (ImGui::Button("+.1s")) AddTimeToSequence(.1f);
+    ImGui::SameLine();
+    if (ImGui::Button(".01s")) AddTimeToSequence(.01f);
+
   }
   ImGui::End();
 
@@ -304,8 +330,7 @@ v2f EditorAssetViewerCursorInTexture(const rgg::Texture& texture) {
   v2f world_to_texture;
   if (kAssetViewer.clamp_cursor_to_nearest_) {
     world_to_texture = kCursor.world_clamped + (texture.Rect().Dims() / 2.0);
-  }
-  else {
+  } else {
     world_to_texture = kCursor.world + (texture.Rect().Dims() / 2.0);
   }
   return math::Roundf(world_to_texture);
@@ -322,6 +347,42 @@ rgg::Camera* EditorAssetViewerCamera() {
   return kAssetViewer.camera();
 }
 
+void ProcessSelectionForClampedCursor(const rgg::Texture* texture) {
+  if (kAssetViewerSelection.action == 2) {
+    kAssetViewerSelection = {};
+    return;
+  }
+  if (kAssetViewerSelection.action == 0) {
+    kAssetViewerSelection.start_texcoord =
+        EditorAssetViewerCursorInTexture(*texture);
+    kAssetViewerSelection.start_world = EditorAssetViewerCursorWorld();
+    kAssetViewerSelection.action = 1;
+  }
+  else if (kAssetViewerSelection.action == 1) {
+    kAssetViewerSelection.end_texcoord =
+        EditorAssetViewerCursorInTexture(*texture);
+    kAssetViewerSelection.end_world = EditorAssetViewerCursorWorld();
+    kAssetViewerSelection.action = 2;
+    AssetSelection selection;
+    selection.tex_rect = math::MakeRect(
+        kAssetViewerSelection.start_texcoord, kAssetViewerSelection.end_texcoord);
+    selection.world_rect = math::MakeRect(
+        kAssetViewerSelection.start_world, kAssetViewerSelection.end_world);
+    selection.world_rect_scaled = kAssetViewerSelection.WorldRectScaled();
+    DispatchAssetBoxSelect(selection);
+  }
+}
+
+void ProcessSelectionForRect(const rgg::Texture* texture) {
+  AssetSelection selection;
+  selection.tex_rect = kCursor.world_grid_cell;
+  selection.tex_rect.x += texture->width / 2.f;
+  selection.tex_rect.y += texture->height / 2.f;
+  selection.world_rect = kCursor.world_grid_cell;
+  selection.world_rect_scaled = ScaleRect(selection.world_rect);
+  DispatchAssetBoxSelect(selection);
+}
+
 void EditorAssetViewerProcessEvent(const PlatformEvent& event) {
   switch(event.type) {
     case MOUSE_DOWN: {
@@ -335,29 +396,8 @@ void EditorAssetViewerProcessEvent(const PlatformEvent& event) {
           if (!texture || !texture->IsValid()) break;
           // Cursor isn't in the viewer.
           if (!kCursor.is_in_viewport) break;
-          if (kAssetViewerSelection.action == 2) {
-            kAssetViewerSelection = {};
-            break;
-          }
-          if (kAssetViewerSelection.action == 0) {
-            kAssetViewerSelection.start_texcoord =
-                EditorAssetViewerCursorInTexture(*texture);
-            kAssetViewerSelection.start_world = EditorAssetViewerCursorWorld();
-            kAssetViewerSelection.action = 1;
-          }
-          else if (kAssetViewerSelection.action == 1) {
-            kAssetViewerSelection.end_texcoord =
-                EditorAssetViewerCursorInTexture(*texture);
-            kAssetViewerSelection.end_world = EditorAssetViewerCursorWorld();
-            kAssetViewerSelection.action = 2;
-            AssetSelection selection;
-            selection.tex_rect = math::MakeRect(
-                kAssetViewerSelection.start_texcoord, kAssetViewerSelection.end_texcoord);
-            selection.world_rect = math::MakeRect(
-                kAssetViewerSelection.start_world, kAssetViewerSelection.end_world);
-            selection.world_rect_scaled = kAssetViewerSelection.WorldRectScaled();
-            DispatchAssetBoxSelect(selection);
-          }
+          if (kAssetViewer.clamp_cursor_to_nearest_) ProcessSelectionForClampedCursor(texture);
+          else if (kAssetViewer.clamp_cursor_to_rect_) ProcessSelectionForRect(texture);
         } break;
       } break;
     } break;
@@ -437,7 +477,12 @@ void EditorAssetViewerDebug() {
     ImGui::NewLine();
   }
   ImGui::SliderFloat("scale", &kAssetViewer.scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
+  bool pre_nearest = kAssetViewer.clamp_cursor_to_nearest_;
   ImGui::Checkbox("clamp cursor to nearest edge", &kAssetViewer.clamp_cursor_to_nearest_);
+  if (pre_nearest == false && kAssetViewer.clamp_cursor_to_nearest_ == true) kAssetViewer.clamp_cursor_to_rect_ = false;
+  bool pre_rect = kAssetViewer.clamp_cursor_to_rect_;
+  ImGui::Checkbox("clamp cursor to rect", &kAssetViewer.clamp_cursor_to_rect_);
+  if (pre_rect == false && kAssetViewer.clamp_cursor_to_rect_ == true) kAssetViewer.clamp_cursor_to_nearest_ = false;
   ImGui::Checkbox("render crosshair", &kAssetViewer.show_crosshair_);
   bool pre_is_animate_running = kAssetViewerAnimator.is_running_;
   ImGui::Checkbox("animate frames", &kAssetViewerAnimator.is_running_);

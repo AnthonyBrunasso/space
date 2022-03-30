@@ -284,6 +284,8 @@ void EditorUpdateCursor() {
   rgrid.width = (r32)kGrid.cell_width;
   rgrid.height = (r32)kGrid.cell_height;
   kCursor.world_grid_cell = rgrid;
+  kCursor.world_grid_cell.x += kGrid.GetOrigin().x;
+  kCursor.world_grid_cell.y += kGrid.GetOrigin().y;
   kCursor.world_clamped = Roundf(rgrid.NearestEdge(cursor_relative)) + kGrid.GetOrigin();
 }
 

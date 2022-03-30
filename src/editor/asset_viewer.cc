@@ -5,6 +5,7 @@ DEFINE_EDITOR_CALLBACK(AssetBoxSelect, AssetSelection);
 static const std::vector<std::string> kEditorKnownAssetExtensions = {
   "tga",
   "png",
+  "anim",
 };
 
 bool EditorCanLoadAsset(const std::string& name) {
@@ -52,6 +53,8 @@ public:
   void OnRender() override;
   void OnImGui() override;
 
+  const rgg::Texture* LoadTexture(const char* tname);
+
   rgg::TextureId texture_id_;
   r32 scale_ = 1.0f;
   std::string chosen_asset_path_;
@@ -83,19 +86,26 @@ bool EditorAssetViewerCursorInSelection() {
 void AssetViewer::OnRender() {
   const rgg::Texture* texture = nullptr;
   if (!chosen_asset_path_.empty()) {
-    rgg::TextureInfo texture_info;
-    texture_info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
-    texture_info.mag_filter = GL_NEAREST;
-    texture_id_ = rgg::LoadTexture(chosen_asset_path_.c_str(), texture_info); 
-    if (texture_id_ == 0) {
-      LOG(WARN, "Unable to load asset %s", chosen_asset_path_.c_str());
+    kAssetViewerAnimator.Clear();
+    const char* ext = filesystem::GetFilenameExtension(chosen_asset_path_.c_str());
+    if (strcmp(ext, "anim") == 0) {
+      //LOG(INFO, "Load anim file %s", chosen_asset_path_.c_str());
+      AnimSequence2d loaded_sequence;
+      if (!AnimSequence2d::LoadFromProtoFile(chosen_asset_path_.c_str(), &loaded_sequence)) {
+        LOG(WARN, "Unable to anim data %s", chosen_asset_path_.c_str());
+      } else {
+        assert(!loaded_sequence.IsEmpty());
+        v2f scaled_dims = loaded_sequence.sequence_frames_[0].frame.src_rect().Dims() * kAssetViewer.scale_;
+        kAssetViewerAnimator.Initialize(scaled_dims.x, scaled_dims.y);
+        for (const AnimSequence2d::SequenceFrame& sequence_frame : loaded_sequence.sequence_frames_) {
+          kAssetViewerAnimator.AddFrame(sequence_frame.frame, scaled_dims, sequence_frame.duration_sec);
+        }
+        kAssetViewerAnimator.anim_sequence_.Start();
+      }
+    } else {
+      texture = LoadTexture(chosen_asset_path_.c_str());
     }
-    else {
-      texture = rgg::GetTexture(texture_id_);
-      kGrid.origin = EditorAssetViewerTextureBottomLeft(*texture);
-      kGrid.origin_offset = v2f(0.f, 0.f);
-      chosen_asset_path_.clear();
-    }
+    chosen_asset_path_.clear();
   }
 
   texture = rgg::GetTexture(texture_id_);
@@ -136,6 +146,21 @@ void AssetViewer::OnRender() {
 
 void AssetViewer::OnImGui() {
   ImGuiImage();
+}
+
+const rgg::Texture* AssetViewer::LoadTexture(const char* tname) {
+  rgg::TextureInfo texture_info;
+  texture_info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
+  texture_info.mag_filter = GL_NEAREST;
+  texture_id_ = rgg::LoadTexture(tname, texture_info); 
+  if (texture_id_ == 0) {
+    LOG(WARN, "Unable to load asset %s", chosen_asset_path_.c_str());
+    return nullptr;
+  }
+  const rgg::Texture* texture = rgg::GetTexture(texture_id_);
+  kGrid.origin = EditorAssetViewerTextureBottomLeft(*texture);
+  kGrid.origin_offset = v2f(0.f, 0.f);
+  return texture;
 }
 
 void AssetViewerAnimator::HandleAssetBoxSelect(const AssetSelection& selection) {

@@ -23,6 +23,9 @@ public:
     b8 is_active = false;
   };
 
+  static AnimSequence2d LoadFromProto(const proto::Animation2d& proto);
+  static bool LoadFromProtoFile(const char* filename, AnimSequence2d* anim_sequence);
+
   void Start();
   void Update();
   const AnimFrame2d& CurrentFrame();
@@ -42,6 +45,36 @@ public:
   platform::Clock clock_;
   s32 frame_index_ = 0;
 };
+
+AnimSequence2d AnimSequence2d::LoadFromProto(const proto::Animation2d& proto) {
+  AnimSequence2d anim_sequence;
+  rgg::TextureInfo texture_info;
+  texture_info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
+  texture_info.mag_filter = GL_NEAREST;
+  for (const proto::AnimationFrame2d& pframe : proto.frames()) {
+    SequenceFrame sframe;
+    // TODO: Should this load textures? This will upload to GPU / cache texture.
+    sframe.frame.texture_id_ = rgg::LoadTexture(pframe.asset_name().c_str(), texture_info);
+    sframe.frame.src_rect_ = Rectf(
+        pframe.texture_x(),
+        pframe.texture_y(),
+        pframe.texture_width(),
+        pframe.texture_height());
+    sframe.duration_sec = pframe.duration_sec();
+    anim_sequence.sequence_frames_.push_back(sframe);
+  }
+  return anim_sequence;
+}
+
+bool AnimSequence2d::LoadFromProtoFile(const char* filename, AnimSequence2d* anim_sequence) {
+  proto::Animation2d proto;
+  std::fstream inp(filename, std::ios::in | std::ios::binary);
+  if (!proto.ParseFromIstream(&inp)) {
+    return false;
+  }
+  *anim_sequence = LoadFromProto(proto);
+  return true;
+}
 
 void AnimSequence2d::Start() {
   // Need at least two frames to have a sequence.

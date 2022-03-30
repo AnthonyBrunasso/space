@@ -100,7 +100,7 @@ void AssetViewer::OnRender() {
       //LOG(INFO, "Load anim file %s", chosen_asset_path_.c_str());
       AnimSequence2d loaded_sequence;
       if (!AnimSequence2d::LoadFromProtoFile(chosen_asset_path_.c_str(), &loaded_sequence)) {
-        LOG(WARN, "Unable to anim data %s", chosen_asset_path_.c_str());
+        LOG(WARN, "Unable to load anim data %s", chosen_asset_path_.c_str());
       } else {
         assert(!loaded_sequence.IsEmpty());
         v2f scaled_dims = loaded_sequence.sequence_frames_[0].frame.src_rect().Dims() * kAssetViewer.scale_;

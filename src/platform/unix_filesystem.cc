@@ -63,4 +63,11 @@ std::string JoinPath(const char* s1, const char* s2) {
   return ret;
 }
 
+// Replaces backslashes with slashes
+std::string SanitizePath(const std::string& path) {
+  std::string copy = path;
+  std::replace(copy.begin(), copy.end(), '\\', '/');
+  return copy;
+}
+
 }  // namespace filesystem

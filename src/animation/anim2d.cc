@@ -54,7 +54,8 @@ AnimSequence2d AnimSequence2d::LoadFromProto(const proto::Animation2d& proto) {
   for (const proto::AnimationFrame2d& pframe : proto.frames()) {
     SequenceFrame sframe;
     // TODO: Should this load textures? This will upload to GPU / cache texture.
-    sframe.frame.texture_id_ = rgg::LoadTexture(pframe.asset_name().c_str(), texture_info);
+    sframe.frame.texture_id_ = rgg::LoadTexture(
+        filesystem::SanitizePath(pframe.asset_name()).c_str(), texture_info);
     sframe.frame.src_rect_ = Rectf(
         pframe.texture_x(),
         pframe.texture_y(),

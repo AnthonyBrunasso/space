@@ -48,6 +48,8 @@ std::string JoinPath(const std::string& s1, const char* s2) {
   return JoinPath(s1.c_str(), s2);
 }
 
+std::string SanitizePath(const std::string& path);
+
 b8 MakeDirectory(const char* name);
 void WalkDirectory(const char* dir, const std::function<void(const char*, bool)> file_callback);
 void WalkDirectory(const std::string& dir, const std::function<void(const char*, bool)> file_callback) {

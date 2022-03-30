@@ -70,11 +70,20 @@ const char* GetWorkingDirectory() {
 std::string JoinPath(const char* s1, const char* s2) {
   // TODO: Make less stupid.
   std::string ret(s1);
+  // s1 is a directory remove the \*
+  if (ret[ret.size() - 1] == '*') {
+    ret.pop_back();
+    ret.pop_back();
+  }
   ret += "\\";
   ret += std::string(s2);
   return ret;
 }
 
-
+std::string SanitizePath(const std::string& path) {
+  std::string copy = path;
+  std::replace(copy.begin(), copy.end(), '/', '\\');
+  return copy;
+}
 
 }  // namespace filesystem

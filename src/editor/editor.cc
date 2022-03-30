@@ -381,6 +381,7 @@ void EditorFileBrowser() {
   ImGui::Begin("File Browser", nullptr, window_flags);
   char dir[256] = {};
 #ifdef _WIN32
+  strcat(dir, filesystem::GetWorkingDirectory());
   strcat(dir, "\\*");
 #else
   strcat(dir, "./");

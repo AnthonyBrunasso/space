@@ -337,6 +337,8 @@ void AssetViewerAnimator::Frame::ImGui(AnimSequence2d::SequenceFrame& sframe, s3
     mod_spec->remove_idx = id;
   }
 
+  ImGui::SameLine();
+
   snprintf(kTempStr, 128, "<##%i", id);
   if (ImGui::Button(kTempStr)) {
     mod_spec->type = ModSpec::kSwap;

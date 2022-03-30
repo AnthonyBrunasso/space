@@ -7,7 +7,6 @@
 // Notably this module creates a single window and does not intend
 // on supporting making multiple.
 
-constexpr u32 KEY_ESC = 65307;
 constexpr u32 KEY_A = 97;
 constexpr u32 KEY_B = 98;
 constexpr u32 KEY_C = 99;
@@ -34,28 +33,41 @@ constexpr u32 KEY_W = 119;
 constexpr u32 KEY_X = 120;
 constexpr u32 KEY_Y = 121;
 constexpr u32 KEY_Z = 122;
+constexpr u32 KEY_SPACE = 32;
+#ifdef _WIN32
+constexpr u32 KEY_BACKSPACE = 8;
+constexpr u32 KEY_ESC = 27;
+constexpr u32 KEY_RETURN = 13;
+constexpr u32 KEY_TAB = 9;
+constexpr u32 KEY_END = 35;
+constexpr u32 KEY_HOME = 36;
+constexpr u32 KEY_DEL = 46;
+constexpr u32 KEY_PERIOD = 190;
+constexpr u32 KEY_ARROW_UP = 0;
+constexpr u32 KEY_ARROW_RIGHT = 3;
+constexpr u32 KEY_ARROW_DOWN = 1;
+constexpr u32 KEY_ARROW_LEFT = 2;
+constexpr u32 KEY_COMMA = 188;
+constexpr u32 KEY_SLASH = 191;
+constexpr u32 KEY_SEMICOLON = 186;
+constexpr u32 KEY_EQUALS = 43;
+#else
+constexpr u32 KEY_BACKSPACE = 65288;
+constexpr u32 KEY_ESC = 65307;
 constexpr u32 KEY_RETURN = 65293;
 constexpr u32 KEY_TAB = 65289;
 constexpr u32 KEY_HOME = 65360;
 constexpr u32 KEY_END = 65367;
 constexpr u32 KEY_DEL = 65535;
-constexpr u32 KEY_BACKSPACE = 65288;
-constexpr u32 KEY_SPACE = 32;
-constexpr u32 KEY_COMMA = 44;
-constexpr u32 KEY_PERIOD = 46;
-constexpr u32 KEY_SLASH = 47;
-constexpr u32 KEY_SEMICOLON = 59;
-constexpr u32 KEY_EQUALS = 61;
-#ifdef _WIN32
-constexpr u32 KEY_ARROW_UP = 0;
-constexpr u32 KEY_ARROW_RIGHT = 3;
-constexpr u32 KEY_ARROW_DOWN = 1;
-constexpr u32 KEY_ARROW_LEFT = 2;
-#else
 constexpr u32 KEY_ARROW_UP = 65362;
 constexpr u32 KEY_ARROW_RIGHT = 65363; 
 constexpr u32 KEY_ARROW_DOWN = 65364;
 constexpr u32 KEY_ARROW_LEFT = 65361;
+constexpr u32 KEY_PERIOD = 46;
+constexpr u32 KEY_COMMA = 44;
+constexpr u32 KEY_SLASH = 47;
+constexpr u32 KEY_SEMICOLON = 59;
+constexpr u32 KEY_EQUALS = 61;
 #endif
 constexpr u32 KEY_NUMPAD_UP = 65431;
 constexpr u32 KEY_NUMPAD_RIGHT = 65432;

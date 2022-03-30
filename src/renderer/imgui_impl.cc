@@ -98,6 +98,7 @@ static bool ImGuiImplProcessEvent(const PlatformEvent& event) {
     } break;
     case KEY_DOWN:
     case KEY_UP: {
+      //LOG(INFO, "event key %u", event.key);
       ImGuiKey key = ImGuiImplPlatformKeyToImguiKey(event.key);
       io.AddKeyEvent(key, (event.type == KEY_DOWN));
       if (event.key >= 0 && event.key < 128 && event.type == KEY_UP) {

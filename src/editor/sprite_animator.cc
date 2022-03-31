@@ -33,6 +33,7 @@ public:
   void AddTimeToSequence(r32 time_sec);
 
   AnimSequence2d anim_sequence_;
+
   struct ModSpec {
     enum Type {
       kNone = 0,
@@ -44,6 +45,7 @@ public:
     s32 swap_idx2;
     s32 remove_idx;
   };
+
   struct Frame {
     EditorSurface editor_surface;
     void ImGui(AnimSequence2d::SequenceFrame& sframe, s32 id, ModSpec* mod_spec);
@@ -125,10 +127,12 @@ void SpriteAnimator::OnRender() {
   }
 
   texture = rgg::GetTexture(texture_id_);
+
   if (texture) {
     kGrid.origin = EditorSpriteAnimatorTextureBottomLeft(*texture);
     kGrid.origin_offset = v2f(0.f, 0.f);
   }
+
   ImGuiStyle& style = ImGui::GetStyle();
   ImVec4 imcolor = style.Colors[ImGuiCol_WindowBg];
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

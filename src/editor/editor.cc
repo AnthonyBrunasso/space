@@ -6,17 +6,19 @@
 
 enum EditorMode {
   EDITOR_MODE_GAME = 0,
-  EDITOR_MODE_ASSET_VIEWER = 1,
+  EDITOR_MODE_SPRITE_ANIMATOR = 1,
+  EDITOR_MODE_MAP_MAKER = 2,
 };
 
-static const s32 kViewportTabCount = 2;
+static const s32 kViewportTabCount = 3;
 
 static const char* kViewportTabs[kViewportTabCount] = {
   "Game",
-  "Animator"
+  "Animator",
+  "Map Maker",
 };
 
-static bool kOpened[kViewportTabCount] = { true, true };
+static bool kOpened[kViewportTabCount] = { true, true, true };
 
 struct Editor {
   u64 frame_rate = 60;
@@ -72,6 +74,7 @@ static s32 kFrameRendererHeight = 220;
 #include "editor_render_target.cc"
 
 r32 EditorViewportCurrentScale();
+rgg::Camera* EditorViewportCurrentCamera();
 
 // We hand screw the scale to avoid avoid scaling in shaders. This gives tighter control of of pixely things.
 // Idk if this is the correct move (instead of using camera scale and in shader). But This is the world
@@ -111,7 +114,13 @@ Rectf RectToWorld(const Rectf& rect) {
 }
 
 Rectf ScaleEditorViewport() {
+  r32 scale = EditorViewportCurrentScale();
   Rectf renderable_edges = kEditor.render_viewport;
+  rgg::Camera* camera = EditorViewportCurrentCamera();
+  if (camera) {
+    renderable_edges.x += (camera->position.x / scale);
+    renderable_edges.y += (camera->position.y / scale);
+  }
   return ScaleEditorRect(renderable_edges);
 }
 
@@ -225,14 +234,18 @@ void EditorExit() {
 
 #include "sprite_animator.cc"
 #include "game_viewer.cc"
+#include "map_maker.cc"
 
 r32 EditorViewportCurrentScale() {
   switch (kEditor.mode) {
     case EDITOR_MODE_GAME: {
       return EditorGameViewerScale();
     } break;
-    case EDITOR_MODE_ASSET_VIEWER: {
+    case EDITOR_MODE_SPRITE_ANIMATOR: {
       return EditorSpriteAnimatorScale();
+    } break;
+    case EDITOR_MODE_MAP_MAKER: {
+      return EditorMapMakerScale();
     } break;
   }
   return 1.f;
@@ -248,8 +261,11 @@ rgg::Camera* EditorViewportCurrentCamera() {
     case EDITOR_MODE_GAME: {
       return EditorGameViewerCamera();
     } break;
-    case EDITOR_MODE_ASSET_VIEWER: {
+    case EDITOR_MODE_SPRITE_ANIMATOR: {
       return EditorSpriteAnimatorCamera();
+    } break;
+    case EDITOR_MODE_MAP_MAKER: {
+      return EditorMapMakerCamera();
     } break;
   }
   
@@ -297,8 +313,11 @@ void EditorProcessEvent(const PlatformEvent& event) {
     case EDITOR_MODE_GAME: {
       EditorGameViewerProcessEvent(event);
     } break;
-    case EDITOR_MODE_ASSET_VIEWER: {
+    case EDITOR_MODE_SPRITE_ANIMATOR: {
       EditorSpriteAnimatorProcessEvent(event);
+    } break;
+    case EDITOR_MODE_MAP_MAKER: {
+      EditorMapMakerProcessEvent(event);
     } break;
   }
 
@@ -366,7 +385,7 @@ void EditorFilesFrom(const char* dir) {
       if (ImGui::Selectable(filename.c_str(), &kChosen)) {
         //LOG(INFO, "Chose asset %s", file.c_str());
         kSpriteAnimator.chosen_asset_path_ = file;
-        kEditor.mode = EDITOR_MODE_ASSET_VIEWER;
+        kEditor.mode = EDITOR_MODE_SPRITE_ANIMATOR;
       }
     }
     else {
@@ -420,8 +439,11 @@ void EditorDebugMenu() {
             case EDITOR_MODE_GAME: {
               EditorGameViewerDebug();
             } break;
-            case EDITOR_MODE_ASSET_VIEWER: {
+            case EDITOR_MODE_SPRITE_ANIMATOR: {
               EditorSpriteAnimatorDebug();
+            } break;
+            case EDITOR_MODE_MAP_MAKER: {
+              EditorMapMakerDebug();
             } break;
           }
         }
@@ -512,10 +534,12 @@ void EditorRenderViewport() {
         if (i == 0) {
           EditorGameViewerMain();
           kEditor.mode = EDITOR_MODE_GAME;
-        }
-        else if (i == 1) {
+        } else if (i == 1) {
           EditorSpriteAnimatorMain();
-          kEditor.mode = EDITOR_MODE_ASSET_VIEWER;
+          kEditor.mode = EDITOR_MODE_SPRITE_ANIMATOR;
+        } else if (i == 2) {
+          EditorMapMakerMain();
+          kEditor.mode = EDITOR_MODE_MAP_MAKER;
         }
         ImGui::EndTabItem();
       }

@@ -15,10 +15,10 @@ bool EditorCanLoadAsset(const std::string& name) {
   return false;
 }
 
-class AssetViewerAnimator : public EditorRenderTarget {
+class SpriteAnimatorControl : public EditorRenderTarget {
 public:
-  AssetViewerAnimator();
-  AssetViewerAnimator(const AssetViewerAnimator& anim) = delete;
+  SpriteAnimatorControl();
+  SpriteAnimatorControl(const SpriteAnimatorControl& anim) = delete;
 
   static void HandleAssetBoxSelect(const AssetSelection& selection);
 
@@ -54,7 +54,7 @@ public:
   bool is_running_ = true;
 };
 
-static AssetViewerAnimator kAssetViewerAnimator;
+static SpriteAnimatorControl kSpriteAnimatorControl;
 
 enum CursorMode {
   kCursorModeNone = 0,
@@ -62,7 +62,7 @@ enum CursorMode {
   kUseGridCell = 2,
 };
 
-class AssetViewer : public EditorRenderTarget {
+class SpriteAnimator : public EditorRenderTarget {
 public:
   void OnRender() override;
   void OnImGui() override;
@@ -78,30 +78,30 @@ public:
   bool show_crosshair_ = true;
 };
 
-static AssetViewer kAssetViewer;
+static SpriteAnimator kSpriteAnimator;
 
-v2f EditorAssetViewerTextureBottomLeft(const rgg::Texture& tex) {
+v2f EditorSpriteAnimatorTextureBottomLeft(const rgg::Texture& tex) {
   return v2f(-tex.width / 2.f, -tex.height / 2.f);
 }
 
-void EditorAssetViewerRenderAsset() {
-  const rgg::Texture* tex = rgg::GetTexture(kAssetViewer.texture_id_);
+void EditorSpriteAnimatorRenderAsset() {
+  const rgg::Texture* tex = rgg::GetTexture(kSpriteAnimator.texture_id_);
   if (!tex || !tex->IsValid()) return;
   Rectf dest = ScaleEditorRect(tex->Rect());
   rgg::RenderTexture(*tex, tex->Rect(), dest);
 }
 
-bool EditorAssetViewerCursorInSelection() {
-  if (kAssetViewerAnimator.is_running_ && kAssetViewerAnimator.IsMouseInside()) {
+bool EditorSpriteAnimatorCursorInSelection() {
+  if (kSpriteAnimatorControl.is_running_ && kSpriteAnimatorControl.IsMouseInside()) {
     return true;
   }
   return false;
 }
 
-void AssetViewer::OnRender() {
+void SpriteAnimator::OnRender() {
   const rgg::Texture* texture = nullptr;
   if (!chosen_asset_path_.empty()) {
-    kAssetViewerAnimator.Clear();
+    kSpriteAnimatorControl.Clear();
     const char* ext = filesystem::GetFilenameExtension(chosen_asset_path_.c_str());
     if (strcmp(ext, "anim") == 0) {
       //LOG(INFO, "Load anim file %s", chosen_asset_path_.c_str());
@@ -110,13 +110,13 @@ void AssetViewer::OnRender() {
         LOG(WARN, "Unable to load anim data %s", chosen_asset_path_.c_str());
       } else {
         assert(!loaded_sequence.IsEmpty());
-        v2f scaled_dims = loaded_sequence.sequence_frames_[0].frame.src_rect().Dims() * kAssetViewer.scale_;
-        kAssetViewerAnimator.Initialize(scaled_dims.x, scaled_dims.y);
+        v2f scaled_dims = loaded_sequence.sequence_frames_[0].frame.src_rect().Dims() * kSpriteAnimator.scale_;
+        kSpriteAnimatorControl.Initialize(scaled_dims.x, scaled_dims.y);
         for (const AnimSequence2d::SequenceFrame& sequence_frame : loaded_sequence.sequence_frames_) {
-          kAssetViewerAnimator.AddFrame(sequence_frame.frame, scaled_dims, sequence_frame.duration_sec);
+          kSpriteAnimatorControl.AddFrame(sequence_frame.frame, scaled_dims, sequence_frame.duration_sec);
         }
-        texture_id_ = kAssetViewerAnimator.anim_sequence_.sequence_frames_[0].frame.texture_id_;
-        kAssetViewerAnimator.anim_sequence_.Start();
+        texture_id_ = kSpriteAnimatorControl.anim_sequence_.sequence_frames_[0].frame.texture_id_;
+        kSpriteAnimatorControl.anim_sequence_.Start();
       }
     } else {
       texture = LoadTexture(chosen_asset_path_.c_str());
@@ -126,7 +126,7 @@ void AssetViewer::OnRender() {
 
   texture = rgg::GetTexture(texture_id_);
   if (texture) {
-    kGrid.origin = EditorAssetViewerTextureBottomLeft(*texture);
+    kGrid.origin = EditorSpriteAnimatorTextureBottomLeft(*texture);
     kGrid.origin_offset = v2f(0.f, 0.f);
   }
   ImGuiStyle& style = ImGui::GetStyle();
@@ -134,7 +134,7 @@ void AssetViewer::OnRender() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   // Fill the background with imgui's background color to maintain beauty.
   rgg::RenderRectangle(ScaleEditorViewport(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
-  EditorAssetViewerRenderAsset();
+  EditorSpriteAnimatorRenderAsset();
 
   v2f origin_scaled = ScaleVec2(v2f(0.f, 0.f));
   if (texture && texture->IsValid()) {
@@ -147,7 +147,7 @@ void AssetViewer::OnRender() {
   // Useful for debugging cursor stuff
   //rgg::RenderLine(kCursor.world, v2f(0.f, 0.f), rgg::kWhite);
 
-  if (kCursor.is_in_viewport && show_crosshair_ && !EditorAssetViewerCursorInSelection()) {
+  if (kCursor.is_in_viewport && show_crosshair_ && !EditorSpriteAnimatorCursorInSelection()) {
     if (cursor_mode_ == kClampToGridEdge) {
       v2f scaled_clamp = kCursor.world_clamped * scale_;
       EditorRenderCrosshair(scaled_clamp, ScaleEditorViewport());
@@ -159,16 +159,16 @@ void AssetViewer::OnRender() {
     }
   }
 
-  if (kAssetViewerSelection.action == 1) {
-    EditorRenderCrosshair(kAssetViewerSelection.start_world * scale_, ScaleEditorViewport(), rgg::kPurple);
+  if (kSpriteAnimatorSelection.action == 1) {
+    EditorRenderCrosshair(kSpriteAnimatorSelection.start_world * scale_, ScaleEditorViewport(), rgg::kPurple);
   }
 }
 
-void AssetViewer::OnImGui() {
+void SpriteAnimator::OnImGui() {
   ImGuiImage();
 }
 
-const rgg::Texture* AssetViewer::LoadTexture(const char* tname) {
+const rgg::Texture* SpriteAnimator::LoadTexture(const char* tname) {
   rgg::TextureInfo texture_info;
   texture_info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
   texture_info.mag_filter = GL_NEAREST;
@@ -180,26 +180,26 @@ const rgg::Texture* AssetViewer::LoadTexture(const char* tname) {
   return rgg::GetTexture(texture_id_);
 }
 
-void AssetViewerAnimator::HandleAssetBoxSelect(const AssetSelection& selection) {
+void SpriteAnimatorControl::HandleAssetBoxSelect(const AssetSelection& selection) {
   AnimFrame2d frame;
-  frame.texture_id_ = kAssetViewer.texture_id_;
+  frame.texture_id_ = kSpriteAnimator.texture_id_;
   frame.src_rect_ = selection.tex_rect;
-  kAssetViewerAnimator.AddFrame(frame, selection.world_rect_scaled.Dims(), 1.f);
-  kAssetViewerAnimator.anim_sequence_.Start();
-  if (!kAssetViewerAnimator.IsRenderTargetValid()) {
-    kAssetViewerAnimator.Initialize((s32)selection.world_rect_scaled.width, (s32)selection.world_rect_scaled.height);
+  kSpriteAnimatorControl.AddFrame(frame, selection.world_rect_scaled.Dims(), 1.f);
+  kSpriteAnimatorControl.anim_sequence_.Start();
+  if (!kSpriteAnimatorControl.IsRenderTargetValid()) {
+    kSpriteAnimatorControl.Initialize((s32)selection.world_rect_scaled.width, (s32)selection.world_rect_scaled.height);
   }
 }
 
-AssetViewerAnimator::AssetViewerAnimator() {
+SpriteAnimatorControl::SpriteAnimatorControl() {
   SubscribeAssetBoxSelect(&HandleAssetBoxSelect);
 }
 
-void AssetViewerAnimator::OnRender() {
+void SpriteAnimatorControl::OnRender() {
   anim_sequence_.Update();
 
   if (!anim_sequence_.IsEmpty()) {
-    //const AssetViewerFrame* cf = &kAssetViewer.frames_[anim_sequence_.frame_index_];
+    //const SpriteAnimatorFrame* cf = &kSpriteAnimator.frames_[anim_sequence_.frame_index_];
     const AnimFrame2d& aframe = anim_sequence_.CurrentFrame();
     const rgg::Texture* texture_render_from = rgg::GetTexture(aframe.texture_id_);
     rgg::RenderTexture(*texture_render_from,
@@ -209,7 +209,7 @@ void AssetViewerAnimator::OnRender() {
   }
 }
 
-void AssetViewerAnimator::Clear() {
+void SpriteAnimatorControl::Clear() {
   anim_sequence_.Clear();
   ReleaseSurface();
   for (Frame& frame : anim_frames_) {
@@ -218,14 +218,14 @@ void AssetViewerAnimator::Clear() {
   anim_frames_.clear();
 }
 
-void AssetViewerAnimator::AddTimeToSequence(r32 time_sec) {
+void SpriteAnimatorControl::AddTimeToSequence(r32 time_sec) {
   for (AnimSequence2d::SequenceFrame& sequence_frame : anim_sequence_.sequence_frames_) {
     sequence_frame.duration_sec += time_sec;
   }
 }
 
-void AssetViewerAnimator::OnImGui() {
-  ImGui::Begin("Animator", &kAssetViewerAnimator.is_running_);
+void SpriteAnimatorControl::OnImGui() {
+  ImGui::Begin("Animator", &kSpriteAnimatorControl.is_running_);
   ImGuiImage();
   UpdateImguiPanelRect();
   // Walk all the frames at a certain cadence and play them.
@@ -313,7 +313,7 @@ void AssetViewerAnimator::OnImGui() {
   }
 }
 
-void AssetViewerAnimator::Frame::ImGui(AnimSequence2d::SequenceFrame& sframe, s32 id, ModSpec* mod_spec) {
+void SpriteAnimatorControl::Frame::ImGui(AnimSequence2d::SequenceFrame& sframe, s32 id, ModSpec* mod_spec) {
   const rgg::Texture* texture = rgg::GetTexture(sframe.frame.texture_id_);
   // At this point if the texture isn't loaded we have a deeper problem. Load textures before animating.
   assert(texture != nullptr);
@@ -369,7 +369,7 @@ void AssetViewerAnimator::Frame::ImGui(AnimSequence2d::SequenceFrame& sframe, s3
   if (sframe.duration_sec < 0.01f) sframe.duration_sec = 0.01f;
 }
 
-bool AssetViewerAnimator::IsMouseInside() const {
+bool SpriteAnimatorControl::IsMouseInside() const {
   if (EditorRenderTarget::IsMouseInside()) return true;
   for (const Frame& frame : anim_frames_) {
     if (math::PointInRect(kCursor.global_screen, anim_frames_imgui_rect)) return true;
@@ -377,7 +377,7 @@ bool AssetViewerAnimator::IsMouseInside() const {
   return false;
 }
 
-void AssetViewerAnimator::AddFrame(const AnimFrame2d& frame, v2f dims, r32 duration) {
+void SpriteAnimatorControl::AddFrame(const AnimFrame2d& frame, v2f dims, r32 duration) {
   anim_sequence_.AddFrame(frame, duration);
   Frame asset_frame;
   asset_frame.editor_surface = CreateEditorSurface(dims.x, dims.y);
@@ -385,7 +385,7 @@ void AssetViewerAnimator::AddFrame(const AnimFrame2d& frame, v2f dims, r32 durat
   anim_frames_.push_back(asset_frame);
 }
 
-void AssetViewerAnimator::RemoveFrame(s32 idx) {
+void SpriteAnimatorControl::RemoveFrame(s32 idx) {
   assert(idx >= 0 && idx < anim_frames_.size() && idx < anim_sequence_.sequence_frames_.size());
   Frame* asset_frame = &anim_frames_[idx];
   DestroyEditorSurface(&asset_frame->editor_surface);
@@ -394,9 +394,9 @@ void AssetViewerAnimator::RemoveFrame(s32 idx) {
   anim_sequence_.Start();
 }
 
-v2f EditorAssetViewerCursorInTexture(const rgg::Texture& texture) {
+v2f EditorSpriteAnimatorCursorInTexture(const rgg::Texture& texture) {
   v2f world_to_texture;
-  if (kAssetViewer.cursor_mode_ == kClampToGridEdge) {
+  if (kSpriteAnimator.cursor_mode_ == kClampToGridEdge) {
     world_to_texture = kCursor.world_clamped + (texture.Rect().Dims() / 2.0);
   } else {
     world_to_texture = kCursor.world + (texture.Rect().Dims() / 2.0);
@@ -404,39 +404,39 @@ v2f EditorAssetViewerCursorInTexture(const rgg::Texture& texture) {
   return math::Roundf(world_to_texture);
 }
 
-v2f EditorAssetViewerCursorWorld() {
-  if (kAssetViewer.cursor_mode_ == kClampToGridEdge) {
+v2f EditorSpriteAnimatorCursorWorld() {
+  if (kSpriteAnimator.cursor_mode_ == kClampToGridEdge) {
     return kCursor.world_clamped;
   }
   return kCursor.world;
 }
 
-rgg::Camera* EditorAssetViewerCamera() {
-  return kAssetViewer.camera();
+rgg::Camera* EditorSpriteAnimatorCamera() {
+  return kSpriteAnimator.camera();
 }
 
 void ProcessSelectionForClampedCursor(const rgg::Texture* texture) {
-  if (kAssetViewerSelection.action == 2) {
-    kAssetViewerSelection = {};
+  if (kSpriteAnimatorSelection.action == 2) {
+    kSpriteAnimatorSelection = {};
     return;
   }
-  if (kAssetViewerSelection.action == 0) {
-    kAssetViewerSelection.start_texcoord =
-        EditorAssetViewerCursorInTexture(*texture);
-    kAssetViewerSelection.start_world = EditorAssetViewerCursorWorld();
-    kAssetViewerSelection.action = 1;
+  if (kSpriteAnimatorSelection.action == 0) {
+    kSpriteAnimatorSelection.start_texcoord =
+        EditorSpriteAnimatorCursorInTexture(*texture);
+    kSpriteAnimatorSelection.start_world = EditorSpriteAnimatorCursorWorld();
+    kSpriteAnimatorSelection.action = 1;
   }
-  else if (kAssetViewerSelection.action == 1) {
-    kAssetViewerSelection.end_texcoord =
-        EditorAssetViewerCursorInTexture(*texture);
-    kAssetViewerSelection.end_world = EditorAssetViewerCursorWorld();
-    kAssetViewerSelection.action = 2;
+  else if (kSpriteAnimatorSelection.action == 1) {
+    kSpriteAnimatorSelection.end_texcoord =
+        EditorSpriteAnimatorCursorInTexture(*texture);
+    kSpriteAnimatorSelection.end_world = EditorSpriteAnimatorCursorWorld();
+    kSpriteAnimatorSelection.action = 2;
     AssetSelection selection;
     selection.tex_rect = math::MakeRect(
-        kAssetViewerSelection.start_texcoord, kAssetViewerSelection.end_texcoord);
+        kSpriteAnimatorSelection.start_texcoord, kSpriteAnimatorSelection.end_texcoord);
     selection.world_rect = math::MakeRect(
-        kAssetViewerSelection.start_world, kAssetViewerSelection.end_world);
-    selection.world_rect_scaled = kAssetViewerSelection.WorldRectScaled();
+        kSpriteAnimatorSelection.start_world, kSpriteAnimatorSelection.end_world);
+    selection.world_rect_scaled = kSpriteAnimatorSelection.WorldRectScaled();
     DispatchAssetBoxSelect(selection);
   }
 }
@@ -451,21 +451,21 @@ void ProcessSelectionForRect(const rgg::Texture* texture) {
   DispatchAssetBoxSelect(selection);
 }
 
-void EditorAssetViewerProcessEvent(const PlatformEvent& event) {
+void EditorSpriteAnimatorProcessEvent(const PlatformEvent& event) {
   switch(event.type) {
     case MOUSE_DOWN: {
       switch (event.key) {
         case BUTTON_LEFT: {
-          if (EditorAssetViewerCursorInSelection()) {
+          if (EditorSpriteAnimatorCursorInSelection()) {
             break;
           }
           // Not viewing an asset.
-          const rgg::Texture* texture = rgg::GetTexture(kAssetViewer.texture_id_);
+          const rgg::Texture* texture = rgg::GetTexture(kSpriteAnimator.texture_id_);
           if (!texture || !texture->IsValid()) break;
           // Cursor isn't in the viewer.
           if (!kCursor.is_in_viewport) break;
-          if (kAssetViewer.cursor_mode_ == kClampToGridEdge) ProcessSelectionForClampedCursor(texture);
-          else if (kAssetViewer.cursor_mode_ == kUseGridCell) ProcessSelectionForRect(texture);
+          if (kSpriteAnimator.cursor_mode_ == kClampToGridEdge) ProcessSelectionForClampedCursor(texture);
+          else if (kSpriteAnimator.cursor_mode_ == kUseGridCell) ProcessSelectionForRect(texture);
         } break;
       } break;
     } break;
@@ -473,28 +473,28 @@ void EditorAssetViewerProcessEvent(const PlatformEvent& event) {
       switch (event.key) {
         case KEY_NUMPAD_UP:
         case KEY_ARROW_UP: {
-          rgg::Camera* camera = EditorAssetViewerCamera();
+          rgg::Camera* camera = EditorSpriteAnimatorCamera();
           if (camera) {
             camera->position += v2f(0.f, ScaleR32(16.f));
           }
         } break;
         case KEY_NUMPAD_RIGHT:
         case KEY_ARROW_RIGHT: {
-          rgg::Camera* camera = EditorAssetViewerCamera();
+          rgg::Camera* camera = EditorSpriteAnimatorCamera();
           if (camera) {
             camera->position += v2f(ScaleR32(16.f), 0.f);
           }
         } break;
         case KEY_NUMPAD_DOWN:
         case KEY_ARROW_DOWN: {
-          rgg::Camera* camera = EditorAssetViewerCamera();
+          rgg::Camera* camera = EditorSpriteAnimatorCamera();
           if (camera) {
             camera->position += v2f(0.f, ScaleR32(-16.f));
           }
         } break;
         case KEY_NUMPAD_LEFT:
         case KEY_ARROW_LEFT: {
-          rgg::Camera* camera = EditorAssetViewerCamera();
+          rgg::Camera* camera = EditorSpriteAnimatorCamera();
           if (camera) {
             camera->position += v2f(ScaleR32(-16.f), 0.f);
           }
@@ -509,42 +509,42 @@ void EditorAssetViewerProcessEvent(const PlatformEvent& event) {
 }
 
 // Just a way to verify lines work with the viewport, etc.
-void EditorAssetViewerDebugLines() {
+void EditorSpriteAnimatorDebugLines() {
   const Rectf& view_rect = ScaleEditorViewport();
   rgg::RenderLine(view_rect.BottomLeft(), view_rect.TopRight(), rgg::kGreen);
   rgg::RenderLine(view_rect.TopLeft(), view_rect.BottomRight(), rgg::kBlue);
   rgg::RenderLineRectangle(view_rect, rgg::kRed);
 }
 
-void EditorAssetViewerInitialize() {
+void EditorSpriteAnimatorInitialize() {
   static bool do_once = true;
   if (!do_once) {
     return;
   }
-  kAssetViewer.Initialize((s32)kEditor.render_viewport.width, (s32)kEditor.render_viewport.height);
+  kSpriteAnimator.Initialize((s32)kEditor.render_viewport.width, (s32)kEditor.render_viewport.height);
   do_once = false;
 }
 
-void EditorAssetViewerMain() {
-  EditorAssetViewerInitialize();
-  kAssetViewer.Render();
-  if (kAssetViewerAnimator.is_running_) {
-    kAssetViewerAnimator.Render();
+void EditorSpriteAnimatorMain() {
+  EditorSpriteAnimatorInitialize();
+  kSpriteAnimator.Render();
+  if (kSpriteAnimatorControl.is_running_) {
+    kSpriteAnimatorControl.Render();
   }
 
-  if (kAssetViewerSelection.action == 2) {
-    Rectf selection_rect_scaled = kAssetViewerSelection.WorldRectScaled();
-    kAssetViewerSelection.action = 0;
+  if (kSpriteAnimatorSelection.action == 2) {
+    Rectf selection_rect_scaled = kSpriteAnimatorSelection.WorldRectScaled();
+    kSpriteAnimatorSelection.action = 0;
   }
 }
 
-void EditorAssetViewerDebug() {
-  const rgg::Texture* texture = rgg::GetTexture(kAssetViewer.texture_id_);
+void EditorSpriteAnimatorDebug() {
+  const rgg::Texture* texture = rgg::GetTexture(kSpriteAnimator.texture_id_);
   if (texture && texture->IsValid()) {
     ImGui::Text("File (%s)", filesystem::Filename(texture->file).c_str());
-    ImGui::Text("  texture id    %u", kAssetViewer.texture_id_);
+    ImGui::Text("  texture id    %u", kSpriteAnimator.texture_id_);
     ImGui::Text("  dims          %.0f %.0f", texture->width, texture->height);
-    v2f cursor_in_texture = EditorAssetViewerCursorInTexture(*texture);
+    v2f cursor_in_texture = EditorSpriteAnimatorCursorInTexture(*texture);
     ImGui::Text("  texcoord      %.2f %.2f", cursor_in_texture.x, cursor_in_texture.y);
     ImGui::NewLine();
   }
@@ -553,16 +553,14 @@ void EditorAssetViewerDebug() {
     "Clamp Grid Edge",
     "Use Grid Cell",
   };
-  ImGui::Combo("cursor", (s32*)&kAssetViewer.cursor_mode_, kCursorModesStr, 3);
-  ImGui::SliderFloat("scale", &kAssetViewer.scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
-  ImGui::Checkbox("render crosshair", &kAssetViewer.show_crosshair_);
-  bool pre_is_animate_running = kAssetViewerAnimator.is_running_;
-  ImGui::Checkbox("animate frames", &kAssetViewerAnimator.is_running_);
+  ImGui::Combo("cursor", (s32*)&kSpriteAnimator.cursor_mode_, kCursorModesStr, 3);
+  ImGui::SliderFloat("scale", &kSpriteAnimator.scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
+  ImGui::Checkbox("render crosshair", &kSpriteAnimator.show_crosshair_);
 
   ImGui::NewLine();
   EditorDebugMenuGrid();
 }
 
-r32 EditorAssetViewerScale() {
-  return kAssetViewer.scale_;
+r32 EditorSpriteAnimatorScale() {
+  return kSpriteAnimator.scale_;
 }

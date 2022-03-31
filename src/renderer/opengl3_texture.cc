@@ -172,6 +172,7 @@ void DestroySurface(Surface* surface) {
 }
 
 b8 LoadFromFile(const char* file, const TextureInfo& texture_info, Texture* texture) {
+  //LOG(INFO, "%s", file);
   s32 image_width;
   s32 image_height;
   int n;

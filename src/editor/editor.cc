@@ -13,7 +13,7 @@ static const s32 kViewportTabCount = 2;
 
 static const char* kViewportTabs[kViewportTabCount] = {
   "Game",
-  "Asset"
+  "Animator"
 };
 
 static bool kOpened[kViewportTabCount] = { true, true };
@@ -125,7 +125,7 @@ Rectf ScaleRect(const Rectf& rect) {
   return scaled_rect;
 }
 
-struct AssetViewerSelection {
+struct SpriteAnimatorSelection {
   // 0 means selection has not started, 1 means the the first selection has been made, 2 means the final
   // selection has been made.
   s32 action = 0;
@@ -142,7 +142,7 @@ struct AssetViewerSelection {
   Rectf WorldRectScaled() const;
 };
 
-static AssetViewerSelection kAssetViewerSelection;
+static SpriteAnimatorSelection kSpriteAnimatorSelection;
 
 void EditorDebugMenuGrid() {
   ImGui::SliderInt("cellw", &kGrid.cell_width, 1, 128);
@@ -223,7 +223,7 @@ void EditorExit() {
   exit(0);
 }
 
-#include "asset_viewer.cc"
+#include "sprite_animator.cc"
 #include "game_viewer.cc"
 
 r32 EditorViewportCurrentScale() {
@@ -232,13 +232,13 @@ r32 EditorViewportCurrentScale() {
       return EditorGameViewerScale();
     } break;
     case EDITOR_MODE_ASSET_VIEWER: {
-      return EditorAssetViewerScale();
+      return EditorSpriteAnimatorScale();
     } break;
   }
   return 1.f;
 }
 
-Rectf AssetViewerSelection::WorldRectScaled() const {
+Rectf SpriteAnimatorSelection::WorldRectScaled() const {
   r32 scale = EditorViewportCurrentScale();
   return math::OrientToAabb(math::MakeRect(start_world * scale, end_world * scale));
 }
@@ -249,7 +249,7 @@ rgg::Camera* EditorViewportCurrentCamera() {
       return EditorGameViewerCamera();
     } break;
     case EDITOR_MODE_ASSET_VIEWER: {
-      return EditorAssetViewerCamera();
+      return EditorSpriteAnimatorCamera();
     } break;
   }
   
@@ -298,7 +298,7 @@ void EditorProcessEvent(const PlatformEvent& event) {
       EditorGameViewerProcessEvent(event);
     } break;
     case EDITOR_MODE_ASSET_VIEWER: {
-      EditorAssetViewerProcessEvent(event);
+      EditorSpriteAnimatorProcessEvent(event);
     } break;
   }
 
@@ -365,7 +365,7 @@ void EditorFilesFrom(const char* dir) {
     if (EditorCanLoadAsset(file)) {
       if (ImGui::Selectable(filename.c_str(), &kChosen)) {
         //LOG(INFO, "Chose asset %s", file.c_str());
-        kAssetViewer.chosen_asset_path_ = file;
+        kSpriteAnimator.chosen_asset_path_ = file;
         kEditor.mode = EDITOR_MODE_ASSET_VIEWER;
       }
     }
@@ -421,7 +421,7 @@ void EditorDebugMenu() {
               EditorGameViewerDebug();
             } break;
             case EDITOR_MODE_ASSET_VIEWER: {
-              EditorAssetViewerDebug();
+              EditorSpriteAnimatorDebug();
             } break;
           }
         }
@@ -514,7 +514,7 @@ void EditorRenderViewport() {
           kEditor.mode = EDITOR_MODE_GAME;
         }
         else if (i == 1) {
-          EditorAssetViewerMain();
+          EditorSpriteAnimatorMain();
           kEditor.mode = EDITOR_MODE_ASSET_VIEWER;
         }
         ImGui::EndTabItem();

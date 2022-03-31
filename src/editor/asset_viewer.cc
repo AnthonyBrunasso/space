@@ -231,21 +231,7 @@ void AssetViewerAnimator::OnImGui() {
               anim_sequence_.frame_index_,
               anim_sequence_.last_frame_time_sec_,
               anim_sequence_.next_frame_time_sec_);
-  static char kAnimFilename[128] = "gamedata/";
-  ImGui::InputText("file", kAnimFilename, 128); 
-  if (ImGui::Button("Generate")) {
-    proto::Animation2d proto = anim_sequence_.ToProto();
-    LOG(INFO, "Saving animation as proto %s to file %s", proto.DebugString().c_str(), kAnimFilename);
-    std::fstream fo(kAnimFilename, std::ios::binary | std::ios::out);
-    proto.SerializeToOstream(&fo);
-    fo.close();
-  }
-  ImGui::SameLine();
-  if (ImGui::Button("Clear")) {
-    Clear();
-  }
   if (anim_sequence_.sequence_frames_.size() > 0) {
-    ImGui::Separator();
     if (ImGui::Button("-1s")) AddTimeToSequence(-1.f);
     ImGui::SameLine();
     if (ImGui::Button("-.1s")) AddTimeToSequence(-.1f);
@@ -259,6 +245,25 @@ void AssetViewerAnimator::OnImGui() {
     if (ImGui::Button(".01s")) AddTimeToSequence(.01f);
 
   }
+  ImGui::Separator();
+  static char kAnimFilename[128];
+  static char kFullPath[256];
+  ImGui::InputText("file", kAnimFilename, 128); 
+  snprintf(kFullPath, 256, "gamedata/%s.anim", kAnimFilename);
+  ImGui::Text(kFullPath);
+  if (ImGui::Button("Save")) {
+    proto::Animation2d proto = anim_sequence_.ToProto();
+    LOG(INFO, "Saving animation as proto %s to file %s", proto.DebugString().c_str(), kAnimFilename);
+    std::fstream fo(kFullPath, std::ios::binary | std::ios::out);
+    proto.SerializeToOstream(&fo);
+    fo.close();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Clear")) {
+    memcpy(kAnimFilename, 0, 128);
+    Clear();
+  }
+  
   ImGui::End();
 
   if (!anim_sequence_.IsEmpty()) {

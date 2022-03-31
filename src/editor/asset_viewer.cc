@@ -250,7 +250,7 @@ void AssetViewerAnimator::OnImGui() {
   static char kFullPath[256];
   ImGui::InputText("file", kAnimFilename, 128); 
   snprintf(kFullPath, 256, "gamedata/%s.anim", kAnimFilename);
-  ImGui::Text(kFullPath);
+  ImGui::Text("%s", kFullPath);
   if (ImGui::Button("Save")) {
     proto::Animation2d proto = anim_sequence_.ToProto();
     LOG(INFO, "Saving animation as proto %s to file %s", proto.DebugString().c_str(), kAnimFilename);
@@ -260,7 +260,7 @@ void AssetViewerAnimator::OnImGui() {
   }
   ImGui::SameLine();
   if (ImGui::Button("Clear")) {
-    memcpy(kAnimFilename, 0, 128);
+    memset(kAnimFilename, '0', 128);
     Clear();
   }
   
@@ -494,6 +494,10 @@ void EditorAssetViewerProcessEvent(const PlatformEvent& event) {
         } break;
       }
     } break;
+    case MOUSE_UP:
+    case MOUSE_WHEEL:
+    case NOT_IMPLEMENTED:
+    default: break;
   }
 }
 

@@ -310,6 +310,11 @@ void EditorProcessEvent(const PlatformEvent& event) {
         } break;
       }
     } break;
+    case KEY_UP:
+    case MOUSE_UP:
+    case MOUSE_WHEEL:
+    case NOT_IMPLEMENTED:
+    default: break;
   }
 }
 

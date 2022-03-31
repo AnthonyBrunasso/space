@@ -56,6 +56,12 @@ public:
 
 static AssetViewerAnimator kAssetViewerAnimator;
 
+enum CursorMode {
+  kCursorModeNone = 0,
+  kClampToGridEdge = 1,
+  kUseGridCell = 2,
+};
+
 class AssetViewer : public EditorRenderTarget {
 public:
   void OnRender() override;
@@ -66,6 +72,7 @@ public:
   rgg::TextureId texture_id_;
   r32 scale_ = 1.0f;
   std::string chosen_asset_path_;
+  CursorMode cursor_mode_ = kUseGridCell;
   bool clamp_cursor_to_nearest_ = true;
   bool clamp_cursor_to_rect_ = false;
   bool show_crosshair_ = true;
@@ -141,10 +148,10 @@ void AssetViewer::OnRender() {
   //rgg::RenderLine(kCursor.world, v2f(0.f, 0.f), rgg::kWhite);
 
   if (kCursor.is_in_viewport && show_crosshair_ && !EditorAssetViewerCursorInSelection()) {
-    if (clamp_cursor_to_nearest_) {
+    if (cursor_mode_ == kClampToGridEdge) {
       v2f scaled_clamp = kCursor.world_clamped * scale_;
       EditorRenderCrosshair(scaled_clamp, ScaleEditorViewport());
-    } else if (clamp_cursor_to_rect_) {
+    } else if (cursor_mode_ == kUseGridCell) {
       Rectf scaled_rect = ScaleRect(kCursor.world_grid_cell);
       rgg::RenderLineRectangle(scaled_rect, rgg::kRed);
     } else {
@@ -389,7 +396,7 @@ void AssetViewerAnimator::RemoveFrame(s32 idx) {
 
 v2f EditorAssetViewerCursorInTexture(const rgg::Texture& texture) {
   v2f world_to_texture;
-  if (kAssetViewer.clamp_cursor_to_nearest_) {
+  if (kAssetViewer.cursor_mode_ == kClampToGridEdge) {
     world_to_texture = kCursor.world_clamped + (texture.Rect().Dims() / 2.0);
   } else {
     world_to_texture = kCursor.world + (texture.Rect().Dims() / 2.0);
@@ -398,7 +405,7 @@ v2f EditorAssetViewerCursorInTexture(const rgg::Texture& texture) {
 }
 
 v2f EditorAssetViewerCursorWorld() {
-  if (kAssetViewer.clamp_cursor_to_nearest_) {
+  if (kAssetViewer.cursor_mode_ == kClampToGridEdge) {
     return kCursor.world_clamped;
   }
   return kCursor.world;
@@ -457,8 +464,8 @@ void EditorAssetViewerProcessEvent(const PlatformEvent& event) {
           if (!texture || !texture->IsValid()) break;
           // Cursor isn't in the viewer.
           if (!kCursor.is_in_viewport) break;
-          if (kAssetViewer.clamp_cursor_to_nearest_) ProcessSelectionForClampedCursor(texture);
-          else if (kAssetViewer.clamp_cursor_to_rect_) ProcessSelectionForRect(texture);
+          if (kAssetViewer.cursor_mode_ == kClampToGridEdge) ProcessSelectionForClampedCursor(texture);
+          else if (kAssetViewer.cursor_mode_ == kUseGridCell) ProcessSelectionForRect(texture);
         } break;
       } break;
     } break;
@@ -541,13 +548,13 @@ void EditorAssetViewerDebug() {
     ImGui::Text("  texcoord      %.2f %.2f", cursor_in_texture.x, cursor_in_texture.y);
     ImGui::NewLine();
   }
+  static const char* kCursorModesStr[] = {
+    "None",
+    "Clamp Grid Edge",
+    "Use Grid Cell",
+  };
+  ImGui::Combo("cursor", (s32*)&kAssetViewer.cursor_mode_, kCursorModesStr, 3);
   ImGui::SliderFloat("scale", &kAssetViewer.scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
-  bool pre_nearest = kAssetViewer.clamp_cursor_to_nearest_;
-  ImGui::Checkbox("clamp cursor to nearest edge", &kAssetViewer.clamp_cursor_to_nearest_);
-  if (pre_nearest == false && kAssetViewer.clamp_cursor_to_nearest_ == true) kAssetViewer.clamp_cursor_to_rect_ = false;
-  bool pre_rect = kAssetViewer.clamp_cursor_to_rect_;
-  ImGui::Checkbox("clamp cursor to rect", &kAssetViewer.clamp_cursor_to_rect_);
-  if (pre_rect == false && kAssetViewer.clamp_cursor_to_rect_ == true) kAssetViewer.clamp_cursor_to_nearest_ = false;
   ImGui::Checkbox("render crosshair", &kAssetViewer.show_crosshair_);
   bool pre_is_animate_running = kAssetViewerAnimator.is_running_;
   ImGui::Checkbox("animate frames", &kAssetViewerAnimator.is_running_);

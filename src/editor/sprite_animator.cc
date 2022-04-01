@@ -71,6 +71,8 @@ public:
 
   const rgg::Texture* LoadTexture(const char* tname);
 
+  void ChangeScale(r32 delta);
+
   rgg::TextureId texture_id_;
   r32 scale_ = 1.0f;
   std::string chosen_asset_path_;
@@ -184,6 +186,11 @@ const rgg::Texture* SpriteAnimator::LoadTexture(const char* tname) {
   return rgg::GetTexture(texture_id_);
 }
 
+void SpriteAnimator::ChangeScale(r32 delta) {
+  if (scale_ + delta > 0.f && scale_ + delta <= 15.f)
+    scale_ += delta;
+}
+
 void SpriteAnimatorControl::HandleAssetBoxSelect(const AssetSelection& selection) {
   AnimFrame2d frame;
   frame.texture_id_ = kSpriteAnimator.texture_id_;
@@ -264,14 +271,15 @@ void SpriteAnimatorControl::OnImGui() {
   ImGui::Text("%s", kFullPath);
   if (ImGui::Button("Save")) {
     proto::Animation2d proto = anim_sequence_.ToProto();
-    LOG(INFO, "Saving animation as proto %s to file %s", proto.DebugString().c_str(), kAnimFilename);
+    LOG(INFO, "Saving animation as proto %s to file %s",
+        proto.DebugString().c_str(), kFullPath);
     std::fstream fo(kFullPath, std::ios::binary | std::ios::out);
     proto.SerializeToOstream(&fo);
     fo.close();
   }
   ImGui::SameLine();
   if (ImGui::Button("Clear")) {
-    memset(kAnimFilename, '0', 128);
+    memset(kAnimFilename, 0, 128);
     Clear();
   }
   
@@ -505,8 +513,16 @@ void EditorSpriteAnimatorProcessEvent(const PlatformEvent& event) {
         } break;
       }
     } break;
+    case MOUSE_WHEEL: {
+      if (EditorSpriteAnimatorCursorInSelection()) {
+        if (event.wheel_delta > 0) {
+          kSpriteAnimator.ChangeScale(1.f);
+        } else if (event.wheel_delta < 0) {
+          kSpriteAnimator.ChangeScale(-1.f);
+        }
+      }
+    } break;
     case MOUSE_UP:
-    case MOUSE_WHEEL:
     case NOT_IMPLEMENTED:
     default: break;
   }

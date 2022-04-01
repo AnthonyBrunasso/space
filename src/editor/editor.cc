@@ -70,6 +70,27 @@ static s32 kRenderViewStart = 300;
 
 static s32 kFrameRendererHeight = 220;
 
+// Turns paths like 'C:\projects\space\asset\file.png' to '.\asset\file.png'
+// Turns paths like '/users/anthony/projects/space/asset/file.png' to './asset/file.png'
+std::string GetAssetRelative(const char* full_path) {
+#ifdef _WIN32
+  std::string r = ".\\";
+#else
+  std::string r = "./";
+#endif
+  const char* sidx = strstr(full_path, "asset");
+  if (!sidx) {
+    sidx = strstr(full_path, "gamedata");
+  }
+  assert(sidx);
+  r.append(sidx);
+  return r;
+}
+
+std::string GetAssetRelative(const std::string& full_path) {
+  return GetAssetRelative(full_path.c_str());
+}
+
 #include "callback.cc"
 #include "editor_render_target.cc"
 
@@ -356,8 +377,11 @@ void EditorFilesFrom(const char* dir) {
   std::vector<std::string> dirs;
   filesystem::WalkDirectory(dir, [&files, &dir, &dirs](const char* filename, bool is_dir) {
     if (EditorShouldIgnoreFile(filename)) return;
-    if (is_dir) dirs.push_back(std::string(filename));
-    else files.push_back(filesystem::JoinPath(dir, std::string(filename)));
+    if (is_dir) {
+      dirs.push_back(std::string(filename));
+    } else {
+      files.push_back(filesystem::JoinPath(dir, std::string(filename)));
+    }
   });
   for (const std::string& d : dirs) {
     if (ImGui::TreeNode(d.c_str())) {
@@ -383,8 +407,9 @@ void EditorFilesFrom(const char* dir) {
     std::string filename = filesystem::Filename(file.c_str());
     if (EditorCanLoadAsset(file)) {
       if (ImGui::Selectable(filename.c_str(), &kChosen)) {
-        //LOG(INFO, "Chose asset %s", file.c_str());
-        kSpriteAnimator.chosen_asset_path_ = file;
+        // TODO: This assumes all assets are in asset/ with no subdir.
+        kSpriteAnimator.chosen_asset_path_ = GetAssetRelative(file);
+        //LOG(INFO, "Chose asset %s", kSpriteAnimator.chosen_asset_path_.c_str());
         kEditor.mode = EDITOR_MODE_SPRITE_ANIMATOR;
       }
     }

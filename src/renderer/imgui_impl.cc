@@ -110,3 +110,9 @@ static bool ImGuiImplProcessEvent(const PlatformEvent& event) {
   }
   return false;
 }
+
+static void ImGuiRenderLastItemBoundingBox() {
+  ImVec2 min = ImGui::GetItemRectMin();
+  ImVec2 max = ImGui::GetItemRectMax();
+  ImGui::GetForegroundDrawList()->AddRect( min, max, IM_COL32( 255, 255, 0, 255 ) );
+}

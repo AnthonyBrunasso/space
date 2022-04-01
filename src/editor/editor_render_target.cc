@@ -10,11 +10,22 @@ void GetImGuiPanelRect(Rectf* rect) {
   rect->height = size.y;
 }
 
+void GetImGuiLastItemRect(Rectf* rect) {
+  ImVec2 pos = ImGui::GetItemRectMin();
+  ImVec2 size = ImGui::GetItemRectSize();
+  v2f wsize = window::GetWindowSize();
+  rect->x = pos.x;
+  rect->y = wsize.y - pos.y - size.y;
+  rect->width = size.x;
+  rect->height = size.y;
+}
+
 // TODO: This might be a decent low level renderer thing to have?
 struct EditorSurface {
   bool IsValid() const { return render_target.IsValid(); }
   r32 width() const { return render_target.width(); }
   r32 height() const { return render_target.height(); }
+  v2f Dims() const { return v2f( width(), height() ); }
   rgg::Camera camera;
   rgg::Surface render_target;
 };
@@ -72,9 +83,11 @@ class EditorRenderTarget {
 public:
   void Initialize(s32 width, s32 height);
   void ReleaseSurface();
+  void UpdateCursor();
 
   void UpdateImguiPanelRect();
   virtual bool IsMouseInside() const;
+  bool IsMouseInsideEditorSurface() const;
   bool IsRenderTargetValid() const { return editor_surface_.IsValid(); }
 
   r32 GetRenderTargetWidth() { return editor_surface_.render_target.width(); }
@@ -93,11 +106,22 @@ public:
 
   rgg::Camera* camera() { return &editor_surface_.camera; }
   Rectf imgui_panel_rect() const { return imgui_panel_rect_; }
+  EditorGrid* grid() { return &grid_; }
+
+  const EditorCursor& cursor() const { return cursor_; }
+
+  r32 scale_ = 1.0f;
 
 protected:
   EditorSurface editor_surface_;
   // Rectf that represents where in world space the frame lives.
   Rectf imgui_panel_rect_;
+  // Rect for where the actual render surface is.
+  Rectf imgui_editor_surface_rect_;
+  // Grid used for rendering / cursor shenanigans.
+  EditorGrid grid_;
+  // Cursor as relative to the surface in editor_surface
+  EditorCursor cursor_;
 };
 
 void EditorRenderTarget::Initialize(s32 width, s32 height) {
@@ -110,19 +134,57 @@ void EditorRenderTarget::ReleaseSurface() {
   DestroyEditorSurface(&editor_surface_);
 }
 
+void EditorRenderTarget::UpdateCursor() {
+  v2f cursor = window::GetCursorPosition();
+  cursor_.global_screen = cursor;
+  ImGuiStyle& style = ImGui::GetStyle();
+  //LOG(INFO, "%.2f - %.2f", cursor.x, imgui_panel_rect_.x);
+  cursor_.local_screen = v2f(
+      cursor.x - imgui_editor_surface_rect_.x, cursor.y - imgui_editor_surface_rect_.y);
+  // User sees a scaled version of the world therefore a cursor placed in that space is in scaled world
+  // space
+  cursor_.world_scaled = cursor_.local_screen - (editor_surface_.Dims() / 2.f);
+  // To get the inverse world space we divide out the scale.
+  cursor_.world = Roundf(cursor_.world_scaled / scale_);
+  rgg::Camera* camera = &editor_surface_.camera;
+  if (camera) {
+    cursor_.world += (camera->position.xy() / scale_);
+    cursor_.world_scaled += camera->position.xy();
+  }
+  cursor_.is_in_viewport = math::PointInRect(cursor_.global_screen, imgui_editor_surface_rect_);
+  // Move the cursor into grid space in the world
+  v2f cursor_relative = cursor_.world - grid_.GetOrigin();
+  // Clamp to nearest grid edge.
+  Rectf rgrid;
+  rgrid.x = roundf(cursor_relative.x - ((int)roundf(cursor_relative.x) % grid_.cell_width));
+  rgrid.y = roundf(cursor_relative.y - ((int)roundf(cursor_relative.y) % grid_.cell_height));
+  rgrid.x = cursor_relative.x < 0.f ? rgrid.x - grid_.cell_width : rgrid.x;
+  rgrid.y = cursor_relative.y < 0.f ? rgrid.y - grid_.cell_height : rgrid.y;
+  rgrid.width = (r32)grid_.cell_width;
+  rgrid.height = (r32)grid_.cell_height;
+  cursor_.world_grid_cell = rgrid;
+  cursor_.world_grid_cell.x += grid_.GetOrigin().x;
+  cursor_.world_grid_cell.y += grid_.GetOrigin().y;
+  cursor_.world_clamped = Roundf(rgrid.NearestEdge(cursor_relative)) + grid_.GetOrigin();
+}
+
 void EditorRenderTarget::UpdateImguiPanelRect() {
   GetImGuiPanelRect(&imgui_panel_rect_);
 }
 
 bool EditorRenderTarget::IsMouseInside() const {
-  return math::PointInRect(kCursor.global_screen, imgui_panel_rect_);
+  return math::PointInRect(cursor_.global_screen, imgui_panel_rect_);
 }
 
+bool EditorRenderTarget::IsMouseInsideEditorSurface() const {
+  return math::PointInRect(cursor_.global_screen, imgui_editor_surface_rect_);
+}
 
 void EditorRenderTarget::ImGuiImage() {
   ImGui::Image(
       (void*)(intptr_t)editor_surface_.render_target.texture.reference,
       ImVec2(editor_surface_.render_target.width(), editor_surface_.render_target.height()));
+  GetImGuiLastItemRect(&imgui_editor_surface_rect_);
 }
 
 void EditorRenderTarget::Render() {

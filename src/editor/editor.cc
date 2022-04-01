@@ -59,7 +59,6 @@ struct EditorCursor {
   bool is_in_viewport = false;
 };
 
-static EditorCursor kCursor;
 static EditorGrid kGrid;
 static Editor kEditor;
 
@@ -174,11 +173,11 @@ struct SpriteAnimatorSelection {
 
 static SpriteAnimatorSelection kSpriteAnimatorSelection;
 
-void EditorDebugMenuGrid() {
-  ImGui::SliderInt("cellw", &kGrid.cell_width, 1, 128);
-  ImGui::SliderInt("cellh", &kGrid.cell_height, 1, 128);
-  ImGui::SliderFloat("offsetx", &kGrid.origin_offset.x, -64.f, 64.f, "%.0f");
-  ImGui::SliderFloat("offsety", &kGrid.origin_offset.y, -64.f, 64.f, "%.0f");
+void EditorDebugMenuGrid(EditorGrid* grid) {
+  ImGui::SliderInt("cellw", &grid->cell_width, 1, 128);
+  ImGui::SliderInt("cellh", &grid->cell_height, 1, 128);
+  ImGui::SliderFloat("offsetx", &grid->origin_offset.x, -64.f, 64.f, "%.0f");
+  ImGui::SliderFloat("offsety", &grid->origin_offset.y, -64.f, 64.f, "%.0f");
 }
 
 r32 __get_grid_line_color(s32 alpha_num, s32 alpha_1, s32 alpha_2, s32 alpha_3) {
@@ -293,43 +292,7 @@ rgg::Camera* EditorViewportCurrentCamera() {
   return nullptr;
 }
 
-void EditorUpdateCursor() {
-  v2f cursor = window::GetCursorPosition();
-  kCursor.global_screen = cursor;
-  ImGuiStyle& style = ImGui::GetStyle();
-  kCursor.local_screen = v2f(cursor.x - kExplorerWidth - style.WindowPadding.x, cursor.y);
-  // User sees a scaled version of the world therefore a cursor placed in that space is in scaled world
-  // space
-  kCursor.world_scaled = kCursor.local_screen - (kEditor.render_viewport.Dims() / 2.f);
-  r32 scale = EditorViewportCurrentScale();
-  // To get the inverse world space we divide out the scale.
-  kCursor.world = Roundf(kCursor.world_scaled / scale);
-  rgg::Camera* camera = EditorViewportCurrentCamera();
-  if (camera) {
-    kCursor.world += (camera->position.xy() / scale);
-    kCursor.world_scaled += camera->position.xy();
-  }
-  kCursor.is_in_viewport = math::PointInRect(kCursor.global_screen, kEditor.render_viewport_in_editor);
-  // Move the cursor into grid space in the world
-  v2f cursor_relative = kCursor.world - kGrid.GetOrigin();
-  // Clamp to nearest grid edge.
-  Rectf rgrid;
-  rgrid.x = roundf(cursor_relative.x - ((int)roundf(cursor_relative.x) % kGrid.cell_width));
-  rgrid.y = roundf(cursor_relative.y - ((int)roundf(cursor_relative.y) % kGrid.cell_height));
-  rgrid.x = cursor_relative.x < 0.f ? rgrid.x - kGrid.cell_width : rgrid.x;
-  rgrid.y = cursor_relative.y < 0.f ? rgrid.y - kGrid.cell_height : rgrid.y;
-  rgrid.width = (r32)kGrid.cell_width;
-  rgrid.height = (r32)kGrid.cell_height;
-  kCursor.world_grid_cell = rgrid;
-  kCursor.world_grid_cell.x += kGrid.GetOrigin().x;
-  kCursor.world_grid_cell.y += kGrid.GetOrigin().y;
-  kCursor.world_clamped = Roundf(rgrid.NearestEdge(cursor_relative)) + kGrid.GetOrigin();
-}
-
 void EditorProcessEvent(const PlatformEvent& event) {
-  // Update cursor state.
-  EditorUpdateCursor();
-
   switch (kEditor.mode) {
     case EDITOR_MODE_GAME: {
       EditorGameViewerProcessEvent(event);
@@ -475,16 +438,16 @@ void EditorDebugMenu() {
         else if (i == 1) {
           ImGui::Text("Cursor");
           ImGui::Text("  global screen             %.0f %.0f",
-                      kCursor.global_screen.x, kCursor.global_screen.y);
-          if (kCursor.is_in_viewport) {
+                      kSpriteAnimator.cursor().global_screen.x, kSpriteAnimator.cursor().global_screen.y);
+          if (kSpriteAnimator.cursor().is_in_viewport) {
             ImGui::Text("  world                     %.0f %.0f",
-                        kCursor.world.x, kCursor.world.y);
+                        kSpriteAnimator.cursor().world.x, kSpriteAnimator.cursor().world.y);
             ImGui::Text("  world scaled              %.0f %.0f",
-                        kCursor.world_scaled.x, kCursor.world_scaled.y);
+                        kSpriteAnimator.cursor().world_scaled.x, kSpriteAnimator.cursor().world_scaled.y);
             ImGui::Text("  world clamped             %.0f %.0f",
-                        kCursor.world_clamped.x, kCursor.world_clamped.y);
+                        kSpriteAnimator.cursor().world_clamped.x, kSpriteAnimator.cursor().world_clamped.y);
             ImGui::Text("  local screen              %.0f %.0f",
-                        kCursor.local_screen.x, kCursor.local_screen.y);
+                        kSpriteAnimator.cursor().local_screen.x, kSpriteAnimator.cursor().local_screen.y);
           }
           else {
             ImGui::Text("  world                     x x");
@@ -502,7 +465,6 @@ void EditorDebugMenu() {
             ImGui::Text("  vp     %.1f %.1f", camera->viewport.x, camera->viewport.y);
             ImGui::NewLine();
           }
-          EditorDebugMenuGrid();
         }
         else if (i == 2) {
           ImGui::Text("Cached Textures (%lu/%u)", rgg::kUsedTextureHandle, RGG_TEXTURE_MAX);

@@ -74,7 +74,6 @@ public:
   void ChangeScale(r32 delta);
 
   rgg::TextureId texture_id_;
-  r32 scale_ = 1.0f;
   std::string chosen_asset_path_;
   CursorMode cursor_mode_ = kUseGridCell;
   bool clamp_cursor_to_nearest_ = true;
@@ -100,6 +99,10 @@ bool EditorSpriteAnimatorCursorInSelection() {
     return true;
   }
   return false;
+}
+
+const EditorCursor& EditorSpriteAnimatorCursor() {
+  return kSpriteAnimator.cursor();
 }
 
 void SpriteAnimator::OnRender() {
@@ -131,8 +134,8 @@ void SpriteAnimator::OnRender() {
   texture = rgg::GetTexture(texture_id_);
 
   if (texture) {
-    kGrid.origin = EditorSpriteAnimatorTextureBottomLeft(*texture);
-    kGrid.origin_offset = v2f(0.f, 0.f);
+    grid_.origin = EditorSpriteAnimatorTextureBottomLeft(*texture);
+    grid_.origin_offset = v2f(0.f, 0.f);
   }
 
   ImGuiStyle& style = ImGui::GetStyle();
@@ -144,24 +147,24 @@ void SpriteAnimator::OnRender() {
 
   v2f origin_scaled = ScaleVec2(v2f(0.f, 0.f));
   if (texture && texture->IsValid()) {
-    origin_scaled = ScaleVec2(kGrid.GetOrigin());
+    origin_scaled = ScaleVec2(grid_.GetOrigin());
   }
 
-  EditorRenderGrid(origin_scaled, kGrid, v4f(1.f, 1.f, 1.f, 0.2f));
+  EditorRenderGrid(origin_scaled, grid_, v4f(1.f, 1.f, 1.f, 0.2f));
   EditorRenderAxis(origin_scaled, ScaleEditorViewport());
 
   // Useful for debugging cursor stuff
   //rgg::RenderLine(kCursor.world, v2f(0.f, 0.f), rgg::kWhite);
 
-  if (kCursor.is_in_viewport && show_crosshair_ && !EditorSpriteAnimatorCursorInSelection()) {
+  if (cursor_.is_in_viewport && show_crosshair_ && !EditorSpriteAnimatorCursorInSelection()) {
     if (cursor_mode_ == kClampToGridEdge) {
-      v2f scaled_clamp = kCursor.world_clamped * scale_;
+      v2f scaled_clamp = cursor_.world_clamped * scale_;
       EditorRenderCrosshair(scaled_clamp, ScaleEditorViewport());
     } else if (cursor_mode_ == kUseGridCell) {
-      Rectf scaled_rect = ScaleRect(kCursor.world_grid_cell);
+      Rectf scaled_rect = ScaleRect(cursor_.world_grid_cell);
       rgg::RenderLineRectangle(scaled_rect, rgg::kRed);
     } else {
-      EditorRenderCrosshair(kCursor.world_clamped, ScaleEditorViewport());
+      EditorRenderCrosshair(cursor_.world_clamped, ScaleEditorViewport());
     }
   }
 
@@ -171,6 +174,7 @@ void SpriteAnimator::OnRender() {
 }
 
 void SpriteAnimator::OnImGui() {
+  UpdateImguiPanelRect();
   ImGuiImage();
 }
 
@@ -238,7 +242,6 @@ void SpriteAnimatorControl::AddTimeToSequence(r32 time_sec) {
 void SpriteAnimatorControl::OnImGui() {
   ImGui::Begin("Animator", &kSpriteAnimatorControl.is_running_);
   ImGuiImage();
-  UpdateImguiPanelRect();
   // Walk all the frames at a certain cadence and play them.
   //ImGui::SliderFloat("frequency", &frequency_, 0.f, 2.f, "%.01f", ImGuiSliderFlags_None);
   if (ImGui::Button("reset clock")) {
@@ -282,7 +285,7 @@ void SpriteAnimatorControl::OnImGui() {
     memset(kAnimFilename, 0, 128);
     Clear();
   }
-  
+  UpdateImguiPanelRect();
   ImGui::End();
 
   if (!anim_sequence_.IsEmpty()) {
@@ -384,7 +387,7 @@ void SpriteAnimatorControl::Frame::ImGui(AnimSequence2d::SequenceFrame& sframe, 
 bool SpriteAnimatorControl::IsMouseInside() const {
   if (EditorRenderTarget::IsMouseInside()) return true;
   for (const Frame& frame : anim_frames_) {
-    if (math::PointInRect(kCursor.global_screen, anim_frames_imgui_rect)) return true;
+    if (math::PointInRect(EditorSpriteAnimatorCursor().global_screen, anim_frames_imgui_rect)) return true;
   }
   return false;
 }
@@ -409,18 +412,18 @@ void SpriteAnimatorControl::RemoveFrame(s32 idx) {
 v2f EditorSpriteAnimatorCursorInTexture(const rgg::Texture& texture) {
   v2f world_to_texture;
   if (kSpriteAnimator.cursor_mode_ == kClampToGridEdge) {
-    world_to_texture = kCursor.world_clamped + (texture.Rect().Dims() / 2.0);
+    world_to_texture = EditorSpriteAnimatorCursor().world_clamped + (texture.Rect().Dims() / 2.0);
   } else {
-    world_to_texture = kCursor.world + (texture.Rect().Dims() / 2.0);
+    world_to_texture = EditorSpriteAnimatorCursor().world + (texture.Rect().Dims() / 2.0);
   }
   return math::Roundf(world_to_texture);
 }
 
 v2f EditorSpriteAnimatorCursorWorld() {
   if (kSpriteAnimator.cursor_mode_ == kClampToGridEdge) {
-    return kCursor.world_clamped;
+    return EditorSpriteAnimatorCursor().world_clamped;
   }
-  return kCursor.world;
+  return EditorSpriteAnimatorCursor().world;
 }
 
 rgg::Camera* EditorSpriteAnimatorCamera() {
@@ -455,15 +458,18 @@ void ProcessSelectionForClampedCursor(const rgg::Texture* texture) {
 
 void ProcessSelectionForRect(const rgg::Texture* texture) {
   AssetSelection selection;
-  selection.tex_rect = kCursor.world_grid_cell;
+  selection.tex_rect = EditorSpriteAnimatorCursor().world_grid_cell;
   selection.tex_rect.x += texture->width / 2.f;
   selection.tex_rect.y += texture->height / 2.f;
-  selection.world_rect = kCursor.world_grid_cell;
+  selection.world_rect = EditorSpriteAnimatorCursor().world_grid_cell;
   selection.world_rect_scaled = ScaleRect(selection.world_rect);
   DispatchAssetBoxSelect(selection);
 }
 
 void EditorSpriteAnimatorProcessEvent(const PlatformEvent& event) {
+  kSpriteAnimator.UpdateCursor();
+  kSpriteAnimatorControl.UpdateCursor();
+
   switch(event.type) {
     case MOUSE_DOWN: {
       switch (event.key) {
@@ -475,7 +481,7 @@ void EditorSpriteAnimatorProcessEvent(const PlatformEvent& event) {
           const rgg::Texture* texture = rgg::GetTexture(kSpriteAnimator.texture_id_);
           if (!texture || !texture->IsValid()) break;
           // Cursor isn't in the viewer.
-          if (!kCursor.is_in_viewport) break;
+          if (!EditorSpriteAnimatorCursor().is_in_viewport) break;
           if (kSpriteAnimator.cursor_mode_ == kClampToGridEdge) ProcessSelectionForClampedCursor(texture);
           else if (kSpriteAnimator.cursor_mode_ == kUseGridCell) ProcessSelectionForRect(texture);
         } break;
@@ -514,7 +520,7 @@ void EditorSpriteAnimatorProcessEvent(const PlatformEvent& event) {
       }
     } break;
     case MOUSE_WHEEL: {
-      if (EditorSpriteAnimatorCursorInSelection()) {
+      if (kSpriteAnimator.IsMouseInsideEditorSurface() && !EditorSpriteAnimatorCursorInSelection()) {
         if (event.wheel_delta > 0) {
           kSpriteAnimator.ChangeScale(1.f);
         } else if (event.wheel_delta < 0) {
@@ -578,7 +584,7 @@ void EditorSpriteAnimatorDebug() {
   ImGui::Checkbox("render crosshair", &kSpriteAnimator.show_crosshair_);
 
   ImGui::NewLine();
-  EditorDebugMenuGrid();
+  EditorDebugMenuGrid(kSpriteAnimator.grid());
 }
 
 r32 EditorSpriteAnimatorScale() {

@@ -68,13 +68,13 @@ class SpriteAnimator : public EditorRenderTarget {
 public:
   void OnRender() override;
   void OnImGui() override;
+  void OnFileSelected(const std::string& filename) override;
 
   const rgg::Texture* LoadTexture(const char* tname);
 
   void ChangeScale(r32 delta);
 
   rgg::TextureId texture_id_;
-  std::string chosen_asset_path_;
   CursorMode cursor_mode_ = kUseGridCell;
   bool clamp_cursor_to_nearest_ = true;
   bool clamp_cursor_to_rect_ = false;
@@ -106,32 +106,7 @@ const EditorCursor& EditorSpriteAnimatorCursor() {
 }
 
 void SpriteAnimator::OnRender() {
-  const rgg::Texture* texture = nullptr;
-  if (!chosen_asset_path_.empty()) {
-    kSpriteAnimatorControl.Clear();
-    const char* ext = filesystem::GetFilenameExtension(chosen_asset_path_.c_str());
-    if (strcmp(ext, "anim") == 0) {
-      //LOG(INFO, "Load anim file %s", chosen_asset_path_.c_str());
-      AnimSequence2d loaded_sequence;
-      if (!AnimSequence2d::LoadFromProtoFile(chosen_asset_path_.c_str(), &loaded_sequence)) {
-        LOG(WARN, "Unable to load anim data %s", chosen_asset_path_.c_str());
-      } else {
-        assert(!loaded_sequence.IsEmpty());
-        v2f scaled_dims = loaded_sequence.sequence_frames_[0].frame.src_rect().Dims() * kSpriteAnimator.scale_;
-        kSpriteAnimatorControl.Initialize(scaled_dims.x, scaled_dims.y);
-        for (const AnimSequence2d::SequenceFrame& sequence_frame : loaded_sequence.sequence_frames_) {
-          kSpriteAnimatorControl.AddFrame(sequence_frame.frame, scaled_dims, sequence_frame.duration_sec);
-        }
-        texture_id_ = kSpriteAnimatorControl.anim_sequence_.sequence_frames_[0].frame.texture_id_;
-        kSpriteAnimatorControl.anim_sequence_.Start();
-      }
-    } else {
-      texture = LoadTexture(chosen_asset_path_.c_str());
-    }
-    chosen_asset_path_.clear();
-  }
-
-  texture = rgg::GetTexture(texture_id_);
+  const rgg::Texture* texture = rgg::GetTexture(texture_id_);
 
   if (texture) {
     grid_.origin = EditorSpriteAnimatorTextureBottomLeft(*texture);
@@ -170,13 +145,35 @@ void SpriteAnimator::OnImGui() {
   ImGuiImage();
 }
 
+void SpriteAnimator::OnFileSelected(const std::string& filename) {
+  kSpriteAnimatorControl.Clear();
+  const char* ext = filesystem::GetFilenameExtension(filename.c_str());
+  if (strcmp(ext, "anim") == 0) {
+    AnimSequence2d loaded_sequence;
+    if (!AnimSequence2d::LoadFromProtoFile(filename.c_str(), &loaded_sequence)) {
+      LOG(WARN, "Unable to load anim data %s", filename.c_str());
+    } else {
+      assert(!loaded_sequence.IsEmpty());
+      v2f scaled_dims = loaded_sequence.sequence_frames_[0].frame.src_rect().Dims() * kSpriteAnimator.scale_;
+      kSpriteAnimatorControl.Initialize(scaled_dims.x, scaled_dims.y);
+      for (const AnimSequence2d::SequenceFrame& sequence_frame : loaded_sequence.sequence_frames_) {
+        kSpriteAnimatorControl.AddFrame(sequence_frame.frame, scaled_dims, sequence_frame.duration_sec);
+      }
+      texture_id_ = kSpriteAnimatorControl.anim_sequence_.sequence_frames_[0].frame.texture_id_;
+      kSpriteAnimatorControl.anim_sequence_.Start();
+    }
+  } else {
+    LoadTexture(filename.c_str());
+  }
+}
+
 const rgg::Texture* SpriteAnimator::LoadTexture(const char* tname) {
   rgg::TextureInfo texture_info;
   texture_info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
   texture_info.mag_filter = GL_NEAREST;
   texture_id_ = rgg::LoadTexture(tname, texture_info); 
   if (texture_id_ == 0) {
-    LOG(WARN, "Unable to load asset %s", chosen_asset_path_.c_str());
+    LOG(WARN, "Unable to load asset %s", tname);
     return nullptr;
   }
   return rgg::GetTexture(texture_id_);

@@ -106,6 +106,8 @@ public:
   virtual void OnRender() {}
   // Do UI stuff in here so we can guarantee the render target is unbound.
   virtual void OnImGui() {}
+  // Will be dispatched to the active EditorRenderTarget.
+  virtual void OnFileSelected(const std::string& filename) {}
 
   void ImGuiImage();
   void RenderGrid(v4f color);

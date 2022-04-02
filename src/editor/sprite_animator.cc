@@ -527,14 +527,6 @@ void EditorSpriteAnimatorProcessEvent(const PlatformEvent& event) {
   }
 }
 
-// Just a way to verify lines work with the viewport, etc.
-void EditorSpriteAnimatorDebugLines() {
-  const Rectf& view_rect = ScaleEditorViewport();
-  rgg::RenderLine(view_rect.BottomLeft(), view_rect.TopRight(), rgg::kGreen);
-  rgg::RenderLine(view_rect.TopLeft(), view_rect.BottomRight(), rgg::kBlue);
-  rgg::RenderLineRectangle(view_rect, rgg::kRed);
-}
-
 void EditorSpriteAnimatorInitialize() {
   static bool do_once = true;
   if (!do_once) {

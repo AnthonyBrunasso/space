@@ -129,24 +129,6 @@ Rectf ScaleEditorRect(const Rectf& rect) {
   return dest;
 }
 
-Rectf RectToWorld(const Rectf& rect) {
-  Rectf dest = rect;
-  dest.x -= dest.width / 2.f;
-  dest.y -= dest.height / 2.f;
-  return dest;
-}
-
-Rectf ScaleEditorViewport() {
-  r32 scale = EditorViewportCurrentScale();
-  Rectf renderable_edges = kEditor.render_viewport;
-  rgg::Camera* camera = EditorViewportCurrentCamera();
-  if (camera) {
-    renderable_edges.x += (camera->position.x / scale);
-    renderable_edges.y += (camera->position.y / scale);
-  }
-  return ScaleEditorRect(renderable_edges);
-}
-
 Rectf ScaleRect(const Rectf& rect) {
   r32 scale = EditorViewportCurrentScale();
   Rectf scaled_rect = rect;

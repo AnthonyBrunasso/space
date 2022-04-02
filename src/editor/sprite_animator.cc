@@ -203,6 +203,7 @@ void SpriteAnimatorControl::OnRender() {
   anim_sequence_.Update();
 
   if (!anim_sequence_.IsEmpty()) {
+    grid_.origin = GetRenderTargetDims() / -2.f;
     RenderGrid(v4f(1.f, 1.f, 1.f, 0.2f));
     //const SpriteAnimatorFrame* cf = &kSpriteAnimator.frames_[anim_sequence_.frame_index_];
     const AnimFrame2d& aframe = anim_sequence_.CurrentFrame();

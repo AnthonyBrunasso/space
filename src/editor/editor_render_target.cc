@@ -92,6 +92,7 @@ public:
 
   r32 GetRenderTargetWidth() { return editor_surface_.render_target.width(); }
   r32 GetRenderTargetHeight() { return editor_surface_.render_target.height(); }
+  v2f GetRenderTargetDims() { return v2f(GetRenderTargetWidth(), GetRenderTargetHeight()); }
 
   // Get the camera rect for the surface - this is the min / max points of render surface in world space
   // considering the position of the camera.
@@ -110,7 +111,7 @@ public:
   virtual void OnFileSelected(const std::string& filename) {}
 
   void ImGuiImage();
-  void RenderGrid(v4f color);
+  void RenderGrid(v4f color, bool alternate_alpha = false);
   void RenderAxis();
   void Render();
   
@@ -222,7 +223,7 @@ r32 __get_grid_line_color(s32 alpha_num, s32 alpha_1, s32 alpha_2, s32 alpha_3) 
   return .1f;
 }
 
-void EditorRenderTarget::RenderGrid(v4f color) {
+void EditorRenderTarget::RenderGrid(v4f color, bool alternate_alpha) {
   // Everything must be scaled to respect our zoom.
   v2f start_scaled = grid_.GetOrigin() * scale_;
   const Rectf& view_rect_scaled = GetCameraRectScaled();
@@ -238,7 +239,8 @@ void EditorRenderTarget::RenderGrid(v4f color) {
   // Draw lines right
   s32 alpha_num = 0;
   for (r32 start_x = start_scaled.x; start_x <= view_rect_scaled.Max().x; start_x += scaled_width) {
-    color.w = __get_grid_line_color(alpha_num, alpha_1_width, alpha_2_width, alpha_3_width);
+    if (alternate_alpha)
+      color.w = __get_grid_line_color(alpha_num, alpha_1_width, alpha_2_width, alpha_3_width);
     rgg::RenderLine(v2f(start_x, view_rect_scaled.Min().y), v2f(start_x, view_rect_scaled.Max().y), color);
     alpha_num += scaled_width;
     if (alpha_num > alpha_3_width) alpha_num = alpha_1_width;
@@ -246,7 +248,8 @@ void EditorRenderTarget::RenderGrid(v4f color) {
   // Draw lines left
   alpha_num = alpha_1_width;
   for (r32 start_x = start_scaled.x - scaled_width; start_x >= view_rect_scaled.Min().x; start_x -= scaled_width) {
-    color.w = __get_grid_line_color(alpha_num, alpha_1_width, alpha_2_width, alpha_3_width);
+    if (alternate_alpha)
+      color.w = __get_grid_line_color(alpha_num, alpha_1_width, alpha_2_width, alpha_3_width);
     rgg::RenderLine(v2f(start_x, view_rect_scaled.Min().y), v2f(start_x, view_rect_scaled.Max().y), color);
     alpha_num += scaled_width;
     if (alpha_num > alpha_3_width) alpha_num = alpha_1_width;
@@ -254,7 +257,8 @@ void EditorRenderTarget::RenderGrid(v4f color) {
   // Draw lines up
   alpha_num = 0;
   for (r32 start_y = start_scaled.y; start_y <= view_rect_scaled.Max().y; start_y += scaled_height) {
-    color.w = __get_grid_line_color(alpha_num, alpha_1_height, alpha_2_height, alpha_3_height);
+    if (alternate_alpha)
+      color.w = __get_grid_line_color(alpha_num, alpha_1_height, alpha_2_height, alpha_3_height);
     rgg::RenderLine(v2f(view_rect_scaled.Min().x, start_y), v2f(view_rect_scaled.Max().x, start_y), color);
     alpha_num += scaled_height;
     if (alpha_num > alpha_3_height) alpha_num = alpha_1_height;
@@ -262,7 +266,8 @@ void EditorRenderTarget::RenderGrid(v4f color) {
   // Draw lines down
   alpha_num = alpha_1_height;
   for (r32 start_y = start_scaled.y - scaled_height; start_y >= view_rect_scaled.Min().y; start_y -= scaled_height) {
-    color.w = __get_grid_line_color(alpha_num, alpha_1_height, alpha_2_height, alpha_3_height);
+    if (alternate_alpha)
+      color.w = __get_grid_line_color(alpha_num, alpha_1_height, alpha_2_height, alpha_3_height);
     rgg::RenderLine(v2f(view_rect_scaled.Min().x, start_y), v2f(view_rect_scaled.Max().x, start_y), color);
     alpha_num += scaled_height;
     if (alpha_num > alpha_3_height) alpha_num = alpha_1_height;

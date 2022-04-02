@@ -4,6 +4,7 @@ class MapMaker : public EditorRenderTarget {
 public:
   void OnRender() override;
   void OnImGui() override;
+  void OnFileSelected(const std::string& filename) override;
 };
 
 static MapMaker kMapMaker;
@@ -29,6 +30,10 @@ void MapMaker::OnRender() {
 void MapMaker::OnImGui() {
   UpdateImguiPanelRect();
   ImGuiImage();
+}
+
+void MapMaker::OnFileSelected(const std::string& filename) {
+  LOG(INFO, "MapMaker::%s", __func__);
 }
 
 void MapMakerControl::OnRender() {

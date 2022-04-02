@@ -140,21 +140,13 @@ void SpriteAnimator::OnRender() {
 
   ImGuiStyle& style = ImGui::GetStyle();
   ImVec4 imcolor = style.Colors[ImGuiCol_WindowBg];
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
   // Fill the background with imgui's background color to maintain beauty.
   rgg::RenderRectangle(ScaleEditorViewport(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
   EditorSpriteAnimatorRenderAsset();
 
-  v2f origin_scaled = ScaleVec2(v2f(0.f, 0.f));
-  if (texture && texture->IsValid()) {
-    origin_scaled = ScaleVec2(grid_.GetOrigin());
-  }
-
-  EditorRenderGrid(origin_scaled, grid_, v4f(1.f, 1.f, 1.f, 0.2f));
-  EditorRenderAxis(origin_scaled, ScaleEditorViewport());
-
-  // Useful for debugging cursor stuff
-  //rgg::RenderLine(kCursor.world, v2f(0.f, 0.f), rgg::kWhite);
+  RenderGrid(v4f(1.f, 1.f, 1.f, 0.2f));
+  RenderAxis();
 
   if (cursor_.is_in_viewport && show_crosshair_ && !EditorSpriteAnimatorCursorInSelection()) {
     if (cursor_mode_ == kClampToGridEdge) {

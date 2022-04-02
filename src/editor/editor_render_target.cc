@@ -93,6 +93,10 @@ public:
   r32 GetRenderTargetWidth() { return editor_surface_.render_target.width(); }
   r32 GetRenderTargetHeight() { return editor_surface_.render_target.height(); }
 
+  // Get the world rect for the surface - this is the min / max points of render surface in world space
+  // considering the position of the camera.
+  Rectf GetWorldRectScaled();
+
   // Run once when render target is created. Initialization resets underlying surface.
   // So don't mess with rendering surfaces here.
   virtual void OnInitialize() {}
@@ -102,8 +106,10 @@ public:
   virtual void OnImGui() {}
 
   void ImGuiImage();
+  void RenderGrid(v4f color);
+  void RenderAxis();
   void Render();
-
+  
   rgg::Camera* camera() { return &editor_surface_.camera; }
   Rectf imgui_panel_rect() const { return imgui_panel_rect_; }
   EditorGrid* grid() { return &grid_; }
@@ -180,11 +186,89 @@ bool EditorRenderTarget::IsMouseInsideEditorSurface() const {
   return math::PointInRect(cursor_.global_screen, imgui_editor_surface_rect_);
 }
 
+Rectf EditorRenderTarget::GetWorldRectScaled() {
+  v2f dims = editor_surface_.Dims();
+  Rectf r(v2f(-dims.x / 2.f, -dims.y / 2.f), editor_surface_.Dims());
+  if (!camera()) return r;
+  r.x += camera()->position.x;
+  r.y += camera()->position.y;
+  r.x *= scale_;
+  r.y *= scale_;
+  r.width *= scale_;
+  r.height *= scale_;
+  return r;
+}
+
 void EditorRenderTarget::ImGuiImage() {
   ImGui::Image(
       (void*)(intptr_t)editor_surface_.render_target.texture.reference,
       ImVec2(editor_surface_.render_target.width(), editor_surface_.render_target.height()));
   GetImGuiLastItemRect(&imgui_editor_surface_rect_);
+}
+
+r32 __get_grid_line_color(s32 alpha_num, s32 alpha_1, s32 alpha_2, s32 alpha_3) {
+  if (alpha_num == alpha_1) return .1f;
+  if (alpha_num == alpha_2) return .2f;
+  if (alpha_num == alpha_3) return .4f;
+  return .1f;
+}
+
+void EditorRenderTarget::RenderGrid(v4f color) {
+  // Everything must be scaled to respect our zoom.
+  v2f start_scaled = grid_.GetOrigin() * scale_;
+  const Rectf& view_rect = GetWorldRectScaled();
+  s32 scaled_width = grid_.cell_width * scale_;
+  s32 scaled_height = grid_.cell_height * scale_;
+  assert(scaled_width != 0 && scaled_height != 0);
+  s32 alpha_1_width = scaled_width;
+  s32 alpha_2_width = alpha_1_width * 2;
+  s32 alpha_3_width = alpha_2_width * 2;
+  s32 alpha_1_height = scaled_height;
+  s32 alpha_2_height = alpha_1_height * 2;
+  s32 alpha_3_height = alpha_2_height * 2;
+  // Draw lines right
+  s32 alpha_num = 0;
+  for (r32 start_x = start_scaled.x; start_x <= view_rect.Max().x; start_x += scaled_width) {
+    color.w = __get_grid_line_color(alpha_num, alpha_1_width, alpha_2_width, alpha_3_width);
+    rgg::RenderLine(v2f(start_x, view_rect.Min().y), v2f(start_x, view_rect.Max().y), color);
+    alpha_num += scaled_width;
+    if (alpha_num > alpha_3_width) alpha_num = alpha_1_width;
+  }
+  // Draw lines left
+  alpha_num = alpha_1_width;
+  for (r32 start_x = start_scaled.x - scaled_width; start_x >= view_rect.Min().x; start_x -= scaled_width) {
+    color.w = __get_grid_line_color(alpha_num, alpha_1_width, alpha_2_width, alpha_3_width);
+    rgg::RenderLine(v2f(start_x, view_rect.Min().y), v2f(start_x, view_rect.Max().y), color);
+    alpha_num += scaled_width;
+    if (alpha_num > alpha_3_width) alpha_num = alpha_1_width;
+  }
+  // Draw lines up
+  alpha_num = 0;
+  for (r32 start_y = start_scaled.y; start_y <= view_rect.Max().y; start_y += scaled_height) {
+    color.w = __get_grid_line_color(alpha_num, alpha_1_height, alpha_2_height, alpha_3_height);
+    rgg::RenderLine(v2f(view_rect.Min().x, start_y), v2f(view_rect.Max().x, start_y), color);
+    alpha_num += scaled_height;
+    if (alpha_num > alpha_3_height) alpha_num = alpha_1_height;
+  }
+  // Draw lines down
+  alpha_num = alpha_1_height;
+  for (r32 start_y = start_scaled.y - scaled_height; start_y >= view_rect.Min().y; start_y -= scaled_height) {
+    color.w = __get_grid_line_color(alpha_num, alpha_1_height, alpha_2_height, alpha_3_height);
+    rgg::RenderLine(v2f(view_rect.Min().x, start_y), v2f(view_rect.Max().x, start_y), color);
+    alpha_num += scaled_height;
+    if (alpha_num > alpha_3_height) alpha_num = alpha_1_height;
+  }
+}
+
+void EditorRenderTarget::RenderAxis() {
+  v2f origin_scaled = grid_.GetOrigin() * scale_;
+  const Rectf& view_rect = GetWorldRectScaled();
+  rgg::RenderLine(v2f(origin_scaled.x, view_rect.Min().y),
+                  v2f(origin_scaled.x, view_rect.Max().y),
+                  v4f(0.f, 1.f, 0.f, 0.5f));
+  rgg::RenderLine(v2f(view_rect.Min().x, origin_scaled.y),
+                  v2f(view_rect.Max().x, origin_scaled.y),
+                  v4f(0.f, 0.f, 1.f, 0.5f));
 }
 
 void EditorRenderTarget::Render() {

@@ -180,67 +180,6 @@ void EditorDebugMenuGrid(EditorGrid* grid) {
   ImGui::SliderFloat("offsety", &grid->origin_offset.y, -64.f, 64.f, "%.0f");
 }
 
-r32 __get_grid_line_color(s32 alpha_num, s32 alpha_1, s32 alpha_2, s32 alpha_3) {
-  if (alpha_num == alpha_1) return .1f;
-  if (alpha_num == alpha_2) return .2f;
-  if (alpha_num == alpha_3) return .4f;
-  return .1f;
-}
-
-void EditorRenderGrid(v2f start_scaled, const EditorGrid& grid, v4f color) {
-  const Rectf& view_rect = ScaleEditorViewport();
-  s32 scaled_width = ScaleS32(grid.cell_width);
-  s32 scaled_height = ScaleS32(grid.cell_height);
-  assert(scaled_width != 0 && scaled_height != 0);
-  s32 alpha_1_width = scaled_width;
-  s32 alpha_2_width = alpha_1_width * 2;
-  s32 alpha_3_width = alpha_2_width * 2;
-  s32 alpha_1_height = scaled_height;
-  s32 alpha_2_height = alpha_1_height * 2;
-  s32 alpha_3_height = alpha_2_height * 2;
-  // Draw lines right
-  s32 alpha_num = 0;
-  for (r32 start_x = start_scaled.x; start_x <= view_rect.Max().x; start_x += scaled_width) {
-    color.w = __get_grid_line_color(alpha_num, alpha_1_width, alpha_2_width, alpha_3_width);
-    rgg::RenderLine(v2f(start_x, view_rect.Min().y), v2f(start_x, view_rect.Max().y), color);
-    alpha_num += scaled_width;
-    if (alpha_num > alpha_3_width) alpha_num = alpha_1_width;
-  }
-  // Draw lines left
-  alpha_num = alpha_1_width;
-  for (r32 start_x = start_scaled.x - scaled_width; start_x >= view_rect.Min().x; start_x -= scaled_width) {
-    color.w = __get_grid_line_color(alpha_num, alpha_1_width, alpha_2_width, alpha_3_width);
-    rgg::RenderLine(v2f(start_x, view_rect.Min().y), v2f(start_x, view_rect.Max().y), color);
-    alpha_num += scaled_width;
-    if (alpha_num > alpha_3_width) alpha_num = alpha_1_width;
-  }
-  // Draw lines up
-  alpha_num = 0;
-  for (r32 start_y = start_scaled.y; start_y <= view_rect.Max().y; start_y += scaled_height) {
-    color.w = __get_grid_line_color(alpha_num, alpha_1_height, alpha_2_height, alpha_3_height);
-    rgg::RenderLine(v2f(view_rect.Min().x, start_y), v2f(view_rect.Max().x, start_y), color);
-    alpha_num += scaled_height;
-    if (alpha_num > alpha_3_height) alpha_num = alpha_1_height;
-  }
-  // Draw lines down
-  alpha_num = alpha_1_height;
-  for (r32 start_y = start_scaled.y - scaled_height; start_y >= view_rect.Min().y; start_y -= scaled_height) {
-    color.w = __get_grid_line_color(alpha_num, alpha_1_height, alpha_2_height, alpha_3_height);
-    rgg::RenderLine(v2f(view_rect.Min().x, start_y), v2f(view_rect.Max().x, start_y), color);
-    alpha_num += scaled_height;
-    if (alpha_num > alpha_3_height) alpha_num = alpha_1_height;
-  }
-}
-
-void EditorRenderAxis(v2f origin_scaled, const Rectf& view_rect) {
-  rgg::RenderLine(v2f(origin_scaled.x, view_rect.Min().y),
-                  v2f(origin_scaled.x, view_rect.Max().y),
-                  v4f(0.f, 1.f, 0.f, 0.5f));
-  rgg::RenderLine(v2f(view_rect.Min().x, origin_scaled.y),
-                  v2f(view_rect.Max().x, origin_scaled.y),
-                  v4f(0.f, 0.f, 1.f, 0.5f));
-}
-
 void EditorRenderCrosshair(v2f point_scaled, const Rectf& view, const v4f& color = rgg::kRed) {
   rgg::RenderLine(v2f(view.Min().x, point_scaled.y),
                   v2f(view.Max().x, point_scaled.y), color);

@@ -20,12 +20,15 @@ static const char* kViewportTabs[kViewportTabCount] = {
 
 static bool kOpened[kViewportTabCount] = { true, true, true };
 
+class EditorRenderTarget;
+
 struct Editor {
   u64 frame_rate = 60;
   window::CreateInfo window_create_info;
   platform::Clock clock;
   Rectf render_viewport_in_editor;
   Rectf render_viewport;
+  EditorRenderTarget* current = nullptr;
   EditorMode mode;
 };
 
@@ -191,22 +194,16 @@ void EditorExit() {
   exit(0);
 }
 
+void EditorSetCurrent(EditorRenderTarget* render_target) {
+  kEditor.current = render_target;
+}
+
 #include "sprite_animator.cc"
 #include "game_viewer.cc"
 #include "map_maker.cc"
 
 r32 EditorViewportCurrentScale() {
-  switch (kEditor.mode) {
-    case EDITOR_MODE_GAME: {
-      return EditorGameViewerScale();
-    } break;
-    case EDITOR_MODE_SPRITE_ANIMATOR: {
-      return EditorSpriteAnimatorScale();
-    } break;
-    case EDITOR_MODE_MAP_MAKER: {
-      return EditorMapMakerScale();
-    } break;
-  }
+  if (kEditor.current) return kEditor.current->scale_;
   return 1.f;
 }
 
@@ -216,18 +213,7 @@ Rectf SpriteAnimatorSelection::WorldRectScaled() const {
 }
 
 rgg::Camera* EditorViewportCurrentCamera() {
-  switch (kEditor.mode) {
-    case EDITOR_MODE_GAME: {
-      return EditorGameViewerCamera();
-    } break;
-    case EDITOR_MODE_SPRITE_ANIMATOR: {
-      return EditorSpriteAnimatorCamera();
-    } break;
-    case EDITOR_MODE_MAP_MAKER: {
-      return EditorMapMakerCamera();
-    } break;
-  }
-  
+  if (kEditor.current) return kEditor.current->camera();
   return nullptr;
 }
 
@@ -353,7 +339,7 @@ void EditorDebugMenu() {
   static const s32 kTabCount = 3;
   static const char* kTabs[kTabCount] = {
     "Contextual",
-    "System",
+    "Render Target",
     "Textures"
   };
   static bool kOpened[kTabCount] = { true, true, true }; // Persistent user state
@@ -375,26 +361,24 @@ void EditorDebugMenu() {
           }
         }
         else if (i == 1) {
-          ImGui::Text("Cursor");
-          ImGui::Text("  global screen             %.0f %.0f",
-                      kSpriteAnimator.cursor().global_screen.x, kSpriteAnimator.cursor().global_screen.y);
-          if (kSpriteAnimator.cursor().is_in_viewport) {
-            ImGui::Text("  world                     %.0f %.0f",
-                        kSpriteAnimator.cursor().world.x, kSpriteAnimator.cursor().world.y);
-            ImGui::Text("  world scaled              %.0f %.0f",
-                        kSpriteAnimator.cursor().world_scaled.x, kSpriteAnimator.cursor().world_scaled.y);
-            ImGui::Text("  world clamped             %.0f %.0f",
-                        kSpriteAnimator.cursor().world_clamped.x, kSpriteAnimator.cursor().world_clamped.y);
-            ImGui::Text("  local screen              %.0f %.0f",
-                        kSpriteAnimator.cursor().local_screen.x, kSpriteAnimator.cursor().local_screen.y);
-          }
-          else {
-            ImGui::Text("  world                     x x");
-            ImGui::Text("  world scaled              x x");
-            ImGui::Text("  world clamped             x x");
-            ImGui::Text("  local screen              x x");
-          }
+          if (kEditor.current) {
+            const EditorCursor& cursor = kEditor.current->cursor();
+            ImGui::Text("Cursor");
+            ImGui::Text("  global screen             %.0f %.0f", cursor.global_screen.x, cursor.global_screen.y);
+            if (cursor.is_in_viewport) {
+              ImGui::Text("  world                     %.0f %.0f", cursor.world.x, cursor.world.y);
+              ImGui::Text("  world scaled              %.0f %.0f", cursor.world_scaled.x, cursor.world_scaled.y);
+              ImGui::Text("  world clamped             %.0f %.0f", cursor.world_clamped.x, cursor.world_clamped.y);
+              ImGui::Text("  local screen              %.0f %.0f", cursor.local_screen.x, cursor.local_screen.y);
+            }
+            else {
+              ImGui::Text("  world                     x x");
+              ImGui::Text("  world scaled              x x");
+              ImGui::Text("  world clamped             x x");
+              ImGui::Text("  local screen              x x");
+            }
           ImGui::NewLine();
+          }
           rgg::Camera* camera = EditorViewportCurrentCamera();
           if (camera) {
             ImGui::Text("Camera");

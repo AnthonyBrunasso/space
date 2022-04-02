@@ -142,7 +142,7 @@ void SpriteAnimator::OnRender() {
   ImVec4 imcolor = style.Colors[ImGuiCol_WindowBg];
 
   // Fill the background with imgui's background color to maintain beauty.
-  rgg::RenderRectangle(ScaleEditorViewport(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
+  rgg::RenderRectangle(GetCameraRectScaled(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
   EditorSpriteAnimatorRenderAsset();
 
   RenderGrid(v4f(1.f, 1.f, 1.f, 0.2f));
@@ -151,17 +151,17 @@ void SpriteAnimator::OnRender() {
   if (cursor_.is_in_viewport && show_crosshair_ && !EditorSpriteAnimatorCursorInSelection()) {
     if (cursor_mode_ == kClampToGridEdge) {
       v2f scaled_clamp = cursor_.world_clamped * scale_;
-      EditorRenderCrosshair(scaled_clamp, ScaleEditorViewport());
+      EditorRenderCrosshair(scaled_clamp, GetCameraRectScaled());
     } else if (cursor_mode_ == kUseGridCell) {
       Rectf scaled_rect = ScaleRect(cursor_.world_grid_cell);
       rgg::RenderLineRectangle(scaled_rect, rgg::kRed);
     } else {
-      EditorRenderCrosshair(cursor_.world_clamped, ScaleEditorViewport());
+      EditorRenderCrosshair(cursor_.world_scaled, GetCameraRectScaled());
     }
   }
 
   if (kSpriteAnimatorSelection.action == 1) {
-    EditorRenderCrosshair(kSpriteAnimatorSelection.start_world * scale_, ScaleEditorViewport(), rgg::kPurple);
+    EditorRenderCrosshair(kSpriteAnimatorSelection.start_world * scale_, GetCameraRectScaled(), rgg::kPurple);
   }
 }
 
@@ -206,6 +206,7 @@ void SpriteAnimatorControl::OnRender() {
   anim_sequence_.Update();
 
   if (!anim_sequence_.IsEmpty()) {
+    RenderGrid(v4f(1.f, 1.f, 1.f, 0.2f));
     //const SpriteAnimatorFrame* cf = &kSpriteAnimator.frames_[anim_sequence_.frame_index_];
     const AnimFrame2d& aframe = anim_sequence_.CurrentFrame();
     const rgg::Texture* texture_render_from = rgg::GetTexture(aframe.texture_id_);
@@ -544,6 +545,7 @@ void EditorSpriteAnimatorInitialize() {
 }
 
 void EditorSpriteAnimatorMain() {
+  EditorSetCurrent(&kSpriteAnimator);
   EditorSpriteAnimatorInitialize();
   kSpriteAnimator.Render();
   if (kSpriteAnimatorControl.is_running_) {

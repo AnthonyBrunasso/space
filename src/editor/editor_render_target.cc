@@ -60,6 +60,7 @@ void RenderSurfaceToImGuiImage(
   assert(surface.IsValid());
   RenderToEditorSurface render_to(surface);
   Rectf dest = Rectf(-surface.width() / 2.f, -surface.height() / 2.f, surface.width(), surface.height());
+
   rgg::RenderTexture(*texture, tex_rect, dest);
   ImGui::Image(
     (void*)(intptr_t)surface.render_target.texture.reference,

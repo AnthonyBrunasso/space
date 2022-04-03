@@ -22,6 +22,7 @@ public:
   void OnImGui() override;
   void OnFileSelected(const std::string& filename) override;
 
+  void SetupRenderTarget();
   const rgg::Texture* LoadTexture(const char* tname);
   const rgg::Texture* GetTexture() const;
 
@@ -114,19 +115,30 @@ void MapMakerControl::OnImGui() {
     if (selection_.width > 0.f && selection_.height > 0.f) {
       ImGuiTextRect("selection", selection_);
     }
+    float pre_scale = scale_;
+    ImGui::SliderFloat("scale", &scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
+    if (scale_ != pre_scale) {
+      SetupRenderTarget();
+    }
   }
   UpdateImguiPanelRect();
   ImGui::End();
 }
 
 void MapMakerControl::OnFileSelected(const std::string& filename) {
-  const rgg::Texture* texture = LoadTexture(filename.c_str());
-  ReleaseSurface();
-  Initialize((s32)texture->width, (s32)texture->height);
+  LoadTexture(filename.c_str());
+  SetupRenderTarget();
 }
 
 const rgg::Texture* MapMakerControl::GetTexture() const {
   return rgg::GetTexture(texture_id_);
+}
+
+void MapMakerControl::SetupRenderTarget() {
+  const rgg::Texture* texture = GetTexture();
+  if (!texture) return;
+  ReleaseSurface();
+  Initialize((s32)texture->width * scale_, (s32)texture->height * scale_);
 }
 
 const rgg::Texture* MapMakerControl::LoadTexture(const char* tname) {
@@ -152,9 +164,12 @@ void EditorMapMakerProcessEvent(const PlatformEvent& event) {
         case BUTTON_LEFT: {
           if (kMapMakerControl.IsMouseInside() && kMapMakerControl.IsMouseInsideEditorSurface()) {
             Rectf tex_rect = kMapMakerControl.cursor().world_grid_cell;
-            tex_rect.x += kMapMakerControl.GetRenderTargetWidth() / 2.f;
-            tex_rect.y += kMapMakerControl.GetRenderTargetHeight() / 2.f;
-            kMapMakerControl.SetSelectionRect(tex_rect);
+            const rgg::Texture* texture = kMapMakerControl.GetTexture();
+            if (texture) {
+              tex_rect.x += texture->width / 2.f;
+              tex_rect.y += texture->height / 2.f;
+              kMapMakerControl.SetSelectionRect(tex_rect);
+            }
           }
 
           if (kMapMaker.IsMouseInsideEditorSurface() && !kMapMakerControl.IsMouseInside()) {
@@ -224,6 +239,7 @@ void EditorMapMakerInitialize() {
   if (!do_once) {
     return;
   }
+  LOG(INFO, "Creating map maker viewport with %i %i", (s32)kEditor.render_viewport.width, (s32)kEditor.render_viewport.height);
   kMapMaker.Initialize((s32)kEditor.render_viewport.width, (s32)kEditor.render_viewport.height);
   do_once = false;
 }

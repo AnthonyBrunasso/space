@@ -74,6 +74,7 @@ public:
 void Layer2d::Initialize(const Rectf& world_rect, v4f color) {
   world_rect_ = world_rect;
   if (IsSurfaceValid()) DestroyLayer2dSurface(&surface_);
+  LOG(INFO, "Creating layer with dims %.2f %.2f", world_rect.Dims().x, world_rect.Dims().y);
   surface_ = CreateLayer2dSurface(world_rect.Dims());
   RenderToLayer2dSurface render_to(surface_);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -101,6 +102,11 @@ void Layer2d::Render(r32 scale) {
   // TODO:Flipping this needs some investigation. But I think it's likely due to how assets loaded from 
   // disk look differently than how rendering assumes. I think probably I need to load assets non flipped
   // and modify the RenderTexture call uv ordering.
+  /*LOG(INFO, "dest %.2f %.2f %.2f %.2f",
+      dest.x,
+      dest.y,
+      dest.width,
+      dest.height);*/
   rgg::RenderTexture(surface_.render_target.texture, surface_.rect(), dest, false, true);
 }
 

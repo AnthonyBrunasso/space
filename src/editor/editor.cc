@@ -416,10 +416,10 @@ void EditorRenderViewport() {
   // The viewport as it exists in the global bounds of the editor window.
   ImGuiStyle& style = ImGui::GetStyle();
   kEditor.render_viewport_in_editor = Rectf(
-    kRenderViewStart + style.WindowPadding.x, 0.f, imsize.x - 15.f, imsize.y - 50.f);
+    kRenderViewStart + style.WindowPadding.x, 0.f, imsize.x, imsize.y);
   // The viewport as it exists in the local bounds of the viewport.
   kEditor.render_viewport = Rectf(
-    0.f, 0.f, imsize.x - 15.f, imsize.y - 50.f);
+    0.f, 0.f, imsize.x, imsize.y);
   ImGui::SetNextWindowSize(imsize);
   ImGui::SetNextWindowPos(ImVec2((float)kRenderViewStart, (float)item_height + 1.f), ImGuiCond_Always);
   ImGui::Begin("Render Viewport", nullptr, window_flags);

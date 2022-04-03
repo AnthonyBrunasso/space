@@ -120,7 +120,7 @@ void SpriteAnimator::OnRender() {
   rgg::RenderRectangle(GetCameraRectScaled(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
   EditorSpriteAnimatorRenderAsset();
 
-  RenderGrid(v4f(1.f, 1.f, 1.f, 0.2f));
+  RenderGrid(v4f(1.f, 1.f, 1.f, 0.2f), true);
   RenderAxis();
 
   if (cursor_.is_in_viewport && show_crosshair_ && !EditorSpriteAnimatorCursorInSelection()) {
@@ -128,8 +128,7 @@ void SpriteAnimator::OnRender() {
       v2f scaled_clamp = cursor_.world_clamped * scale_;
       EditorRenderCrosshair(scaled_clamp, GetCameraRectScaled());
     } else if (cursor_mode_ == kUseGridCell) {
-      Rectf scaled_rect = ScaleRect(cursor_.world_grid_cell);
-      rgg::RenderLineRectangle(scaled_rect, rgg::kRed);
+      RenderCursorAsRect();
     } else {
       EditorRenderCrosshair(cursor_.world_scaled, GetCameraRectScaled());
     }
@@ -566,7 +565,6 @@ void EditorSpriteAnimatorDebug() {
   ImGui::Combo("cursor", (s32*)&kSpriteAnimator.cursor_mode_, kCursorModesStr, 3);
   ImGui::SliderFloat("scale", &kSpriteAnimator.scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
   ImGui::Checkbox("render crosshair", &kSpriteAnimator.show_crosshair_);
-
   ImGui::NewLine();
   EditorDebugMenuGrid(kSpriteAnimator.grid());
 }

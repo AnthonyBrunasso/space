@@ -366,10 +366,12 @@ void EditorDebugMenu() {
           rgg::Camera* camera = EditorViewportCurrentCamera();
           if (camera) {
             ImGui::Text("Camera");
-            ImGui::Text("  pos    %.1f %.1f %.1f", camera->position.x, camera->position.y, camera->position.z);
-            ImGui::Text("  dir    %.1f %.1f %.1f", camera->dir.x, camera->dir.y, camera->dir.z);
-            ImGui::Text("  up     %.1f %.1f %.1f", camera->up.x, camera->up.y, camera->up.z);
-            ImGui::Text("  vp     %.1f %.1f", camera->viewport.x, camera->viewport.y);
+            ImGui::Text("  pos     %.1f %.1f %.1f", camera->position.x, camera->position.y, camera->position.z);
+            ImGui::Text("  dir     %.1f %.1f %.1f", camera->dir.x, camera->dir.y, camera->dir.z);
+            ImGui::Text("  up      %.1f %.1f %.1f", camera->up.x, camera->up.y, camera->up.z);
+            ImGui::Text("  vp      %.1f %.1f", camera->viewport.x, camera->viewport.y);
+            ImGuiTextRect("  crect  ", kSpriteAnimator.GetCameraRectScaled());
+            ImGuiTextRect("  crects ", kSpriteAnimator.GetCameraRect());
             ImGui::NewLine();
           }
         }

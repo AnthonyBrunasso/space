@@ -116,3 +116,7 @@ static void ImGuiRenderLastItemBoundingBox() {
   ImVec2 max = ImGui::GetItemRectMax();
   ImGui::GetForegroundDrawList()->AddRect( min, max, IM_COL32( 255, 255, 0, 255 ) );
 }
+
+static void ImGuiTextRect(const char* text, const Rectf& rect) {
+  ImGui::Text("%s %.1f %.1f %.1f %.1f", text, rect.x, rect.y, rect.width, rect.height);
+}

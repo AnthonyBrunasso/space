@@ -112,6 +112,7 @@ public:
 
   void ImGuiImage();
   void RenderGrid(v4f color, bool alternate_alpha = false);
+  void RenderCursorAsRect();
   void RenderAxis();
   void Render();
   
@@ -192,20 +193,21 @@ bool EditorRenderTarget::IsMouseInsideEditorSurface() const {
 }
 
 Rectf EditorRenderTarget::GetCameraRect() {
+  Rectf r = GetCameraRectScaled();
+  r.x /= scale_;
+  r.y /= scale_;
+  r.width /= scale_;
+  r.height /= scale_;
+  return r;
+}
+
+// Camera position is already scaled.
+Rectf EditorRenderTarget::GetCameraRectScaled() {
   v2f dims = editor_surface_.Dims();
   Rectf r(v2f(-dims.x / 2.f, -dims.y / 2.f), editor_surface_.Dims());
   if (!camera()) return r;
   r.x += camera()->position.x;
   r.y += camera()->position.y;
-  return r;
-}
-
-Rectf EditorRenderTarget::GetCameraRectScaled() {
-  Rectf r = GetCameraRect();
-  r.x *= scale_;
-  r.y *= scale_;
-  r.width *= scale_;
-  r.height *= scale_;
   return r;
 }
 
@@ -272,6 +274,15 @@ void EditorRenderTarget::RenderGrid(v4f color, bool alternate_alpha) {
     alpha_num += scaled_height;
     if (alpha_num > alpha_3_height) alpha_num = alpha_1_height;
   }
+}
+
+void EditorRenderTarget::RenderCursorAsRect() {
+  Rectf scaled_rect = cursor_.world_grid_cell;
+  scaled_rect.x *= scale_;
+  scaled_rect.y *= scale_;
+  scaled_rect.width *= scale_;
+  scaled_rect.height *= scale_;
+  rgg::RenderLineRectangle(scaled_rect, rgg::kRed);
 }
 
 void EditorRenderTarget::RenderAxis() {

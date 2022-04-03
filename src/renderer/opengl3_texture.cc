@@ -200,7 +200,7 @@ void EndRenderTo() {
   glViewport(0, 0, (GLsizei)dims.x, (GLsizei)dims.y);
 }
 
-void RenderTexture(const Texture& texture, const Rectf& src, const Rectf& dest, bool mirror = false) {
+void RenderTexture(const Texture& texture, const Rectf& src, const Rectf& dest, bool mirror = false, bool flip = false) {
   glUseProgram(kTextureState.program);
   glBindTexture(GL_TEXTURE_2D, texture.reference);
   glBindVertexArray(kTextureState.vao_reference_static);
@@ -240,6 +240,7 @@ void RenderTexture(const Texture& texture, const Rectf& src, const Rectf& dest, 
   glBufferData(GL_ARRAY_BUFFER, sizeof(uv), uv, GL_DYNAMIC_DRAW);
   v3f pos(dest.x + dest.width / 2.f, dest.y + dest.height / 2.f, 0.0f);
   v3f scale(dest.width, dest.height, 1.f);
+  if (flip) scale.y *= -1.f;
   Mat4f model = math::Model(pos, scale);
   Mat4f matrix = kObserver.projection * kObserver.view * model;
   glUniformMatrix4fv(kTextureState.matrix_uniform, 1, GL_FALSE, &matrix.data_[0]);

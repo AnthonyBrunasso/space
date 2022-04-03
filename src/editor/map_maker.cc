@@ -10,6 +10,8 @@ public:
   void ChangeScale(r32 delta);
 
   Map2d map_;
+
+  bool render_grid_ = true;
 };
 
 static MapMaker kMapMaker;
@@ -64,8 +66,10 @@ void MapMaker::OnRender() {
     }
   }
 
-  RenderGrid(v4f(1.f, 1.f, 1.f, 0.2f));
-  RenderAxis();
+  if (render_grid_) {
+    RenderGrid(v4f(1.f, 1.f, 1.f, 0.2f));
+    RenderAxis();
+  }
 }
 
 void MapMaker::OnImGui() {
@@ -97,7 +101,7 @@ void MapMakerControl::OnRender() {
 
   rgg::RenderTexture(*texture, texture->Rect(), GetCameraRectScaled());
 
-  RenderGrid(v4f(1.f, 1.f, 1.f, 0.2f), true);
+  RenderGrid(v4f(1.f, 1.f, 1.f, 0.2f));
   RenderCursorAsRect();
 }
 
@@ -155,13 +159,13 @@ void EditorMapMakerProcessEvent(const PlatformEvent& event) {
 
           if (kMapMaker.IsMouseInsideEditorSurface() && !kMapMakerControl.IsMouseInside()) {
             if (kMapMakerControl.HasSelection()) {
-              Layer2d::Texture layer_texture;
-              layer_texture.texture_id = kMapMakerControl.texture_id_;
-              layer_texture.src_rect = kMapMakerControl.selection();
-              layer_texture.dest_rect = kMapMaker.cursor().world_grid_cell;
-              layer_texture.dest_rect.width = kMapMakerControl.selection().width;
-              layer_texture.dest_rect.height = kMapMakerControl.selection().height;
-              kMapMaker.map_.AddTexture(0, layer_texture);
+              const rgg::Texture* texture = rgg::GetTexture(kMapMakerControl.texture_id_);
+              assert(texture);
+              Rectf src_rect = kMapMakerControl.selection();
+              Rectf dest_rect = kMapMaker.cursor().world_grid_cell;
+              dest_rect.width = src_rect.width;
+              dest_rect.height = src_rect.height;
+              kMapMaker.map_.AddTexture(0, texture, src_rect, dest_rect);
             }
           }
         } break;
@@ -232,7 +236,7 @@ void EditorMapMakerMain() {
 }
 
 void EditorMapMakerDebug() {
-  ImGui::Text("Game");
+  ImGui::Checkbox("render grid", &kMapMaker.render_grid_);
 }
 
 rgg::Camera* EditorMapMakerCamera() {

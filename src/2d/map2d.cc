@@ -111,14 +111,6 @@ void Layer2d::Render(r32 scale) {
     dest.width *= scale;
     dest.height *= scale;
   }
-  // TODO:Flipping this needs some investigation. But I think it's likely due to how assets loaded from 
-  // disk look differently than how rendering assumes. I think probably I need to load assets non flipped
-  // and modify the RenderTexture call uv ordering.
-  /*LOG(INFO, "dest %.2f %.2f %.2f %.2f",
-      dest.x,
-      dest.y,
-      dest.width,
-      dest.height);*/
   rgg::RenderTexture(surface_.render_target.texture, surface_.rect(), dest);
 }
 

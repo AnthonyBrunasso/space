@@ -64,7 +64,7 @@ void RenderSurfaceToImGuiImage(
   rgg::RenderTexture(*texture, tex_rect, dest);
   ImGui::Image(
     (void*)(intptr_t)surface.render_target.texture.reference,
-    ImVec2(surface.width(), surface.height()));
+    ImVec2(surface.width(), surface.height()), ImVec2(0, 1), ImVec2(1, 0));
   if (outline) {
     rgg::RenderLineRectangle(
         Rectf(dest.x + 1.f, dest.y + 1.f, dest.width - 1.f, dest.height - 2.f), rgg::kRed);
@@ -73,6 +73,8 @@ void RenderSurfaceToImGuiImage(
 
 RenderToEditorSurface::RenderToEditorSurface(const EditorSurface& surface) : mod_observer_(surface.camera) {
   rgg::BeginRenderTo(surface.render_target);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClearColor(0.f, 0.f, 0.f, 0.f);
 }
 
 RenderToEditorSurface::~RenderToEditorSurface() {
@@ -214,7 +216,8 @@ Rectf EditorRenderTarget::GetCameraRectScaled() {
 void EditorRenderTarget::ImGuiImage() {
   ImGui::Image(
       (void*)(intptr_t)editor_surface_.render_target.texture.reference,
-      ImVec2(editor_surface_.render_target.width(), editor_surface_.render_target.height()));
+      ImVec2(editor_surface_.render_target.width(), editor_surface_.render_target.height()), 
+      ImVec2(0, 1), ImVec2(1, 0));
   GetImGuiLastItemRect(&imgui_editor_surface_rect_);
 }
 

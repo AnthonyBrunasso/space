@@ -34,6 +34,7 @@ public:
   RenderToLayer2dSurface(const Layer2dSurface& surface) : mod_observer_(surface.camera) {
     rgg::BeginRenderTo(surface.render_target);
     // Without this we have no alpha.
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.f, 0.f, 0.f, 0.f);
   }
   ~RenderToLayer2dSurface() {
@@ -118,7 +119,7 @@ void Layer2d::Render(r32 scale) {
       dest.y,
       dest.width,
       dest.height);*/
-  rgg::RenderTexture(surface_.render_target.texture, surface_.rect(), dest, false, true);
+  rgg::RenderTexture(surface_.render_target.texture, surface_.rect(), dest);
 }
 
 v4f Layer2d::background_color() const {

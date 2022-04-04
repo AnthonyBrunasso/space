@@ -98,7 +98,7 @@ void MapMaker::ChangeScale(r32 delta) {
 void MapMakerControl::OnRender() {
   const rgg::Texture* texture = rgg::GetTexture(texture_id_);
   if (texture) {
-    grid_.origin = GetRenderTargetDims() / -2.f;
+    grid_.origin = (GetRenderTargetDims() * scale_) / -2.f;
     grid_.origin_offset = v2f(0.f, 0.f);
   }
 
@@ -264,7 +264,7 @@ void EditorMapMakerDebug() {
   if (kMapMaker.map_.HasLayers()) {
     ImGui::Text("Layer %i / %i", kMapMaker.current_layer() + 1, kMapMaker.map_.GetLayerCount());
     const rgg::Texture& texture = kMapMaker.map_.GetTexture(kMapMaker.current_layer());
-    ImGui::Image((void*)(intptr_t)texture.reference, ImVec2(256, 256));
+    ImGui::Image((void*)(intptr_t)texture.reference, ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0));
     ImGuiRenderLastItemBoundingBox();
   }
   if (ImGui::Button("<")) {

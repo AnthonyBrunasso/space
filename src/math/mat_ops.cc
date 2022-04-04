@@ -155,7 +155,7 @@ Mat4f Scale(const v3f& scale) {
 Mat4f LookAt(const v3f& eye, const v3f& target, const v3f& up) {
   v3f f = math::Normalize(eye - target);
   v3f r = math::Normalize(math::Cross(up, f));
-  v3f u = math::Cross(f, r);
+  v3f u = -math::Cross(f, r);
 
 #if 0
   // Keeping this around to remind myself how the below is derived.

@@ -218,13 +218,6 @@ void EditorRenderTarget::ImGuiImage() {
   GetImGuiLastItemRect(&imgui_editor_surface_rect_);
 }
 
-r32 __get_grid_line_color(s32 alpha_num, s32 alpha_1, s32 alpha_2, s32 alpha_3) {
-  if (alpha_num == alpha_1) return .1f;
-  if (alpha_num == alpha_2) return .2f;
-  if (alpha_num == alpha_3) return .4f;
-  return .1f;
-}
-
 void EditorRenderTarget::RenderGrid(v4f color, bool alternate_alpha) {
   // Everything must be scaled to respect our zoom.
   v2f start_scaled = grid_.GetOrigin() * scale_;
@@ -240,40 +233,26 @@ void EditorRenderTarget::RenderGrid(v4f color, bool alternate_alpha) {
   s32 alpha_3_height = alpha_2_height * 2;
   // Draw lines right
   s32 alpha_num = 0;
+  rgg::LineBatch line_batch;
   for (r32 start_x = start_scaled.x; start_x <= view_rect_scaled.Max().x; start_x += scaled_width) {
-    if (alternate_alpha)
-      color.w = __get_grid_line_color(alpha_num, alpha_1_width, alpha_2_width, alpha_3_width);
-    rgg::RenderLine(v2f(start_x, view_rect_scaled.Min().y), v2f(start_x, view_rect_scaled.Max().y), color);
-    alpha_num += scaled_width;
-    if (alpha_num > alpha_3_width) alpha_num = alpha_1_width;
+    line_batch.AddLine(v2f(start_x, view_rect_scaled.Min().y), v2f(start_x, view_rect_scaled.Max().y));
   }
   // Draw lines left
   alpha_num = alpha_1_width;
   for (r32 start_x = start_scaled.x - scaled_width; start_x >= view_rect_scaled.Min().x; start_x -= scaled_width) {
-    if (alternate_alpha)
-      color.w = __get_grid_line_color(alpha_num, alpha_1_width, alpha_2_width, alpha_3_width);
-    rgg::RenderLine(v2f(start_x, view_rect_scaled.Min().y), v2f(start_x, view_rect_scaled.Max().y), color);
-    alpha_num += scaled_width;
-    if (alpha_num > alpha_3_width) alpha_num = alpha_1_width;
+    line_batch.AddLine(v2f(start_x, view_rect_scaled.Min().y), v2f(start_x, view_rect_scaled.Max().y));
   }
   // Draw lines up
   alpha_num = 0;
   for (r32 start_y = start_scaled.y; start_y <= view_rect_scaled.Max().y; start_y += scaled_height) {
-    if (alternate_alpha)
-      color.w = __get_grid_line_color(alpha_num, alpha_1_height, alpha_2_height, alpha_3_height);
-    rgg::RenderLine(v2f(view_rect_scaled.Min().x, start_y), v2f(view_rect_scaled.Max().x, start_y), color);
-    alpha_num += scaled_height;
-    if (alpha_num > alpha_3_height) alpha_num = alpha_1_height;
+    line_batch.AddLine(v2f(view_rect_scaled.Min().x, start_y), v2f(view_rect_scaled.Max().x, start_y));
   }
   // Draw lines down
   alpha_num = alpha_1_height;
   for (r32 start_y = start_scaled.y - scaled_height; start_y >= view_rect_scaled.Min().y; start_y -= scaled_height) {
-    if (alternate_alpha)
-      color.w = __get_grid_line_color(alpha_num, alpha_1_height, alpha_2_height, alpha_3_height);
-    rgg::RenderLine(v2f(view_rect_scaled.Min().x, start_y), v2f(view_rect_scaled.Max().x, start_y), color);
-    alpha_num += scaled_height;
-    if (alpha_num > alpha_3_height) alpha_num = alpha_1_height;
+    line_batch.AddLine(v2f(view_rect_scaled.Min().x, start_y), v2f(view_rect_scaled.Max().x, start_y));
   }
+  rgg::RenderLineBatch(line_batch, color);
 }
 
 void EditorRenderTarget::RenderCursorAsRect() {

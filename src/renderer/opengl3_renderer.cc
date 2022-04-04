@@ -605,6 +605,40 @@ void RenderLine(const v3f& start, const v3f& end, const v4f& color) {
   glDrawArrays(GL_LINES, 0, 2);
 }
 
+struct LineBatch {
+  LineBatch() {
+    data.reserve(48);
+  }
+  void AddLine(const v2f& start, const v2f& end) {
+    data.insert(data.end(), {start.x, start.y, 0.f, end.x, end.y, 0.f});
+  }
+  size_t Size() const {
+    return data.size() * sizeof(r32);
+  }
+  const r32* Data() const {
+    return data.data();
+  }
+  size_t Count() const {
+    return data.size() / 3;
+  }
+  std::vector<r32> data;
+};
+
+void RenderLineBatch(const LineBatch& batch, const v4f& color) {
+  glUseProgram(kRGG.geometry_program.reference);
+  glBindVertexArray(kRGG.line_vao_reference);
+  // Model matrix unneeded here due to verts being set directly.
+  Mat4f view_pojection = kObserver.projection * kObserver.view;
+  glUniform4f(kRGG.geometry_program.color_uniform, color.x, color.y, color.z,
+              color.w);
+  glUniformMatrix4fv(kRGG.geometry_program.matrix_uniform, 1, GL_FALSE,
+                     &view_pojection.data_[0]);
+  glBindBuffer(GL_ARRAY_BUFFER, kRGG.line_vbo_reference);
+  glBufferData(GL_ARRAY_BUFFER, batch.Size(), batch.Data(), GL_DYNAMIC_DRAW);
+  glDrawArrays(GL_LINES, 0, batch.Count());
+
+}
+
 void RenderGrid(const v2f& grid, const Rectf& bounds, uint64_t color_count, v4f* color) {
   // Prepare Geometry and color
   glUseProgram(kRGG.geometry_program.reference);

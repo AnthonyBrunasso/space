@@ -36,7 +36,7 @@ EditorSurface CreateEditorSurface(r32 width, r32 height) {
   surface.camera.dir = v3f(0.f, 0.f, -1.f);
   surface.camera.up = v3f(0.f, 1.f, 0.f);
   surface.camera.viewport = v2f(width, height);
-  surface.render_target = rgg::CreateSurface(GL_RGB, (u64)width, (u64)height);
+  surface.render_target = rgg::CreateSurface(GL_RGBA, (u64)width, (u64)height);
   return surface;
 }
 
@@ -73,7 +73,6 @@ void RenderSurfaceToImGuiImage(
 
 RenderToEditorSurface::RenderToEditorSurface(const EditorSurface& surface) : mod_observer_(surface.camera) {
   rgg::BeginRenderTo(surface.render_target);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 RenderToEditorSurface::~RenderToEditorSurface() {

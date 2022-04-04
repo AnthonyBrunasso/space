@@ -7,6 +7,7 @@ struct Layer2dSurface {
   r32 height() const { return render_target.height(); }
   v2f Dims() const { return v2f( width(), height() ); }
   Rectf rect() const { return Rectf(v2f(0.f, 0.f), Dims()); };
+  const rgg::Texture& texture() const { return render_target.texture; }
   rgg::Camera camera;
   rgg::Surface render_target;
 };
@@ -17,7 +18,7 @@ Layer2dSurface CreateLayer2dSurface(v2f dims) {
   surface.camera.dir = v3f(0.f, 0.f, -1.f);
   surface.camera.up = v3f(0.f, 1.f, 0.f);
   surface.camera.viewport = dims;
-  surface.render_target = rgg::CreateSurface(GL_RGB, (u64)dims.x, (u64)dims.y);
+  surface.render_target = rgg::CreateSurface(GL_RGBA, (u64)dims.x, (u64)dims.y);
   return surface;
 }
 
@@ -32,6 +33,8 @@ class RenderToLayer2dSurface {
 public:
   RenderToLayer2dSurface(const Layer2dSurface& surface) : mod_observer_(surface.camera) {
     rgg::BeginRenderTo(surface.render_target);
+    // Without this we have no alpha.
+    glClearColor(0.f, 0.f, 0.f, 0.f);
   }
   ~RenderToLayer2dSurface() {
     rgg::EndRenderTo();
@@ -51,6 +54,7 @@ public:
   bool IsSurfaceValid() const { return surface_.IsValid(); }
 
   v4f background_color() const;
+  const rgg::Texture& GetTexture() const;
   
   Layer2dSurface surface_;
   v4f background_color_;
@@ -66,6 +70,12 @@ public:
   void AddTexture(s32 layer_idx, const rgg::Texture* texture, const Rectf& src_rect, const Rectf& dest_rect);
   void Render(r32 scale = 1.f);
 
+  // Gets layer_idx's rendering texture
+  const rgg::Texture& GetTexture(s32 layer_idx);
+
+  bool HasLayers() const { return !layers_.empty(); }
+  s32 GetLayerCount() const { return layers_.size(); }
+
   std::vector<Layer2d> layers_;
   // Min and max bounds of the world. Origin in the center of this rect and should correspond with 0,0.
   Rectf world_rect_;
@@ -74,10 +84,11 @@ public:
 void Layer2d::Initialize(const Rectf& world_rect, v4f color) {
   world_rect_ = world_rect;
   if (IsSurfaceValid()) DestroyLayer2dSurface(&surface_);
-  LOG(INFO, "Creating layer with dims %.2f %.2f", world_rect.Dims().x, world_rect.Dims().y);
   surface_ = CreateLayer2dSurface(world_rect.Dims());
+  LOG(INFO, "Creating layer texture %u with dims %.2f %.2f", surface_.texture().reference, world_rect.Dims().x, world_rect.Dims().y);
   RenderToLayer2dSurface render_to(surface_);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  //glClearColor(0.f, 0.f, 0.f, 0.f);
   background_color_ = color;
   rgg::RenderRectangle(world_rect_, background_color());
 }
@@ -115,9 +126,13 @@ v4f Layer2d::background_color() const {
   if (background_color_ == v4f(0.f, 0.f, 0.f, 0.f)) {
     ImGuiStyle& style = ImGui::GetStyle();
     ImVec4 imcolor = style.Colors[ImGuiCol_WindowBg];
-    return v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w);
+    return v4f(imcolor.x, imcolor.y, imcolor.z, 0.f);
   }
   return background_color_;
+}
+
+const rgg::Texture& Layer2d::GetTexture() const {
+  return surface_.texture();
 }
 
 Map2d::Map2d(v2f dims, s32 layers_size) {
@@ -140,6 +155,14 @@ void Map2d::AddTexture(s32 layer_idx, const rgg::Texture* texture, const Rectf& 
   Layer2d* layer = &layers_[layer_idx];
   layer->AddTexture(texture, src_rect, dest_rect);
 }
+
+// Gets layer_idx's rendering texture
+const rgg::Texture& Map2d::GetTexture(s32 layer_idx) {
+  assert(layer_idx < layers_.size());
+  return layers_[layer_idx].GetTexture();
+}
+
+
 
 void Map2d::Render(r32 scale) {
   for (s32 i = 0; i < layers_.size(); ++i) {

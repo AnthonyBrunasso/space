@@ -9,7 +9,13 @@ public:
 
   void ChangeScale(r32 delta);
 
+  void SetNextLayer() { current_layer_++; current_layer_ = current_layer_ % map_.GetLayerCount(); }
+  void SetPrevLayer() { current_layer_--; current_layer_ = current_layer_ % map_.GetLayerCount(); }
+
+  s32 current_layer() const { return current_layer_; }
+
   Map2d map_;
+  s32 current_layer_ = 0;
 
   bool render_grid_ = true;
 };
@@ -45,6 +51,8 @@ void MapMaker::OnInitialize() {
 void MapMaker::OnRender() {
   ImGuiStyle& style = ImGui::GetStyle();
   ImVec4 imcolor = style.Colors[ImGuiCol_WindowBg];
+
+  //glClearColor(1.f, 0.f, 0.f, 1.f);
 
   // Fill the background with imgui's background color to maintain beauty.
   rgg::RenderRectangle(GetCameraRectScaled(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
@@ -107,7 +115,7 @@ void MapMakerControl::OnRender() {
 }
 
 void MapMakerControl::OnImGui() {
-  ImGui::Begin("Map Maker Control");
+  ImGui::Begin("Map Maker Control", nullptr, ImGuiWindowFlags_HorizontalScrollbar);
   ImGuiImage();
   const rgg::Texture* texture = rgg::GetTexture(texture_id_);
   if (texture) {
@@ -180,7 +188,7 @@ void EditorMapMakerProcessEvent(const PlatformEvent& event) {
               Rectf dest_rect = kMapMaker.cursor().world_grid_cell;
               dest_rect.width = src_rect.width;
               dest_rect.height = src_rect.height;
-              kMapMaker.map_.AddTexture(0, texture, src_rect, dest_rect);
+              kMapMaker.map_.AddTexture(kMapMaker.current_layer(), texture, src_rect, dest_rect);
             }
           }
         } break;
@@ -253,6 +261,24 @@ void EditorMapMakerMain() {
 
 void EditorMapMakerDebug() {
   ImGui::Checkbox("render grid", &kMapMaker.render_grid_);
+  if (kMapMaker.map_.HasLayers()) {
+    ImGui::Text("Layer %i / %i", kMapMaker.current_layer() + 1, kMapMaker.map_.GetLayerCount());
+    const rgg::Texture& texture = kMapMaker.map_.GetTexture(kMapMaker.current_layer());
+    ImGui::Image((void*)(intptr_t)texture.reference, ImVec2(256, 256));
+    ImGuiRenderLastItemBoundingBox();
+  }
+  if (ImGui::Button("<")) {
+    kMapMaker.SetPrevLayer();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(">")) {
+    kMapMaker.SetNextLayer();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("+")) {
+    kMapMaker.map_.AddLayer();
+  }
+  
 }
 
 rgg::Camera* EditorMapMakerCamera() {

@@ -19,6 +19,10 @@ Layer2dSurface CreateLayer2dSurface(v2f dims) {
   surface.camera.up = v3f(0.f, 1.f, 0.f);
   surface.camera.viewport = dims;
   surface.render_target = rgg::CreateSurface(GL_RGBA, (u64)dims.x, (u64)dims.y);
+  rgg::BeginRenderTo(surface.render_target);
+  // Without this we have no alpha.
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClearColor(0.f, 0.f, 0.f, 0.f);
   return surface;
 }
 
@@ -33,9 +37,6 @@ class RenderToLayer2dSurface {
 public:
   RenderToLayer2dSurface(const Layer2dSurface& surface) : mod_observer_(surface.camera) {
     rgg::BeginRenderTo(surface.render_target);
-    // Without this we have no alpha.
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(0.f, 0.f, 0.f, 0.f);
   }
   ~RenderToLayer2dSurface() {
     rgg::EndRenderTo();
@@ -55,6 +56,7 @@ public:
   bool IsSurfaceValid() const { return surface_.IsValid(); }
 
   v4f background_color() const;
+  const rgg::Surface& GetSurface() const;
   const rgg::Texture& GetTexture() const;
   
   Layer2dSurface surface_;
@@ -71,6 +73,7 @@ public:
   void AddTexture(s32 layer_idx, const rgg::Texture* texture, const Rectf& src_rect, const Rectf& dest_rect);
   void Render(r32 scale = 1.f);
 
+  const rgg::Surface& GetSurface(s32 layer_idx) const;
   // Gets layer_idx's rendering texture
   const rgg::Texture& GetTexture(s32 layer_idx);
 
@@ -124,6 +127,10 @@ v4f Layer2d::background_color() const {
   return background_color_;
 }
 
+const rgg::Surface& Layer2d::GetSurface() const {
+  return surface_.render_target;
+}
+
 const rgg::Texture& Layer2d::GetTexture() const {
   return surface_.texture();
 }
@@ -147,6 +154,11 @@ void Map2d::AddTexture(s32 layer_idx, const rgg::Texture* texture, const Rectf& 
   assert(layer_idx < layers_.size());
   Layer2d* layer = &layers_[layer_idx];
   layer->AddTexture(texture, src_rect, dest_rect);
+}
+
+const rgg::Surface& Map2d::GetSurface(s32 layer_idx) const {
+  assert(layer_idx < layers_.size());
+  return layers_[layer_idx].GetSurface();
 }
 
 // Gets layer_idx's rendering texture

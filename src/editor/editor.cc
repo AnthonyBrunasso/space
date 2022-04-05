@@ -297,7 +297,7 @@ void EditorFileBrowser() {
   window_flags |= ImGuiWindowFlags_NoTitleBar;
   v2f wsize = window::GetWindowSize();
   float item_height = ImGui::GetTextLineHeightWithSpacing();
-  ImGui::SetNextWindowSize(ImVec2((float)kExplorerWidth, (float)wsize.y * (3 / 5.f)));
+  ImGui::SetNextWindowSize(ImVec2((float)kExplorerWidth, (float)wsize.y * (2 / 5.f)));
   ImGui::SetNextWindowPos(ImVec2((float)kExplorerStart, (float)item_height + 1.f), ImGuiCond_Always);
   ImGui::Begin("File Browser", nullptr, window_flags);
   char dir[256] = {};
@@ -318,8 +318,8 @@ void EditorDebugMenu() {
   window_flags |= ImGuiWindowFlags_NoTitleBar;
   v2f wsize = window::GetWindowSize();
   float item_height = ImGui::GetTextLineHeightWithSpacing();
-  ImGui::SetNextWindowSize(ImVec2((float)kExplorerWidth, (float)wsize.y * (2 / 5.f) - item_height));
-  ImGui::SetNextWindowPos(ImVec2((float)kExplorerStart, (float)wsize.y * (3 / 5.f) + item_height), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2((float)kExplorerWidth, (float)wsize.y * (3 / 5.f) - item_height));
+  ImGui::SetNextWindowPos(ImVec2((float)kExplorerStart, (float)wsize.y * (2 / 5.f) + item_height), ImGuiCond_Always);
   static const s32 kTabCount = 3;
   static const char* kTabs[kTabCount] = {
     "Contextual",

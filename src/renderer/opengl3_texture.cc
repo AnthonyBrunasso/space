@@ -2,6 +2,8 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 
 struct Texture {
   std::string file;
@@ -198,6 +200,24 @@ void EndRenderTo() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   v2f dims = window::GetWindowSize();
   glViewport(0, 0, (GLsizei)dims.x, (GLsizei)dims.y);
+}
+
+bool SaveSurface(const Surface& surface, const char* filename) {
+  assert(surface.IsValid());
+  // Don't realy need to render to the surface but do need to bind the framebuffer before glReadPixels.
+  BeginRenderTo(surface);
+  assert(surface.texture.format == GL_RGB || surface.texture.format == GL_RGBA);
+  s32 channels = surface.texture.format == GL_RGB ? 3 : 4;
+  u32 bytes_count = surface.width() * surface.height() * sizeof(GLubyte) * channels;
+  GLubyte* pixels = (GLubyte*)malloc(bytes_count);
+  glReadPixels(0, 0, surface.width(), surface.height(), surface.texture.format, GL_UNSIGNED_BYTE, pixels);
+  stbi_flip_vertically_on_write(true);
+  GLsizei stride = (int)surface.width() * channels;
+  stride += (stride % 4) ? (4 - stride % 4) : 0;
+  s32 res = stbi_write_png(filename, (int)surface.width(), (int)surface.height(), channels, pixels, stride);
+  free(pixels);
+  EndRenderTo();
+  return res != 0;
 }
 
 void RenderTexture(const Texture& texture, const Rectf& src, const Rectf& dest, bool mirror = false, bool flip = false) {

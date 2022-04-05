@@ -128,7 +128,20 @@ void MapMakerControl::OnImGui() {
     if (scale_ != pre_scale) {
       SetupRenderTarget();
     }
+    if (ImGui::Button("select all")) {
+      SetSelectionRect(texture->Rect());
+    }
   }
+
+  static char kPngFilename[128];
+  static char kFullPath[256];
+  ImGui::InputText("file", kPngFilename, 128); 
+  snprintf(kFullPath, 256, "gamedata/%s.png", kPngFilename);
+  ImGui::Text("%s", kFullPath);
+  if (ImGui::Button("Save")) {
+    rgg::SaveSurface(kMapMaker.map_.GetSurface(0), kFullPath);
+  }
+
   UpdateImguiPanelRect();
   ImGui::End();
 }

@@ -121,6 +121,7 @@ public:
   rgg::Camera* camera() { return &editor_surface_.camera; }
   Rectf imgui_panel_rect() const { return imgui_panel_rect_; }
   EditorGrid* grid() { return &grid_; }
+  const rgg::Surface& surface() { return editor_surface_.render_target; }
 
   const EditorCursor& cursor() const { return cursor_; }
 

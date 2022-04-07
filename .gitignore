@@ -2,6 +2,7 @@ bin/
 build/
 debug/
 asset/nocommit
+asset/hero
 logs/
 _tmp/
 .vs/

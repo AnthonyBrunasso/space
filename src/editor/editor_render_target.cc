@@ -83,6 +83,9 @@ RenderToEditorSurface::~RenderToEditorSurface() {
 
 class EditorRenderTarget {
 public:
+  EditorRenderTarget() = default;
+  virtual ~EditorRenderTarget() = default;
+
   void Initialize(s32 width, s32 height);
   void ReleaseSurface();
   void UpdateCursor();
@@ -92,15 +95,17 @@ public:
   bool IsMouseInsideEditorSurface() const;
   bool IsRenderTargetValid() const { return editor_surface_.IsValid(); }
 
-  r32 GetRenderTargetWidth() { return editor_surface_.render_target.width(); }
-  r32 GetRenderTargetHeight() { return editor_surface_.render_target.height(); }
-  v2f GetRenderTargetDims() { return v2f(GetRenderTargetWidth(), GetRenderTargetHeight()); }
+  r32 GetRenderTargetWidth() const { return editor_surface_.render_target.width(); }
+  r32 GetRenderTargetHeight() const { return editor_surface_.render_target.height(); }
+  v2f GetRenderTargetDims() const { return v2f(GetRenderTargetWidth(), GetRenderTargetHeight()); }
+  v2f GetRenderTargetBottomLeft() const { return -GetRenderTargetDims() / 2.f; }
 
   // Get the camera rect for the surface - this is the min / max points of render surface in world space
   // considering the position of the camera.
   Rectf GetCameraRect();
   // Then scale it if we care about rendering stuff.
   Rectf GetCameraRectScaled();
+  Rectf Scale(const Rectf& rect) const;
 
   // Run once when render target is created. Initialization resets underlying surface.
   // So don't mess with rendering surfaces here.
@@ -211,6 +216,15 @@ Rectf EditorRenderTarget::GetCameraRectScaled() {
   if (!camera()) return r;
   r.x += camera()->position.x;
   r.y += camera()->position.y;
+  return r;
+}
+
+Rectf EditorRenderTarget::Scale(const Rectf& rect) const {
+  Rectf r = rect;
+  r.x *= scale_;
+  r.y *= scale_;
+  r.width *= scale_;
+  r.height *= scale_;
   return r;
 }
 

@@ -47,9 +47,13 @@ public:
   };
 
   struct Frame {
+    r32 width() const { return editor_surface.width(); }
+    r32 height() const { return editor_surface.height(); }
     EditorSurface editor_surface;
     void ImGui(AnimSequence2d::SequenceFrame& sframe, s32 id, ModSpec* mod_spec);
   };
+  
+  const std::vector<Frame>& anim_frames() const { return anim_frames_; }
 
   std::vector<Frame> anim_frames_;
   Rectf anim_frames_imgui_rect;
@@ -110,7 +114,7 @@ void SpriteAnimator::OnRender() {
 
   if (texture) {
     grid_.origin = EditorSpriteAnimatorTextureBottomLeft(*texture);
-    grid_.origin_offset = v2f(0.f, 0.f);
+    //grid_.origin_offset = v2f(0.f, 0.f);
   }
 
   ImGuiStyle& style = ImGui::GetStyle();
@@ -191,6 +195,20 @@ void SpriteAnimatorControl::HandleAssetBoxSelect(const AssetSelection& selection
   kSpriteAnimatorControl.anim_sequence_.Start();
   if (!kSpriteAnimatorControl.IsRenderTargetValid()) {
     kSpriteAnimatorControl.Initialize((s32)selection.world_rect_scaled.width, (s32)selection.world_rect_scaled.height);
+  } else {
+    // Find the max width and height of the frames.
+    r32 max_width = 0.f;
+    r32 max_height = 0.f;
+    for (const Frame& frame : kSpriteAnimatorControl.anim_frames()) {
+      if (frame.width() > max_width) max_width = frame.width();
+      if (frame.height() > max_height) max_height = frame.height();
+    }
+
+    if (max_width != kSpriteAnimatorControl.GetRenderTargetWidth() ||
+        max_height != kSpriteAnimatorControl.GetRenderTargetHeight()) {
+      kSpriteAnimatorControl.ReleaseSurface();
+      kSpriteAnimatorControl.Initialize(max_width, max_height);
+    }
   }
 }
 
@@ -207,10 +225,11 @@ void SpriteAnimatorControl::OnRender() {
     //const SpriteAnimatorFrame* cf = &kSpriteAnimator.frames_[anim_sequence_.frame_index_];
     const AnimFrame2d& aframe = anim_sequence_.CurrentFrame();
     const rgg::Texture* texture_render_from = rgg::GetTexture(aframe.texture_id_);
-    rgg::RenderTexture(*texture_render_from,
-                       aframe.src_rect(),
-                       Rectf(-GetRenderTargetWidth() / 2.f, -GetRenderTargetHeight() / 2.f,
-                             GetRenderTargetWidth(), GetRenderTargetHeight()));
+    Rectf src = aframe.src_rect();
+    Rectf dest = Rectf(GetRenderTargetBottomLeft(),
+                         v2f(src.width * kSpriteAnimator.scale_,
+                             src.height * kSpriteAnimator.scale_));
+    rgg::RenderTexture(*texture_render_from, src, dest);
   }
 }
 

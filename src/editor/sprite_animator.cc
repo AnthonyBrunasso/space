@@ -252,16 +252,12 @@ void SpriteAnimatorControl::OnImGui() {
   ImGui::Begin("Animator", &kSpriteAnimatorControl.is_running_);
   ImGuiImage();
   // Walk all the frames at a certain cadence and play them.
-  //ImGui::SliderFloat("frequency", &frequency_, 0.f, 2.f, "%.01f", ImGuiSliderFlags_None);
-  if (ImGui::Button("reset clock")) {
-    anim_sequence_.Start();
-  }
-  ImGui::Text("Clock: %.2f", platform::ClockDeltaSec(anim_sequence_.clock_));
-  ImGui::Text("%i %.2f / %.2f",
-              anim_sequence_.frame_index_,
-              anim_sequence_.last_frame_time_sec_,
-              anim_sequence_.next_frame_time_sec_);
   if (anim_sequence_.sequence_frames_.size() > 0) {
+    ImGui::Text("clock: %.2f (prev: %.2f / next: %.2f)",
+                platform::ClockDeltaSec(anim_sequence_.clock_),
+                anim_sequence_.last_frame_time_sec_,
+                anim_sequence_.next_frame_time_sec_);
+
     if (ImGui::Button("-1s")) AddTimeToSequence(-1.f);
     ImGui::SameLine();
     if (ImGui::Button("-.1s")) AddTimeToSequence(-.1f);
@@ -274,6 +270,14 @@ void SpriteAnimatorControl::OnImGui() {
     ImGui::SameLine();
     if (ImGui::Button(".01s")) AddTimeToSequence(.01f);
 
+    if (ImGui::Button("reset clock")) {
+      anim_sequence_.Start();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("reverse frames")) {
+      std::reverse(anim_frames_.begin(), anim_frames_.end());
+      anim_sequence_.ReverseFrames();
+    }
   }
   ImGui::Separator();
   static char kAnimFilename[128];
@@ -281,7 +285,7 @@ void SpriteAnimatorControl::OnImGui() {
   ImGui::InputText("file", kAnimFilename, 128); 
   snprintf(kFullPath, 256, "gamedata/%s.anim", kAnimFilename);
   ImGui::Text("%s", kFullPath);
-  if (ImGui::Button("Save")) {
+  if (ImGui::Button("save")) {
     proto::Animation2d proto = anim_sequence_.ToProto();
     LOG(INFO, "Saving animation as proto %s to file %s",
         proto.DebugString().c_str(), kFullPath);
@@ -290,10 +294,16 @@ void SpriteAnimatorControl::OnImGui() {
     fo.close();
   }
   ImGui::SameLine();
-  if (ImGui::Button("Clear")) {
+  if (ImGui::Button("load")) {
+    std::string lfile(kFullPath);
+    kSpriteAnimator.OnFileSelected(lfile);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("clear")) {
     memset(kAnimFilename, 0, 128);
     Clear();
   }
+  
   UpdateImguiPanelRect();
   ImGui::End();
 

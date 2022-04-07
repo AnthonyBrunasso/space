@@ -160,9 +160,37 @@ static SpriteAnimatorSelection kSpriteAnimatorSelection;
 
 void EditorDebugMenuGrid(EditorGrid* grid) {
   ImGui::SliderInt("cellw", &grid->cell_width, 1, 128);
+  if (ImGui::Button("-##cellw")) {
+    --grid->cell_width;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("+##cellw")) {
+    ++grid->cell_width;
+  }
   ImGui::SliderInt("cellh", &grid->cell_height, 1, 128);
+  if (ImGui::Button("-##cellh")) {
+    --grid->cell_height;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("+##cellh")) {
+    ++grid->cell_height;
+  }
   ImGui::SliderFloat("offsetx", &grid->origin_offset.x, -64.f, 64.f, "%.0f");
+  if (ImGui::Button("-##offsetx")) {
+    --grid->origin_offset.x;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("+##offsetx")) {
+    ++grid->origin_offset.x;
+  }
   ImGui::SliderFloat("offsety", &grid->origin_offset.y, -64.f, 64.f, "%.0f");
+  if (ImGui::Button("-##offsety")) {
+    --grid->origin_offset.y;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("+##offsety")) {
+    ++grid->origin_offset.y;
+  }
 }
 
 void EditorRenderCrosshair(v2f point_scaled, const Rectf& view, const v4f& color = rgg::kRed) {

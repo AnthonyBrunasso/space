@@ -31,6 +31,7 @@ public:
   const AnimFrame2d& CurrentFrame();
 
   void AddFrame(const AnimFrame2d& frame, r32 duration_sec);
+  void ReverseFrames();
 
   // Clear all internal data.
   void Clear();
@@ -116,6 +117,10 @@ void AnimSequence2d::AddFrame(const AnimFrame2d& frame, r32 duration_sec) {
   fr.frame = frame;
   fr.duration_sec = duration_sec;
   sequence_frames_.push_back(fr);
+}
+
+void AnimSequence2d::ReverseFrames() {
+  std::reverse(sequence_frames_.begin(), sequence_frames_.end());
 }
 
 const AnimFrame2d& AnimSequence2d::CurrentFrame() {

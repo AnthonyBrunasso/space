@@ -9,8 +9,8 @@ public:
 
   void ChangeScale(r32 delta);
 
-  void SetNextLayer() { current_layer_++; current_layer_ = current_layer_ % map_.GetLayerCount(); }
-  void SetPrevLayer() { current_layer_--; current_layer_ = current_layer_ % map_.GetLayerCount(); }
+  void SetNextLayer();
+  void SetPrevLayer();
 
   const Layer2d& GetCurrentLayer() const { return map_.GetLayer(current_layer_); }
   bool HasLayers() const { return map_.HasLayers(); }
@@ -31,6 +31,7 @@ public:
   void OnFileSelected(const std::string& filename) override;
 
   void SetupRenderTarget();
+  void SaveToFile(const proto::Map2d& map, const char* filename);
   const rgg::Texture* LoadTexture(const char* tname);
   const rgg::Texture* GetTexture() const;
 
@@ -83,8 +84,8 @@ void MapMaker::OnRender() {
     Rectf render_rect;
     render_rect.x = current_layer.Dims().x / -2.f;
     render_rect.y = current_layer.Dims().y / -2.f;
-    render_rect.width = current_layer.Dims().x * scale_;
-    render_rect.height = current_layer.Dims().y * scale_;
+    render_rect.width = current_layer.Dims().x;
+    render_rect.height = current_layer.Dims().y;
     rgg::RenderLineRectangle(Scale(render_rect), kImGuiDebugItemColor);
   }
 }
@@ -95,12 +96,26 @@ void MapMaker::OnImGui() {
 }
 
 void MapMaker::OnFileSelected(const std::string& filename) {
-  kMapMakerControl.OnFileSelected(filename);
+  if (filesystem::HasExtension(filename.c_str(), "map")) {
+    Map2d::LoadFromProtoFile(filename.c_str(), &map_);
+  } else {
+    kMapMakerControl.OnFileSelected(filename);
+  }
 }
 
 void MapMaker::ChangeScale(r32 delta) {
   if (scale_ + delta > 0.f && scale_ + delta <= 15.f)
     scale_ += delta;
+}
+
+void MapMaker::SetNextLayer() {
+  current_layer_++;
+  current_layer_ = current_layer_ % map_.GetLayerCount();
+}
+
+void MapMaker::SetPrevLayer() {
+  current_layer_--;
+  if (current_layer_ < 0) current_layer_ = map_.GetLayerCount() - 1;
 }
 
 void MapMakerControl::OnRender() {
@@ -128,9 +143,7 @@ void MapMakerControl::OnImGui() {
   const rgg::Texture* texture = rgg::GetTexture(texture_id_);
   if (texture) {
     EditorDebugMenuGrid(&grid_);
-    if (selection_.width > 0.f && selection_.height > 0.f) {
-      ImGuiTextRect("selection", selection_);
-    }
+    ImGui::Separator();
     float pre_scale = scale_;
     ImGui::SliderFloat("scale", &scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
     if (scale_ != pre_scale) {
@@ -144,10 +157,12 @@ void MapMakerControl::OnImGui() {
   static char kPngFilename[128];
   static char kFullPath[256];
   ImGui::InputText("file", kPngFilename, 128); 
-  snprintf(kFullPath, 256, "gamedata/%s.png", kPngFilename);
+  snprintf(kFullPath, 256, "gamedata/%s.map", kPngFilename);
   ImGui::Text("%s", kFullPath);
   if (ImGui::Button("Save")) {
-    rgg::SaveSurface(kMapMaker.map_.GetSurface(0), kFullPath);
+    //rgg::SaveSurface(kMapMaker.map_.GetSurface(0), kFullPath);
+    proto::Map2d proto = kMapMaker.map_.ToProto(kPngFilename);
+    SaveToFile(proto, kFullPath);
   }
 
   UpdateImguiPanelRect();
@@ -168,6 +183,19 @@ void MapMakerControl::SetupRenderTarget() {
   if (!texture) return;
   ReleaseSurface();
   Initialize((s32)texture->width * scale_, (s32)texture->height * scale_);
+}
+
+void MapMakerControl::SaveToFile(const proto::Map2d& map, const char* filename) {
+  LOG(INFO, "Saving %s to %s", map.DebugString().c_str(), filename);
+  s32 i = 0;
+  for (const proto::Layer2d& proto_layer : map.layers()) {
+    LOG(INFO, "Saving layer to png: %s", proto_layer.image_file().c_str());
+    const Layer2d& layer = kMapMaker.map_.GetLayer(i++);
+    rgg::SaveSurface(layer.GetSurface(), proto_layer.image_file().c_str());
+  }
+  std::fstream fo(filename, std::ios::binary | std::ios::out);
+  map.SerializeToOstream(&fo);
+  fo.close();
 }
 
 const rgg::Texture* MapMakerControl::LoadTexture(const char* tname) {

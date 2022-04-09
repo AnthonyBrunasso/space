@@ -167,6 +167,13 @@ Surface CreateSurface(GLenum format, uint64_t width, uint64_t height) {
   return surface;
 }
 
+Surface CreateSurfaceFromTexture(const rgg::Texture& texture) {
+  Surface surface;
+  surface.texture = texture;
+  glGenFramebuffers(1, &surface.frame_buffer);
+  return surface;
+}
+
 void DestroySurface(Surface* surface) {
   DestroyTexture2D(&surface->texture);
   glDeleteFramebuffers(1, &surface->frame_buffer);

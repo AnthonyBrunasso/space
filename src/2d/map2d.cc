@@ -1,5 +1,7 @@
 #pragma once
 
+#include "map.pb.h"
+
 // TODO: This is all copy pasta from editor_render_target, seems like maybe should generify it.
 struct Layer2dSurface {
   bool IsValid() const { return render_target.IsValid(); }
@@ -11,6 +13,16 @@ struct Layer2dSurface {
   rgg::Camera camera;
   rgg::Surface render_target;
 };
+
+Layer2dSurface CreateLayer2dWithTexture(v2f dims, const rgg::Texture& texture) {
+  Layer2dSurface surface;
+  surface.camera.position = v3f(0.f, 0.f, 0.f);
+  surface.camera.dir = v3f(0.f, 0.f, -1.f);
+  surface.camera.up = v3f(0.f, 1.f, 0.f);
+  surface.camera.viewport = dims;
+  surface.render_target = rgg::CreateSurfaceFromTexture(texture);
+  return surface;
+}
 
 Layer2dSurface CreateLayer2dSurface(v2f dims) {
   Layer2dSurface surface;
@@ -49,6 +61,7 @@ class Layer2d {
 public:
   // Construct surface.
   void Initialize(const Rectf& world_rect, v4f color = v4f(0.f, 0.f, 0.f, 0.f));
+  void InitializeWithTexture(const Rectf& world_rect, const rgg::Texture& texture);
   void AddTexture(const rgg::Texture* texture, const Rectf& src_rect, const Rectf& dest_rect);
 
   void Render(r32 scale = 1.f);
@@ -71,6 +84,9 @@ public:
   Map2d() = default;
   Map2d(v2f dims, s32 layers_size = 1);
 
+  static Map2d LoadFromProto(const proto::Map2d& proto);
+  static bool LoadFromProtoFile(const char* filename, Map2d* map);
+
   void AddLayer();
   void AddTexture(s32 layer_idx, const rgg::Texture* texture, const Rectf& src_rect, const Rectf& dest_rect);
   void Render(r32 scale = 1.f);
@@ -79,6 +95,8 @@ public:
   // Gets layer_idx's rendering texture
   const rgg::Texture& GetTexture(s32 layer_idx);
   const Layer2d& GetLayer(s32 layer_idx) const;
+  // Need a map name to generate layer asset path names.
+  proto::Map2d ToProto(const char* map_name) const;
 
   bool HasLayers() const { return !layers_.empty(); }
   s32 GetLayerCount() const { return layers_.size(); }
@@ -98,6 +116,11 @@ void Layer2d::Initialize(const Rectf& world_rect, v4f color) {
   //glClearColor(0.f, 0.f, 0.f, 0.f);
   background_color_ = color;
   rgg::RenderRectangle(world_rect_, background_color());
+}
+
+void Layer2d::InitializeWithTexture(const Rectf& world_rect, const rgg::Texture& texture) {
+  world_rect_ = world_rect;
+  surface_ = CreateLayer2dWithTexture(world_rect.Dims(), texture);
 }
 
 void Layer2d::AddTexture(const rgg::Texture* texture, const Rectf& src_rect, const Rectf& dest_rect) {
@@ -147,8 +170,42 @@ Map2d::Map2d(v2f dims, s32 layers_size) {
   for (s32 i = 0; i < layers_size; ++i) AddLayer();
 }
 
+Map2d Map2d::LoadFromProto(const proto::Map2d& proto) {
+  Map2d map;
+  // TODO: Change this, obviously.
+  map.world_rect_ = Rectf(-400.f, -400.f, 800.f, 800.f);
+  rgg::TextureInfo texture_info;
+  texture_info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
+  texture_info.mag_filter = GL_NEAREST;
+  for (const proto::Layer2d proto_layer : proto.layers()) {
+    rgg::TextureId texture_id = rgg::LoadTexture(proto_layer.image_file().c_str(), texture_info);
+    const rgg::Texture* texture = rgg::GetTexture(texture_id);
+    if (!texture) {
+      LOG(ERR, "Cannot load texture file %s... This is probably bad. Check that it exists?",
+          proto_layer.image_file().c_str());
+      continue;
+    }
+    Layer2d layer;
+    // TODO: world_rect should be loaded from file.
+    layer.InitializeWithTexture(map.world_rect_, *texture);
+    map.layers_.push_back(std::move(layer));
+  }
+  return map;
+}
+
+bool Map2d::LoadFromProtoFile(const char* filename, Map2d* map) {
+  proto::Map2d proto;
+  std::fstream inp(filename, std::ios::in | std::ios::binary);
+  if (!proto.ParseFromIstream(&inp)) {
+    return false;
+  }
+  *map = LoadFromProto(proto);
+  return true;
+}
+
 void Map2d::AddLayer() {
   Layer2d layer;
+  // TODO: AddLayer should pass in bounds.
   layer.Initialize(world_rect_);
   layers_.push_back(std::move(layer));
 }
@@ -173,6 +230,26 @@ const rgg::Texture& Map2d::GetTexture(s32 layer_idx) {
 const Layer2d& Map2d::GetLayer(s32 layer_idx) const {
   assert(layer_idx < layers_.size());
   return layers_[layer_idx];
+}
+
+// NOTE: THIS MAKES DIRECTORIES IN ASSET/... Assumption is the caller saves the ncessary layer data.
+proto::Map2d Map2d::ToProto(const char* map_name) const {
+  assert(strlen(map_name) > 0);
+  proto::Map2d map;
+  s32 i = 0;
+  for (const Layer2d& layer : layers_) {
+    proto::Layer2d* proto_layer = map.add_layers();
+    std::string image_file("./asset/maps/" + std::string(map_name) + "/");
+    // Make the directory for the map in asset/{map_name}. Also we save all paths in linuxy format,
+    // with forward slashes. But the path must be sanitized to actually make the directory.
+    filesystem::MakeDirectory(filesystem::SanitizePath(image_file).c_str());
+    // TODO: Is it ok to assume all layers get saved out as pngs?
+    image_file += "layer_" + std::to_string(i++) + ".png";
+    proto_layer->set_image_file(image_file);
+    proto_layer->set_width(layer.Dims().x);
+    proto_layer->set_height(layer.Dims().y);
+  }
+  return map;
 }
 
 void Map2d::Render(r32 scale) {

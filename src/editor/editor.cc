@@ -93,6 +93,20 @@ std::string GetAssetRelative(const std::string& full_path) {
   return GetAssetRelative(full_path.c_str());
 }
 
+static const std::vector<std::string> kEditorKnownAssetExtensions = {
+  "tga",
+  "png",
+  "anim",
+  "map",
+};
+
+bool EditorCanLoadAsset(const std::string& name) {
+  for (const std::string& ext : kEditorKnownAssetExtensions) {
+    if (filesystem::HasExtension(name.c_str(), ext.c_str())) return true;
+  }
+  return false;
+}
+
 #include "callback.cc"
 #include "editor_render_target.cc"
 

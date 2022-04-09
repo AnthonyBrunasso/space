@@ -2,19 +2,6 @@
 
 DEFINE_EDITOR_CALLBACK(AssetBoxSelect, AssetSelection);
 
-static const std::vector<std::string> kEditorKnownAssetExtensions = {
-  "tga",
-  "png",
-  "anim",
-};
-
-bool EditorCanLoadAsset(const std::string& name) {
-  for (const std::string& ext : kEditorKnownAssetExtensions) {
-    if (filesystem::HasExtension(name.c_str(), ext.c_str())) return true;
-  }
-  return false;
-}
-
 class SpriteAnimatorControl : public EditorRenderTarget {
 public:
   SpriteAnimatorControl();

@@ -106,6 +106,7 @@ public:
   // Then scale it if we care about rendering stuff.
   Rectf GetCameraRectScaled();
   Rectf Scale(const Rectf& rect) const;
+  v2f Scale(const v2f& v2) const;
 
   // Run once when render target is created. Initialization resets underlying surface.
   // So don't mess with rendering surfaces here.
@@ -226,6 +227,10 @@ Rectf EditorRenderTarget::Scale(const Rectf& rect) const {
   r.width *= scale_;
   r.height *= scale_;
   return r;
+}
+
+v2f EditorRenderTarget::Scale(const v2f& v2) const {
+  return v2 * scale_;
 }
 
 void EditorRenderTarget::ImGuiImage() {

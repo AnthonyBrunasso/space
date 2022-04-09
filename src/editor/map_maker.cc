@@ -69,11 +69,7 @@ void MapMaker::OnRender() {
       Rectf dest_rect = kMapMaker.cursor().world_grid_cell;
       dest_rect.width = src_rect.width;
       dest_rect.height = src_rect.height;
-      dest_rect.x *= scale_;
-      dest_rect.y *= scale_;
-      dest_rect.width *= scale_;
-      dest_rect.height *= scale_;
-      rgg::RenderTexture(*texture, src_rect, dest_rect);
+      rgg::RenderTexture(*texture, src_rect, Scale(dest_rect));
     }
   }
 
@@ -85,11 +81,11 @@ void MapMaker::OnRender() {
   if (HasLayers()) {
     const Layer2d& current_layer = GetCurrentLayer();
     Rectf render_rect;
-    render_rect.x = (current_layer.Dims().x / -2.f) * scale_;
-    render_rect.y = (current_layer.Dims().y / -2.f) * scale_;
+    render_rect.x = current_layer.Dims().x / -2.f;
+    render_rect.y = current_layer.Dims().y / -2.f;
     render_rect.width = current_layer.Dims().x * scale_;
     render_rect.height = current_layer.Dims().y * scale_;
-    rgg::RenderLineRectangle(render_rect, kImGuiDebugItemColor);
+    rgg::RenderLineRectangle(Scale(render_rect), kImGuiDebugItemColor);
   }
 }
 

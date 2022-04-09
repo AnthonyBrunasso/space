@@ -38,6 +38,12 @@ std::string Filename(const std::string& fullname) {
   return Filename(fullname.c_str());
 }
 
+std::string Basename(const char* fullname) {
+  std::string f = Filename(fullname);
+  size_t lastindex = f.find_last_of(".");
+  return f.substr(0, lastindex);
+}
+
 std::string JoinPath(const char* s1, const char* s2);
 
 std::string JoinPath(const char* s1, const std::string& s2) {

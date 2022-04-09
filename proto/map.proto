@@ -1,0 +1,14 @@
+syntax = "proto2";
+
+package proto;
+
+message Layer2d {
+  optional string image_file = 1;
+  optional float width = 2;
+  optional float height = 3;
+}
+
+message Map2d {
+  // Maps get saved out as multiple layers of images, this contains them in order.
+  repeated Layer2d layers = 1;
+};

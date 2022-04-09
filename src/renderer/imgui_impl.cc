@@ -3,6 +3,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static v4f kImGuiDebugItemColor = {0.564f, 0.917f, 0.894f, 1.f};
+
+#define IMGUI_COLOR(color)                                                     \
+  (IM_COL32((s32)roundf(color.x * 255.f),(s32)roundf(color.y * 255.f),         \
+            (s32)roundf(color.z * 255.f), (s32)roundf(color.w * 255.f)))
+
 static b8 ImGuiImplInitForOpenGL() {
   GLint major, minor;
   glGetIntegerv(GL_MAJOR_VERSION, &major);
@@ -114,7 +120,7 @@ static bool ImGuiImplProcessEvent(const PlatformEvent& event) {
 static void ImGuiRenderLastItemBoundingBox() {
   ImVec2 min = ImGui::GetItemRectMin();
   ImVec2 max = ImGui::GetItemRectMax();
-  ImGui::GetForegroundDrawList()->AddRect( min, max, IM_COL32( 255, 255, 0, 255 ) );
+  ImGui::GetForegroundDrawList()->AddRect(min, max, IMGUI_COLOR(kImGuiDebugItemColor));
 }
 
 static void ImGuiTextRect(const char* text, const Rectf& rect) {

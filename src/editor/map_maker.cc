@@ -12,6 +12,8 @@ public:
   void SetNextLayer() { current_layer_++; current_layer_ = current_layer_ % map_.GetLayerCount(); }
   void SetPrevLayer() { current_layer_--; current_layer_ = current_layer_ % map_.GetLayerCount(); }
 
+  const Layer2d& GetCurrentLayer() const { return map_.GetLayer(current_layer_); }
+  bool HasLayers() const { return map_.HasLayers(); }
   s32 current_layer() const { return current_layer_; }
 
   Map2d map_;
@@ -45,7 +47,7 @@ static MapMakerControl kMapMakerControl;
 
 void MapMaker::OnInitialize() {
   // TODO: Probably need this to be specified in editor?
-  map_ = Map2d(GetRenderTargetDims());
+  map_ = Map2d(v2f(800.f, 800.f));
 }
 
 void MapMaker::OnRender() {
@@ -78,6 +80,16 @@ void MapMaker::OnRender() {
   if (render_grid_) {
     RenderGrid(v4f(1.f, 1.f, 1.f, 0.2f));
     RenderAxis();
+  }
+
+  if (HasLayers()) {
+    const Layer2d& current_layer = GetCurrentLayer();
+    Rectf render_rect;
+    render_rect.x = (current_layer.Dims().x / -2.f) * scale_;
+    render_rect.y = (current_layer.Dims().y / -2.f) * scale_;
+    render_rect.width = current_layer.Dims().x * scale_;
+    render_rect.height = current_layer.Dims().y * scale_;
+    rgg::RenderLineRectangle(render_rect, kImGuiDebugItemColor);
   }
 }
 
@@ -274,11 +286,13 @@ void EditorMapMakerMain() {
 
 void EditorMapMakerDebug() {
   ImGui::Checkbox("render grid", &kMapMaker.render_grid_);
-  if (kMapMaker.map_.HasLayers()) {
+  if (kMapMaker.HasLayers()) {
+    const Layer2d& layer = kMapMaker.GetCurrentLayer();
     ImGui::Text("Layer %i / %i", kMapMaker.current_layer() + 1, kMapMaker.map_.GetLayerCount());
     const rgg::Texture& texture = kMapMaker.map_.GetTexture(kMapMaker.current_layer());
     ImGui::Image((void*)(intptr_t)texture.reference, ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0));
     ImGuiRenderLastItemBoundingBox();
+    ImGui::Text("%.0fx%.0f", layer.Dims().x, layer.Dims().y);
   }
   if (ImGui::Button("<")) {
     kMapMaker.SetPrevLayer();

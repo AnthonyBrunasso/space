@@ -57,6 +57,7 @@ public:
 
   std::vector<Frame> anim_frames_;
   Rectf anim_frames_imgui_rect;
+  char anim_filename_[128];
   bool is_running_ = true;
 };
 
@@ -157,13 +158,21 @@ void SpriteAnimator::OnFileSelected(const std::string& filename) {
       LOG(WARN, "Unable to load anim data %s", filename.c_str());
     } else {
       assert(!loaded_sequence.IsEmpty());
-      v2f scaled_dims = loaded_sequence.sequence_frames_[0].frame.src_rect().Dims() * kSpriteAnimator.scale_;
+      r32 max_width = 0.f;
+      r32 max_height = 0.f;
+      for (const AnimSequence2d::SequenceFrame& sequence : loaded_sequence.sequence_frames_) {
+        if (sequence.frame.src_rect().width > max_width) max_width = sequence.frame.src_rect().width;
+        if (sequence.frame.src_rect().height > max_height) max_height = sequence.frame.src_rect().height;
+      }
+      v2f scaled_dims = v2f(max_width, max_height) * kSpriteAnimator.scale_;
       kSpriteAnimatorControl.Initialize(scaled_dims.x, scaled_dims.y);
       for (const AnimSequence2d::SequenceFrame& sequence_frame : loaded_sequence.sequence_frames_) {
         kSpriteAnimatorControl.AddFrame(sequence_frame.frame, scaled_dims, sequence_frame.duration_sec);
       }
       texture_id_ = kSpriteAnimatorControl.anim_sequence_.sequence_frames_[0].frame.texture_id_;
       kSpriteAnimatorControl.anim_sequence_.Start();
+      std::string end_name = filesystem::Basename(filename.c_str());
+      strncpy(kSpriteAnimatorControl.anim_filename_, end_name.c_str(), end_name.size());
     }
   } else {
     LoadTexture(filename.c_str());
@@ -240,6 +249,7 @@ void SpriteAnimatorControl::Clear() {
     DestroyEditorSurface(&frame.editor_surface);
   }
   anim_frames_.clear();
+  memset(anim_filename_, 0, 128);
 }
 
 void SpriteAnimatorControl::AddTimeToSequence(r32 time_sec) {
@@ -280,10 +290,9 @@ void SpriteAnimatorControl::OnImGui() {
     }
   }
   ImGui::Separator();
-  static char kAnimFilename[128];
   static char kFullPath[256];
-  ImGui::InputText("file", kAnimFilename, 128); 
-  snprintf(kFullPath, 256, "gamedata/%s.anim", kAnimFilename);
+  ImGui::InputText("file", anim_filename_, 128); 
+  snprintf(kFullPath, 256, "gamedata/%s.anim", anim_filename_);
   ImGui::Text("%s", kFullPath);
   if (ImGui::Button("save")) {
     proto::Animation2d proto = anim_sequence_.ToProto();
@@ -300,7 +309,6 @@ void SpriteAnimatorControl::OnImGui() {
   }
   ImGui::SameLine();
   if (ImGui::Button("clear")) {
-    memset(kAnimFilename, 0, 128);
     Clear();
   }
   

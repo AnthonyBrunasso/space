@@ -58,6 +58,8 @@ public:
   v4f background_color() const;
   const rgg::Surface& GetSurface() const;
   const rgg::Texture& GetTexture() const;
+
+  v2f Dims() const { return surface_.Dims(); }
   
   Layer2dSurface surface_;
   v4f background_color_;
@@ -76,6 +78,7 @@ public:
   const rgg::Surface& GetSurface(s32 layer_idx) const;
   // Gets layer_idx's rendering texture
   const rgg::Texture& GetTexture(s32 layer_idx);
+  const Layer2d& GetLayer(s32 layer_idx) const;
 
   bool HasLayers() const { return !layers_.empty(); }
   s32 GetLayerCount() const { return layers_.size(); }
@@ -167,7 +170,10 @@ const rgg::Texture& Map2d::GetTexture(s32 layer_idx) {
   return layers_[layer_idx].GetTexture();
 }
 
-
+const Layer2d& Map2d::GetLayer(s32 layer_idx) const {
+  assert(layer_idx < layers_.size());
+  return layers_[layer_idx];
+}
 
 void Map2d::Render(r32 scale) {
   for (s32 i = 0; i < layers_.size(); ++i) {

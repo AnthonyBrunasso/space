@@ -61,7 +61,7 @@ class Layer2d {
 public:
   // Construct surface.
   void Initialize(const Rectf& world_rect, v4f color = v4f(0.f, 0.f, 0.f, 0.f));
-  void InitializeWithTexture(const Rectf& world_rect, const rgg::Texture& texture);
+  void InitializeWithTexture(const rgg::Texture& texture);
   void AddTexture(const rgg::Texture* texture, const Rectf& src_rect, const Rectf& dest_rect);
 
   void Render(r32 scale = 1.f);
@@ -118,9 +118,12 @@ void Layer2d::Initialize(const Rectf& world_rect, v4f color) {
   rgg::RenderRectangle(world_rect_, background_color());
 }
 
-void Layer2d::InitializeWithTexture(const Rectf& world_rect, const rgg::Texture& texture) {
-  world_rect_ = world_rect;
-  surface_ = CreateLayer2dWithTexture(world_rect.Dims(), texture);
+void Layer2d::InitializeWithTexture(const rgg::Texture& texture) {
+  world_rect_.x = texture.width / -2.f;
+  world_rect_.y = texture.height / -2.f;
+  world_rect_.width = texture.width;
+  world_rect_.height = texture.height;
+  surface_ = CreateLayer2dWithTexture(world_rect_.Dims(), texture);
 }
 
 void Layer2d::AddTexture(const rgg::Texture* texture, const Rectf& src_rect, const Rectf& dest_rect) {
@@ -167,7 +170,7 @@ Map2d::Map2d(v2f dims, s32 layers_size) {
   world_rect_.y = -dims.y / 2.f;
   world_rect_.width = dims.x;
   world_rect_.height = dims.y;
-  for (s32 i = 0; i < layers_size; ++i) AddLayer(world_rect_);
+  //for (s32 i = 0; i < layers_size; ++i) AddLayer(world_rect_);
 }
 
 Map2d Map2d::LoadFromProto(const proto::Map2d& proto) {
@@ -186,7 +189,7 @@ Map2d Map2d::LoadFromProto(const proto::Map2d& proto) {
     }
     Layer2d layer;
     // TODO: world_rect should be loaded from file.
-    layer.InitializeWithTexture(map.world_rect_, texture);
+    layer.InitializeWithTexture(texture);
     map.layers_.push_back(std::move(layer));
   }
   return map;

@@ -178,16 +178,15 @@ Map2d Map2d::LoadFromProto(const proto::Map2d& proto) {
   texture_info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
   texture_info.mag_filter = GL_NEAREST;
   for (const proto::Layer2d proto_layer : proto.layers()) {
-    rgg::TextureId texture_id = rgg::LoadTexture(proto_layer.image_file().c_str(), texture_info);
-    const rgg::Texture* texture = rgg::GetTexture(texture_id);
-    if (!texture) {
+    rgg::Texture texture;
+    if (!rgg::LoadFromFile(proto_layer.image_file().c_str(), texture_info, &texture)) {
       LOG(ERR, "Cannot load texture file %s... This is probably bad. Check that it exists?",
           proto_layer.image_file().c_str());
       continue;
     }
     Layer2d layer;
     // TODO: world_rect should be loaded from file.
-    layer.InitializeWithTexture(map.world_rect_, *texture);
+    layer.InitializeWithTexture(map.world_rect_, texture);
     map.layers_.push_back(std::move(layer));
   }
   return map;

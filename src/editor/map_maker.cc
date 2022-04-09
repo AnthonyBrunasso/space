@@ -159,7 +159,7 @@ void MapMakerControl::OnImGui() {
   ImGui::InputText("file", kPngFilename, 128); 
   snprintf(kFullPath, 256, "gamedata/%s.map", kPngFilename);
   ImGui::Text("%s", kFullPath);
-  if (ImGui::Button("Save")) {
+  if (ImGui::Button("save")) {
     //rgg::SaveSurface(kMapMaker.map_.GetSurface(0), kFullPath);
     proto::Map2d proto = kMapMaker.map_.ToProto(kPngFilename);
     SaveToFile(proto, kFullPath);
@@ -312,7 +312,7 @@ void EditorMapMakerDebug() {
   ImGui::Checkbox("render grid", &kMapMaker.render_grid_);
   if (kMapMaker.HasLayers()) {
     const Layer2d& layer = kMapMaker.GetCurrentLayer();
-    ImGui::Text("Layer %i / %i", kMapMaker.current_layer() + 1, kMapMaker.map_.GetLayerCount());
+    ImGui::Text("layer %i / %i", kMapMaker.current_layer() + 1, kMapMaker.map_.GetLayerCount());
     const rgg::Texture& texture = kMapMaker.map_.GetTexture(kMapMaker.current_layer());
     ImGui::Image((void*)(intptr_t)texture.reference, ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0));
     ImGuiRenderLastItemBoundingBox();
@@ -326,10 +326,35 @@ void EditorMapMakerDebug() {
     kMapMaker.SetNextLayer();
   }
   ImGui::SameLine();
+  static bool kAddLayer = false;
   if (ImGui::Button("+")) {
-    kMapMaker.map_.AddLayer();
+    kAddLayer = true;
   }
-  
+  if (kAddLayer) {
+    ImGui::Begin("Create Layer");
+    static char kWidth[64];
+    static char kHeight[64];
+    ImGui::InputText("width", kWidth, 128); 
+    ImGui::InputText("height", kHeight, 128); 
+    if (ImGui::Button("add")) {
+      r32 width = atof(kWidth);
+      r32 height = atof(kHeight);
+      assert(width > 0.f);
+      assert(height > 0.f);
+      Rectf new_layer_rect;
+      new_layer_rect.x = -width / 2.f;
+      new_layer_rect.y = -height / 2.f;
+      new_layer_rect.width = width;
+      new_layer_rect.height = height;
+      kMapMaker.map_.AddLayer(new_layer_rect);
+      kAddLayer = false;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("cancel")) {
+      kAddLayer = false;
+    }
+    ImGui::End();
+  }
 }
 
 rgg::Camera* EditorMapMakerCamera() {

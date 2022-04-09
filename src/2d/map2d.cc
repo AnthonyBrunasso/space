@@ -87,7 +87,7 @@ public:
   static Map2d LoadFromProto(const proto::Map2d& proto);
   static bool LoadFromProtoFile(const char* filename, Map2d* map);
 
-  void AddLayer();
+  void AddLayer(const Rectf& world_rect);
   void AddTexture(s32 layer_idx, const rgg::Texture* texture, const Rectf& src_rect, const Rectf& dest_rect);
   void Render(r32 scale = 1.f);
 
@@ -167,7 +167,7 @@ Map2d::Map2d(v2f dims, s32 layers_size) {
   world_rect_.y = -dims.y / 2.f;
   world_rect_.width = dims.x;
   world_rect_.height = dims.y;
-  for (s32 i = 0; i < layers_size; ++i) AddLayer();
+  for (s32 i = 0; i < layers_size; ++i) AddLayer(world_rect_);
 }
 
 Map2d Map2d::LoadFromProto(const proto::Map2d& proto) {
@@ -202,10 +202,10 @@ bool Map2d::LoadFromProtoFile(const char* filename, Map2d* map) {
   return true;
 }
 
-void Map2d::AddLayer() {
+void Map2d::AddLayer(const Rectf& world_rect) {
   Layer2d layer;
   // TODO: AddLayer should pass in bounds.
-  layer.Initialize(world_rect_);
+  layer.Initialize(world_rect);
   layers_.push_back(std::move(layer));
 }
 

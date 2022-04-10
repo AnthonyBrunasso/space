@@ -418,3 +418,7 @@ void EditorMapMakerDebug() {
   }
   ImGui::SameLine();
 }
+
+void EditorMapMakerFileBrowser() {
+  EditorFileBrowserDefault();
+}

@@ -588,3 +588,7 @@ void EditorSpriteAnimatorDebug() {
   ImGui::NewLine();
   EditorDebugMenuGrid(kSpriteAnimator.grid());
 }
+
+void EditorSpriteAnimatorFileBrowser() {
+  EditorFileBrowserDefault();
+}

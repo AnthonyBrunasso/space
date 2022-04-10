@@ -48,3 +48,7 @@ void EditorEntityCreatorMain() {
 void EditorEntityCreatorDebug() {
   EditorDebugMenuGrid(kEntityCreator.grid());
 }
+
+void EditorEntityCreatorFileBrowser() {
+  EditorFileBrowserDefault();
+}

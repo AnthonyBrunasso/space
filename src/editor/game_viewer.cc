@@ -18,3 +18,7 @@ rgg::Camera* EditorGameViewerCamera() {
 r32 EditorGameViewerScale() {
   return 1.f;
 }
+
+void EditorGameViewerFileBrowser() {
+  EditorFileBrowserDefault();
+}

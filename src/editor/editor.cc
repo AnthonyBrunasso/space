@@ -231,58 +231,6 @@ void EditorSetCurrent(EditorRenderTarget* render_target) {
   kEditor.current = render_target;
 }
 
-#include "sprite_animator.cc"
-#include "game_viewer.cc"
-#include "map_maker.cc"
-#include "entity_creator.cc"
-
-r32 EditorViewportCurrentScale() {
-  if (kEditor.current) return kEditor.current->scale_;
-  return 1.f;
-}
-
-Rectf SpriteAnimatorSelection::WorldRectScaled() const {
-  r32 scale = EditorViewportCurrentScale();
-  return math::OrientToAabb(math::MakeRect(start_world * scale, end_world * scale));
-}
-
-rgg::Camera* EditorViewportCurrentCamera() {
-  if (kEditor.current) return kEditor.current->camera();
-  return nullptr;
-}
-
-void EditorProcessEvent(const PlatformEvent& event) {
-  switch (kEditor.mode) {
-    case EDITOR_MODE_GAME: {
-      EditorGameViewerProcessEvent(event);
-    } break;
-    case EDITOR_MODE_SPRITE_ANIMATOR: {
-      EditorSpriteAnimatorProcessEvent(event);
-    } break;
-    case EDITOR_MODE_MAP_MAKER: {
-      EditorMapMakerProcessEvent(event);
-    } break;
-    case EDITOR_MODE_ENTITY_CREATOR: {
-      EditorEntityCreatorProcessEvent(event);
-    } break;
-  }
-
-  switch(event.type) {
-    case KEY_DOWN: {
-      switch (event.key) {
-        case KEY_ESC: {
-          EditorExit();
-        } break;
-      }
-    } break;
-    case KEY_UP:
-    case MOUSE_UP:
-    case MOUSE_WHEEL:
-    case NOT_IMPLEMENTED:
-    default: break;
-  }
-}
-
 bool EditorShouldIgnoreFile(const char* filename) {
   s32 len = (s32)strlen(filename);
   if (filename[0] == '.') return true;
@@ -336,7 +284,7 @@ void EditorFilesFrom(const char* dir) {
   }
 }
 
-void EditorFileBrowser() {
+void EditorFileBrowserDefault() {
   ImGuiWindowFlags window_flags = 0;
   window_flags |= ImGuiWindowFlags_NoCollapse;
   window_flags |= ImGuiWindowFlags_NoTitleBar;
@@ -353,6 +301,75 @@ void EditorFileBrowser() {
 #endif
   EditorFilesFrom(dir);
   ImGui::End();
+}
+
+#include "sprite_animator.cc"
+#include "game_viewer.cc"
+#include "map_maker.cc"
+#include "entity_creator.cc"
+
+r32 EditorViewportCurrentScale() {
+  if (kEditor.current) return kEditor.current->scale_;
+  return 1.f;
+}
+
+Rectf SpriteAnimatorSelection::WorldRectScaled() const {
+  r32 scale = EditorViewportCurrentScale();
+  return math::OrientToAabb(math::MakeRect(start_world * scale, end_world * scale));
+}
+
+rgg::Camera* EditorViewportCurrentCamera() {
+  if (kEditor.current) return kEditor.current->camera();
+  return nullptr;
+}
+
+void EditorProcessEvent(const PlatformEvent& event) {
+  switch (kEditor.mode) {
+    case EDITOR_MODE_GAME: {
+      EditorGameViewerProcessEvent(event);
+    } break;
+    case EDITOR_MODE_SPRITE_ANIMATOR: {
+      EditorSpriteAnimatorProcessEvent(event);
+    } break;
+    case EDITOR_MODE_MAP_MAKER: {
+      EditorMapMakerProcessEvent(event);
+    } break;
+    case EDITOR_MODE_ENTITY_CREATOR: {
+      EditorEntityCreatorProcessEvent(event);
+    } break;
+  }
+
+  switch(event.type) {
+    case KEY_DOWN: {
+      switch (event.key) {
+        case KEY_ESC: {
+          EditorExit();
+        } break;
+      }
+    } break;
+    case KEY_UP:
+    case MOUSE_UP:
+    case MOUSE_WHEEL:
+    case NOT_IMPLEMENTED:
+    default: break;
+  }
+}
+
+void EditorFileBrowser() {
+  switch (kEditor.mode) {
+    case EDITOR_MODE_GAME: {
+      EditorGameViewerFileBrowser();
+    } break;
+    case EDITOR_MODE_SPRITE_ANIMATOR: {
+      EditorSpriteAnimatorFileBrowser();
+    } break;
+    case EDITOR_MODE_MAP_MAKER: {
+      EditorMapMakerFileBrowser();
+    } break;
+    case EDITOR_MODE_ENTITY_CREATOR: {
+      EditorEntityCreatorFileBrowser();
+    } break;
+  }
 }
 
 

@@ -332,9 +332,6 @@ void EditorFilesFrom(const char* dir) {
     std::string filename = filesystem::Filename(file.c_str());
     if (EditorCanLoadAsset(file)) {
       if (ImGui::Selectable(filename.c_str(), &kChosen)) {
-        // TODO: This assumes all assets are in asset/ with no subdir.
-        //kSpriteAnimator.chosen_asset_path_ = GetAssetRelative(file);
-        //LOG(INFO, "Chose asset %s", kSpriteAnimator.chosen_asset_path_.c_str());
         if (kEditor.current) {
           kEditor.current->OnFileSelected(GetAssetRelative(file));
         }

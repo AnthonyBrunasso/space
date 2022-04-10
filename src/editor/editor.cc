@@ -8,17 +8,19 @@ enum EditorMode {
   EDITOR_MODE_GAME = 0,
   EDITOR_MODE_SPRITE_ANIMATOR = 1,
   EDITOR_MODE_MAP_MAKER = 2,
+  EDITOR_MODE_ENTITY_CREATOR = 3,
 };
 
-static const s32 kViewportTabCount = 3;
+static const s32 kViewportTabCount = 4;
 
 static const char* kViewportTabs[kViewportTabCount] = {
   "Game",
   "Animator",
   "Map Maker",
+  "Entity Creator",
 };
 
-static bool kOpened[kViewportTabCount] = { true, true, true };
+static bool kOpened[kViewportTabCount] = { true, true, true, true };
 
 class EditorRenderTarget;
 
@@ -232,6 +234,7 @@ void EditorSetCurrent(EditorRenderTarget* render_target) {
 #include "sprite_animator.cc"
 #include "game_viewer.cc"
 #include "map_maker.cc"
+#include "entity_creator.cc"
 
 r32 EditorViewportCurrentScale() {
   if (kEditor.current) return kEditor.current->scale_;
@@ -258,6 +261,9 @@ void EditorProcessEvent(const PlatformEvent& event) {
     } break;
     case EDITOR_MODE_MAP_MAKER: {
       EditorMapMakerProcessEvent(event);
+    } break;
+    case EDITOR_MODE_ENTITY_CREATOR: {
+      EditorEntityCreatorProcessEvent(event);
     } break;
   }
 
@@ -391,6 +397,9 @@ void EditorDebugMenu() {
             case EDITOR_MODE_MAP_MAKER: {
               EditorMapMakerDebug();
             } break;
+            case EDITOR_MODE_ENTITY_CREATOR: {
+              EditorEntityCreatorDebug();
+            } break;
           }
         }
         else if (i == 1) {
@@ -484,6 +493,9 @@ void EditorRenderViewport() {
         } else if (i == 2) {
           EditorMapMakerMain();
           kEditor.mode = EDITOR_MODE_MAP_MAKER;
+        } else if (i == 3) {
+          EditorEntityCreatorMain();
+          kEditor.mode = EDITOR_MODE_ENTITY_CREATOR;
         }
         ImGui::EndTabItem();
       }

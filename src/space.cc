@@ -42,7 +42,7 @@ s32 main(s32 argc, char** argv) {
     return 1;
   }
 
-  bool show_demo_window = true;
+  bool show_demo_window = false;
 
   while (1) {
     platform::ClockStart(&kEditor.clock);

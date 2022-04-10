@@ -400,6 +400,7 @@ void EditorMapMakerMain() {
 void EditorMapMakerDebug() {
   ImGui::Checkbox("render grid", &kMapMaker.render_grid_);
   ImGui::Checkbox("render bounds", &kMapMaker.render_bounds_);
+  EditorDebugMenuGrid(kMapMaker.grid());
   if (kMapMaker.HasLayers()) {
     const Layer2d& layer = kMapMaker.GetCurrentLayer();
     ImGui::Text("layer %i / %i", kMapMaker.current_layer() + 1, kMapMaker.map_.GetLayerCount());
@@ -416,12 +417,4 @@ void EditorMapMakerDebug() {
     kMapMaker.SetNextLayer();
   }
   ImGui::SameLine();
-}
-
-rgg::Camera* EditorMapMakerCamera() {
-  return nullptr;
-}
-
-r32 EditorMapMakerScale() {
-  return 1.f;
 }

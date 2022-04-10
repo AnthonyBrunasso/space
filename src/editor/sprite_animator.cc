@@ -440,10 +440,6 @@ v2f EditorSpriteAnimatorCursorWorld() {
   return EditorSpriteAnimatorCursor().world;
 }
 
-rgg::Camera* EditorSpriteAnimatorCamera() {
-  return kSpriteAnimator.camera();
-}
-
 void ProcessSelectionForClampedCursor(const rgg::Texture* texture) {
   if (kSpriteAnimatorSelection.action == 2) {
     kSpriteAnimatorSelection = {};
@@ -505,28 +501,28 @@ void EditorSpriteAnimatorProcessEvent(const PlatformEvent& event) {
       switch (event.key) {
         case KEY_NUMPAD_UP:
         case KEY_ARROW_UP: {
-          rgg::Camera* camera = EditorSpriteAnimatorCamera();
+          rgg::Camera* camera = kSpriteAnimator.camera();
           if (camera) {
             camera->position += v2f(0.f, ScaleR32(16.f));
           }
         } break;
         case KEY_NUMPAD_RIGHT:
         case KEY_ARROW_RIGHT: {
-          rgg::Camera* camera = EditorSpriteAnimatorCamera();
+          rgg::Camera* camera = kSpriteAnimator.camera();
           if (camera) {
             camera->position += v2f(ScaleR32(16.f), 0.f);
           }
         } break;
         case KEY_NUMPAD_DOWN:
         case KEY_ARROW_DOWN: {
-          rgg::Camera* camera = EditorSpriteAnimatorCamera();
+          rgg::Camera* camera = kSpriteAnimator.camera();
           if (camera) {
             camera->position += v2f(0.f, ScaleR32(-16.f));
           }
         } break;
         case KEY_NUMPAD_LEFT:
         case KEY_ARROW_LEFT: {
-          rgg::Camera* camera = EditorSpriteAnimatorCamera();
+          rgg::Camera* camera = kSpriteAnimator.camera();
           if (camera) {
             camera->position += v2f(ScaleR32(-16.f), 0.f);
           }
@@ -591,8 +587,4 @@ void EditorSpriteAnimatorDebug() {
   ImGui::Checkbox("render crosshair", &kSpriteAnimator.show_crosshair_);
   ImGui::NewLine();
   EditorDebugMenuGrid(kSpriteAnimator.grid());
-}
-
-r32 EditorSpriteAnimatorScale() {
-  return kSpriteAnimator.scale_;
 }

@@ -7,9 +7,18 @@ message Layer2d {
   // NOTE: Are these redundant? Do we always need to save images? If so they come with pixel values...
   optional float width = 2;
   optional float height = 3;
-}
+};
+
+message MapGeometry2d {
+  optional float rect_x = 1;
+  optional float rect_y = 2;
+  optional float rect_width = 3;
+  optional float rect_height = 4;
+};
 
 message Map2d {
   // Maps get saved out as multiple layers of images, this contains them in order.
   repeated Layer2d layers = 1;
+  // This represents collision bounds.
+  repeated MapGeometry2d geometry = 2;
 };

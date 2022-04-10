@@ -92,7 +92,9 @@ public:
 
   void AddLayer(const Rectf& world_rect);
   void AddTexture(s32 layer_idx, const rgg::Texture* texture, const Rectf& src_rect, const Rectf& dest_rect);
+  void AddGeometry(const Rectf& world_rect);
   void Render(r32 scale = 1.f);
+  void RenderCollisionGeometry(r32 scale = 1.f);
 
   const rgg::Surface& GetSurface(s32 layer_idx) const;
   // Gets layer_idx's rendering texture
@@ -105,6 +107,7 @@ public:
   s32 GetLayerCount() const { return layers_.size(); }
 
   std::vector<Layer2d> layers_;
+  std::vector<Rectf> collision_rects_;
 };
 
 void Layer2d::Clear() {
@@ -186,6 +189,14 @@ Map2d Map2d::LoadFromProto(const proto::Map2d& proto) {
     layer.InitializeWithTexture(texture);
     map.layers_.push_back(std::move(layer));
   }
+  for (const proto::MapGeometry2d& proto_geom : proto.geometry()) {
+    Rectf rect;
+    rect.x = proto_geom.rect_x();
+    rect.y = proto_geom.rect_y();
+    rect.width = proto_geom.rect_width();
+    rect.height = proto_geom.rect_height();
+    map.collision_rects_.push_back(rect);
+  }
   return map;
 }
 
@@ -204,6 +215,7 @@ void Map2d::Clear() {
     layer.Clear();
   }
   layers_.clear();
+  collision_rects_.clear();
 }
 
 void Map2d::AddLayer(const Rectf& world_rect) {
@@ -217,6 +229,10 @@ void Map2d::AddTexture(s32 layer_idx, const rgg::Texture* texture, const Rectf& 
   assert(layer_idx < layers_.size());
   Layer2d* layer = &layers_[layer_idx];
   layer->AddTexture(texture, src_rect, dest_rect);
+}
+
+void Map2d::AddGeometry(const Rectf& world_rect) {
+  collision_rects_.push_back(world_rect);
 }
 
 const rgg::Surface& Map2d::GetSurface(s32 layer_idx) const {
@@ -252,11 +268,29 @@ proto::Map2d Map2d::ToProto(const char* map_name) const {
     proto_layer->set_width(layer.Dims().x);
     proto_layer->set_height(layer.Dims().y);
   }
+  for (const Rectf& rect : collision_rects_) {
+    proto::MapGeometry2d* geom = map.add_geometry();
+    geom->set_rect_x(rect.x);
+    geom->set_rect_y(rect.y);
+    geom->set_rect_width(rect.width);
+    geom->set_rect_height(rect.height);
+  }
   return map;
 }
 
 void Map2d::Render(r32 scale) {
   for (s32 i = 0; i < layers_.size(); ++i) {
     layers_[i].Render(scale);
+  }
+}
+
+void Map2d::RenderCollisionGeometry(r32 scale) {
+  for (const Rectf& rect : collision_rects_) {
+    Rectf scaled_rect(rect);
+    scaled_rect.x *= scale; 
+    scaled_rect.y *= scale; 
+    scaled_rect.width *= scale; 
+    scaled_rect.height *= scale; 
+    rgg::RenderLineRectangle(scaled_rect, rgg::kRed);
   }
 }

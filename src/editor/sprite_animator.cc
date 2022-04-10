@@ -582,9 +582,9 @@ void EditorSpriteAnimatorDebug() {
     ImGui::NewLine();
   }
   static const char* kCursorModesStr[] = {
-    "None",
-    "Clamp Grid Edge",
-    "Use Grid Cell",
+    "none",
+    "clamp grid edge",
+    "use grid cell",
   };
   ImGui::Combo("cursor", (s32*)&kSpriteAnimator.cursor_mode_, kCursorModesStr, 3);
   ImGui::SliderFloat("scale", &kSpriteAnimator.scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);

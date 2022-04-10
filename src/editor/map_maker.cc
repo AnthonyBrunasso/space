@@ -41,6 +41,15 @@ public:
 
   Rectf selection() const { return selection_; }
 
+  enum Mode {
+    kMapMakerModeArt = 0,
+    kMapMakerModeGeometry = 1, 
+    kMapMakerModeCount = 2,
+  };
+
+  Mode mode() const { return mode_; }
+
+  Mode mode_;
   rgg::TextureId texture_id_;
   Rectf selection_;
 };
@@ -59,8 +68,10 @@ void MapMaker::OnRender() {
   rgg::RenderRectangle(GetCameraRectScaled(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
 
   map_.Render(scale_);
+  map_.RenderCollisionGeometry(scale_);
 
-  if (kMapMakerControl.HasSelection()) {
+  if (kMapMakerControl.HasSelection() &&
+      kMapMakerControl.mode() == MapMakerControl::kMapMakerModeArt) {
     rgg::TextureId texture_id = kMapMakerControl.texture_id_;
     const rgg::Texture* texture = rgg::GetTexture(texture_id);
     if (texture) {
@@ -75,6 +86,10 @@ void MapMaker::OnRender() {
   if (render_grid_) {
     RenderGrid(v4f(1.f, 1.f, 1.f, 0.2f));
     RenderAxis();
+  }
+
+  if (kMapMakerControl.mode() == MapMakerControl::kMapMakerModeGeometry) {
+    rgg::RenderLineRectangle(Scale(kMapMaker.cursor().world_grid_cell), rgg::kRed);
   }
 
   if (render_bounds_ && HasLayers()) {
@@ -156,6 +171,23 @@ void MapMakerControl::OnImGui() {
     if (scale_ != pre_scale) {
       SetupRenderTarget();
     }
+  }
+  static const char* kMapMakerControlStr[] = {
+    "art",
+    "geometry"
+  };
+  if (ImGui::Button("<##mode")) {
+    kMapMakerControl.mode_ = (Mode)((s32)kMapMakerControl.mode_ - 1);
+    if (kMapMakerControl.mode_ < 0) kMapMakerControl.mode_ = (Mode)((s32)kMapMakerModeCount - 1);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(">##mode")) {
+    kMapMakerControl.mode_ = (Mode)((s32)kMapMakerControl.mode_ + 1);
+    if (kMapMakerControl.mode_ >= kMapMakerModeCount) kMapMakerControl.mode_ = (Mode)0;
+  }
+  ImGui::SameLine();
+  ImGui::Combo("mode", (s32*)&kMapMakerControl.mode_, kMapMakerControlStr, 2);
+  if (texture) {
     if (ImGui::Button("select all")) {
       SetSelectionRect(texture->Rect());
     }
@@ -276,7 +308,8 @@ void EditorMapMakerProcessEvent(const PlatformEvent& event) {
           }
 
           if (kMapMaker.IsMouseInsideEditorSurface() && !kMapMakerControl.IsMouseInside()) {
-            if (kMapMakerControl.HasSelection()) {
+            if (kMapMakerControl.HasSelection() &&
+                kMapMakerControl.mode() == MapMakerControl::kMapMakerModeArt) {
               const rgg::Texture* texture = rgg::GetTexture(kMapMakerControl.texture_id_);
               assert(texture);
               Rectf src_rect = kMapMakerControl.selection();
@@ -284,6 +317,11 @@ void EditorMapMakerProcessEvent(const PlatformEvent& event) {
               dest_rect.width = src_rect.width;
               dest_rect.height = src_rect.height;
               kMapMaker.map_.AddTexture(kMapMaker.current_layer(), texture, src_rect, dest_rect);
+            }
+
+            if (kMapMakerControl.mode() == MapMakerControl::kMapMakerModeGeometry) {
+              Rectf world_rect = kMapMaker.cursor().world_grid_cell;
+              kMapMaker.map_.AddGeometry(world_rect);
             }
           }
         } break;

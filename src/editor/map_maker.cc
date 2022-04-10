@@ -325,6 +325,11 @@ void EditorMapMakerProcessEvent(const PlatformEvent& event) {
             }
           }
         } break;
+        case BUTTON_RIGHT: {
+          if (kMapMakerControl.mode() == MapMakerControl::kMapMakerModeGeometry) {
+            kMapMaker.map_.DeleteGeometryAtPoint(kMapMaker.cursor().world);
+          }
+        } break;
       } break;
     } break;
     case KEY_DOWN: {

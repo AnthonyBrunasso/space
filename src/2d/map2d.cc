@@ -93,6 +93,7 @@ public:
   void AddLayer(const Rectf& world_rect);
   void AddTexture(s32 layer_idx, const rgg::Texture* texture, const Rectf& src_rect, const Rectf& dest_rect);
   void AddGeometry(const Rectf& world_rect);
+  void DeleteGeometryAtPoint(v2f point);
   void Render(r32 scale = 1.f);
   void RenderCollisionGeometry(r32 scale = 1.f);
 
@@ -233,6 +234,16 @@ void Map2d::AddTexture(s32 layer_idx, const rgg::Texture* texture, const Rectf& 
 
 void Map2d::AddGeometry(const Rectf& world_rect) {
   collision_rects_.push_back(world_rect);
+}
+
+void Map2d::DeleteGeometryAtPoint(v2f point) {
+  for (s32 i = 0; i < collision_rects_.size();) {
+    if (math::PointInRect(point, collision_rects_[i])) {
+      collision_rects_.erase(collision_rects_.begin() + i);
+      continue;
+    }
+    ++i;
+  }
 }
 
 const rgg::Surface& Map2d::GetSurface(s32 layer_idx) const {

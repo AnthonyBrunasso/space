@@ -137,9 +137,9 @@ void SpriteAnimator::OnImGui() {
 }
 
 void SpriteAnimator::OnFileSelected(const std::string& filename) {
-  kSpriteAnimatorControl.Clear();
   const char* ext = filesystem::GetFilenameExtension(filename.c_str());
   if (strcmp(ext, "anim") == 0) {
+    kSpriteAnimatorControl.Clear();
     AnimSequence2d loaded_sequence;
     if (!AnimSequence2d::LoadFromProtoFile(filename.c_str(), &loaded_sequence)) {
       LOG(WARN, "Unable to load anim data %s", filename.c_str());

@@ -279,7 +279,7 @@ void SpriteAnimatorControl::OnImGui() {
   ImGui::Separator();
   static char kFullPath[256];
   ImGui::InputText("file", anim_filename_, 128); 
-  snprintf(kFullPath, 256, "gamedata/%s.anim", anim_filename_);
+  snprintf(kFullPath, 256, "gamedata/animations/%s.anim", anim_filename_);
   ImGui::Text("%s", kFullPath);
   if (ImGui::Button("save")) {
     proto::Animation2d proto = anim_sequence_.ToProto();

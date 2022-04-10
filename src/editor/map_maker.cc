@@ -195,7 +195,7 @@ void MapMakerControl::OnImGui() {
   static char kPngFilename[128];
   static char kFullPath[256];
   ImGui::InputText("file", kPngFilename, 128); 
-  snprintf(kFullPath, 256, "gamedata/%s.map", kPngFilename);
+  snprintf(kFullPath, 256, "gamedata/maps/%s.map", kPngFilename);
   ImGui::Text("%s", kFullPath);
   if (ImGui::Button("save")) {
     //rgg::SaveSurface(kMapMaker.map_.GetSurface(0), kFullPath);
@@ -204,6 +204,7 @@ void MapMakerControl::OnImGui() {
   }
   ImGui::SameLine();
   if (ImGui::Button("load")) {
+    kMapMaker.OnFileSelected(std::string(kFullPath));
   }
   ImGui::SameLine();
   if (ImGui::Button("clear")) {

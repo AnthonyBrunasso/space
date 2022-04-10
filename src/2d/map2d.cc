@@ -82,7 +82,6 @@ public:
 class Map2d {
 public:
   Map2d() = default;
-  Map2d(v2f dims, s32 layers_size = 1);
 
   static Map2d LoadFromProto(const proto::Map2d& proto);
   static bool LoadFromProtoFile(const char* filename, Map2d* map);
@@ -102,8 +101,6 @@ public:
   s32 GetLayerCount() const { return layers_.size(); }
 
   std::vector<Layer2d> layers_;
-  // Min and max bounds of the world. Origin in the center of this rect and should correspond with 0,0.
-  Rectf world_rect_;
 };
 
 void Layer2d::Initialize(const Rectf& world_rect, v4f color) {
@@ -164,19 +161,8 @@ const rgg::Texture& Layer2d::GetTexture() const {
   return surface_.texture();
 }
 
-Map2d::Map2d(v2f dims, s32 layers_size) {
-  assert(dims.x > 0.f && dims.y > 0.f);
-  world_rect_.x = -dims.x / 2.f;
-  world_rect_.y = -dims.y / 2.f;
-  world_rect_.width = dims.x;
-  world_rect_.height = dims.y;
-  //for (s32 i = 0; i < layers_size; ++i) AddLayer(world_rect_);
-}
-
 Map2d Map2d::LoadFromProto(const proto::Map2d& proto) {
   Map2d map;
-  // TODO: Change this, obviously.
-  map.world_rect_ = Rectf(-400.f, -400.f, 800.f, 800.f);
   rgg::TextureInfo texture_info;
   texture_info.min_filter = GL_NEAREST_MIPMAP_NEAREST;
   texture_info.mag_filter = GL_NEAREST;

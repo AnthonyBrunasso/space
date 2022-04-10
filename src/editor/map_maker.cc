@@ -46,10 +46,7 @@ public:
 
 static MapMakerControl kMapMakerControl;
 
-void MapMaker::OnInitialize() {
-  // TODO: Probably need this to be specified in editor?
-  map_ = Map2d(v2f(800.f, 800.f));
-}
+void MapMaker::OnInitialize() {}
 
 void MapMaker::OnRender() {
   ImGuiStyle& style = ImGui::GetStyle();
@@ -143,7 +140,6 @@ void MapMakerControl::OnImGui() {
   const rgg::Texture* texture = rgg::GetTexture(texture_id_);
   if (texture) {
     EditorDebugMenuGrid(&grid_);
-    ImGui::Separator();
     float pre_scale = scale_;
     ImGui::SliderFloat("scale", &scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
     if (scale_ != pre_scale) {
@@ -152,8 +148,39 @@ void MapMakerControl::OnImGui() {
     if (ImGui::Button("select all")) {
       SetSelectionRect(texture->Rect());
     }
+    ImGui::SameLine();
   }
-
+  static bool kAddLayer = false;
+  if (ImGui::Button("add layer")) {
+    kAddLayer = true;
+  }
+  if (kAddLayer) {
+    ImGui::Begin("Create Layer");
+    static char kWidth[64];
+    static char kHeight[64];
+    ImGui::InputText("width", kWidth, 128); 
+    ImGui::InputText("height", kHeight, 128); 
+    r32 width = atof(kWidth);
+    r32 height = atof(kHeight);
+    ImGui::Text("grid: %.1fx%.1f", width / 16.f, height / 16.f);
+    if (ImGui::Button("add")) {
+      assert(width > 0.f);
+      assert(height > 0.f);
+      Rectf new_layer_rect;
+      new_layer_rect.x = -width / 2.f;
+      new_layer_rect.y = -height / 2.f;
+      new_layer_rect.width = width;
+      new_layer_rect.height = height;
+      kMapMaker.map_.AddLayer(new_layer_rect);
+      kAddLayer = false;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("cancel")) {
+      kAddLayer = false;
+    }
+    ImGui::End();
+  }
+  ImGui::Separator();
   static char kPngFilename[128];
   static char kFullPath[256];
   ImGui::InputText("file", kPngFilename, 128); 
@@ -326,35 +353,6 @@ void EditorMapMakerDebug() {
     kMapMaker.SetNextLayer();
   }
   ImGui::SameLine();
-  static bool kAddLayer = false;
-  if (ImGui::Button("+")) {
-    kAddLayer = true;
-  }
-  if (kAddLayer) {
-    ImGui::Begin("Create Layer");
-    static char kWidth[64];
-    static char kHeight[64];
-    ImGui::InputText("width", kWidth, 128); 
-    ImGui::InputText("height", kHeight, 128); 
-    if (ImGui::Button("add")) {
-      r32 width = atof(kWidth);
-      r32 height = atof(kHeight);
-      assert(width > 0.f);
-      assert(height > 0.f);
-      Rectf new_layer_rect;
-      new_layer_rect.x = -width / 2.f;
-      new_layer_rect.y = -height / 2.f;
-      new_layer_rect.width = width;
-      new_layer_rect.height = height;
-      kMapMaker.map_.AddLayer(new_layer_rect);
-      kAddLayer = false;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("cancel")) {
-      kAddLayer = false;
-    }
-    ImGui::End();
-  }
 }
 
 rgg::Camera* EditorMapMakerCamera() {

@@ -283,13 +283,6 @@ void EditorProcessEvent(const PlatformEvent& event) {
   }
 }
 
-void EditorMainMenuFile() {
-  if (ImGui::MenuItem("New")) {
-  }
-  if (ImGui::MenuItem("Open", "Ctrl+O")) {
-  }
-}
-
 bool EditorShouldIgnoreFile(const char* filename) {
   s32 len = (s32)strlen(filename);
   if (filename[0] == '.') return true;
@@ -348,9 +341,8 @@ void EditorFileBrowser() {
   window_flags |= ImGuiWindowFlags_NoCollapse;
   window_flags |= ImGuiWindowFlags_NoTitleBar;
   v2f wsize = window::GetWindowSize();
-  float item_height = ImGui::GetTextLineHeightWithSpacing();
   ImGui::SetNextWindowSize(ImVec2((float)kExplorerWidth, (float)wsize.y * (2 / 5.f)));
-  ImGui::SetNextWindowPos(ImVec2((float)kExplorerStart, (float)item_height + 1.f), ImGuiCond_Always);
+  ImGui::SetNextWindowPos(ImVec2((float)kExplorerStart, 0.f), ImGuiCond_Always);
   ImGui::Begin("File Browser", nullptr, window_flags);
   char dir[256] = {};
 #ifdef _WIN32
@@ -369,9 +361,8 @@ void EditorDebugMenu() {
   window_flags |= ImGuiWindowFlags_NoCollapse;
   window_flags |= ImGuiWindowFlags_NoTitleBar;
   v2f wsize = window::GetWindowSize();
-  float item_height = ImGui::GetTextLineHeightWithSpacing();
-  ImGui::SetNextWindowSize(ImVec2((float)kExplorerWidth, (float)wsize.y * (3 / 5.f) - item_height));
-  ImGui::SetNextWindowPos(ImVec2((float)kExplorerStart, (float)wsize.y * (2 / 5.f) + item_height), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2((float)kExplorerWidth, (float)wsize.y * (3 / 5.f)));
+  ImGui::SetNextWindowPos(ImVec2((float)kExplorerStart, (float)wsize.y * (2 / 5.f)), ImGuiCond_Always);
   static const s32 kTabCount = 3;
   static const char* kTabs[kTabCount] = {
     "Contextual",
@@ -449,23 +440,12 @@ void EditorDebugMenu() {
   ImGui::End();
 }
 
-void EditorMainMenuBar() {
-  if (ImGui::BeginMainMenuBar()) {
-    if (ImGui::BeginMenu("File")) {
-      EditorMainMenuFile();
-      ImGui::EndMenu();
-    }
-    ImGui::EndMainMenuBar();
-  }
-}
-
 void EditorRenderViewport() {
   ImGuiWindowFlags window_flags = 0;
   window_flags |= ImGuiWindowFlags_NoCollapse;
   window_flags |= ImGuiWindowFlags_NoTitleBar;
   window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
   v2f wsize = window::GetWindowSize();
-  float item_height = ImGui::GetTextLineHeightWithSpacing();
   r32 render_view_width = wsize.x - kExplorerWidth;
   ImVec2 imsize = ImVec2(render_view_width, wsize.y);
   // The viewport as it exists in the global bounds of the editor window.
@@ -475,7 +455,7 @@ void EditorRenderViewport() {
   // The viewport as it exists in the local bounds of the viewport.
   kEditor.render_viewport = Rectf(0.f, 0.f, imsize.x, imsize.y);
   ImGui::SetNextWindowSize(imsize);
-  ImGui::SetNextWindowPos(ImVec2((float)kRenderViewStart, (float)item_height + 1.f), ImGuiCond_Always);
+  ImGui::SetNextWindowPos(ImVec2((float)kRenderViewStart, 0.f), ImGuiCond_Always);
   ImGui::Begin("Render Viewport", nullptr, window_flags);
   if (ImGui::BeginTabBar("Render Tabs")) {
     for (s32 i = 0; i < kViewportTabCount; ++i) {
@@ -504,7 +484,6 @@ void EditorRenderViewport() {
 
 
 void EditorMain() {
-  EditorMainMenuBar();
   EditorFileBrowser();
   EditorDebugMenu();
   EditorRenderViewport();

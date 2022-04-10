@@ -173,7 +173,6 @@ struct SpriteAnimatorSelection {
 static SpriteAnimatorSelection kSpriteAnimatorSelection;
 
 void EditorDebugMenuGrid(EditorGrid* grid) {
-  ImGui::SliderInt("cellw", &grid->cell_width, 1, 128);
   if (ImGui::Button("-##cellw")) {
     --grid->cell_width;
   }
@@ -181,7 +180,9 @@ void EditorDebugMenuGrid(EditorGrid* grid) {
   if (ImGui::Button("+##cellw")) {
     ++grid->cell_width;
   }
-  ImGui::SliderInt("cellh", &grid->cell_height, 1, 128);
+  ImGui::SameLine();
+  ImGui::SliderInt("cellw", &grid->cell_width, 1, 128);
+  
   if (ImGui::Button("-##cellh")) {
     --grid->cell_height;
   }
@@ -189,7 +190,9 @@ void EditorDebugMenuGrid(EditorGrid* grid) {
   if (ImGui::Button("+##cellh")) {
     ++grid->cell_height;
   }
-  ImGui::SliderFloat("offsetx", &grid->origin_offset.x, -64.f, 64.f, "%.0f");
+  ImGui::SameLine();
+  ImGui::SliderInt("cellh", &grid->cell_height, 1, 128);
+
   if (ImGui::Button("-##offsetx")) {
     --grid->origin_offset.x;
   }
@@ -197,7 +200,9 @@ void EditorDebugMenuGrid(EditorGrid* grid) {
   if (ImGui::Button("+##offsetx")) {
     ++grid->origin_offset.x;
   }
-  ImGui::SliderFloat("offsety", &grid->origin_offset.y, -64.f, 64.f, "%.0f");
+  ImGui::SameLine();
+  ImGui::SliderFloat("offsetx", &grid->origin_offset.x, -64.f, 64.f, "%.0f");
+
   if (ImGui::Button("-##offsety")) {
     --grid->origin_offset.y;
   }
@@ -205,6 +210,8 @@ void EditorDebugMenuGrid(EditorGrid* grid) {
   if (ImGui::Button("+##offsety")) {
     ++grid->origin_offset.y;
   }
+  ImGui::SameLine();
+  ImGui::SliderFloat("offsety", &grid->origin_offset.y, -64.f, 64.f, "%.0f");
 }
 
 void EditorRenderCrosshair(v2f point_scaled, const Rectf& view, const v4f& color = rgg::kRed) {

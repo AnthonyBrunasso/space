@@ -59,6 +59,8 @@ public:
 
 class Layer2d {
 public:
+  void Clear();
+
   // Construct surface.
   void Initialize(const Rectf& world_rect, v4f color = v4f(0.f, 0.f, 0.f, 0.f));
   void InitializeWithTexture(const rgg::Texture& texture);
@@ -86,6 +88,8 @@ public:
   static Map2d LoadFromProto(const proto::Map2d& proto);
   static bool LoadFromProtoFile(const char* filename, Map2d* map);
 
+  void Clear();
+
   void AddLayer(const Rectf& world_rect);
   void AddTexture(s32 layer_idx, const rgg::Texture* texture, const Rectf& src_rect, const Rectf& dest_rect);
   void Render(r32 scale = 1.f);
@@ -102,6 +106,10 @@ public:
 
   std::vector<Layer2d> layers_;
 };
+
+void Layer2d::Clear() {
+  DestroyLayer2dSurface(&surface_);
+}
 
 void Layer2d::Initialize(const Rectf& world_rect, v4f color) {
   world_rect_ = world_rect;
@@ -189,6 +197,13 @@ bool Map2d::LoadFromProtoFile(const char* filename, Map2d* map) {
   }
   *map = LoadFromProto(proto);
   return true;
+}
+
+void Map2d::Clear() {
+  for (Layer2d& layer : layers_) {
+    layer.Clear();
+  }
+  layers_.clear();
 }
 
 void Map2d::AddLayer(const Rectf& world_rect) {

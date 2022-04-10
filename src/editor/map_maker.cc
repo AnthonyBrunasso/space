@@ -20,6 +20,7 @@ public:
   s32 current_layer_ = 0;
 
   bool render_grid_ = true;
+  bool render_bounds_ = true;
 };
 
 static MapMaker kMapMaker;
@@ -76,7 +77,7 @@ void MapMaker::OnRender() {
     RenderAxis();
   }
 
-  if (HasLayers()) {
+  if (render_bounds_ && HasLayers()) {
     const Layer2d& current_layer = GetCurrentLayer();
     Rectf render_rect;
     render_rect.x = current_layer.Dims().x / -2.f;
@@ -141,6 +142,16 @@ void MapMakerControl::OnImGui() {
   if (texture) {
     EditorDebugMenuGrid(&grid_);
     float pre_scale = scale_;
+    if (ImGui::Button("-##scale")) {
+      scale_ -= 1.f;
+      if (scale_ <= 1.f) scale_ = 1.f;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("+##scale")) {
+      scale_ += 1.f;
+      if (scale_ >= 15.f) scale_ = 15.f;
+    }
+    ImGui::SameLine();
     ImGui::SliderFloat("scale", &scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
     if (scale_ != pre_scale) {
       SetupRenderTarget();
@@ -190,6 +201,13 @@ void MapMakerControl::OnImGui() {
     //rgg::SaveSurface(kMapMaker.map_.GetSurface(0), kFullPath);
     proto::Map2d proto = kMapMaker.map_.ToProto(kPngFilename);
     SaveToFile(proto, kFullPath);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("load")) {
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("clear")) {
+    kMapMaker.map_.Clear();
   }
 
   UpdateImguiPanelRect();
@@ -337,6 +355,7 @@ void EditorMapMakerMain() {
 
 void EditorMapMakerDebug() {
   ImGui::Checkbox("render grid", &kMapMaker.render_grid_);
+  ImGui::Checkbox("render bounds", &kMapMaker.render_bounds_);
   if (kMapMaker.HasLayers()) {
     const Layer2d& layer = kMapMaker.GetCurrentLayer();
     ImGui::Text("layer %i / %i", kMapMaker.current_layer() + 1, kMapMaker.map_.GetLayerCount());

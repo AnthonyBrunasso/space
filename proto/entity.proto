@@ -1,0 +1,22 @@
+syntax = "proto2";
+
+package proto;
+
+message Entity2d {
+  message Vector {
+    optional float x = 1; 
+    optional float y = 2; 
+  };
+
+  message Animation {
+    enum Type {
+      kIdle = 0;
+      kMove = 1;
+    }
+    optional string animation_file = 1;
+    optional Type type = 2;
+  };
+
+  optional Vector location = 1;
+  repeated Animation animation = 2;
+};

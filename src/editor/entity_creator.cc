@@ -1,14 +1,24 @@
 #pragma once
 
+#include <google/protobuf/descriptor.h>
+
+#include "entity.pb.h"
+
 class EntityCreator : public EditorRenderTarget {
 public:
   void OnInitialize() override;
   void OnRender() override;
   void OnImGui() override;
-
 };
 
 static EntityCreator kEntityCreator;
+
+class EntityCreatorControl {
+public:
+  void ImGui();
+};
+
+static EntityCreatorControl kEntityCreatorControl;
 
 void EntityCreator::OnInitialize() {
 }
@@ -24,6 +34,31 @@ void EntityCreator::OnRender() {
 void EntityCreator::OnImGui() {
   UpdateImguiPanelRect();
   ImGuiImage();
+}
+
+void EntityCreatorControl::ImGui() {
+  ImGui::Begin("Entity Creator Control");
+  /*proto::Entity2d entity;
+  const google::protobuf::Descriptor* desc = entity.GetDescriptor();
+  for (s32 i = 0; i < desc->field_count(); ++i) {
+    const google::protobuf::FieldDescriptor* field = desc->field(i);
+    ImGui::Text("%s", field->name().c_str());
+  }*/
+  ImGui::Separator();
+  static char kFullPath[256];
+  static char kEntityName[128];
+  ImGui::InputText("file", kEntityName, 128); 
+  snprintf(kFullPath, 256, "gamedata/entities/%s.entity", kEntityName);
+  ImGui::Text("%s", kFullPath);
+  if (ImGui::Button("save")) {
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("load")) {
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("clear")) {
+  }
+  ImGui::End();
 }
 
 void EditorEntityCreatorProcessEvent(const PlatformEvent& event) {
@@ -43,6 +78,7 @@ void EditorEntityCreatorMain() {
   EditorSetCurrent(&kEntityCreator);
   EditorEntityCreatorInitialize();
   kEntityCreator.Render();
+  kEntityCreatorControl.ImGui();
 }
 
 void EditorEntityCreatorDebug() {
@@ -50,5 +86,32 @@ void EditorEntityCreatorDebug() {
 }
 
 void EditorEntityCreatorFileBrowser() {
-  EditorFileBrowserDefault();
+  //EditorFileBrowserDefault();
+  ImGuiWindowFlags window_flags = 0;
+  window_flags |= ImGuiWindowFlags_NoCollapse;
+  window_flags |= ImGuiWindowFlags_NoTitleBar;
+  v2f wsize = window::GetWindowSize();
+  ImGui::SetNextWindowSize(ImVec2((float)kExplorerWidth, (float)wsize.y * (2 / 5.f)));
+  ImGui::SetNextWindowPos(ImVec2((float)kExplorerStart, 0.f), ImGuiCond_Always);
+  ImGui::Begin("Entity Components", nullptr, window_flags);
+  char dir[256] = {};
+#ifdef _WIN32
+  strcat(dir, filesystem::GetWorkingDirectory());
+  strcat(dir, "\\gamedata\\animations\\*");
+#else
+  strcat(dir, "./gamedata/animations/");
+#endif
+  if (ImGui::TreeNode("Animations")) {
+    ImGui::Indent();
+    filesystem::WalkDirectory(dir, [](const char* filename, bool is_dir) {
+      if (strcmp(filename, ".") == 0) return;
+      if (strcmp(filename, "..") == 0) return;
+      if (ImGui::Selectable(filename)) {
+        LOG(INFO, "Animation %s selected", filename);
+      }
+    });
+    ImGui::Unindent();
+    ImGui::TreePop();
+  }
+  ImGui::End();
 }

@@ -1,6 +1,8 @@
 #include "common/include.cc"
 #include "editor/editor.cc"
 
+static bool kShowDemoWindow = true;
+
 bool SetupWorkingDirectory() {
   bool result = false;
   // Check the directory the binary is run from and one backwards then give up.
@@ -42,7 +44,6 @@ s32 main(s32 argc, char** argv) {
     return 1;
   }
 
-  bool show_demo_window = false;
 
   while (1) {
     platform::ClockStart(&kEditor.clock);
@@ -62,8 +63,8 @@ s32 main(s32 argc, char** argv) {
 
     EditorMain();
     
-    if (show_demo_window) {
-      ImGui::ShowDemoWindow(&show_demo_window);
+    if (kShowDemoWindow) {
+      ImGui::ShowDemoWindow(&kShowDemoWindow);
     }
 
 

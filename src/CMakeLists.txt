@@ -11,6 +11,7 @@ add_executable(space
   ../third_party/imgui/imgui_widgets.cpp
   ../third_party/imgui/imgui_demo.cpp
   ../build/proto/animation.pb.cc
+  ../build/proto/entity.pb.cc
   ../build/proto/map.pb.cc
 )
 

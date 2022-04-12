@@ -277,8 +277,7 @@ void EditorFilesFrom(const char* dir) {
           kEditor.current->OnFileSelected(GetAssetRelative(file));
         }
       }
-    }
-    else {
+    } else {
       ImGui::Text("%s", filename.c_str());
     }
   }
@@ -406,8 +405,7 @@ void EditorDebugMenu() {
               EditorEntityCreatorDebug();
             } break;
           }
-        }
-        else if (i == 1) {
+        } else if (i == 1) {
           if (kEditor.current) {
             const EditorCursor& cursor = kEditor.current->cursor();
             ImGui::Text("Cursor");
@@ -417,14 +415,13 @@ void EditorDebugMenu() {
               ImGui::Text("  world scaled              %.0f %.0f", cursor.world_scaled.x, cursor.world_scaled.y);
               ImGui::Text("  world clamped             %.0f %.0f", cursor.world_clamped.x, cursor.world_clamped.y);
               ImGui::Text("  local screen              %.0f %.0f", cursor.local_screen.x, cursor.local_screen.y);
-            }
-            else {
+            } else {
               ImGui::Text("  world                     x x");
               ImGui::Text("  world scaled              x x");
               ImGui::Text("  world clamped             x x");
               ImGui::Text("  local screen              x x");
             }
-          ImGui::NewLine();
+            ImGui::NewLine();
           }
           rgg::Camera* camera = EditorViewportCurrentCamera();
           if (camera) {
@@ -437,8 +434,7 @@ void EditorDebugMenu() {
             ImGuiTextRect("  crects ", kSpriteAnimator.GetCameraRect());
             ImGui::NewLine();
           }
-        }
-        else if (i == 2) {
+        } else if (i == 2) {
           ImGui::Text("Cached Textures (%lu/%u)", rgg::kUsedTextureHandle, RGG_TEXTURE_MAX);
           ImGui::NewLine();
           rgg::IterateTextures([](const rgg::TextureHandle* handle) {

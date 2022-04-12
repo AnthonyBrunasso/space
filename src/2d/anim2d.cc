@@ -8,6 +8,11 @@ public:
   Rectf src_rect() const {
     return src_rect_;
   }
+
+  const rgg::Texture* GetTexture() const {
+    return rgg::GetTexture(texture_id_);
+  }
+
   // Src texture this frame was taken frame.
   rgg::TextureId texture_id_;
   // The texture coordinates to grab from texture_id.

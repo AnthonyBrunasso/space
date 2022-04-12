@@ -11,8 +11,13 @@ struct Texture {
   r32 width = 0.f;
   r32 height = 0.f;
   GLenum format;
+
   Rectf Rect() const {
     return Rectf(0, 0, width, height);
+  }
+
+  v2f Dims() const {
+    return v2f(width, height);
   }
 
   b8 IsValid() const {
@@ -23,12 +28,19 @@ struct Texture {
 struct Surface {
   Texture texture;
   GLuint frame_buffer = (GLuint)-1;
+
   r32 width() const {
     return texture.width;
   }
+
   r32 height() const {
     return texture.height;
   }
+
+  v2f Dims() const {
+    return v2f(texture.width, texture.height);
+  }
+
   b8 IsValid() const {
     return texture.IsValid() && frame_buffer != (GLuint)-1;
   }

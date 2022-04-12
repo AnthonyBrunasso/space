@@ -32,6 +32,11 @@ inline void ReplaceFilename(const char* newfname, char* oldfname_with_dir) {
   memcpy(&oldfname_with_dir[idx], newfname, strlen(newfname));
 }
 
+inline void RemoveExtension(char* filename) {
+  char* dot = strrchr(filename, '.');
+  *dot = '\0';
+}
+
 std::string Filename(const char* fullname);
 
 std::string Filename(const std::string& fullname) {

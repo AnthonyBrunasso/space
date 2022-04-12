@@ -16,6 +16,14 @@ static EntityCreator kEntityCreator;
 class EntityCreatorControl {
 public:
   void ImGui();
+  void SelectAnimation(const char* filename);
+  void SelectEntity(const char* filename);
+
+  AnimSequence2d* anim() { return &running_anim2d_; }
+
+  proto::Entity2d entity_;
+  AnimSequence2d running_anim2d_;
+  char entity_name_[128];
 };
 
 static EntityCreatorControl kEntityCreatorControl;
@@ -24,9 +32,20 @@ void EntityCreator::OnInitialize() {
 }
 
 void EntityCreator::OnRender() {
+  AnimSequence2d* anim = kEntityCreatorControl.anim();
+  
   ImGuiStyle& style = ImGui::GetStyle();
   ImVec4 imcolor = style.Colors[ImGuiCol_WindowBg];
   rgg::RenderRectangle(GetCameraRectScaled(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
+
+  if (!anim->IsEmpty()) {
+    anim->Update();
+    const AnimFrame2d& aframe = anim->CurrentFrame();
+    const rgg::Texture* texture = aframe.GetTexture();
+    Rectf dest_rect = Scale(Rectf(v2f(0.f, 0.f), aframe.src_rect().Dims()));
+    rgg::RenderTexture(*texture, aframe.src_rect(), dest_rect);
+  }
+
   RenderGrid(v4f(1.f, 1.f, 1.f, 0.2f));
   RenderAxis();
 }
@@ -38,19 +57,47 @@ void EntityCreator::OnImGui() {
 
 void EntityCreatorControl::ImGui() {
   ImGui::Begin("Entity Creator Control");
-  /*proto::Entity2d entity;
-  const google::protobuf::Descriptor* desc = entity.GetDescriptor();
-  for (s32 i = 0; i < desc->field_count(); ++i) {
-    const google::protobuf::FieldDescriptor* field = desc->field(i);
-    ImGui::Text("%s", field->name().c_str());
-  }*/
+  if (entity_.animation_size() > 0) {
+    if (ImGui::TreeNode("Animations")) {
+      static char** kTypeStrings = nullptr;
+      if (!kTypeStrings) {
+        const google::protobuf::EnumDescriptor* desc = proto::Entity2d_Animation_Type_descriptor();
+        kTypeStrings = new char*[proto::Entity2d_Animation::Type_MAX + 1];
+        for (s32 i = 0; i <= proto::Entity2d_Animation::Type_MAX; ++i) {
+          std::string name = desc->FindValueByNumber(i)->name();
+          kTypeStrings[i] = new char[name.size()];
+          strcpy(kTypeStrings[i], name.data());
+        }
+      }
+      for (s32 i = 0; i < entity_.animation_size();) {
+        proto::Entity2d::Animation* proto_animation = entity_.mutable_animation(i);
+        static char kTempStr[128];
+        snprintf(kTempStr, 128, "x##%s", proto_animation->animation_file().c_str());
+        if (ImGui::Button(kTempStr)) {
+          entity_.mutable_animation()->SwapElements(i, entity_.animation_size() - 1);
+          entity_.mutable_animation()->RemoveLast();
+          continue;
+        }
+        ImGui::SameLine();
+        ImGui::Text("%s", proto_animation->animation_file().c_str());
+        proto::Entity2d_Animation_Type type = proto_animation->type();
+        snprintf(kTempStr, 128, "type##%s", proto_animation->animation_file().c_str());
+        ImGui::Combo(kTempStr, (s32*)&type, kTypeStrings, proto::Entity2d_Animation::Type_MAX + 1);
+        proto_animation->set_type(type);
+        ++i;
+      }
+      ImGui::TreePop();
+    }
+  }
   ImGui::Separator();
   static char kFullPath[256];
-  static char kEntityName[128];
-  ImGui::InputText("file", kEntityName, 128); 
-  snprintf(kFullPath, 256, "gamedata/entities/%s.entity", kEntityName);
+  ImGui::InputText("file", entity_name_, 128); 
+  snprintf(kFullPath, 256, "gamedata/entities/%s.entity", entity_name_);
   ImGui::Text("%s", kFullPath);
   if (ImGui::Button("save")) {
+    std::fstream fo(kFullPath, std::ios::binary | std::ios::out);
+    entity_.SerializeToOstream(&fo);
+    fo.close();
   }
   ImGui::SameLine();
   if (ImGui::Button("load")) {
@@ -59,6 +106,23 @@ void EntityCreatorControl::ImGui() {
   if (ImGui::Button("clear")) {
   }
   ImGui::End();
+}
+
+void EntityCreatorControl::SelectAnimation(const char* filename) {
+  LOG(INFO, "SelectAnimation %s", filename);
+  proto::Entity2d::Animation* proto_animation = entity_.add_animation();
+  proto_animation->set_animation_file(filename);
+  if (!AnimSequence2d::LoadFromProtoFile(filename, &running_anim2d_)) {
+    LOG(ERR, "Failed to load animation %s", filename);
+  }
+  running_anim2d_.Start();
+}
+
+void EntityCreatorControl::SelectEntity(const char* filename) {
+  std::fstream inp(filename, std::ios::in | std::ios::binary);
+  if (!entity_.ParseFromIstream(&inp)) {
+    LOG(ERR, "Failed loading proto file %s", filename);
+  } 
 }
 
 void EditorEntityCreatorProcessEvent(const PlatformEvent& event) {
@@ -83,6 +147,56 @@ void EditorEntityCreatorMain() {
 
 void EditorEntityCreatorDebug() {
   EditorDebugMenuGrid(kEntityCreator.grid());
+  if (ImGui::Button("-##scale")) {
+    kEntityCreator.scale_--;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("+##scale")) {
+    kEntityCreator.scale_++;
+  }
+  kSpriteAnimator.scale_ = CLAMPF(kEntityCreator.scale_, 1.f, 15.f);
+  ImGui::SameLine();
+  ImGui::SliderFloat("scale", &kEntityCreator.scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
+}
+
+void EditorEntityCreatorWalkAnimations(const char* dir) {
+  filesystem::WalkDirectory(dir, [dir](const char* filename, bool is_dir) {
+    if (strcmp(filename, ".") == 0) return;
+    if (strcmp(filename, "..") == 0) return;
+    if (is_dir) {
+      static char kTraverseInto[256];
+      strcpy(kTraverseInto, dir);
+      strcat(kTraverseInto, filename);
+#ifdef _WIN32
+      strcat(kTraverseInto, "\\*");
+#else
+      strcat(kTraverseInto, "/");
+#endif
+      EditorEntityCreatorWalkAnimations(kTraverseInto);
+    } else if (ImGui::Selectable(filename) && filesystem::HasExtension(filename, "anim")) {
+      kEntityCreatorControl.SelectAnimation(filesystem::JoinPath(dir, filename).c_str());
+    }
+  });
+}
+
+void EditorEntityCreatorWalkEntities(const char* dir) {
+  filesystem::WalkDirectory(dir, [dir](const char* filename, bool is_dir) {
+    if (strcmp(filename, ".") == 0) return;
+    if (strcmp(filename, "..") == 0) return;
+    if (is_dir) {
+      static char kTraverseInto[256];
+      strcpy(kTraverseInto, dir);
+      strcat(kTraverseInto, filename);
+#ifdef _WIN32
+      strcat(kTraverseInto, "\\*");
+#else
+      strcat(kTraverseInto, "/");
+#endif
+      EditorEntityCreatorWalkEntities(filename);
+    } else if (ImGui::Selectable(filename) && filesystem::HasExtension(filename, "entity")) {
+      kEntityCreatorControl.SelectEntity(filesystem::JoinPath(dir, filename).c_str());
+    }
+  });
 }
 
 void EditorEntityCreatorFileBrowser() {
@@ -94,24 +208,32 @@ void EditorEntityCreatorFileBrowser() {
   ImGui::SetNextWindowSize(ImVec2((float)kExplorerWidth, (float)wsize.y * (2 / 5.f)));
   ImGui::SetNextWindowPos(ImVec2((float)kExplorerStart, 0.f), ImGuiCond_Always);
   ImGui::Begin("Entity Components", nullptr, window_flags);
-  char dir[256] = {};
+  static char kAnimationsDir[256] = {};
+  if (kAnimationsDir[0] == 0) {
 #ifdef _WIN32
-  strcat(dir, filesystem::GetWorkingDirectory());
-  strcat(dir, "\\gamedata\\animations\\*");
+    strcat(kAnimationsDir, filesystem::GetWorkingDirectory());
+    strcat(kAnimationsDir, "\\gamedata\\animations\\*");
 #else
-  strcat(dir, "./gamedata/animations/");
+    strcat(kAnimationsDir, "./gamedata/animations/");
 #endif
+  }
   if (ImGui::TreeNode("Animations")) {
-    ImGui::Indent();
-    filesystem::WalkDirectory(dir, [](const char* filename, bool is_dir) {
-      if (strcmp(filename, ".") == 0) return;
-      if (strcmp(filename, "..") == 0) return;
-      if (ImGui::Selectable(filename)) {
-        LOG(INFO, "Animation %s selected", filename);
-      }
-    });
-    ImGui::Unindent();
+    EditorEntityCreatorWalkAnimations(kAnimationsDir);
     ImGui::TreePop();
   }
+  static char kEntitiesDir[256] = {};
+  if (kEntitiesDir[0] == 0) {
+#ifdef _WIN32
+    strcat(kEntitiesDir, filesystem::GetWorkingDirectory());
+    strcat(kEntitiesDir, "\\gamedata\\entities\\*");
+#else
+    strcat(kEntitiesDir, "./gamedata/entities/");
+#endif
+  }
+  if (ImGui::TreeNode("Entities")) {
+    EditorEntityCreatorWalkEntities(kEntitiesDir);
+    ImGui::TreePop();
+  }
+
   ImGui::End();
 }

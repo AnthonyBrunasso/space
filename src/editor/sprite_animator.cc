@@ -137,6 +137,7 @@ void SpriteAnimator::OnImGui() {
 }
 
 void SpriteAnimator::OnFileSelected(const std::string& filename) {
+  LOG(INFO, "OnFileSelected %s", filename.c_str());
   const char* ext = filesystem::GetFilenameExtension(filename.c_str());
   if (strcmp(ext, "anim") == 0) {
     kSpriteAnimatorControl.Clear();
@@ -158,8 +159,13 @@ void SpriteAnimator::OnFileSelected(const std::string& filename) {
       }
       texture_id_ = kSpriteAnimatorControl.anim_sequence_.sequence_frames_[0].frame.texture_id_;
       kSpriteAnimatorControl.anim_sequence_.Start();
-      std::string end_name = filesystem::Basename(filename.c_str());
-      strncpy(kSpriteAnimatorControl.anim_filename_, end_name.c_str(), end_name.size());
+      // Remove ./gamedata/animations/ OR gamedata/animations
+      if (filename.c_str()[0] == '.') {
+        strcpy(kSpriteAnimatorControl.anim_filename_, &filename.c_str()[22]);
+      } else {
+        strcpy(kSpriteAnimatorControl.anim_filename_, &filename.c_str()[20]);
+      }
+      filesystem::RemoveExtension(kSpriteAnimatorControl.anim_filename_);
     }
   } else {
     LoadTexture(filename.c_str());

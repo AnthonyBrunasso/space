@@ -9,9 +9,11 @@ message Entity2d {
   };
 
   message Animation {
+    // Make sure these are sequential. My stupid code assumes they are.
     enum Type {
-      kIdle = 0;
-      kMove = 1;
+      kUndefined = 0;
+      kIdle = 1;
+      kMove = 2;
     }
     optional string animation_file = 1;
     optional Type type = 2;

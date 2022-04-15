@@ -42,7 +42,7 @@ void EntityCreator::OnRender() {
     anim->Update();
     const AnimFrame2d& aframe = anim->CurrentFrame();
     const rgg::Texture* texture = aframe.GetTexture();
-    Rectf dest_rect = Scale(Rectf(v2f(0.f, 0.f), aframe.src_rect().Dims()));
+    Rectf dest_rect = Scale(Rectf(anim->alignment(), aframe.src_rect().Dims()));
     rgg::RenderTexture(*texture, aframe.src_rect(), dest_rect);
   }
 
@@ -79,11 +79,62 @@ void EntityCreatorControl::ImGui() {
           continue;
         }
         ImGui::SameLine();
-        ImGui::Text("%s", proto_animation->animation_file().c_str());
+        if (ImGui::Selectable(proto_animation->animation_file().c_str())) {
+          if (!AnimSequence2d::LoadFromProtoFile(
+              proto_animation->animation_file().c_str(), &running_anim2d_)) {
+            LOG(ERR, "Unable to load proto file %s", proto_animation->animation_file().c_str());
+          }
+          running_anim2d_.Start();
+        }
+        ImGui::Indent();
         proto::Entity2d_Animation_Type type = proto_animation->type();
+        snprintf(kTempStr, 128, "<##%i", i);
+        if (ImGui::Button(kTempStr)) {
+          type = (proto::Entity2d_Animation_Type)((s32)type - 1);
+          if (type < 0) type = (proto::Entity2d_Animation_Type)((s32)proto::Entity2d_Animation::Type_MAX);
+        }
+        ImGui::SameLine();
+        snprintf(kTempStr, 128, ">##%i", i);
+        if (ImGui::Button(kTempStr)) {
+          type = (proto::Entity2d_Animation_Type)((s32)type + 1);
+          if (type > proto::Entity2d_Animation::Type_MAX) type = (proto::Entity2d_Animation_Type)0;
+        }
+        ImGui::SameLine();
         snprintf(kTempStr, 128, "type##%s", proto_animation->animation_file().c_str());
         ImGui::Combo(kTempStr, (s32*)&type, kTypeStrings, proto::Entity2d_Animation::Type_MAX + 1);
         proto_animation->set_type(type);
+        r32 alignment_x = proto_animation->alignment_x();
+        snprintf(kTempStr, 128, "-##x%i", i);
+        if (ImGui::Button(kTempStr)) {
+          --alignment_x;
+        }
+        ImGui::SameLine();
+        snprintf(kTempStr, 128, "+##x%i", i);
+        if (ImGui::Button(kTempStr)) {
+          ++alignment_x;
+        }
+        ImGui::SameLine();
+        snprintf(kTempStr, 128, "alignx##%i", i);
+        ImGui::SliderFloat(kTempStr, &alignment_x, -128.f, 128.f, "%.0f");
+        r32 alignment_y = proto_animation->alignment_y();
+        snprintf(kTempStr, 128, "-##y%i", i);
+        if (ImGui::Button(kTempStr)) {
+          --alignment_y;
+        }
+        ImGui::SameLine();
+        snprintf(kTempStr, 128, "+##y%i", i);
+        if (ImGui::Button(kTempStr)) {
+          ++alignment_y;
+        }
+        ImGui::SameLine();
+        snprintf(kTempStr, 128, "aligny##%i", i);
+        ImGui::SliderFloat(kTempStr, &alignment_y, -128.f, 128.f, "%.0f");
+        if (running_anim2d_.file_ == proto_animation->animation_file()) {
+          running_anim2d_.SetAlignment(v2f(alignment_x, alignment_y));
+        }
+        proto_animation->set_alignment_x(alignment_x);
+        proto_animation->set_alignment_y(alignment_y);
+        ImGui::Unindent();
         ++i;
       }
       ImGui::TreePop();
@@ -109,7 +160,6 @@ void EntityCreatorControl::ImGui() {
 }
 
 void EntityCreatorControl::SelectAnimation(const char* filename) {
-  LOG(INFO, "SelectAnimation %s", filename);
   proto::Entity2d::Animation* proto_animation = entity_.add_animation();
   proto_animation->set_animation_file(filename);
   if (!AnimSequence2d::LoadFromProtoFile(filename, &running_anim2d_)) {
@@ -123,6 +173,12 @@ void EntityCreatorControl::SelectEntity(const char* filename) {
   if (!entity_.ParseFromIstream(&inp)) {
     LOG(ERR, "Failed loading proto file %s", filename);
   } 
+  for (const proto::Entity2d::Animation& anim : entity_.animation()) {
+    if (anim.type() == proto::Entity2d_Animation::kIdle) {
+      AnimSequence2d::LoadFromProtoFile(anim.animation_file().c_str(), &running_anim2d_);
+      break;
+    }
+  }
 }
 
 void EditorEntityCreatorProcessEvent(const PlatformEvent& event) {

@@ -17,6 +17,9 @@ message Entity2d {
     }
     optional string animation_file = 1;
     optional Type type = 2;
+    // If set indicates the animation frame should be moved by x pixels to align with other frames.
+    optional float alignment_x = 3;
+    optional float alignment_y = 4;
   };
 
   optional Vector location = 1;

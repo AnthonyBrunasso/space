@@ -42,14 +42,19 @@ public:
   void Clear();
   s32 FrameCount() const { return (s32)sequence_frames_.size(); }
   bool IsEmpty() const { return sequence_frames_.empty(); }
+  void SetAlignment(v2f alignment) { alignment_ = alignment; }
 
   proto::Animation2d ToProto() const;
+  v2f alignment() const { return alignment_; };
 
   std::vector<SequenceFrame> sequence_frames_;
   r32 last_frame_time_sec_;
   r32 next_frame_time_sec_;
   platform::Clock clock_;
   s32 frame_index_ = 0;
+  v2f alignment_;
+  // If loaded from file this will be set.
+  std::string file_;
 };
 
 AnimSequence2d AnimSequence2d::LoadFromProto(const proto::Animation2d& proto) {
@@ -80,6 +85,7 @@ bool AnimSequence2d::LoadFromProtoFile(const char* filename, AnimSequence2d* ani
     return false;
   }
   *anim_sequence = LoadFromProto(proto);
+  anim_sequence->file_ = std::string(filename);
   return true;
 }
 

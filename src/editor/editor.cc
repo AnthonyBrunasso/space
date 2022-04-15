@@ -54,7 +54,7 @@ struct EditorCursor {
   // x-y coordinates of the cursor in the game / asset viewer / etc viewport. This is the space that all game
   // logic should take place in before scaling for rendering.
   v2f world;
-  // x-y coordinate of the nearest edge given by kGrid.
+  // x-y coordinate of the nearest edge given by the grid.
   v2f world_clamped;
   // x-y coordinates of the cursor in the game / asset viewer, assuming bottom left is origin.
   v2f local_screen;
@@ -64,7 +64,6 @@ struct EditorCursor {
   bool is_in_viewport = false;
 };
 
-static EditorGrid kGrid;
 static Editor kEditor;
 
 static s32 kExplorerStart = 0;

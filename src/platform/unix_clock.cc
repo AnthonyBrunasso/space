@@ -23,6 +23,7 @@ void ClockStart(Clock* clock) {
 }
 
 u64 ClockDeltaUsec(const Clock& clock) {
+  if (clock.end.tv_sec == clock.start.tv_sec && clock.end.tv_nsec == clock.start.tv_nsec) return 0;
   return (1000000000L * (clock.end.tv_sec - clock.start.tv_sec) +
       clock.end.tv_nsec - clock.start.tv_nsec) / 1e3;
 }

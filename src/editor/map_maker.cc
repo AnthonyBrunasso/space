@@ -116,17 +116,20 @@ void MapMaker::OnRender() {
 
   if (kMapMakerControl.mode() == MapMakerControl::kMapMakerModeEntity) {
     AnimSequence2d* anim = kMapMakerControl.anim();
-    anim->Update();
-    const AnimFrame2d& aframe = anim->CurrentFrame();
-    const rgg::Texture* texture = aframe.GetTexture();
-    Rectf dest_rect = Rectf(anim->alignment(), aframe.src_rect().Dims());
-    dest_rect.x += kMapMaker.cursor().world_grid_cell.x;
-    dest_rect.y += kMapMaker.cursor().world_grid_cell.y;
-    rgg::RenderTexture(*texture, aframe.src_rect(), Scale(dest_rect));
+    if (!anim->IsEmpty()) {
+      anim->Update();
+      const AnimFrame2d& aframe = anim->CurrentFrame();
+      const rgg::Texture* texture = aframe.GetTexture();
+      Rectf dest_rect = Rectf(anim->alignment(), aframe.src_rect().Dims());
+      dest_rect.x += kMapMaker.cursor().world_grid_cell.x;
+      dest_rect.y += kMapMaker.cursor().world_grid_cell.y;
+      rgg::RenderTexture(*texture, aframe.src_rect(), Scale(dest_rect));
+    }
   }
 
   int i = 0;
   for (AnimSequence2d& anim : anims_) {
+    if (anim.IsEmpty()) continue;
     anim.Update();
     const AnimFrame2d& aframe = anim.CurrentFrame();
     const rgg::Texture* texture = aframe.GetTexture();

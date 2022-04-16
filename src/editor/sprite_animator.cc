@@ -593,6 +593,17 @@ void EditorSpriteAnimatorDebug() {
   ImGui::Checkbox("render crosshair", &kSpriteAnimator.show_crosshair_);
   ImGui::NewLine();
   EditorDebugMenuGrid(kSpriteAnimator.grid());
+  if (ImGui::Button("-##scale")) {
+    kSpriteAnimator.scale_--;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("+##scale")) {
+    kSpriteAnimator.scale_++;
+  }
+  kSpriteAnimator.scale_ = CLAMPF(kSpriteAnimator.scale_, 1.f, 15.f);
+  ImGui::SameLine();
+  ImGui::SliderFloat("scale", &kSpriteAnimator.scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
+
 }
 
 void EditorSpriteAnimatorFileBrowser() {

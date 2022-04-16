@@ -99,6 +99,7 @@ static const std::vector<std::string> kEditorKnownAssetExtensions = {
   "png",
   "anim",
   "map",
+  "entity",
 };
 
 bool EditorCanLoadAsset(const std::string& name) {

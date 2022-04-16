@@ -1,5 +1,7 @@
 syntax = "proto2";
 
+import "entity.proto";
+
 package proto;
 
 message Layer2d {
@@ -21,4 +23,6 @@ message Map2d {
   repeated Layer2d layers = 1;
   // This represents collision bounds.
   repeated MapGeometry2d geometry = 2;
+  // Entities that get initialized onto this map.
+  repeated Entity2d entities = 3;
 };

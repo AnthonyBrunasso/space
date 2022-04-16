@@ -16,6 +16,7 @@ public:
   bool HasLayers() const { return map_.HasLayers(); }
   s32 current_layer() const { return current_layer_; }
 
+  std::vector<AnimSequence2d> anims_;
   Map2d map_;
   s32 current_layer_ = 0;
 
@@ -31,6 +32,7 @@ public:
   void OnImGui() override;
   void OnFileSelected(const std::string& filename) override;
 
+  void SelectEntity(const std::string& filename);
   void SetupRenderTarget();
   void SaveToFile(const proto::Map2d& map, const char* filename);
   const rgg::Texture* LoadTexture(const char* tname);
@@ -44,13 +46,18 @@ public:
   enum Mode {
     kMapMakerModeArt = 0,
     kMapMakerModeGeometry = 1, 
-    kMapMakerModeCount = 2,
+    kMapMakerModeEntity = 2,
+    kMapMakerModeCount = 3,
   };
 
   Mode mode() const { return mode_; }
+  AnimSequence2d* anim() { return &running_anim2d_; }
+  proto::Entity2d* entity() { return &entity_; }
 
   Mode mode_;
   rgg::TextureId texture_id_;
+  proto::Entity2d entity_;
+  AnimSequence2d running_anim2d_;
   Rectf selection_;
 };
 
@@ -61,6 +68,21 @@ void MapMaker::OnInitialize() {}
 void MapMaker::OnRender() {
   ImGuiStyle& style = ImGui::GetStyle();
   ImVec4 imcolor = style.Colors[ImGuiCol_WindowBg];
+
+  // TODO: This can reload from file for every newly added entity to the map. I don't think
+  // that actually matters as maps stay pretty small but there is a potential speedup here.
+  if (anims_.size() != map_.entities_.size()) {
+    anims_.clear();
+    for (const proto::Entity2d& entity : map_.entities()) {
+      AnimSequence2d anim;
+      if (!EntityLoadIdleAnimation(entity, &anim)) {
+        LOG(INFO, "No idle animation for entity %s", entity.DebugString().c_str());
+        continue;
+      }
+      anim.Start();
+      anims_.push_back(std::move(anim));
+    }
+  }
 
   //glClearColor(1.f, 0.f, 0.f, 1.f);
 
@@ -90,6 +112,30 @@ void MapMaker::OnRender() {
 
   if (kMapMakerControl.mode() == MapMakerControl::kMapMakerModeGeometry) {
     rgg::RenderLineRectangle(Scale(kMapMaker.cursor().world_grid_cell), rgg::kRed);
+  }
+
+  if (kMapMakerControl.mode() == MapMakerControl::kMapMakerModeEntity) {
+    AnimSequence2d* anim = kMapMakerControl.anim();
+    anim->Update();
+    const AnimFrame2d& aframe = anim->CurrentFrame();
+    const rgg::Texture* texture = aframe.GetTexture();
+    Rectf dest_rect = Rectf(anim->alignment(), aframe.src_rect().Dims());
+    dest_rect.x += kMapMaker.cursor().world_grid_cell.x;
+    dest_rect.y += kMapMaker.cursor().world_grid_cell.y;
+    rgg::RenderTexture(*texture, aframe.src_rect(), Scale(dest_rect));
+  }
+
+  int i = 0;
+  for (AnimSequence2d& anim : anims_) {
+    anim.Update();
+    const AnimFrame2d& aframe = anim.CurrentFrame();
+    const rgg::Texture* texture = aframe.GetTexture();
+    Rectf dest_rect = Rectf(anim.alignment(), aframe.src_rect().Dims());
+    const proto::Entity2d& entity = map_.GetEntity(i);
+    dest_rect.x += entity.location().x();
+    dest_rect.y += entity.location().y();
+    rgg::RenderTexture(*texture, aframe.src_rect(), Scale(dest_rect));
+    ++i;
   }
 
   if (render_bounds_ && HasLayers()) {
@@ -174,7 +220,8 @@ void MapMakerControl::OnImGui() {
   }
   static const char* kMapMakerControlStr[] = {
     "art",
-    "geometry"
+    "geometry",
+    "entity"
   };
   if (ImGui::Button("<##mode")) {
     kMapMakerControl.mode_ = (Mode)((s32)kMapMakerControl.mode_ - 1);
@@ -186,7 +233,7 @@ void MapMakerControl::OnImGui() {
     if (kMapMakerControl.mode_ >= kMapMakerModeCount) kMapMakerControl.mode_ = (Mode)0;
   }
   ImGui::SameLine();
-  ImGui::Combo("mode", (s32*)&kMapMakerControl.mode_, kMapMakerControlStr, 2);
+  ImGui::Combo("mode", (s32*)&kMapMakerControl.mode_, kMapMakerControlStr, 3);
   if (texture) {
     if (ImGui::Button("select all")) {
       SetSelectionRect(texture->Rect());
@@ -248,12 +295,29 @@ void MapMakerControl::OnImGui() {
 }
 
 void MapMakerControl::OnFileSelected(const std::string& filename) {
-  LoadTexture(filename.c_str());
-  SetupRenderTarget();
+  if (filesystem::HasExtension(filename.c_str(), "entity")) {
+    SelectEntity(filename);
+  } else {
+    LoadTexture(filename.c_str());
+    SetupRenderTarget();
+  }
 }
 
 const rgg::Texture* MapMakerControl::GetTexture() const {
   return rgg::GetTexture(texture_id_);
+}
+
+void MapMakerControl::SelectEntity(const std::string& filename) {
+  mode_ = kMapMakerModeEntity;
+  std::fstream inp(filename, std::ios::in | std::ios::binary);
+  if (!entity_.ParseFromIstream(&inp)) {
+    LOG(ERR, "Failed loading proto file %s", filename.c_str());
+  } 
+  if (!EntityLoadIdleAnimation(entity_, &running_anim2d_)) {
+    LOG(INFO, "Entity %s has no idle animation.", filename.c_str());
+  } else {
+    running_anim2d_.Start();
+  }
 }
 
 void MapMakerControl::SetupRenderTarget() {
@@ -322,6 +386,13 @@ void EditorMapMakerProcessEvent(const PlatformEvent& event) {
             if (kMapMakerControl.mode() == MapMakerControl::kMapMakerModeGeometry) {
               Rectf world_rect = kMapMaker.cursor().world_grid_cell;
               kMapMaker.map_.AddGeometry(world_rect);
+            }
+
+            if (kMapMakerControl.mode() == MapMakerControl::kMapMakerModeEntity) {
+              Rectf world_rect = kMapMaker.cursor().world_grid_cell;
+              kMapMakerControl.entity()->mutable_location()->set_x(world_rect.x);
+              kMapMakerControl.entity()->mutable_location()->set_y(world_rect.y);
+              kMapMaker.map_.AddEntity(*kMapMakerControl.entity());
             }
           }
         } break;
@@ -401,6 +472,16 @@ void EditorMapMakerDebug() {
   ImGui::Checkbox("render grid", &kMapMaker.render_grid_);
   ImGui::Checkbox("render bounds", &kMapMaker.render_bounds_);
   EditorDebugMenuGrid(kMapMaker.grid());
+  if (ImGui::Button("-##scale")) {
+    kMapMaker.scale_--;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("+##scale")) {
+    kMapMaker.scale_++;
+  }
+  kMapMaker.scale_ = CLAMPF(kMapMaker.scale_, 1.f, 15.f);
+  ImGui::SameLine();
+  ImGui::SliderFloat("scale", &kMapMaker.scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
   if (kMapMaker.HasLayers()) {
     const Layer2d& layer = kMapMaker.GetCurrentLayer();
     ImGui::Text("layer %i / %i", kMapMaker.current_layer() + 1, kMapMaker.map_.GetLayerCount());

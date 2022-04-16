@@ -93,6 +93,7 @@ public:
   void AddLayer(const Rectf& world_rect);
   void AddTexture(s32 layer_idx, const rgg::Texture* texture, const Rectf& src_rect, const Rectf& dest_rect);
   void AddGeometry(const Rectf& world_rect);
+  void AddEntity(const proto::Entity2d& entity);
   void DeleteGeometryAtPoint(v2f point);
   void Render(r32 scale = 1.f);
   void RenderCollisionGeometry(r32 scale = 1.f);
@@ -101,14 +102,18 @@ public:
   // Gets layer_idx's rendering texture
   const rgg::Texture& GetTexture(s32 layer_idx);
   const Layer2d& GetLayer(s32 layer_idx) const;
+  const proto::Entity2d& GetEntity(s32 idx) const;
   // Need a map name to generate layer asset path names.
   proto::Map2d ToProto(const char* map_name) const;
 
   bool HasLayers() const { return !layers_.empty(); }
   s32 GetLayerCount() const { return layers_.size(); }
 
+  const std::vector<proto::Entity2d>& entities() const { return entities_; }
+
   std::vector<Layer2d> layers_;
   std::vector<Rectf> collision_rects_;
+  std::vector<proto::Entity2d> entities_;
 };
 
 void Layer2d::Clear() {
@@ -198,6 +203,9 @@ Map2d Map2d::LoadFromProto(const proto::Map2d& proto) {
     rect.height = proto_geom.rect_height();
     map.collision_rects_.push_back(rect);
   }
+  for (const proto::Entity2d& entity : proto.entities()) {
+    map.entities_.push_back(entity);
+  }
   return map;
 }
 
@@ -236,6 +244,10 @@ void Map2d::AddGeometry(const Rectf& world_rect) {
   collision_rects_.push_back(world_rect);
 }
 
+void Map2d::AddEntity(const proto::Entity2d& entity) {
+  entities_.push_back(entity);
+}
+
 void Map2d::DeleteGeometryAtPoint(v2f point) {
   for (s32 i = 0; i < collision_rects_.size();) {
     if (math::PointInRect(point, collision_rects_[i])) {
@@ -262,6 +274,11 @@ const Layer2d& Map2d::GetLayer(s32 layer_idx) const {
   return layers_[layer_idx];
 }
 
+const proto::Entity2d& Map2d::GetEntity(s32 idx) const {
+  assert(idx < entities_.size());
+  return entities_[idx];
+}
+
 // NOTE: THIS MAKES DIRECTORIES IN ASSET/... Assumption is the caller saves the ncessary layer data.
 proto::Map2d Map2d::ToProto(const char* map_name) const {
   assert(strlen(map_name) > 0);
@@ -285,6 +302,9 @@ proto::Map2d Map2d::ToProto(const char* map_name) const {
     geom->set_rect_y(rect.y);
     geom->set_rect_width(rect.width);
     geom->set_rect_height(rect.height);
+  }
+  for (const proto::Entity2d& entity : entities_) {
+    *map.add_entities() = entity;
   }
   return map;
 }

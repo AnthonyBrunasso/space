@@ -27,6 +27,7 @@
 #include "renderer/opengl3_includes.cc"
 #include "2d/anim2d.cc"
 #include "2d/map2d.cc"
+#include "2d/entity2d.cc"
 
 #include "math/math.cc"
 #include "util/cooldown.cc"

@@ -9,6 +9,7 @@ public:
   void OnInitialize() override;
   void OnRender() override;
   void OnImGui() override;
+  void ChangeScale(r32 delta);
 };
 
 static EntityCreator kEntityCreator;
@@ -53,6 +54,11 @@ void EntityCreator::OnRender() {
 void EntityCreator::OnImGui() {
   UpdateImguiPanelRect();
   ImGuiImage();
+}
+
+void EntityCreator::ChangeScale(r32 delta) {
+  if (scale_ + delta > 0.f && scale_ + delta <= 15.f)
+    scale_ += delta;
 }
 
 void EntityCreatorControl::ImGui() {
@@ -173,15 +179,27 @@ void EntityCreatorControl::SelectEntity(const char* filename) {
   if (!entity_.ParseFromIstream(&inp)) {
     LOG(ERR, "Failed loading proto file %s", filename);
   } 
-  for (const proto::Entity2d::Animation& anim : entity_.animation()) {
-    if (anim.type() == proto::Entity2d_Animation::kIdle) {
-      AnimSequence2d::LoadFromProtoFile(anim.animation_file().c_str(), &running_anim2d_);
-      break;
-    }
+  if (!EntityLoadIdleAnimation(entity_, &running_anim2d_)) {
+    LOG(INFO, "Entity %s has no idle animation.", filename);
   }
 }
 
 void EditorEntityCreatorProcessEvent(const PlatformEvent& event) {
+  kEntityCreator.UpdateCursor();
+  switch(event.type) {
+    case MOUSE_WHEEL: {
+      if (kEntityCreator.IsMouseInsideEditorSurface()) {
+        if (event.wheel_delta > 0) {
+          kEntityCreator.ChangeScale(1.f);
+        } else if (event.wheel_delta < 0) {
+          kEntityCreator.ChangeScale(-1.f);
+        }
+      }
+    } break;
+    case MOUSE_UP:
+    case NOT_IMPLEMENTED:
+    default: break;
+  }
 }
 
 void EditorEntityCreatorInitialize() {
@@ -210,7 +228,7 @@ void EditorEntityCreatorDebug() {
   if (ImGui::Button("+##scale")) {
     kEntityCreator.scale_++;
   }
-  kSpriteAnimator.scale_ = CLAMPF(kEntityCreator.scale_, 1.f, 15.f);
+  kEntityCreator.scale_ = CLAMPF(kEntityCreator.scale_, 1.f, 15.f);
   ImGui::SameLine();
   ImGui::SliderFloat("scale", &kEntityCreator.scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
 }

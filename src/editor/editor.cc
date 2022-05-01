@@ -382,7 +382,7 @@ void EditorDebugMenu() {
   static const s32 kTabCount = 3;
   static const char* kTabs[kTabCount] = {
     "Contextual",
-    "Render Target",
+    "Diagnostics",
     "Textures"
   };
   static bool kOpened[kTabCount] = { true, true, true }; // Persistent user state
@@ -434,6 +434,11 @@ void EditorDebugMenu() {
             ImGuiTextRect("  crects ", kSpriteAnimator.GetCameraRect());
             ImGui::NewLine();
           }
+    
+          ImGui::Text("Game Loop");
+          ImGui::Text("  runtime    %04.02fs", (r64)kGameState.game_time_usec / 1e6);
+          ImGui::Text("  frametime  %04.02fus [%02.02f%%]",
+                      StatsMean(&kGameStats), 100.f * StatsUnbiasedRsDev(&kGameStats));
         } else if (i == 2) {
           ImGui::Text("Cached Textures (%lu/%u)", rgg::kUsedTextureHandle, RGG_TEXTURE_MAX);
           ImGui::NewLine();

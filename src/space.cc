@@ -1,4 +1,25 @@
 #include "common/include.cc"
+
+struct GameState {
+  // Lock the framerate to this value.
+  u32 framerate = 60;
+  // Available microseconds per game update
+  u64 framerate_usec;
+  // Estimate of gime passed since game start.
+  u64 game_time_usec = 0;
+  // Cuz my windows machine gots a bigger montior
+#ifdef _WIN32
+  u32 window_width = 1920;
+  u32 window_height = 1080;
+#else
+  u32 window_width = 1600;
+  u32 window_height = 900;
+#endif
+};
+
+static GameState kGameState;
+static Stats kGameStats;
+
 #include "editor/editor.cc"
 
 static bool kShowDemoWindow = true;
@@ -20,14 +41,10 @@ bool SetupWorkingDirectory() {
 }
 
 s32 main(s32 argc, char** argv) {
-  // Cuz my windows machine gots a bigger montior
-#ifdef _WIN32
-  kEditor.window_create_info.window_width = 1920;
-  kEditor.window_create_info.window_height = 1080;
-#else
-  kEditor.window_create_info.window_width = 1600;
-  kEditor.window_create_info.window_height = 900;
-#endif
+  kEditor.window_create_info.window_width = kGameState.window_width;
+  kEditor.window_create_info.window_height = kGameState.window_height;
+
+  kGameState.framerate_usec = 1000 * 1000 / kGameState.framerate;
 
   if (!SetupWorkingDirectory()) {
     LOG(ERR, "Unable to setup working directory.");
@@ -44,9 +61,13 @@ s32 main(s32 argc, char** argv) {
     return 1;
   }
 
+  LOG(INFO, "Client target usec %lu", kGameState.framerate_usec);
+
+  platform::Clock game_clock;
 
   while (1) {
-    platform::ClockStart(&kEditor.clock);
+    platform::ClockStart(&game_clock);
+
     if (window::ShouldClose()) break;
     ImGuiImplNewFrame();
     ImGui::NewFrame();
@@ -75,6 +96,18 @@ s32 main(s32 argc, char** argv) {
     ImGui::EndFrame();
 
     window::SwapBuffers();
+
+    const u64 elapsed_usec = platform::ClockEnd(&game_clock);
+    StatsAdd(elapsed_usec, &kGameStats);
+
+    if (kGameState.framerate_usec > elapsed_usec) {
+      u64 wait_usec = kGameState.framerate_usec - elapsed_usec;
+      platform::Clock wait_clock;
+      platform::ClockStart(&wait_clock);
+      while (platform::ClockEnd(&wait_clock) < wait_usec) {}
+    }
+
+    kGameState.game_time_usec += platform::ClockEnd(&game_clock);
   }
 
   return 0;

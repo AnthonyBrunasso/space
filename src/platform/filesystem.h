@@ -18,6 +18,10 @@ inline b8 HasExtension(const char* filename, const char* extension) {
   return strcmp(extension, ext) == 0;
 }
 
+inline b8 HasExtension(const std::string& filename, const char* extension) {
+  return HasExtension(filename.c_str(), extension);
+}
+
 // Example: ReplaceFilename("new_filename.txt", "foo/bar/file.txt")
 // Modifies the second param to contain "foo/bar/new_filename.txt".
 inline void ReplaceFilename(const char* newfname, char* oldfname_with_dir) {

@@ -4,6 +4,7 @@ public:
   void OnRender() override;
   void OnImGui() override;
   void OnFileSelected(const std::string& filename) override;
+  void LoadMap(const std::string& filename);
   void ChangeScale(r32 delta);
   void Main();
 
@@ -60,8 +61,15 @@ void Game::OnImGui() {
 
 void Game::OnFileSelected(const std::string& filename) {
   if (filesystem::HasExtension(filename, "map")) {
-    Map2d::LoadFromProtoFile(filename.c_str(), &map_);
+    LoadMap(filename);
   }
+}
+
+void Game::LoadMap(const std::string& filename) {
+  map_.Clear();  // Just in case the map is already hanging onto a texture.
+  Map2d::LoadFromProtoFile(filename.c_str(), &map_);
+  for (const proto::Entity2d& entity : map_.entities()) {
+  } 
 }
 
 void Game::ChangeScale(r32 delta) {

@@ -73,6 +73,9 @@ static s32 kRenderViewStart = 300;
 
 static s32 kFrameRendererHeight = 220;
 
+static char kEntitiesDir[256] = {};
+static char kAnimationsDir[256] = {};
+
 // Turns paths like 'C:\projects\space\asset\file.png' to '.\asset\file.png'
 // Turns paths like '/users/anthony/projects/space/asset/file.png' to './asset/file.png'
 std::string GetAssetRelative(const char* full_path) {
@@ -109,6 +112,7 @@ bool EditorCanLoadAsset(const std::string& name) {
   return false;
 }
 
+#include "utils.cc"
 #include "callback.cc"
 #include "editor_render_target.cc"
 
@@ -302,6 +306,7 @@ void EditorFileBrowserDefault() {
   ImGui::End();
 }
 
+#include "entity_edit.cc"
 #include "sprite_animator.cc"
 #include "game_viewer.cc"
 #include "map_maker.cc"
@@ -500,8 +505,30 @@ void EditorRenderViewport() {
   ImGui::End();
 }
 
+void EditorInitialize() {
+  static bool do_once = true;
+  if (!do_once) return;
+  if (kEntitiesDir[0] == 0) {
+#ifdef _WIN32
+    strcat(kEntitiesDir, filesystem::GetWorkingDirectory());
+    strcat(kEntitiesDir, "\\gamedata\\entities\\*");
+#else
+    strcat(kEntitiesDir, "./gamedata/entities/");
+#endif
+  }
+  if (kAnimationsDir[0] == 0) {
+#ifdef _WIN32
+    strcat(kAnimationsDir, filesystem::GetWorkingDirectory());
+    strcat(kAnimationsDir, "\\gamedata\\animations\\*");
+#else
+    strcat(kAnimationsDir, "./gamedata/animations/");
+#endif
+  }
+  do_once = false;
+}
 
 void EditorMain() {
+  EditorInitialize();
   EditorFileBrowser();
   EditorDebugMenu();
   EditorRenderViewport();

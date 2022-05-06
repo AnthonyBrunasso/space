@@ -201,26 +201,48 @@ void MapMakerControl::OnRender() {
 
 void MapMakerControl::OnImGui() {
   ImGui::Begin("Map Maker Control", nullptr, ImGuiWindowFlags_HorizontalScrollbar);
-  ImGuiImage();
   const rgg::Texture* texture = rgg::GetTexture(texture_id_);
-  if (texture) {
-    EditorDebugMenuGrid(&grid_);
-    float pre_scale = scale_;
-    if (ImGui::Button("-##scale")) {
-      scale_ -= 1.f;
-      if (scale_ <= 1.f) scale_ = 1.f;
+  if (mode_ == kMapMakerModeArt) {
+    ImGuiImage();
+    if (texture) {
+      EditorDebugMenuGrid(&grid_);
+      float pre_scale = scale_;
+      if (ImGui::Button("-##scale")) {
+        scale_ -= 1.f;
+        if (scale_ <= 1.f) scale_ = 1.f;
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("+##scale")) {
+        scale_ += 1.f;
+        if (scale_ >= 15.f) scale_ = 15.f;
+      }
+      ImGui::SameLine();
+      ImGui::SliderFloat("scale", &scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
+      if (scale_ != pre_scale) {
+        SetupRenderTarget();
+      }
     }
-    ImGui::SameLine();
-    if (ImGui::Button("+##scale")) {
-      scale_ += 1.f;
-      if (scale_ >= 15.f) scale_ = 15.f;
-    }
-    ImGui::SameLine();
-    ImGui::SliderFloat("scale", &scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
-    if (scale_ != pre_scale) {
-      SetupRenderTarget();
+  } else if (mode_ == MapMakerControl::kMapMakerModeEntity) {
+    for (int i = 0; i < kMapMaker.map_.entities_.size();) {
+      proto::Entity2d& entity = kMapMaker.map_.entities_[i];
+      char node[64];
+      snprintf(node, 64, "x##Entity%i", i);
+      if (ImGui::Button(node)) {
+        kMapMaker.map_.entities_.erase(kMapMaker.map_.entities_.begin() + i);
+        continue;
+      }
+      snprintf(node, 64, "Entity %i", i);
+      ImGui::SameLine();
+      if (ImGui::TreeNode(node)) {
+        EntityEditData edit_data;
+        edit_data.grid = grid();
+        EntityEdit(entity, &edit_data);
+        ImGui::TreePop();
+      }
+      ++i;
     }
   }
+  ImGui::Separator();
   static const char* kMapMakerControlStr[] = {
     "art",
     "geometry",
@@ -321,6 +343,7 @@ void MapMakerControl::SelectEntity(const std::string& filename) {
   } else {
     running_anim2d_.Start();
   }
+  entity_.set_blueprint(filename);
 }
 
 void MapMakerControl::SetupRenderTarget() {
@@ -354,7 +377,6 @@ const rgg::Texture* MapMakerControl::LoadTexture(const char* tname) {
   }
   return rgg::GetTexture(texture_id_);
 }
-
 
 void EditorMapMakerProcessEvent(const PlatformEvent& event) {
   kMapMaker.UpdateCursor();

@@ -117,7 +117,7 @@ public:
 };
 
 void Layer2d::Clear() {
-  DestroyLayer2dSurface(&surface_);
+  if (surface_.IsValid()) DestroyLayer2dSurface(&surface_);
 }
 
 void Layer2d::Initialize(const Rectf& world_rect, v4f color) {

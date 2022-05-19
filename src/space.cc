@@ -15,6 +15,9 @@ struct GameState {
   u32 window_width = 1600;
   u32 window_height = 900;
 #endif
+  // Setting this to true does nice things for battery life / fan noise on laptops
+  // but is a significant perf hit.
+  b8 sleep_on_wait = true;
 };
 
 static GameState kGameState;
@@ -102,9 +105,13 @@ s32 main(s32 argc, char** argv) {
 
     if (kGameState.framerate_usec > elapsed_usec) {
       u64 wait_usec = kGameState.framerate_usec - elapsed_usec;
-      platform::Clock wait_clock;
-      platform::ClockStart(&wait_clock);
-      while (platform::ClockEnd(&wait_clock) < wait_usec) {}
+      if (kGameState.sleep_on_wait) {
+        platform::SleepUsec(wait_usec);
+      } else {
+        platform::Clock wait_clock;
+        platform::ClockStart(&wait_clock);
+        while (platform::ClockEnd(&wait_clock) < wait_usec) {}
+      }
     }
 
     kGameState.game_time_usec += platform::ClockEnd(&game_clock);

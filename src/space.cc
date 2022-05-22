@@ -91,7 +91,6 @@ s32 main(s32 argc, char** argv) {
       ImGui::ShowDemoWindow(&kShowDemoWindow);
     }
 
-
     rgg::DebugRenderUIPrimitives();
 
     ImGui::Render();

@@ -1,3 +1,7 @@
+#include "utils.cc"
+#include "scheduler.cc"
+#include "entity.cc"
+
 class Game : public EditorRenderTarget {
 public:
   void OnInitialize() override;
@@ -69,6 +73,7 @@ void Game::LoadMap(const std::string& filename) {
   map_.Clear();  // Just in case the map is already hanging onto a texture.
   Map2d::LoadFromProtoFile(filename.c_str(), &map_);
   for (const proto::Entity2d& entity : map_.entities()) {
+    EntityCreateFromProto(entity);
   } 
 }
 
@@ -79,5 +84,8 @@ void Game::ChangeScale(r32 delta) {
 
 void Game::Main() {
   GameInitialize();
+
+  EntityRunUpdates();
+
   Render();
 }

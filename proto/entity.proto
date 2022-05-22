@@ -22,9 +22,15 @@ message Entity2d {
     optional float alignment_y = 4;
   };
 
+  enum Type {
+    kUndefined = 0;
+    kCharacter = 1;
+  };
+
   optional Vector location = 1;
   repeated Animation animation = 2;
   // The blueprint will just initialize all values in here with the blueprint value, then can be modified
   // afterwards by specific data in the map.
   optional string blueprint = 3;
+  optional Type type = 4;
 };

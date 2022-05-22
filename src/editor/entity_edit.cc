@@ -7,11 +7,19 @@ enum class EntityExclusionBitfield {
 
 struct EntityEditData {
   EntityExclusionBitfield exclusion;
-  EditorGrid* grid;
-  AnimSequence2d* anim_sequence;
+  EditorGrid* grid = nullptr;
+  AnimSequence2d* anim_sequence = nullptr;
 };
 
 void EntityEdit(proto::Entity2d& entity, EntityEditData* edit_data) {
+  static char kTempStr[128];
+  static char** kEntityTypeStrings = nullptr;
+  if (!kEntityTypeStrings) {
+    CreateProtoEnumStrings(kEntityTypeStrings, proto::Entity2d_Type_descriptor());
+  }
+  proto::Entity2d::Type entity_type = entity.type();
+  ImGui::Combo("entity_type", (s32*)&entity_type, kEntityTypeStrings, proto::Entity2d::Type_MAX + 1);
+  entity.set_type(entity_type);
   r32 x = entity.location().x();
   r32 y = entity.location().y();
   if (ImGui::Button("-##location_x")) {
@@ -36,19 +44,12 @@ void EntityEdit(proto::Entity2d& entity, EntityEditData* edit_data) {
   entity.mutable_location()->set_y(y);
   if (entity.animation_size() > 0) {
     if (ImGui::TreeNode("Animations")) {
-      static char** kTypeStrings = nullptr;
-      if (!kTypeStrings) {
-        const google::protobuf::EnumDescriptor* desc = proto::Entity2d_Animation_Type_descriptor();
-        kTypeStrings = new char*[proto::Entity2d_Animation::Type_MAX + 1];
-        for (s32 i = 0; i <= proto::Entity2d_Animation::Type_MAX; ++i) {
-          std::string name = desc->FindValueByNumber(i)->name();
-          kTypeStrings[i] = new char[name.size()];
-          strcpy(kTypeStrings[i], name.data());
-        }
+      static char** kAnimationTypeStrings = nullptr;
+      if (!kAnimationTypeStrings) {
+        CreateProtoEnumStrings(kAnimationTypeStrings, proto::Entity2d_Animation_Type_descriptor());
       }
       for (s32 i = 0; i < entity.animation_size();) {
         proto::Entity2d::Animation* proto_animation = entity.mutable_animation(i);
-        static char kTempStr[128];
         snprintf(kTempStr, 128, "x##%s", proto_animation->animation_file().c_str());
         if (ImGui::Button(kTempStr)) {
           entity.mutable_animation()->SwapElements(i, entity.animation_size() - 1);
@@ -80,7 +81,7 @@ void EntityEdit(proto::Entity2d& entity, EntityEditData* edit_data) {
         }
         ImGui::SameLine();
         snprintf(kTempStr, 128, "type##%s", proto_animation->animation_file().c_str());
-        ImGui::Combo(kTempStr, (s32*)&type, kTypeStrings, proto::Entity2d_Animation::Type_MAX + 1);
+        ImGui::Combo(kTempStr, (s32*)&type, kAnimationTypeStrings, proto::Entity2d_Animation::Type_MAX + 1);
         proto_animation->set_type(type);
         r32 alignment_x = proto_animation->alignment_x();
         snprintf(kTempStr, 128, "-##x%i", i);
@@ -108,7 +109,8 @@ void EntityEdit(proto::Entity2d& entity, EntityEditData* edit_data) {
         ImGui::SameLine();
         snprintf(kTempStr, 128, "aligny##%i", i);
         ImGui::SliderFloat(kTempStr, &alignment_y, -128.f, 128.f, "%.0f");
-        if (edit_data->anim_sequence && edit_data->anim_sequence->file_ == proto_animation->animation_file()) {
+        if (edit_data && edit_data->anim_sequence &&
+            edit_data->anim_sequence->file_ == proto_animation->animation_file()) {
           edit_data->anim_sequence->SetAlignment(v2f(alignment_x, alignment_y));
         }
         proto_animation->set_alignment_x(alignment_x);
@@ -119,7 +121,8 @@ void EntityEdit(proto::Entity2d& entity, EntityEditData* edit_data) {
       ImGui::TreePop();
     }
   }
-  if (entity.has_blueprint()) {
+  // TODO: Implement entity blueprints or no?
+  /*if (entity.has_blueprint()) {
     std::vector<std::string> blueprints = GetEntityBlueprints();;
     static s32 choice = -1;
     if (entity.has_blueprint()) {
@@ -141,5 +144,5 @@ void EntityEdit(proto::Entity2d& entity, EntityEditData* edit_data) {
     if (pre_choice != choice) {
       entity.set_blueprint(blueprints[choice]);
     }
-  }
+  }*/
 }

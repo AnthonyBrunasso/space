@@ -10,3 +10,12 @@ std::vector<std::string> GetEntityBlueprints() {
   });
   return blueprints;
 }
+
+void CreateProtoEnumStrings(char**& type_strings, const google::protobuf::EnumDescriptor* desc) {
+  type_strings = new char*[desc->value_count()];
+  for (s32 i = 0; i < desc->value_count(); ++i) {
+    std::string name = desc->FindValueByNumber(i)->name();
+    type_strings[i] = new char[name.size()];
+    strcpy(type_strings[i], name.data());
+  }
+}

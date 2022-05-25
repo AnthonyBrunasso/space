@@ -121,6 +121,9 @@ void EntityEdit(proto::Entity2d& entity, EntityEditData* edit_data) {
       ImGui::TreePop();
     }
   }
+  bool is_player = entity.is_player();
+  ImGui::Checkbox("Is Player", &is_player);
+  entity.set_is_player(is_player);
   // TODO: Implement entity blueprints or no?
   /*if (entity.has_blueprint()) {
     std::vector<std::string> blueprints = GetEntityBlueprints();;

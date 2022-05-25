@@ -1,8 +1,8 @@
 #include "utils.cc"
 
-class Controller {
+class Input {
 public:
-  static Controller& Get();
+  static Input& Get();
 
   bool IsKeyDown(u32 keycode) const;
   bool IsKeyUp(u32 keycode) const;
@@ -12,22 +12,22 @@ public:
   std::unordered_map<u32, bool> key_map_;
 };
 
-Controller& Controller::Get() {
-  static Controller kController;
-  return kController;
+Input& Input::Get() {
+  static Input kInput;
+  return kInput;
 }
 
-bool Controller::IsKeyDown(u32 keycode) const {
+bool Input::IsKeyDown(u32 keycode) const {
   const bool* key_down = FindOrNull(key_map_, keycode);
   if (!key_down) return false;
   return *key_down;
 }
 
-bool Controller::IsKeyUp(u32 keycode) const {
+bool Input::IsKeyUp(u32 keycode) const {
   return !IsKeyDown(keycode);
 }
 
-void Controller::SetKeyDown(u32 keycode, bool is_down) {
+void Input::SetKeyDown(u32 keycode, bool is_down) {
   key_map_[keycode] = is_down;
 }
 
@@ -57,11 +57,11 @@ void GameProcessEvent(const PlatformEvent& event) {
     case MOUSE_DOWN: break;
     case KEY_DOWN: {
       //LOG(INFO, "Set key down %u", event.key);
-      Controller::Get().SetKeyDown(event.key, true);
+      Input::Get().SetKeyDown(event.key, true);
     } break;
     case KEY_UP: {
       //LOG(INFO, "Set key up %u", event.key);
-      Controller::Get().SetKeyDown(event.key, false);
+      Input::Get().SetKeyDown(event.key, false);
     } break;
     case MOUSE_WHEEL: {
       if (kGame.IsMouseInsideEditorSurface() && !kGame.IsMouseInside()) {

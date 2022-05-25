@@ -33,4 +33,5 @@ message Entity2d {
   // afterwards by specific data in the map.
   optional string blueprint = 3;
   optional Type type = 4;
+  optional bool is_player = 5;
 };

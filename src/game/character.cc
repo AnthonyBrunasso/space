@@ -26,7 +26,9 @@ public:
 
 std::unique_ptr<Character> Character::Create(const proto::Entity2d& proto_entity) {
   std::unique_ptr<Character> character(new Character);
-  character->controller_ = CharacterController::Create(proto_entity, character.get());
+  if (proto_entity.is_player()) {
+    character->controller_ = CharacterController::Create(proto_entity, character.get());
+  }
   return character;
 }
 
@@ -41,16 +43,16 @@ std::unique_ptr<CharacterController> CharacterController::Create(
 }
 
 void CharacterController::Update() {
-  if (Controller::Get().IsKeyDown(KEY_W)) {
+  if (Input::Get().IsKeyDown(KEY_W)) {
     character_->pos_.y += 1.f;
   }
-  if (Controller::Get().IsKeyDown(KEY_S)) {
+  if (Input::Get().IsKeyDown(KEY_S)) {
     character_->pos_.y -= 1.f;
   }
-  if (Controller::Get().IsKeyDown(KEY_D)) {
+  if (Input::Get().IsKeyDown(KEY_D)) {
     character_->pos_.x += 1.f;
   }
-  if (Controller::Get().IsKeyDown(KEY_A)) {
+  if (Input::Get().IsKeyDown(KEY_A)) {
     character_->pos_.x -= 1.f;
   }
 }

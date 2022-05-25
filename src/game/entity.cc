@@ -7,22 +7,29 @@ public:
   proto::Entity2d::Type type_;
 };
 
+std::vector<std::function<void()>> kUpdaters;
+
 #define DECLARE_FRAME_UPDATER(type)          \
 public:                                      \
-  static std::vector<type*>& UpdateQueue() { \
+  static std::vector<type*>& Array() {       \
+    static bool kAddToUpdater = true;        \
+    if (kAddToUpdater) {                     \
+      kUpdaters.push_back(&type::UpdateAll); \
+      kAddToUpdater = false;                 \
+    }                                        \
     static std::vector<type*> k##typeList;   \
     return k##typeList;                      \
   }                                          \
 private:                                     \
   void AddUpdater(type* c) {                 \
-    UpdateQueue().push_back(c);              \
+    Array().push_back(c);                    \
   }                                          \
                                              \
   void RemoveUpdater(type* c) {              \
-    UpdateQueue().erase(std::remove(         \
-        UpdateQueue().begin(),               \
-        UpdateQueue().end(),                 \
-        c), UpdateQueue().end());            \
+    Array().erase(std::remove(               \
+        Array().begin(),                     \
+        Array().end(),                       \
+        c), Array().end());                  \
   }                                          \
                                              \
   type() {                                   \
@@ -37,7 +44,7 @@ public:                                      \
   }                                          \
                                              \
   static void UpdateAll() {                  \
-    for (type* t : UpdateQueue())            \
+    for (type* t : Array())                  \
       t->Update();                           \
   }
 
@@ -63,6 +70,8 @@ void EntityCreateFromProto(const proto::Entity2d& proto_entity) {
   u32 id = kEntityAutoIncrementId++;
   entity->id_ = id;
   entity->type_ = proto_entity.type();
+  entity->pos_.x = proto_entity.location().x();
+  entity->pos_.y = proto_entity.location().y();
   kEntities[id] = std::move(entity);
 }
 
@@ -72,6 +81,5 @@ void EntityDestroy(u32 entity_id) {
 }
 
 void EntityRunUpdates() {
-  // TODO: Can I somehow automatically generate the call to all of these???
-  Character::UpdateAll();
+  for (const auto& func : kUpdaters) func();
 }

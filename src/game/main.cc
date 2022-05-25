@@ -1,6 +1,39 @@
 #include "utils.cc"
+
+class Controller {
+public:
+  static Controller& Get();
+
+  bool IsKeyDown(u32 keycode) const;
+  bool IsKeyUp(u32 keycode) const;
+
+  void SetKeyDown(u32 keycode, bool is_down);
+
+  std::unordered_map<u32, bool> key_map_;
+};
+
+Controller& Controller::Get() {
+  static Controller kController;
+  return kController;
+}
+
+bool Controller::IsKeyDown(u32 keycode) const {
+  const bool* key_down = FindOrNull(key_map_, keycode);
+  if (!key_down) return false;
+  return *key_down;
+}
+
+bool Controller::IsKeyUp(u32 keycode) const {
+  return !IsKeyDown(keycode);
+}
+
+void Controller::SetKeyDown(u32 keycode, bool is_down) {
+  key_map_[keycode] = is_down;
+}
+
 #include "scheduler.cc"
 #include "entity.cc"
+#include "render.cc"
 
 class Game : public EditorRenderTarget {
 public:
@@ -22,7 +55,14 @@ void GameProcessEvent(const PlatformEvent& event) {
   kGame.UpdateCursor();
   switch(event.type) {
     case MOUSE_DOWN: break;
-    case KEY_DOWN: break;
+    case KEY_DOWN: {
+      //LOG(INFO, "Set key down %u", event.key);
+      Controller::Get().SetKeyDown(event.key, true);
+    } break;
+    case KEY_UP: {
+      //LOG(INFO, "Set key up %u", event.key);
+      Controller::Get().SetKeyDown(event.key, false);
+    } break;
     case MOUSE_WHEEL: {
       if (kGame.IsMouseInsideEditorSurface() && !kGame.IsMouseInside()) {
         if (event.wheel_delta > 0) {
@@ -57,6 +97,10 @@ void Game::OnRender() {
   // Fill the background with imgui's background color to maintain beauty.
   rgg::RenderRectangle(GetCameraRectScaled(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
   map_.Render(scale_);
+
+  for (Character* character : Character::Array()) {
+    rgg::RenderRectangle(Scale(Rectf(character->pos_, v2f(10.f, 10.f))), rgg::kRed);
+  }
 }
 
 void Game::OnImGui() {

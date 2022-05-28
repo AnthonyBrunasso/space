@@ -30,8 +30,10 @@ public:
 
   static AnimSequence2d LoadFromProto(const proto::Animation2d& proto);
   static bool LoadFromProtoFile(const char* filename, AnimSequence2d* anim_sequence);
+  static bool LoadFromProtoFile(const std::string& filename, AnimSequence2d* anim_sequence);
 
   void Start();
+  bool IsActive() const { return is_active_; }
   void Update();
   const AnimFrame2d& CurrentFrame();
 
@@ -53,6 +55,7 @@ public:
   platform::Clock clock_;
   s32 frame_index_ = 0;
   v2f alignment_;
+  b8 is_active_;
   // If loaded from file this will be set.
   std::string file_;
 };
@@ -89,6 +92,10 @@ bool AnimSequence2d::LoadFromProtoFile(const char* filename, AnimSequence2d* ani
   return true;
 }
 
+bool AnimSequence2d::LoadFromProtoFile(const std::string& filename, AnimSequence2d* anim_sequence) {
+  return LoadFromProtoFile(filename.c_str(), anim_sequence);
+}
+
 void AnimSequence2d::Start() {
   // Need at least two frames to have a sequence.
   assert(sequence_frames_.size() >= 1);
@@ -100,6 +107,7 @@ void AnimSequence2d::Start() {
   last_frame_time_sec_ = platform::ClockDeltaSec(clock_);
   next_frame_time_sec_ = last_frame_time_sec_ + sequence_frames_[frame_index_].duration_sec;
   sequence_frames_[frame_index_].is_active = true;
+  is_active_ = true;
 }
 
 void AnimSequence2d::Update() {

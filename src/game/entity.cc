@@ -2,6 +2,7 @@
 
 class Entity {
 public:
+  virtual ~Entity() = default;
   u32 id_;
   v2f pos_;
   proto::Entity2d::Type type_;

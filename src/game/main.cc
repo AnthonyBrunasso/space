@@ -99,7 +99,17 @@ void Game::OnRender() {
   map_.Render(scale_);
 
   for (Character* character : Character::Array()) {
-    rgg::RenderRectangle(Scale(Rectf(character->pos_, v2f(10.f, 10.f))), rgg::kRed);
+    Anim* anim = character->anim();
+    const AnimFrame2d* aframe = anim ? anim->CurrentFrame() : nullptr;
+    // Good to see if a character is missing animations for some reason
+    if (!aframe) {
+      rgg::RenderRectangle(Scale(Rectf(character->pos_, v2f(10.f, 10.f))), rgg::kRed);
+      continue;
+    }
+    const rgg::Texture* texture_render_from = rgg::GetTexture(aframe->texture_id_);
+    Rectf src = aframe->src_rect();
+    Rectf dest = Scale(Rectf(character->pos_, v2f(src.width, src.height)));
+    rgg::RenderTexture(*texture_render_from, src, dest);
   }
 }
 

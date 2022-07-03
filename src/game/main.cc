@@ -98,9 +98,8 @@ void Game::OnRender() {
   rgg::RenderRectangle(GetCameraRectScaled(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
   map_.Render(scale_);
 
-  for (Character* character : Character::Array()) {
-    Anim* anim = character->anim();
-    const AnimFrame2d* aframe = anim ? anim->CurrentFrame() : nullptr;
+  for (Character* character : kCharacters) {
+    const AnimFrame2d* aframe = character->anim_.CurrentFrame();
     // Good to see if a character is missing animations for some reason
     if (!aframe) {
       rgg::RenderRectangle(Scale(Rectf(character->pos_, v2f(10.f, 10.f))), rgg::kRed);
@@ -139,7 +138,7 @@ void Game::ChangeScale(r32 delta) {
 void Game::Main() {
   GameInitialize();
 
-  EntityRunUpdates();
+  EntityUpdate();
 
   Render();
 }

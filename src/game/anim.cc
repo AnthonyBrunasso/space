@@ -2,9 +2,7 @@
 
 class Anim {
 public:
-  DECLARE_FRAME_UPDATER(Anim)
-
-  static std::unique_ptr<Anim> Create(const proto::Entity2d& proto_entity);
+  void Initialize(const proto::Entity2d& proto_entity);
 
   void Update();
   void Signal(proto::Entity2d::Animation::Type anim_type);
@@ -14,20 +12,18 @@ public:
   AnimSequence2d* current_sequence_ = nullptr;
 };
 
-std::unique_ptr<Anim> Anim::Create(const proto::Entity2d& proto_entity) {
+void Anim::Initialize(const proto::Entity2d& proto_entity) {
   if (proto_entity.animation_size() == 0)
     return nullptr;
-  std::unique_ptr<Anim> anim(new Anim);
   for (const proto::Entity2d::Animation& proto_anim : proto_entity.animation()) {
-    AnimSequence2d& anim_sequence = anim->sequence_map_[(u32)proto_anim.type()];
+    AnimSequence2d& anim_sequence = sequence_map_[(u32)proto_anim.type()];
     if (!AnimSequence2d::LoadFromProtoFile(proto_anim.animation_file(), &anim_sequence)) {
       LOG(ERR, "Error loading animation %s", proto_anim.animation_file().c_str());
       continue;
     }
     anim_sequence.alignment_ = v2f(proto_anim.alignment_x(), proto_anim.alignment_y());
   }
-  anim->current_sequence_ = FindOrNull(anim->sequence_map_, (u32)proto::Entity2d::Animation::kIdle);
-  return anim;
+  current_sequence_ = FindOrNull(sequence_map_, (u32)proto::Entity2d::Animation::kIdle);
 }
 
 void Anim::Update() {

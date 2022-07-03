@@ -3,53 +3,13 @@
 class Entity {
 public:
   virtual ~Entity() = default;
+  virtual void OnUpdate() {};
   u32 id_;
   v2f pos_;
   proto::Entity2d::Type type_;
+  // If true will dispatch virtual Update calls.
+  bool has_update_ = false;
 };
-
-std::vector<std::function<void()>> kUpdaters;
-
-#define DECLARE_FRAME_UPDATER(type)          \
-public:                                      \
-  static std::vector<type*>& Array() {       \
-    static bool kAddToUpdater = true;        \
-    if (kAddToUpdater) {                     \
-      kUpdaters.push_back(&type::UpdateAll); \
-      kAddToUpdater = false;                 \
-    }                                        \
-    static std::vector<type*> k##typeList;   \
-    return k##typeList;                      \
-  }                                          \
-private:                                     \
-  void AddUpdater(type* c) {                 \
-    Array().push_back(c);                    \
-  }                                          \
-                                             \
-  void RemoveUpdater(type* c) {              \
-    Array().erase(std::remove(               \
-        Array().begin(),                     \
-        Array().end(),                       \
-        c), Array().end());                  \
-  }                                          \
-                                             \
-  type() {                                   \
-    AddUpdater(this);                        \
-  }                                          \
-                                             \
-  type(const type& rhs) = delete;            \
-                                             \
-public:                                      \
-  ~type() {                                  \
-    RemoveUpdater(this);                     \
-  }                                          \
-                                             \
-  static void UpdateAll() {                  \
-    for (type* t : Array())                  \
-      t->Update();                           \
-  }
-
-
 
 #include "character.cc"
 
@@ -57,12 +17,14 @@ typedef std::unique_ptr<Entity> EntityPtr;
 static std::unordered_map<u32, EntityPtr> kEntities;
 static u32 kEntityInvalid = 0;
 static u32 kEntityAutoIncrementId = 1;
+static std::vector<Character*> kCharacters;
 
 void EntityCreateFromProto(const proto::Entity2d& proto_entity) {
   std::unique_ptr<Entity> entity;
   switch (proto_entity.type()) {
     case proto::Entity2d::kCharacter: {
       entity = Character::Create(proto_entity);
+      kCharacters.push_back((Character*)entity.get());
     } break;
     case proto::Entity2d::kUndefined:
     default:
@@ -79,8 +41,21 @@ void EntityCreateFromProto(const proto::Entity2d& proto_entity) {
 void EntityDestroy(u32 entity_id) {
   Entity* entity = FindOrNull(kEntities, entity_id);
   if (!entity) return;
+  switch(entity->type_) {
+    case proto::Entity2d::kCharacter: {
+      kCharacters.erase(std::remove(kCharacters.begin(), kCharacters.end(), entity), kCharacters.end());
+    } break;
+    case proto::Entity2d::kUndefined:
+    default:
+      break;
+  }
 }
 
-void EntityRunUpdates() {
-  for (const auto& func : kUpdaters) func();
+void EntityUpdate() {
+  for (std::pair<const u32, EntityPtr>& pair : kEntities) {
+    EntityPtr& entity = pair.second;
+    if (entity->has_update_) {
+      entity->OnUpdate();
+    }
+  }
 }

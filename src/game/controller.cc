@@ -28,8 +28,8 @@ void PlayerController::OnUpdate() {
   b8 signal_idle = true;
   if (Input::Get().IsKeyDown(KEY_W)) {
     character_->pos_.y += 1.f;
-    character_->anim_.Signal(proto::Entity2d::Animation::kJump);
-    signal_idle = false;
+    //character_->anim_.Signal(proto::Entity2d::Animation::kJump);
+    //signal_idle = false;
   }
 
   if (Input::Get().IsKeyDown(KEY_S)) {
@@ -38,14 +38,14 @@ void PlayerController::OnUpdate() {
 
   if (Input::Get().IsKeyDown(KEY_D)) {
     character_->pos_.x += 1.f;
-    if (signal_idle) character_->anim_.Signal(proto::Entity2d::Animation::kMove);
-    signal_idle = false;
+    //if (signal_idle) character_->anim_.Signal(proto::Entity2d::Animation::kMove);
+    //signal_idle = false;
   }
 
   if (Input::Get().IsKeyDown(KEY_A)) {
     character_->pos_.x -= 1.f;
-    if (signal_idle) character_->anim_.Signal(proto::Entity2d::Animation::kMove);
-    signal_idle = false;
+    //if (signal_idle) character_->anim_.Signal(proto::Entity2d::Animation::kMove);
+    //signal_idle = false;
   }
 
   if (signal_idle)

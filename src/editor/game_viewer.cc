@@ -12,7 +12,8 @@ void EditorGameViewerMain() {
 }
 
 void EditorGameViewerDebug() {
-  ImGui::Text("Game");
+  //ImGui::Text("Game");
+  ImGui::Checkbox("render aabb", &kGame.render_aabb_);
 }
 
 r32 EditorGameViewerScale() {

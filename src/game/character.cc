@@ -29,5 +29,5 @@ std::unique_ptr<Character> Character::Create(const proto::Entity2d& proto_entity
 
 void Character::OnUpdate() {
   controller_->OnUpdate();
-  anim_.Update();
+  //anim_.Update();
 }

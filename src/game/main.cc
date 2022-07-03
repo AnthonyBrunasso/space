@@ -45,6 +45,8 @@ public:
   void ChangeScale(r32 delta);
   void Main();
 
+  bool render_aabb_;
+
 private:
   Map2d map_;
 };
@@ -97,6 +99,9 @@ void Game::OnRender() {
   // Fill the background with imgui's background color to maintain beauty.
   rgg::RenderRectangle(GetCameraRectScaled(), v4f(imcolor.x, imcolor.y, imcolor.z, imcolor.w));
   map_.Render(scale_);
+  if (render_aabb_) {
+    map_.RenderCollisionGeometry(scale_);
+  }
 
   for (Character* character : kCharacters) {
     const AnimFrame2d* aframe = character->anim_.CurrentFrame();
@@ -109,6 +114,9 @@ void Game::OnRender() {
     Rectf src = aframe->src_rect();
     Rectf dest = Scale(Rectf(character->pos_, v2f(src.width, src.height)));
     rgg::RenderTexture(*texture_render_from, src, dest);
+    if (render_aabb_) {
+      rgg::RenderLineRectangle(dest, rgg::kRed);
+    }
   }
 }
 

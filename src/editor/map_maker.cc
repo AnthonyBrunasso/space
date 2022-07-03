@@ -11,12 +11,16 @@ public:
 
   void SetNextLayer();
   void SetPrevLayer();
+  void Highlight(const Rectf& rect);
 
   const Layer2d& GetCurrentLayer() const { return map_.GetLayer(current_layer_); }
   bool HasLayers() const { return map_.HasLayers(); }
   s32 current_layer() const { return current_layer_; }
 
+
   std::vector<AnimSequence2d> anims_;
+  // Things to highlight for a single frame
+  std::vector<Rectf> frame_highlights_;
   Map2d map_;
   s32 current_layer_ = 0;
 
@@ -150,6 +154,12 @@ void MapMaker::OnRender() {
     render_rect.height = current_layer.Dims().y;
     rgg::RenderLineRectangle(Scale(render_rect), kImGuiDebugItemColor);
   }
+
+  for (const Rectf& highlight : frame_highlights_) {
+    rgg::RenderLineRectangle(Scale(highlight), rgg::kBlue);
+  }
+
+  frame_highlights_.clear();
 }
 
 void MapMaker::OnImGui() {
@@ -178,6 +188,10 @@ void MapMaker::SetNextLayer() {
 void MapMaker::SetPrevLayer() {
   current_layer_--;
   if (current_layer_ < 0) current_layer_ = map_.GetLayerCount() - 1;
+}
+
+void MapMaker::Highlight(const Rectf& rect) {
+  frame_highlights_.push_back(rect);
 }
 
 void MapMakerControl::OnRender() {
@@ -237,6 +251,7 @@ void MapMakerControl::OnImGui() {
         EntityEditData edit_data;
         edit_data.grid = grid();
         EntityEdit(entity, &edit_data);
+        kMapMaker.Highlight(Rectf(entity.location().x(), entity.location().y(), 16.f, 16.f));
         ImGui::TreePop();
       }
       ++i;

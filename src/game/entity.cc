@@ -1,15 +1,5 @@
 #pragma once
 
-class Entity {
-public:
-  virtual ~Entity() = default;
-  virtual void OnUpdate() {};
-  u32 id_;
-  v2f pos_;
-  proto::Entity2d::Type type_;
-  // If true will dispatch virtual Update calls.
-  bool has_update_ = false;
-};
 
 #include "character.cc"
 
@@ -35,7 +25,12 @@ void EntityCreateFromProto(const proto::Entity2d& proto_entity) {
   entity->type_ = proto_entity.type();
   entity->pos_.x = proto_entity.location().x();
   entity->pos_.y = proto_entity.location().y();
+  PAddEntity(entity->id_);
   kEntities[id] = std::move(entity);
+}
+
+Entity* EntityGet(u32 entity_id) {
+  return FindOrNull(kEntities, entity_id);
 }
 
 void EntityDestroy(u32 entity_id) {

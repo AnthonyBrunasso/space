@@ -14,6 +14,7 @@ void EditorGameViewerMain() {
 void EditorGameViewerDebug() {
   //ImGui::Text("Game");
   ImGui::Checkbox("render aabb", &kGame.render_aabb_);
+  ImGui::Checkbox("render physics", &kGame.render_physics_);
 }
 
 r32 EditorGameViewerScale() {

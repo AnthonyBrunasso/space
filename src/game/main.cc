@@ -12,6 +12,23 @@ public:
   std::unordered_map<u32, bool> key_map_;
 };
 
+// Entity declarations as most the game will need these.
+class Entity {
+public:
+  virtual ~Entity() = default;
+  virtual void OnUpdate() {};
+  u32 id_;
+  v2f pos_;
+  v2f dims_;
+  proto::Entity2d::Type type_;
+  // If true will dispatch virtual Update calls.
+  bool has_update_ = false;
+};
+
+Entity* EntityGet(u32 entity_id);
+void EntityDestroy(u32 entity_id);
+void EntityUpdate();
+
 Input& Input::Get() {
   static Input kInput;
   return kInput;
@@ -32,6 +49,7 @@ void Input::SetKeyDown(u32 keycode, bool is_down) {
 }
 
 #include "scheduler.cc"
+#include "physics.cc"
 #include "entity.cc"
 #include "render.cc"
 
@@ -46,6 +64,7 @@ public:
   void Main();
 
   bool render_aabb_;
+  bool render_physics_;
 
 private:
   Map2d map_;
@@ -118,6 +137,10 @@ void Game::OnRender() {
       rgg::RenderLineRectangle(dest, rgg::kRed);
     }
   }
+
+  if (render_physics_) {
+    PDebugRender(scale_);
+  }
 }
 
 void Game::OnImGui() {
@@ -131,11 +154,15 @@ void Game::OnFileSelected(const std::string& filename) {
 }
 
 void Game::LoadMap(const std::string& filename) {
+  kPNodes.clear();
   map_.Clear();  // Just in case the map is already hanging onto a texture.
   Map2d::LoadFromProtoFile(filename.c_str(), &map_);
   for (const proto::Entity2d& entity : map_.entities()) {
     EntityCreateFromProto(entity);
   } 
+  for (const Rectf& rect : map_.collision_rects_) {
+    PAddGeom(rect.Min(), rect.Dims());
+  }
 }
 
 void Game::ChangeScale(r32 delta) {
@@ -147,6 +174,9 @@ void Game::Main() {
   GameInitialize();
 
   EntityUpdate();
+  // Physics updates happens after entity update to correct any intersecting collision
+  // things before rendering. Otherwise we'd often see a frame of intersection.
+  PUpdate();
 
   Render();
 }

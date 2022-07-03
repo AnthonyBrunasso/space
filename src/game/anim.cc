@@ -7,12 +7,12 @@ public:
   static std::unique_ptr<Anim> Create(const proto::Entity2d& proto_entity);
 
   void Update();
+  void Signal(proto::Entity2d::Animation::Type anim_type);
   const AnimFrame2d* CurrentFrame();
 
   std::unordered_map<u32, AnimSequence2d> sequence_map_;
   AnimSequence2d* current_sequence_ = nullptr;
 };
-
 
 std::unique_ptr<Anim> Anim::Create(const proto::Entity2d& proto_entity) {
   if (proto_entity.animation_size() == 0)
@@ -41,6 +41,18 @@ void Anim::Update() {
     current_sequence_->Start();
 
   current_sequence_->Update();
+}
+
+void Anim::Signal(proto::Entity2d::Animation::Type anim_type) {
+  AnimSequence2d* transition = FindOrNull(sequence_map_, (u32)anim_type);
+  if (!transition) {
+    LOG(ERR, "Couldn't find valid anim transition for type %u", (u32)anim_type);
+    return;
+  }
+  if (transition != current_sequence_) {
+    current_sequence_ = transition;
+    current_sequence_->Start();
+  }
 }
 
 const AnimFrame2d* Anim::CurrentFrame() {

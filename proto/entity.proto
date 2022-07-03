@@ -14,6 +14,7 @@ message Entity2d {
       kUndefined = 0;
       kIdle = 1;
       kMove = 2;
+      kJump = 3;
     }
     optional string animation_file = 1;
     optional Type type = 2;

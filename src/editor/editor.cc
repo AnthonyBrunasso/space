@@ -97,6 +97,15 @@ std::string GetAssetRelative(const std::string& full_path) {
   return GetAssetRelative(full_path.c_str());
 }
 
+std::string GetGamedataFile(const std::string& gamedata_relative) {
+#ifdef _WIN32
+  std::string r = ".\\gamedata";
+#else
+  std::string r = "./gamedata";
+#endif
+  return filesystem::JoinPath(r, gamedata_relative);
+}
+
 static const std::vector<std::string> kEditorKnownAssetExtensions = {
   "tga",
   "png",
@@ -532,4 +541,12 @@ void EditorMain() {
   EditorFileBrowser();
   EditorDebugMenu();
   EditorRenderViewport();
+
+  static bool do_once = true;
+  if (do_once) {
+    std::string load_map = GetGamedataFile("maps/test.map");
+    kEditor.current->OnFileSelected(load_map);
+    do_once = false;
+  }
 }
+

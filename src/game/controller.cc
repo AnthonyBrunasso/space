@@ -26,8 +26,11 @@ std::unique_ptr<PlayerController> PlayerController::Create(
 }
 
 void PlayerController::Update() {
+  b8 signal_idle = true;
   if (Input::Get().IsKeyDown(KEY_W)) {
     character_->pos_.y += 1.f;
+    character_->anim()->Signal(proto::Entity2d::Animation::kJump);
+    signal_idle = false;
   }
 
   if (Input::Get().IsKeyDown(KEY_S)) {
@@ -36,9 +39,16 @@ void PlayerController::Update() {
 
   if (Input::Get().IsKeyDown(KEY_D)) {
     character_->pos_.x += 1.f;
+    if (signal_idle) character_->anim()->Signal(proto::Entity2d::Animation::kMove);
+    signal_idle = false;
   }
 
   if (Input::Get().IsKeyDown(KEY_A)) {
     character_->pos_.x -= 1.f;
+    if (signal_idle) character_->anim()->Signal(proto::Entity2d::Animation::kMove);
+    signal_idle = false;
   }
+
+  if (signal_idle)
+    character_->anim()->Signal(proto::Entity2d::Animation::kIdle);
 }

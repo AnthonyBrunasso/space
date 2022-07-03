@@ -63,6 +63,10 @@ std::string JoinPath(const std::string& s1, const char* s2) {
   return JoinPath(s1.c_str(), s2);
 }
 
+std::string JoinPath(const std::string& s1, const std::string& s2) {
+  return JoinPath(s1.c_str(), s2.c_str());
+}
+
 std::string SanitizePath(const std::string& path);
 
 b8 MakeDirectory(const char* name);

@@ -1,0 +1,23 @@
+1 - Define the problem.
+
+  Build a sim like game (rimworld / dwarf fortress) that uses magic systems as a primary driver of economy.
+
+2 - Research the problem and existing solutions.
+
+3 - Brainstorm potential solutions.
+
+4 - Evaluate the proposals.
+
+5 - Protoype a proposal.
+
+6 - Evaluate Prototype.
+
+7 - If necessary, return to step 3.
+
+8 - Iterate.
+
+9 - Iterate.
+
+10 - Iterate.
+
+11 - When the amount of iteration does not result in improvements that are worth the effort, the feature is considered done.

@@ -1,6 +1,17 @@
 #pragma once
 
-#include "game/main.cc"
+// Uncomment for different games...
+
+//#include "platformer/main.cc"
+#include "sim/main.cc"
+
+void EditorGameViewerInitialize() {
+  static bool do_once = true;
+  if (do_once) {
+    kGame.render_physics_ = true;
+    do_once = false;
+  }
+}
 
 void EditorGameViewerProcessEvent(const PlatformEvent& event) {
   GameProcessEvent(event);
@@ -8,6 +19,7 @@ void EditorGameViewerProcessEvent(const PlatformEvent& event) {
 
 void EditorGameViewerMain() {
   EditorSetCurrent(&kGame);
+  EditorGameViewerInitialize();
   kGame.Main();
 }
 

@@ -44,7 +44,6 @@ struct EditorGrid {
   v2f origin_offset = v2f(0.f, 0.f);
 };
 
-
 struct EditorCursor {
   // x-y coordinates of the cursor in the editor, assuming bottom left is origin.
   v2f global_screen;
@@ -315,6 +314,42 @@ void EditorFileBrowserDefault() {
   ImGui::End();
 }
 
+
+class Input {
+public:
+  static Input& Get();
+
+  bool IsKeyDown(u32 keycode) const;
+  bool IsKeyUp(u32 keycode) const;
+  bool IsLMouseDown() const { return lmouse_down_; }
+  bool IsRMouseDown() const { return rmouse_down_; }
+
+  void SetKeyDown(u32 keycode, bool is_down);
+
+  std::unordered_map<u32, bool> key_map_;
+  bool lmouse_down_ = false;
+  bool rmouse_down_ = false;
+};
+
+Input& Input::Get() {
+  static Input kInput;
+  return kInput;
+}
+
+bool Input::IsKeyDown(u32 keycode) const {
+  const bool* key_down = FindOrNull(key_map_, keycode);
+  if (!key_down) return false;
+  return *key_down;
+}
+
+bool Input::IsKeyUp(u32 keycode) const {
+  return !IsKeyDown(keycode);
+}
+
+void Input::SetKeyDown(u32 keycode, bool is_down) {
+  key_map_[keycode] = is_down;
+}
+
 #include "entity_edit.cc"
 #include "sprite_animator.cc"
 #include "game_viewer.cc"
@@ -354,14 +389,38 @@ void EditorProcessEvent(const PlatformEvent& event) {
 
   switch(event.type) {
     case KEY_DOWN: {
+      Input::Get().SetKeyDown(event.key, true);
       switch (event.key) {
         case KEY_ESC: {
           EditorExit();
         } break;
       }
     } break;
-    case KEY_UP:
-    case MOUSE_UP:
+    case KEY_UP: {
+      Input::Get().SetKeyDown(event.key, false);
+    } break;
+    case MOUSE_DOWN: {
+      switch (event.key) {
+        case BUTTON_LEFT: {
+          Input::Get().lmouse_down_ = true;
+        } break;
+        case BUTTON_RIGHT: {
+          Input::Get().rmouse_down_ = true;
+        } break;
+        default: break;
+      }
+    } break;
+    case MOUSE_UP: {
+      switch (event.key) {
+        case BUTTON_LEFT: {
+          Input::Get().lmouse_down_ = false;
+        } break;
+        case BUTTON_RIGHT: {
+          Input::Get().rmouse_down_ = false;
+        } break;
+        default: break;
+      }
+    } break;
     case MOUSE_WHEEL:
     case NOT_IMPLEMENTED:
     default: break;
@@ -544,7 +603,7 @@ void EditorMain() {
 
   static bool do_once = true;
   if (do_once) {
-    std::string load_map = GetGamedataFile("maps/test.map");
+    std::string load_map = GetGamedataFile("maps/testsim.map");
     kEditor.current->OnFileSelected(load_map);
     do_once = false;
   }

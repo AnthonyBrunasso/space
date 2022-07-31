@@ -1,5 +1,7 @@
 #pragma once
 
+#include "util/misc.cc"
+
 std::vector<std::string> GetEntityBlueprints() {
   std::vector<std::string> blueprints;
   filesystem::WalkDirectory(kEntitiesDir, [&](const char* filename, bool is_dir) {

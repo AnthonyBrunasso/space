@@ -5,6 +5,9 @@ enum class PFlags {
   kStaticGeometry = 1,
 };
 
+struct PGrid {
+};
+
 struct PNode {
   v2f pos;
   v2f dims;

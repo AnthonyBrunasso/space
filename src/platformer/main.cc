@@ -1,5 +1,3 @@
-#include "utils.cc"
-
 class Input {
 public:
   static Input& Get();

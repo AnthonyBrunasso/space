@@ -63,9 +63,23 @@ public:
   proto::Entity2d entity_;
   AnimSequence2d running_anim2d_;
   Rectf selection_;
+  s32 brush_size_ = 1;
 };
 
 static MapMakerControl kMapMakerControl;
+
+std::vector<Rectf> GetRectsGivenBrushSize(const Rectf& origin, s32 size) {
+  std::vector<Rectf> rects;
+  for (s32 x = 0; x < size; ++x) {
+    for (s32 y = 0; y < size; ++y) {
+      Rectf rect = origin;
+      rect.x += (rect.width * x);
+      rect.y += (rect.height * y);
+      rects.push_back(rect);
+    }
+  }
+  return rects;
+}
 
 void MapMaker::OnInitialize() {}
 
@@ -102,10 +116,16 @@ void MapMaker::OnRender() {
     const rgg::Texture* texture = rgg::GetTexture(texture_id);
     if (texture) {
       Rectf src_rect = kMapMakerControl.selection();
-      Rectf dest_rect = kMapMaker.cursor().world_grid_cell;
-      dest_rect.width = src_rect.width;
-      dest_rect.height = src_rect.height;
-      rgg::RenderTexture(*texture, src_rect, Scale(dest_rect));
+
+      Rectf origin_rect = kMapMaker.cursor().world_grid_cell;
+      origin_rect.width = src_rect.width;
+      origin_rect.height = src_rect.height;
+
+      std::vector<Rectf> dest_rects = GetRectsGivenBrushSize(origin_rect, kMapMakerControl.brush_size_);
+
+      for (const Rectf& dest_rect : dest_rects) {
+        rgg::RenderTexture(*texture, src_rect, Scale(dest_rect));
+      }
     }
   }
 
@@ -232,6 +252,17 @@ void MapMakerControl::OnImGui() {
       }
       ImGui::SameLine();
       ImGui::SliderFloat("scale", &scale_, 1.f, 15.f, "%.0f", ImGuiSliderFlags_None);
+      if (ImGui::Button("-##brush")) {
+        brush_size_ -= 1;
+        if (brush_size_ <= 1) brush_size_ = 1.f;
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("+##brush")) {
+        brush_size_ += 1;
+        if (brush_size_ >= 10) brush_size_ = 10;
+      }
+      ImGui::SameLine();
+      ImGui::SliderInt("brush", &brush_size_, 1, 10, "%d", ImGuiSliderFlags_None);
       if (scale_ != pre_scale) {
         SetupRenderTarget();
       }
@@ -398,83 +429,6 @@ void EditorMapMakerProcessEvent(const PlatformEvent& event) {
   kMapMakerControl.UpdateCursor();
 
   switch(event.type) {
-    case MOUSE_DOWN: {
-      switch (event.key) {
-        case BUTTON_LEFT: {
-          if (kMapMakerControl.IsMouseInside() && kMapMakerControl.IsMouseInsideEditorSurface()) {
-            Rectf tex_rect = kMapMakerControl.cursor().world_grid_cell;
-            const rgg::Texture* texture = kMapMakerControl.GetTexture();
-            if (texture) {
-              tex_rect.x += texture->width / 2.f;
-              tex_rect.y += texture->height / 2.f;
-              kMapMakerControl.SetSelectionRect(tex_rect);
-            }
-          }
-
-          if (kMapMaker.IsMouseInsideEditorSurface() && !kMapMakerControl.IsMouseInside()) {
-            if (kMapMakerControl.HasSelection() &&
-                kMapMakerControl.mode() == MapMakerControl::kMapMakerModeArt) {
-              const rgg::Texture* texture = rgg::GetTexture(kMapMakerControl.texture_id_);
-              assert(texture);
-              Rectf src_rect = kMapMakerControl.selection();
-              Rectf dest_rect = kMapMaker.cursor().world_grid_cell;
-              dest_rect.width = src_rect.width;
-              dest_rect.height = src_rect.height;
-              kMapMaker.map_.AddTexture(kMapMaker.current_layer(), texture, src_rect, dest_rect);
-            }
-
-            if (kMapMakerControl.mode() == MapMakerControl::kMapMakerModeGeometry) {
-              Rectf world_rect = kMapMaker.cursor().world_grid_cell;
-              kMapMaker.map_.AddGeometry(world_rect);
-            }
-
-            if (kMapMakerControl.mode() == MapMakerControl::kMapMakerModeEntity) {
-              Rectf world_rect = kMapMaker.cursor().world_grid_cell;
-              kMapMakerControl.entity()->mutable_location()->set_x(world_rect.x);
-              kMapMakerControl.entity()->mutable_location()->set_y(world_rect.y);
-              kMapMaker.map_.AddEntity(*kMapMakerControl.entity());
-            }
-          }
-        } break;
-        case BUTTON_RIGHT: {
-          if (kMapMakerControl.mode() == MapMakerControl::kMapMakerModeGeometry) {
-            kMapMaker.map_.DeleteGeometryAtPoint(kMapMaker.cursor().world);
-          }
-        } break;
-      } break;
-    } break;
-    case KEY_DOWN: {
-      switch (event.key) {
-        case KEY_NUMPAD_UP:
-        case KEY_ARROW_UP: {
-          rgg::Camera* camera = kMapMaker.camera();
-          if (camera) {
-            camera->position += v2f(0.f, ScaleR32(16.f));
-          }
-        } break;
-        case KEY_NUMPAD_RIGHT:
-        case KEY_ARROW_RIGHT: {
-          rgg::Camera* camera = kMapMaker.camera();
-          if (camera) {
-            camera->position += v2f(ScaleR32(16.f), 0.f);
-          }
-        } break;
-        case KEY_NUMPAD_DOWN:
-        case KEY_ARROW_DOWN: {
-          rgg::Camera* camera = kMapMaker.camera();
-          if (camera) {
-            camera->position += v2f(0.f, ScaleR32(-16.f));
-          }
-        } break;
-        case KEY_NUMPAD_LEFT:
-        case KEY_ARROW_LEFT: {
-          rgg::Camera* camera = kMapMaker.camera();
-          if (camera) {
-            camera->position += v2f(ScaleR32(-16.f), 0.f);
-          }
-        } break;
-      }
-    } break;
     case MOUSE_WHEEL: {
       if (kMapMaker.IsMouseInsideEditorSurface() && !kMapMakerControl.IsMouseInside()) {
         if (event.wheel_delta > 0) {
@@ -501,9 +455,80 @@ void EditorMapMakerInitialize() {
   do_once = false;
 }
 
+void EditorMapMakerUpdate() {
+  if (Input::Get().IsLMouseDown()) {
+    if (kMapMakerControl.IsMouseInside() && kMapMakerControl.IsMouseInsideEditorSurface()) {
+      Rectf tex_rect = kMapMakerControl.cursor().world_grid_cell;
+      const rgg::Texture* texture = kMapMakerControl.GetTexture();
+      if (texture) {
+        tex_rect.x += texture->width / 2.f;
+        tex_rect.y += texture->height / 2.f;
+        kMapMakerControl.SetSelectionRect(tex_rect);
+      }
+    }
+
+    if (kMapMaker.IsMouseInsideEditorSurface() && !kMapMakerControl.IsMouseInside()) {
+      if (kMapMakerControl.HasSelection() &&
+          kMapMakerControl.mode() == MapMakerControl::kMapMakerModeArt) {
+        const rgg::Texture* texture = rgg::GetTexture(kMapMakerControl.texture_id_);
+        assert(texture);
+        Rectf src_rect = kMapMakerControl.selection();
+        Rectf origin_rect = kMapMaker.cursor().world_grid_cell;
+        origin_rect.width = src_rect.width;
+        origin_rect.height = src_rect.height;
+
+        std::vector<Rectf> dest_rects = GetRectsGivenBrushSize(origin_rect, kMapMakerControl.brush_size_);
+
+        for (const Rectf& dest_rect : dest_rects) {
+          kMapMaker.map_.AddTexture(kMapMaker.current_layer(), texture, src_rect, dest_rect);
+        }
+      }
+
+      if (kMapMakerControl.mode() == MapMakerControl::kMapMakerModeGeometry) {
+        Rectf world_rect = kMapMaker.cursor().world_grid_cell;
+        kMapMaker.map_.AddGeometry(world_rect);
+      }
+
+      if (kMapMakerControl.mode() == MapMakerControl::kMapMakerModeEntity) {
+        Rectf world_rect = kMapMaker.cursor().world_grid_cell;
+        kMapMakerControl.entity()->mutable_location()->set_x(world_rect.x);
+        kMapMakerControl.entity()->mutable_location()->set_y(world_rect.y);
+        kMapMaker.map_.AddEntity(*kMapMakerControl.entity());
+      }
+    }
+  }
+
+  if (Input::Get().IsRMouseDown()) {
+    if (kMapMakerControl.mode() == MapMakerControl::kMapMakerModeGeometry) {
+      kMapMaker.map_.DeleteGeometryAtPoint(kMapMaker.cursor().world);
+    }
+  }
+
+  rgg::Camera* camera = kMapMaker.camera();
+  if (!camera)
+    return;
+
+  if (Input::Get().IsKeyDown(KEY_ARROW_UP)) {
+    camera->position += v2f(0.f, ScaleR32(16.f));
+  }
+  
+  if (Input::Get().IsKeyDown(KEY_ARROW_RIGHT)) {
+    camera->position += v2f(ScaleR32(16.f), 0.f);
+  }
+
+  if (Input::Get().IsKeyDown(KEY_ARROW_DOWN)) {
+    camera->position += v2f(0.f, ScaleR32(-16.f));
+  }
+
+  if (Input::Get().IsKeyDown(KEY_ARROW_LEFT)) {
+    camera->position += v2f(ScaleR32(-16.f), 0.f);
+  }
+}
+
 void EditorMapMakerMain() {
   EditorSetCurrent(&kMapMaker);
   EditorMapMakerInitialize();
+  EditorMapMakerUpdate();
   kMapMaker.Render();
   kMapMakerControl.Render();
 }
